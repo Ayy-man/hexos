@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { DASHBOARD_ROUTES } from './types'
 
 export async function signIn(formData: FormData): Promise<void> {
   const email = formData.get('email') as string
@@ -19,23 +18,8 @@ export async function signIn(formData: FormData): Promise<void> {
     redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
-  // Get the logged-in user
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login?error=' + encodeURIComponent('Authentication failed'))
-  }
-
-  // Get profile to determine dashboard
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  const dashboardRoute = profile ? DASHBOARD_ROUTES[profile.role as keyof typeof DASHBOARD_ROUTES] : '/dashboard/admin'
-
-  redirect(dashboardRoute)
+  // Redirect to dashboard - it will handle role-based routing
+  redirect('/dashboard')
 }
 
 export async function signOut() {

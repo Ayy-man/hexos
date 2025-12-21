@@ -1,7 +1,6 @@
 import { signIn } from '@/lib/auth/actions'
-import { getProfile } from '@/lib/auth/guards'
+import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { DASHBOARD_ROUTES } from '@/lib/auth/types'
 
 const TEST_USERS = [
   { email: 'admin@test.hexos', password: 'test1234', role: 'Admin', color: 'bg-red-500' },
@@ -20,16 +19,12 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  // Check if already logged in
-  let profile = null
-  try {
-    profile = await getProfile()
-  } catch {
-    // Not logged in or error - continue to show login
-  }
+  // Check if already logged in (auth only, no DB query)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (profile) {
-    redirect(DASHBOARD_ROUTES[profile.role])
+  if (user) {
+    redirect('/dashboard')
   }
 
   const { error } = await searchParams
