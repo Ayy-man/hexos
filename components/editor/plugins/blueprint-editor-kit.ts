@@ -6,21 +6,18 @@ import {
   H2Plugin,
   H3Plugin,
 } from '@platejs/basic-nodes/react'
+import { LinkPlugin } from '@platejs/link/react'
+import { ListPlugin } from '@platejs/list/react'
 import { ParagraphPlugin } from 'platejs/react'
 
 import { BasicMarksKit } from '@/components/editor/plugins/basic-marks-kit'
-import { CommentKit } from '@/components/editor/plugins/comment-kit'
-import { SuggestionKit } from '@/components/editor/plugins/suggestion-kit'
-import { DiscussionKit, createDiscussionKit, type DiscussionUser, type TDiscussion } from '@/components/editor/plugins/discussion-kit'
 import { ParagraphElement } from '@/components/ui/paragraph-node'
 import { H1Element, H2Element, H3Element } from '@/components/ui/heading-node'
 import { BlockquoteElement } from '@/components/ui/blockquote-node'
-
-// Re-export for convenience
-export type { DiscussionUser, TDiscussion }
+import { LinkElement } from '@/components/ui/link-node'
 
 // Basic blocks (paragraph, headings, blockquote)
-export const BasicBlocksPlugins = [
+const BasicBlocksPlugins = [
   ParagraphPlugin.withComponent(ParagraphElement),
   H1Plugin.configure({
     node: { component: H1Element },
@@ -40,23 +37,23 @@ export const BasicBlocksPlugins = [
   }),
 ]
 
-// Factory to create plugins with current user and initial discussions
-export const createInquiryDocumentPlugins = (
-  currentUser?: DiscussionUser,
-  initialDiscussions?: TDiscussion[]
-) => [
-  ...BasicBlocksPlugins,
-  ...BasicMarksKit,
-  ...CommentKit,
-  ...SuggestionKit,
-  ...createDiscussionKit(currentUser, initialDiscussions),
+// Link plugin
+const LinkPlugins = [
+  LinkPlugin.configure({
+    node: { component: LinkElement },
+  }),
 ]
 
-// Default plugins (backwards compatible, uses anonymous user)
-export const InquiryDocumentPlugins = [
+// List plugin (indent-based lists)
+const ListPlugins = [
+  ListPlugin,
+]
+
+// Complete blueprint editor plugins
+// No comments/suggestions - blueprints are documentation, not collaborative
+export const BlueprintEditorPlugins = [
   ...BasicBlocksPlugins,
+  ...ListPlugins,
+  ...LinkPlugins,
   ...BasicMarksKit,
-  ...CommentKit,
-  ...SuggestionKit,
-  ...DiscussionKit,
 ]

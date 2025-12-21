@@ -5,12 +5,13 @@ import { InquiryDocument } from './InquiryDocument'
 import { CommentsSidebar } from './CommentsSidebar'
 import { FullscreenDocument } from './FullscreenDocument'
 import type { InquiryComment, CommentType } from '@/lib/api/inquiry-comments'
-import type { DiscussionUser } from './editor/plugins'
+import type { DiscussionUser, TDiscussion } from './editor/plugins'
 
 interface InquiryDocumentTabProps {
   inquiryId: string
   initialDocumentContent: unknown
   generatedDocumentContent: unknown // Generated from form_data
+  initialInlineDiscussions?: TDiscussion[] // Persisted inline discussions
   internalComments: InquiryComment[]
   dfyComments: InquiryComment[]
   canEdit: boolean
@@ -18,7 +19,7 @@ interface InquiryDocumentTabProps {
   showInternalTab: boolean // Admin/internal can see internal chat
   showDfyTab: boolean // Everyone can see DFY chat
   currentUser?: DiscussionUser // Current logged-in user for discussions
-  saveDocument: (content: unknown) => Promise<void>
+  saveDocument: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   addComment: (content: string, commentType: CommentType, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
   deleteComment: (commentId: string) => Promise<void>
@@ -28,6 +29,7 @@ export function InquiryDocumentTab({
   inquiryId,
   initialDocumentContent,
   generatedDocumentContent,
+  initialInlineDiscussions,
   internalComments: initialInternalComments,
   dfyComments: initialDfyComments,
   canEdit,
@@ -56,10 +58,10 @@ export function InquiryDocumentTab({
     return [{ type: 'p', children: [{ text: 'No content available' }] }]
   }, [initialDocumentContent, generatedDocumentContent])
 
-  // Handle saving document
+  // Handle saving document with inline discussions
   const handleSaveDocument = useCallback(
-    async (content: unknown) => {
-      await saveDocument(content)
+    async (content: unknown, discussions: TDiscussion[]) => {
+      await saveDocument(content, discussions)
     },
     [saveDocument]
   )
@@ -134,6 +136,7 @@ export function InquiryDocumentTab({
             inquiryId={inquiryId}
             initialContent={initialDocumentContent}
             generatedContent={generatedDocumentContent}
+            initialDiscussions={initialInlineDiscussions}
             readOnly={!canEdit}
             currentUser={currentUser}
             onSave={canEdit ? handleSaveDocument : undefined}
@@ -162,6 +165,7 @@ export function InquiryDocumentTab({
         <FullscreenDocument
           inquiryId={inquiryId}
           documentContent={currentDocumentContent}
+          initialDiscussions={initialInlineDiscussions}
           internalComments={internalComments}
           dfyComments={dfyComments}
           readOnly={!canEdit}

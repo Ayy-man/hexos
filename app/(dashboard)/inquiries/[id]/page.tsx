@@ -13,11 +13,12 @@ import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocum
 import { InquiryActions } from '@/features/inquiries/components/InquiryActions'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
-  saveInquiryDocument,
+  saveInquiryDocumentWithDiscussions,
   addInquiryComment,
   resolveInquiryCommentAction,
   deleteInquiryCommentAction,
 } from '@/features/inquiries/actions/documentActions'
+import type { TDiscussion } from '@/features/inquiries/components/editor/plugins'
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -147,9 +148,9 @@ export default async function InquiryDetailPage({
   })
 
   // Create bound server actions
-  const boundSaveDocument = async (content: unknown) => {
+  const boundSaveDocument = async (content: unknown, discussions: TDiscussion[]) => {
     'use server'
-    await saveInquiryDocument(id, content)
+    await saveInquiryDocumentWithDiscussions(id, content, discussions)
   }
 
   const boundAddComment = async (content: string, commentType: CommentType, parentId?: string) => {
@@ -380,6 +381,7 @@ export default async function InquiryDetailPage({
             inquiryId={id}
             initialDocumentContent={inquiry.document_content}
             generatedDocumentContent={generatedDocumentContent}
+            initialInlineDiscussions={(inquiry.inline_discussions as TDiscussion[]) || []}
             internalComments={internalComments}
             dfyComments={dfyComments}
             canEdit={canEdit}

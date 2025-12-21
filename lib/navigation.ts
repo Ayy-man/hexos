@@ -49,6 +49,7 @@ const internalNav: NavGroup[] = [
     items: [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
+      { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
     ],
   },
   {
@@ -90,6 +91,7 @@ const dfyNav: NavGroup[] = [
   {
     label: 'Business',
     items: [
+      { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'My Deals', url: '/projects', icon: 'Briefcase' },
       { title: 'Submit Inquiry', url: '/inquiries/new', icon: 'Send' },
     ],

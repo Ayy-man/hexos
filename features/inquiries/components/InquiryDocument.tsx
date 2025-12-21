@@ -2,13 +2,14 @@
 
 import * as React from 'react'
 import { Plate, usePlateEditor } from 'platejs/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Editor, EditorContainer } from '@/components/ui/editor'
 import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { Skeleton } from '@/components/ui/skeleton'
-import { createInquiryDocumentPlugins, type DiscussionUser } from './editor/plugins'
+import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } from './editor/plugins'
+import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
 import { Button } from '@/components/ui/button'
 import { FileText, Save, CheckCircle, Maximize2 } from 'lucide-react'
 
@@ -16,9 +17,10 @@ interface InquiryDocumentProps {
   inquiryId: string
   initialContent: unknown
   generatedContent: unknown // Pre-generated from form_data
+  initialDiscussions?: TDiscussion[] // Persisted inline discussions
   readOnly?: boolean
   currentUser?: DiscussionUser // Current logged-in user for discussions
-  onSave?: (content: unknown) => Promise<void>
+  onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   onFullscreen?: () => void
 }
 
@@ -26,6 +28,7 @@ export function InquiryDocument({
   inquiryId,
   initialContent,
   generatedContent,
+  initialDiscussions,
   readOnly = false,
   currentUser,
   onSave,
@@ -35,6 +38,7 @@ export function InquiryDocument({
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const editorRef = useRef<ReturnType<typeof usePlateEditor> | null>(null)
 
   // Use saved content if available, otherwise use generated content from form_data
   const parsedInitialContent = React.useMemo(() => {
@@ -49,16 +53,18 @@ export function InquiryDocument({
     return [{ type: 'p', children: [{ text: 'No content available' }] }]
   }, [initialContent, generatedContent])
 
-  // Create plugins with current user for discussions
+  // Create plugins with current user and initial discussions
   const plugins = React.useMemo(
-    () => createInquiryDocumentPlugins(currentUser),
-    [currentUser]
+    () => createInquiryDocumentPlugins(currentUser, initialDiscussions),
+    [currentUser, initialDiscussions]
   )
 
   const editor = usePlateEditor({
     plugins,
     value: parsedInitialContent,
   })
+  // Keep a ref to the editor for use in callbacks
+  editorRef.current = editor
 
   // Debounced auto-save function
   const debouncedSave = useCallback(
@@ -67,7 +73,12 @@ export function InquiryDocument({
 
       setIsSaving(true)
       try {
-        await onSave(content)
+        // Extract current discussions from the editor plugin
+        const currentEditor = editorRef.current
+        const discussions = currentEditor
+          ? (currentEditor.getOption(discussionPlugin, 'discussions') as TDiscussion[])
+          : []
+        await onSave(content, discussions)
         setLastSaved(new Date())
         setHasChanges(false)
       } catch (error) {
@@ -76,6 +87,7 @@ export function InquiryDocument({
         setIsSaving(false)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [onSave, readOnly]
   )
 

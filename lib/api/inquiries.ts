@@ -103,12 +103,21 @@ export async function convertInquiryToProject(inquiryId: string, projectId: stri
 }
 
 // Document content operations for Plate.js editor
-export async function updateInquiryDocument(id: string, documentContent: unknown) {
+export async function updateInquiryDocument(
+  id: string,
+  documentContent: unknown,
+  inlineDiscussions?: unknown
+) {
   const supabase = await createClient()
+
+  const updateData: Record<string, unknown> = { document_content: documentContent }
+  if (inlineDiscussions !== undefined) {
+    updateData.inline_discussions = inlineDiscussions
+  }
 
   const { error } = await supabase
     .from('inquiries')
-    .update({ document_content: documentContent })
+    .update(updateData)
     .eq('id', id)
 
   if (error) throw error
@@ -119,7 +128,7 @@ export async function getInquiryDocument(id: string) {
 
   const { data, error } = await supabase
     .from('inquiries')
-    .select('id, document_content')
+    .select('id, document_content, inline_discussions')
     .eq('id', id)
     .single()
 

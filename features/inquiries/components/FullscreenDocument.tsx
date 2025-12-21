@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback, useMemo } from 'react'
+import { useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { X, Minimize2 } from 'lucide-react'
@@ -9,12 +9,14 @@ import { Editor, EditorContainer } from '@/components/ui/editor'
 import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { CommentsSidebar } from './CommentsSidebar'
-import { createInquiryDocumentPlugins, type DiscussionUser } from './editor/plugins'
+import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } from './editor/plugins'
+import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
 import type { InquiryComment, CommentType } from '@/lib/api/inquiry-comments'
 
 interface FullscreenDocumentProps {
   inquiryId: string
   documentContent: unknown
+  initialDiscussions?: TDiscussion[]
   internalComments: InquiryComment[]
   dfyComments: InquiryComment[]
   readOnly: boolean
@@ -24,7 +26,7 @@ interface FullscreenDocumentProps {
   showDfyTab: boolean
   currentUser?: DiscussionUser
   onClose: () => void
-  onSave?: (content: unknown) => Promise<void>
+  onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
   onResolve?: (commentId: string, resolved: boolean) => Promise<void>
   onDelete?: (commentId: string) => Promise<void>
@@ -33,6 +35,7 @@ interface FullscreenDocumentProps {
 export function FullscreenDocument({
   inquiryId,
   documentContent,
+  initialDiscussions,
   internalComments,
   dfyComments,
   readOnly,
@@ -66,23 +69,32 @@ export function FullscreenDocument({
     }
   }, [])
 
-  // Create plugins with current user for discussions
+  // Create plugins with current user and initial discussions
   const plugins = useMemo(
-    () => createInquiryDocumentPlugins(currentUser),
-    [currentUser]
+    () => createInquiryDocumentPlugins(currentUser, initialDiscussions),
+    [currentUser, initialDiscussions]
   )
+
+  const editorRef = useRef<ReturnType<typeof usePlateEditor> | null>(null)
 
   const editor = usePlateEditor({
     plugins,
     value: documentContent as any,
   })
+  // Keep a ref to the editor for use in callbacks
+  editorRef.current = editor
 
   const handleChange = useCallback(
     (value: { value: unknown }) => {
       if (readOnly || !onSave) return
-      // Auto-save is handled by debounce in parent - we just pass changes up
-      onSave(value.value)
+      // Extract current discussions from the editor plugin
+      const currentEditor = editorRef.current
+      const discussions = currentEditor
+        ? (currentEditor.getOption(discussionPlugin, 'discussions') as TDiscussion[])
+        : []
+      onSave(value.value, discussions)
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [onSave, readOnly]
   )
 

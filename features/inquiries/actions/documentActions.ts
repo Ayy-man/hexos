@@ -23,6 +23,20 @@ export async function saveInquiryDocument(
   }
 }
 
+export async function saveInquiryDocumentWithDiscussions(
+  inquiryId: string,
+  content: unknown,
+  discussions: unknown
+): Promise<void> {
+  try {
+    await updateInquiryDocument(inquiryId, content, discussions)
+    // Don't revalidate on auto-save to avoid unnecessary re-renders
+  } catch (error) {
+    // Columns may not exist yet - silently fail
+    console.warn('Failed to save document with discussions:', error)
+  }
+}
+
 export async function addInquiryComment(
   inquiryId: string,
   content: string,
