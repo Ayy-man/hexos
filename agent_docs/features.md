@@ -60,6 +60,17 @@ See `inquiry-form.md` for full specification.
 - [ ] Inquiry → Project conversion (closed deals)
 - [x] Inquiries list page (admin/internal see all, dfy sees own)
 - [x] Inquiry detail page (/inquiries/[id])
+  - [x] Overview tab (form data display)
+  - [x] Document tab (Plate.js rich text editor)
+- [x] Document editor (Plate.js)
+  - [x] Rich text editing (headings, bold, italic, blockquote)
+  - [x] Auto-save with 1.5s debounce
+  - [x] document_content JSONB column on inquiries
+- [x] Comments/annotations system
+  - [x] inquiry_comments table with RLS
+  - [x] Thread support (replies)
+  - [x] Resolve/unresolve comments
+  - [x] Role-based access (admin/internal can edit, dfy can view own)
 
 ### Phase 5: External Access
 
@@ -185,7 +196,19 @@ components/
 ├── theme-provider.tsx      # next-themes wrapper
 ├── theme-toggle.tsx        # Light/Dark/System dropdown
 ├── app-sidebar.tsx         # Main navigation + theme toggle
-└── nav-user.tsx            # User menu in sidebar
+├── nav-user.tsx            # User menu in sidebar
+└── ui/
+    ├── editor.tsx          # Plate.js editor components
+    ├── toolbar.tsx         # Editor toolbar
+    ├── paragraph-node.tsx  # Paragraph element
+    ├── heading-node.tsx    # H1-H3 elements
+    └── blockquote-node.tsx # Blockquote element
+
+features/inquiries/components/
+├── InquiryDocument.tsx     # Plate.js editor wrapper with auto-save
+├── InquiryDocumentTab.tsx  # Document tab orchestrator
+├── CommentsSidebar.tsx     # Comment threads UI
+└── editor/plugins.ts       # Plate.js plugin configuration
 ```
 
 ## Data Fetching Pattern
