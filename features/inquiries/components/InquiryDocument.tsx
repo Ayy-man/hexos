@@ -8,7 +8,7 @@ import { Editor, EditorContainer } from '@/components/ui/editor'
 import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { Skeleton } from '@/components/ui/skeleton'
-import { InquiryDocumentPlugins } from './editor/plugins'
+import { createInquiryDocumentPlugins, type DiscussionUser } from './editor/plugins'
 import { Button } from '@/components/ui/button'
 import { FileText, Save, CheckCircle, Maximize2 } from 'lucide-react'
 
@@ -17,6 +17,7 @@ interface InquiryDocumentProps {
   initialContent: unknown
   generatedContent: unknown // Pre-generated from form_data
   readOnly?: boolean
+  currentUser?: DiscussionUser // Current logged-in user for discussions
   onSave?: (content: unknown) => Promise<void>
   onFullscreen?: () => void
 }
@@ -26,6 +27,7 @@ export function InquiryDocument({
   initialContent,
   generatedContent,
   readOnly = false,
+  currentUser,
   onSave,
   onFullscreen,
 }: InquiryDocumentProps) {
@@ -47,8 +49,14 @@ export function InquiryDocument({
     return [{ type: 'p', children: [{ text: 'No content available' }] }]
   }, [initialContent, generatedContent])
 
+  // Create plugins with current user for discussions
+  const plugins = React.useMemo(
+    () => createInquiryDocumentPlugins(currentUser),
+    [currentUser]
+  )
+
   const editor = usePlateEditor({
-    plugins: InquiryDocumentPlugins,
+    plugins,
     value: parsedInitialContent,
   })
 

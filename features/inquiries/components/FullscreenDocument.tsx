@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { X, Minimize2 } from 'lucide-react'
@@ -9,7 +9,7 @@ import { Editor, EditorContainer } from '@/components/ui/editor'
 import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { CommentsSidebar } from './CommentsSidebar'
-import { InquiryDocumentPlugins } from './editor/plugins'
+import { createInquiryDocumentPlugins, type DiscussionUser } from './editor/plugins'
 import type { InquiryComment } from '@/lib/api/inquiry-comments'
 
 interface FullscreenDocumentProps {
@@ -19,6 +19,7 @@ interface FullscreenDocumentProps {
   readOnly: boolean
   canComment: boolean
   canEdit: boolean
+  currentUser?: DiscussionUser
   onClose: () => void
   onSave?: (content: unknown) => Promise<void>
   onAddComment?: (content: string, parentId?: string) => Promise<void>
@@ -33,6 +34,7 @@ export function FullscreenDocument({
   readOnly,
   canComment,
   canEdit,
+  currentUser,
   onClose,
   onSave,
   onAddComment,
@@ -58,8 +60,14 @@ export function FullscreenDocument({
     }
   }, [])
 
+  // Create plugins with current user for discussions
+  const plugins = useMemo(
+    () => createInquiryDocumentPlugins(currentUser),
+    [currentUser]
+  )
+
   const editor = usePlateEditor({
-    plugins: InquiryDocumentPlugins,
+    plugins,
     value: documentContent as any,
   })
 

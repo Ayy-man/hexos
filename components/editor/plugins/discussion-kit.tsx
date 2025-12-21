@@ -107,42 +107,56 @@ const discussionsData: TDiscussion[] = [
 const avatarUrl = (seed: string) =>
   `https://api.dicebear.com/9.x/glass/svg?seed=${seed}`;
 
-const usersData: Record<
-  string,
-  { id: string; avatarUrl: string; name: string; hue?: number }
-> = {
-  alice: {
-    id: 'alice',
-    avatarUrl: avatarUrl('alice6'),
-    name: 'Alice',
-  },
-  bob: {
-    id: 'bob',
-    avatarUrl: avatarUrl('bob4'),
-    name: 'Bob',
-  },
-  charlie: {
-    id: 'charlie',
-    avatarUrl: avatarUrl('charlie2'),
-    name: 'Charlie',
-  },
+export type DiscussionUser = {
+  id: string;
+  name: string;
+  avatarUrl?: string;
 };
 
-// This plugin is purely UI. It's only used to store the discussions and users data
-export const discussionPlugin = createPlatePlugin({
-  key: 'discussion',
-  options: {
-    currentUserId: 'alice',
-    discussions: discussionsData,
-    users: usersData,
-  },
-})
-  .configure({
-    render: { aboveNodes: BlockDiscussion },
+// Create discussion plugin with dynamic user
+export const createDiscussionPlugin = (currentUser?: DiscussionUser) => {
+  const userId = currentUser?.id || 'anonymous';
+  const userName = currentUser?.name || 'Anonymous';
+  const userAvatar = currentUser?.avatarUrl || avatarUrl(userId);
+
+  const usersData: Record<
+    string,
+    { id: string; avatarUrl: string; name: string; hue?: number }
+  > = {
+    [userId]: {
+      id: userId,
+      avatarUrl: userAvatar,
+      name: userName,
+    },
+  };
+
+  return createPlatePlugin({
+    key: 'discussion',
+    options: {
+      currentUserId: userId,
+      discussions: discussionsData,
+      users: usersData,
+    },
   })
-  .extendSelectors(({ getOption }) => ({
-    currentUser: () => getOption('users')[getOption('currentUserId')],
-    user: (id: string) => getOption('users')[id],
-  }));
+    .configure({
+      render: { aboveNodes: BlockDiscussion },
+    })
+    .extendSelectors(({ getOption }) => ({
+      currentUser: () => getOption('users')[getOption('currentUserId')],
+      user: (id: string) => getOption('users')[id] || {
+        id,
+        name: id,
+        avatarUrl: avatarUrl(id),
+      },
+    }));
+};
+
+// Default plugin for backwards compatibility (uses anonymous)
+export const discussionPlugin = createDiscussionPlugin();
 
 export const DiscussionKit = [discussionPlugin];
+
+// Factory to create kit with current user
+export const createDiscussionKit = (currentUser?: DiscussionUser) => [
+  createDiscussionPlugin(currentUser),
+];

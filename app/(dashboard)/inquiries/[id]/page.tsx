@@ -368,6 +368,10 @@ export default async function InquiryDetailPage({
             initialComments={comments}
             canEdit={canEdit}
             canComment={canComment}
+            currentUser={{
+              id: profile.id,
+              name: profile.name || profile.email || 'User',
+            }}
             saveDocument={boundSaveDocument}
             addComment={boundAddComment}
             resolveComment={boundResolveComment}

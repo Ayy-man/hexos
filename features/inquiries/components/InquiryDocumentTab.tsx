@@ -5,6 +5,7 @@ import { InquiryDocument } from './InquiryDocument'
 import { CommentsSidebar } from './CommentsSidebar'
 import { FullscreenDocument } from './FullscreenDocument'
 import type { InquiryComment } from '@/lib/api/inquiry-comments'
+import type { DiscussionUser } from './editor/plugins'
 
 interface InquiryDocumentTabProps {
   inquiryId: string
@@ -13,6 +14,7 @@ interface InquiryDocumentTabProps {
   initialComments: InquiryComment[]
   canEdit: boolean
   canComment: boolean // DFY can comment but not edit
+  currentUser?: DiscussionUser // Current logged-in user for discussions
   saveDocument: (content: unknown) => Promise<void>
   addComment: (content: string, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
@@ -26,6 +28,7 @@ export function InquiryDocumentTab({
   initialComments,
   canEdit,
   canComment,
+  currentUser,
   saveDocument,
   addComment,
   resolveComment,
@@ -113,6 +116,7 @@ export function InquiryDocumentTab({
             initialContent={initialDocumentContent}
             generatedContent={generatedDocumentContent}
             readOnly={!canEdit}
+            currentUser={currentUser}
             onSave={canEdit ? handleSaveDocument : undefined}
             onFullscreen={() => setIsFullscreen(true)}
           />
@@ -140,6 +144,7 @@ export function InquiryDocumentTab({
           readOnly={!canEdit}
           canComment={canComment}
           canEdit={canEdit}
+          currentUser={currentUser}
           onClose={() => setIsFullscreen(false)}
           onSave={canEdit ? handleSaveDocument : undefined}
           onAddComment={canComment ? handleAddComment : undefined}
