@@ -175,3 +175,20 @@ export async function deleteBlueprint(id: string): Promise<void> {
 
   if (error) throw error
 }
+
+export async function duplicateBlueprint(id: string): Promise<Blueprint> {
+  const original = await getBlueprint(id)
+  if (!original) throw new Error('Blueprint not found')
+
+  return createBlueprint({
+    name: `${original.name} (Copy)`,
+    description: original.description || undefined,
+    estimated_hours: original.estimated_hours || undefined,
+    base_price: original.base_price || undefined,
+    content: original.content || undefined,
+    pricing_tiers: original.pricing_tiers || [],
+    tags: original.tags || [],
+    status: 'draft', // Always create as draft
+    icon: original.icon || undefined,
+  })
+}

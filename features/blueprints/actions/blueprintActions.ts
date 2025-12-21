@@ -6,6 +6,7 @@ import {
   createBlueprint,
   updateBlueprint,
   deleteBlueprint,
+  duplicateBlueprint,
   type CreateBlueprintInput,
   type UpdateBlueprintInput,
 } from '@/lib/api/blueprints'
@@ -43,4 +44,10 @@ export async function unpublishBlueprintAction(id: string) {
   await updateBlueprint(id, { status: 'draft' })
   revalidatePath('/blueprints')
   revalidatePath(`/blueprints/${id}`)
+}
+
+export async function duplicateBlueprintAction(id: string) {
+  const newBlueprint = await duplicateBlueprint(id)
+  revalidatePath('/blueprints')
+  redirect(`/blueprints/${newBlueprint.id}?edit=true`)
 }

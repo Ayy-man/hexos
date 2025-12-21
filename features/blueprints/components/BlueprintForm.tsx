@@ -13,6 +13,7 @@ import { Loader2, Save } from 'lucide-react'
 import { TagInput } from './TagInput'
 import { PricingTiersEditor } from './PricingTiersEditor'
 import { BlueprintEditor } from './BlueprintEditor'
+import { IconPicker } from './IconPicker'
 import {
   createBlueprintAction,
   updateBlueprintAction,
@@ -23,8 +24,6 @@ interface BlueprintFormProps {
   blueprint?: Blueprint
   mode: 'create' | 'edit'
 }
-
-const EMOJI_OPTIONS = ['🤖', '💬', '📧', '📱', '🔄', '📊', '🎯', '⚡', '🛠️', '💼']
 
 export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
   const router = useRouter()
@@ -76,20 +75,7 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
           <div className="grid gap-4 md:grid-cols-[auto_1fr]">
             <div className="space-y-2">
               <Label>Icon</Label>
-              <div className="flex flex-wrap gap-1">
-                {EMOJI_OPTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => setIcon(emoji)}
-                    className={`p-2 text-xl rounded-md hover:bg-muted ${
-                      icon === emoji ? 'bg-muted ring-2 ring-cyan-500' : ''
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
+              <IconPicker value={icon} onChange={setIcon} />
             </div>
             <div className="space-y-4">
               <div className="space-y-2">

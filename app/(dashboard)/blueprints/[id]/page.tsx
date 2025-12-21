@@ -14,9 +14,10 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { ArrowLeft, Clock, DollarSign, Edit, Eye } from 'lucide-react'
+import { ArrowLeft, Clock, DollarSign } from 'lucide-react'
 import { BlueprintContentSection } from '@/features/blueprints/components/BlueprintContentSection'
 import { PricingTiersDisplay } from '@/features/blueprints/components/PricingTiersDisplay'
+import { BlueprintActions } from '@/features/blueprints/components/BlueprintActions'
 
 interface BlueprintDetailPageProps {
   params: Promise<{ id: string }>
@@ -86,23 +87,7 @@ export default async function BlueprintDetailPage({
 
         {/* Admin Actions */}
         {isAdmin && (
-          <div className="flex gap-2">
-            {isEditMode ? (
-              <Button variant="outline" asChild>
-                <Link href={`/blueprints/${id}`}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Mode
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="outline" asChild>
-                <Link href={`/blueprints/${id}?edit=true`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Link>
-              </Button>
-            )}
-          </div>
+          <BlueprintActions blueprintId={id} isEditMode={isEditMode} />
         )}
       </div>
 
