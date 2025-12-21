@@ -1,22 +1,23 @@
 'use client'
 
-import { useState, useCallback, useTransition, useMemo } from 'react'
+import { useState, useCallback, useTransition } from 'react'
 import { Plate, usePlateEditor } from 'platejs/react'
 import { Editor, EditorContainer } from '@/components/ui/editor'
-import { FloatingToolbar } from '@/components/ui/floating-toolbar'
-import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
+import { FixedToolbar } from '@/components/ui/fixed-toolbar'
+import { FixedToolbarButtons } from '@/components/ui/fixed-toolbar-buttons'
 import { BlueprintEditorPlugins } from '@/components/editor/plugins/blueprint-editor-kit'
 import { Button } from '@/components/ui/button'
-import { Save, Loader2 } from 'lucide-react'
+import { Save, Loader2, Maximize2 } from 'lucide-react'
 import { updateBlueprintContentAction } from '../actions/blueprintActions'
 import { useDebouncedCallback } from '@/hooks/use-debounce'
 
 interface BlueprintEditorProps {
   blueprintId: string
   initialContent: unknown
+  onFullscreen?: () => void
 }
 
-export function BlueprintEditor({ blueprintId, initialContent }: BlueprintEditorProps) {
+export function BlueprintEditor({ blueprintId, initialContent, onFullscreen }: BlueprintEditorProps) {
   const [isPending, startTransition] = useTransition()
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -71,19 +72,37 @@ export function BlueprintEditor({ blueprintId, initialContent }: BlueprintEditor
             'Auto-save enabled'
           )}
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleManualSave}
-          disabled={isPending || !hasUnsavedChanges}
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualSave}
+            disabled={isPending || !hasUnsavedChanges}
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save
+          </Button>
+          {onFullscreen && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onFullscreen}
+              className="h-8 w-8"
+              title="Open fullscreen"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-hidden">
         <Plate editor={editor} onChange={handleChange}>
+          {/* Fixed Toolbar Header */}
+          <FixedToolbar className="rounded-t-lg rounded-b-none">
+            <FixedToolbarButtons />
+          </FixedToolbar>
+
           <EditorContainer className="min-h-[500px] bg-background">
             <Editor
               variant="fullWidth"
@@ -91,10 +110,6 @@ export function BlueprintEditor({ blueprintId, initialContent }: BlueprintEditor
               placeholder="Start writing your blueprint content..."
             />
           </EditorContainer>
-
-          <FloatingToolbar>
-            <FloatingToolbarButtons />
-          </FloatingToolbar>
         </Plate>
       </div>
     </div>

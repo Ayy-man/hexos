@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { requireRole } from '@/lib/auth/guards'
 import { getBlueprint } from '@/lib/api/blueprints'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -14,9 +14,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { ArrowLeft, Clock, DollarSign, Edit, Eye, EyeOff, Trash2 } from 'lucide-react'
-import { BlueprintViewer } from '@/features/blueprints/components/BlueprintViewer'
-import { BlueprintEditor } from '@/features/blueprints/components/BlueprintEditor'
+import { ArrowLeft, Clock, DollarSign, Edit, Eye } from 'lucide-react'
+import { BlueprintContentSection } from '@/features/blueprints/components/BlueprintContentSection'
 import { PricingTiersDisplay } from '@/features/blueprints/components/PricingTiersDisplay'
 
 interface BlueprintDetailPageProps {
@@ -129,26 +128,13 @@ export default async function BlueprintDetailPage({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Content Area - 2/3 width */}
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Blueprint Details</CardTitle>
-              <CardDescription>
-                {isEditMode
-                  ? 'Edit the blueprint content below'
-                  : 'Full specification and details'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isEditMode ? (
-                <BlueprintEditor
-                  blueprintId={blueprint.id}
-                  initialContent={blueprint.content}
-                />
-              ) : (
-                <BlueprintViewer content={blueprint.content} />
-              )}
-            </CardContent>
-          </Card>
+          <BlueprintContentSection
+            blueprintId={blueprint.id}
+            blueprintName={blueprint.name}
+            blueprintIcon={blueprint.icon}
+            content={blueprint.content}
+            isEditMode={isEditMode}
+          />
 
           {/* Pricing Tiers */}
           {blueprint.pricing_tiers && blueprint.pricing_tiers.length > 0 && (
