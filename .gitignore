@@ -1,5 +1,12 @@
 # Dependencies
 node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 .pnpm-store
 
 # Next.js
@@ -7,12 +14,16 @@ node_modules
 out
 build
 
+# Testing
+/coverage
+
 # Environment
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env*
 
 # Vercel
 .vercel
@@ -26,6 +37,7 @@ build
 # OS
 .DS_Store
 Thumbs.db
+*.pem
 
 # Debug
 npm-debug.log*
