@@ -118,7 +118,7 @@ See `inquiry-form.md` for full specification.
 ClickUp-style inquiry management with pipeline views.
 
 - [x] Database: New proposal stage workflow
-  - [x] proposal_stage enum: pending → proposal_sent → proposal_verify → on_hold → agreed
+  - [x] proposal_stage enum: unopened → admin_reviewed → in_queue → working → on_hold → final_review → ready
   - [x] priority field (low, normal, high, urgent)
   - [x] due_date, estimated_value, assigned_to columns
   - [x] stage_history JSONB tracking
@@ -137,11 +137,14 @@ ClickUp-style inquiry management with pipeline views.
   - [x] Dropdown menu to move between stages
   - [x] Stage count badges
 - [x] InquiryBoardView (kanban board)
-  - [x] HTML5 drag-and-drop between columns
+  - [x] @dnd-kit based drag-and-drop between columns
   - [x] Cards: company, priority, value, partner, due date
-  - [x] Color-coded column headers
-  - [x] Drop zone highlighting with ring effect
-  - [x] Cross-browser dataTransfer support
+  - [x] Color-coded column headers (7 stages)
+  - [x] Drag overlay preview
+  - [x] Reusable Kanban component (`components/ui/sortable.tsx`)
+- [x] InquiryTableView (grouped table)
+  - [x] HTML5 native drag to stage headers
+  - [x] Dropdown menu for stage changes
 - [x] View toggle (Table | Board tabs)
 - [x] Stats cards showing stage counts
 - [x] StageBadge component with color coding
@@ -308,7 +311,8 @@ components/
     ├── paragraph-node.tsx  # Paragraph element
     ├── heading-node.tsx    # H1-H3 elements
     ├── blockquote-node.tsx # Blockquote element
-    └── timeline.tsx        # Reusable timeline component
+    ├── timeline.tsx        # Reusable timeline component
+    └── sortable.tsx        # @dnd-kit Kanban + Sortable components
 
 features/inquiries/components/
 ├── InquiryDocument.tsx     # Plate.js editor wrapper with auto-save

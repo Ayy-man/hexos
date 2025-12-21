@@ -403,11 +403,13 @@ interface InquiryBoardViewProps {
 **Purpose:** Color-coded badge for proposal stages.
 
 **Stages:**
-- `pending` - Red
-- `proposal_sent` - Blue
-- `proposal_verify` - Yellow
+- `unopened` - Red
+- `admin_reviewed` - Purple
+- `in_queue` - Blue
+- `working` - Cyan
 - `on_hold` - Orange
-- `agreed` - Green
+- `final_review` - Yellow
+- `ready` - Green
 
 **Exports:**
 - `StageBadge` component
@@ -452,7 +454,7 @@ interface PriorityBadgeProps {
 **Features:**
 - Displays current stage with StageBadge
 - Chronological timeline of all stage transitions
-- Visual progress bar (Pending → Agreed)
+- Visual progress bar (Unopened → Ready)
 - Shows creation date and stage change dates
 - Stage icons for each transition
 - Visible to all users including DFY partners
