@@ -3,13 +3,31 @@ import { getProfile } from '@/lib/auth/guards'
 import { redirect } from 'next/navigation'
 import { DASHBOARD_ROUTES } from '@/lib/auth/types'
 
+const TEST_USERS = [
+  { email: 'admin@test.hexos', password: 'test1234', role: 'Admin', color: 'bg-red-500' },
+  { email: 'dev@test.hexos', password: 'test1234', role: 'Dev', color: 'bg-cyan-500' },
+  { email: 'dfy@test.hexos', password: 'test1234', role: 'DFY', color: 'bg-yellow-500' },
+  { email: 'client@test.hexos', password: 'test1234', role: 'Client', color: 'bg-green-500' },
+]
+
+async function quickLogin(formData: FormData): Promise<void> {
+  'use server'
+  await signIn(formData)
+}
+
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  // Redirect if already logged in
-  const profile = await getProfile()
+  // Check if already logged in
+  let profile = null
+  try {
+    profile = await getProfile()
+  } catch {
+    // Not logged in or error - continue to show login
+  }
+
   if (profile) {
     redirect(DASHBOARD_ROUTES[profile.role])
   }
@@ -75,6 +93,27 @@ export default async function LoginPage({
           Sign in
         </button>
       </form>
+
+      {/* Quick Login for Testing */}
+      <div className="pt-4 border-t border-stone-200 dark:border-stone-800">
+        <p className="text-xs text-center text-stone-500 dark:text-stone-400 mb-3">
+          Quick login (testing only)
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {TEST_USERS.map((user) => (
+            <form key={user.email} action={quickLogin}>
+              <input type="hidden" name="email" value={user.email} />
+              <input type="hidden" name="password" value={user.password} />
+              <button
+                type="submit"
+                className={`w-full rounded-md px-3 py-2 text-xs font-medium text-white ${user.color} hover:opacity-90 transition-opacity`}
+              >
+                Login as {user.role}
+              </button>
+            </form>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
