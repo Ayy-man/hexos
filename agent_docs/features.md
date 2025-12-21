@@ -25,6 +25,7 @@ See `components.md` for details.
 - [x] Auth flow (login/logout)
 - [x] Basic route structure
 - [x] Test accounts (admin, dev, dfy, client)
+- [x] Dark mode support (system/light/dark toggle)
 
 ### Phase 2: Core Data
 
@@ -153,8 +154,8 @@ export const features = {
   /[id]                     # Inquiry detail
 /settings                   # Settings page (placeholder)
   /profile                  # User profile (coming soon)
-  /team                     # User management (admin only, coming soon)
-/blueprints                 # Blueprint catalog (admin only)
+  /team                     # Team management (admin only, placeholder)
+/blueprints                 # Blueprint catalog (admin/internal)
 ```
 
 ## Component Hierarchy
@@ -163,7 +164,7 @@ export const features = {
 app/
 ├── (auth)/
 │   ├── login/
-│   └── layout.tsx          # No sidebar
+│   └── layout.tsx          # Centered layout + theme toggle
 ├── (dashboard)/
 │   ├── layout.tsx          # Sidebar + header
 │   ├── dashboard/
@@ -173,11 +174,18 @@ app/
 │   │   └── client/
 │   ├── projects/
 │   ├── inquiries/
+│   ├── blueprints/
 │   └── settings/
 └── api/
     ├── copilot/              # AI form assistant (OpenRouter)
     └── webhooks/
         └── stripe/
+
+components/
+├── theme-provider.tsx      # next-themes wrapper
+├── theme-toggle.tsx        # Light/Dark/System dropdown
+├── app-sidebar.tsx         # Main navigation + theme toggle
+└── nav-user.tsx            # User menu in sidebar
 ```
 
 ## Data Fetching Pattern
