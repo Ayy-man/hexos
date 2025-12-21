@@ -2,11 +2,20 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
 import { getInquiry } from '@/lib/api/inquiries'
+import { getInquiryComments, type InquiryComment } from '@/lib/api/inquiry-comments'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
+import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocumentTab'
+import {
+  saveInquiryDocument,
+  addInquiryComment,
+  resolveInquiryCommentAction,
+  deleteInquiryCommentAction,
+} from '@/features/inquiries/actions/documentActions'
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -78,8 +87,13 @@ export default async function InquiryDetailPage({
   }
 
   let inquiry
+  let comments: InquiryComment[] = []
   try {
     inquiry = await getInquiry(id)
+    // Only fetch comments for admin/internal
+    if (['admin', 'internal'].includes(profile.role)) {
+      comments = await getInquiryComments(id)
+    }
   } catch {
     notFound()
   }
@@ -98,6 +112,28 @@ export default async function InquiryDetailPage({
   }
 
   const formData = (inquiry.form_data || {}) as Record<string, unknown>
+  const canEdit = ['admin', 'internal'].includes(profile.role)
+
+  // Create bound server actions
+  const boundSaveDocument = async (content: unknown) => {
+    'use server'
+    await saveInquiryDocument(id, content)
+  }
+
+  const boundAddComment = async (content: string, parentId?: string) => {
+    'use server'
+    return addInquiryComment(id, content, parentId)
+  }
+
+  const boundResolveComment = async (commentId: string, resolved: boolean) => {
+    'use server'
+    await resolveInquiryCommentAction(id, commentId, resolved)
+  }
+
+  const boundDeleteComment = async (commentId: string) => {
+    'use server'
+    await deleteInquiryCommentAction(id, commentId)
+  }
 
   return (
     <div className="space-y-6">
@@ -124,148 +160,184 @@ export default async function InquiryDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Main Content */}
-        <div className="md:col-span-2 space-y-6">
-          {/* Prospect Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Prospect Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                {inquiry.prospect_company_name && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Company Name</p>
-                    <p className="font-medium">{inquiry.prospect_company_name}</p>
-                  </div>
-                )}
-                {inquiry.prospect_website && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Website</p>
-                    <a
-                      href={inquiry.prospect_website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-cyan-600 hover:underline flex items-center gap-1"
-                    >
-                      <Globe className="h-3 w-3" />
-                      {inquiry.prospect_website}
-                    </a>
-                  </div>
-                )}
-                {inquiry.industry && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Industry</p>
-                    <p className="font-medium">{inquiry.industry}</p>
-                  </div>
-                )}
-                {inquiry.blueprint && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Blueprint</p>
-                    <p className="font-medium">{inquiry.blueprint.name}</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="document" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Document
+            {comments.filter(c => !c.resolved && !c.parent_id).length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {comments.filter(c => !c.resolved && !c.parent_id).length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Form Data */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Submission Details
-              </CardTitle>
-              <CardDescription>All fields from the intake form</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries(formData)
-                  .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type'].includes(key))
-                  .map(([key, value]) => {
-                    if (!value || (Array.isArray(value) && value.length === 0)) return null
-
-                    const displayValue = Array.isArray(value)
-                      ? value.join(', ')
-                      : String(value)
-
-                    if (!displayValue.trim()) return null
-
-                    return (
-                      <div key={key} className="border-b pb-3 last:border-0">
-                        <p className="text-sm text-muted-foreground">
-                          {FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                        </p>
-                        <p className="font-medium whitespace-pre-wrap">{displayValue}</p>
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Main Content */}
+            <div className="md:col-span-2 space-y-6">
+              {/* Prospect Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    Prospect Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {inquiry.prospect_company_name && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Company Name</p>
+                        <p className="font-medium">{inquiry.prospect_company_name}</p>
                       </div>
-                    )
-                  })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Submission Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Submission Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Submitted by</p>
-                  <p className="font-medium">{inquiry.partner_name}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Submitted on</p>
-                  <p className="font-medium">{formatDate(inquiry.created_at)}</p>
-                </div>
-              </div>
-              {inquiry.forward_emails && inquiry.forward_emails.length > 0 && (
-                <div className="flex items-start gap-3">
-                  <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Forward to</p>
-                    {inquiry.forward_emails.map((email: string) => (
-                      <p key={email} className="font-medium">{email}</p>
-                    ))}
+                    )}
+                    {inquiry.prospect_website && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Website</p>
+                        <a
+                          href={inquiry.prospect_website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-cyan-600 hover:underline flex items-center gap-1"
+                        >
+                          <Globe className="h-3 w-3" />
+                          {inquiry.prospect_website}
+                        </a>
+                      </div>
+                    )}
+                    {inquiry.industry && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Industry</p>
+                        <p className="font-medium">{inquiry.industry}</p>
+                      </div>
+                    )}
+                    {inquiry.blueprint && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Blueprint</p>
+                        <p className="font-medium">{inquiry.blueprint.name}</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {inquiry.project ? (
-                <Button className="w-full" asChild>
-                  <Link href={`/projects/${inquiry.project.id}`}>
-                    View Project
-                  </Link>
-                </Button>
-              ) : (
-                <Button className="w-full" disabled>
-                  Convert to Project (Coming Soon)
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              {/* Form Data */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Submission Details
+                  </CardTitle>
+                  <CardDescription>All fields from the intake form</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {Object.entries(formData)
+                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type'].includes(key))
+                      .map(([key, value]) => {
+                        if (!value || (Array.isArray(value) && value.length === 0)) return null
+
+                        const displayValue = Array.isArray(value)
+                          ? value.join(', ')
+                          : String(value)
+
+                        if (!displayValue.trim()) return null
+
+                        return (
+                          <div key={key} className="border-b pb-3 last:border-0">
+                            <p className="text-sm text-muted-foreground">
+                              {FIELD_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </p>
+                            <p className="font-medium whitespace-pre-wrap">{displayValue}</p>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Submission Info */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Submission Info</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Submitted by</p>
+                      <p className="font-medium">{inquiry.partner_name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Submitted on</p>
+                      <p className="font-medium">{formatDate(inquiry.created_at)}</p>
+                    </div>
+                  </div>
+                  {inquiry.forward_emails && inquiry.forward_emails.length > 0 && (
+                    <div className="flex items-start gap-3">
+                      <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Forward to</p>
+                        {inquiry.forward_emails.map((email: string) => (
+                          <p key={email} className="font-medium">{email}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {inquiry.project ? (
+                    <Button className="w-full" asChild>
+                      <Link href={`/projects/${inquiry.project.id}`}>
+                        View Project
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button className="w-full" disabled>
+                      Convert to Project (Coming Soon)
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Document Tab */}
+        <TabsContent value="document">
+          <InquiryDocumentTab
+            inquiryId={id}
+            initialDocumentContent={inquiry.document_content}
+            initialComments={comments}
+            canEdit={canEdit}
+            saveDocument={boundSaveDocument}
+            addComment={boundAddComment}
+            resolveComment={boundResolveComment}
+            deleteComment={boundDeleteComment}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
