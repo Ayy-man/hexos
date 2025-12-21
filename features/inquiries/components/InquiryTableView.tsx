@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow, format, isPast } from 'date-fns'
-import { ChevronDown, ChevronRight, Building2, MoreHorizontal } from 'lucide-react'
+import { ChevronDown, ChevronRight, Building2, MoreHorizontal, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,6 +21,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Sortable,
+  SortableItem,
+  SortableItemHandle,
+} from '@/components/ui/sortable'
 import { StageBadge, STAGE_ORDER, getStageName } from './StageBadge'
 import { PriorityBadge } from './PriorityBadge'
 import type { ProposalStage, Priority } from '@/lib/api/inquiries'
@@ -47,26 +52,39 @@ interface InquiryTableViewProps {
   onStageChange?: (id: string, stage: ProposalStage) => void
 }
 
+function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
+  const groups: Record<ProposalStage, Inquiry[]> = {
+    agreed: [],
+    proposal_sent: [],
+    proposal_verify: [],
+    on_hold: [],
+    pending: [],
+  }
+
+  inquiries.forEach((inquiry) => {
+    const stage = inquiry.proposal_stage || 'pending'
+    groups[stage].push(inquiry)
+  })
+
+  return groups
+}
+
 export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewProps) {
   // Track which stages are collapsed
   const [collapsedStages, setCollapsedStages] = useState<Set<ProposalStage>>(new Set())
 
-  // Group inquiries by stage
-  const groupedInquiries = useMemo(() => {
-    const groups: Record<ProposalStage, Inquiry[]> = {
-      agreed: [],
-      proposal_sent: [],
-      proposal_verify: [],
-      on_hold: [],
-      pending: [],
-    }
+  // Local state for grouped inquiries
+  const [groupedInquiries, setGroupedInquiries] = useState<Record<ProposalStage, Inquiry[]>>(() =>
+    groupInquiriesByStage(inquiries)
+  )
 
-    inquiries.forEach((inquiry) => {
-      const stage = inquiry.proposal_stage || 'pending'
-      groups[stage].push(inquiry)
-    })
+  // Track drag over stage for visual feedback
+  const [dragOverStage, setDragOverStage] = useState<ProposalStage | null>(null)
+  const [draggedInquiry, setDraggedInquiry] = useState<{ id: string; stage: ProposalStage } | null>(null)
 
-    return groups
+  // Sync with props
+  useEffect(() => {
+    setGroupedInquiries(groupInquiriesByStage(inquiries))
   }, [inquiries])
 
   const toggleStage = (stage: ProposalStage) => {
@@ -102,19 +120,70 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
     )
   }
 
+  // Handle reordering within a stage
+  const handleReorder = (stage: ProposalStage, newItems: Inquiry[]) => {
+    setGroupedInquiries((prev) => ({
+      ...prev,
+      [stage]: newItems,
+    }))
+  }
+
+  // Handle dragging a row to a different stage header
+  const handleDragStart = (inquiryId: string, stage: ProposalStage) => {
+    setDraggedInquiry({ id: inquiryId, stage })
+  }
+
+  const handleDragEnd = () => {
+    setDraggedInquiry(null)
+    setDragOverStage(null)
+  }
+
+  const handleDragOverStage = (e: React.DragEvent, stage: ProposalStage) => {
+    e.preventDefault()
+    if (draggedInquiry && draggedInquiry.stage !== stage) {
+      setDragOverStage(stage)
+    }
+  }
+
+  const handleDragLeaveStage = () => {
+    setDragOverStage(null)
+  }
+
+  const handleDropOnStage = (e: React.DragEvent, stage: ProposalStage) => {
+    e.preventDefault()
+    if (draggedInquiry && draggedInquiry.stage !== stage && onStageChange) {
+      onStageChange(draggedInquiry.id, stage)
+    }
+    setDraggedInquiry(null)
+    setDragOverStage(null)
+  }
+
   return (
     <div className="space-y-2">
       {STAGE_ORDER.map((stage) => {
         const stageInquiries = groupedInquiries[stage]
         const isCollapsed = collapsedStages.has(stage)
         const count = stageInquiries.length
+        const isDropTarget = dragOverStage === stage
 
         return (
-          <div key={stage} className="border rounded-lg overflow-hidden">
+          <div
+            key={stage}
+            className={cn(
+              'border rounded-lg overflow-hidden transition-all',
+              isDropTarget && 'ring-2 ring-primary ring-offset-2'
+            )}
+            onDragOver={(e) => handleDragOverStage(e, stage)}
+            onDragLeave={handleDragLeaveStage}
+            onDrop={(e) => handleDropOnStage(e, stage)}
+          >
             {/* Stage Header */}
             <button
               onClick={() => toggleStage(stage)}
-              className="w-full flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted/70 transition-colors text-left"
+              className={cn(
+                'w-full flex items-center gap-2 px-4 py-2 bg-muted/50 hover:bg-muted/70 transition-colors text-left',
+                isDropTarget && 'bg-primary/10'
+              )}
             >
               {isCollapsed ? (
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
@@ -125,84 +194,108 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
               <span className="text-sm text-muted-foreground ml-1">
                 {count}
               </span>
+              {isDropTarget && (
+                <span className="text-xs text-primary ml-2">Drop here to move</span>
+              )}
             </button>
 
             {/* Stage Content */}
             {!isCollapsed && count > 0 && (
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[300px]">Name</TableHead>
-                    <TableHead>DFY</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {stageInquiries.map((inquiry) => (
-                    <TableRow key={inquiry.id} className="group">
-                      <TableCell>
-                        <Link
-                          href={`/inquiries/${inquiry.id}`}
-                          className="flex items-center gap-2 hover:underline"
-                        >
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {inquiry.prospect_company_name || 'Unnamed'}
-                          </span>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {inquiry.partner_name}
-                      </TableCell>
-                      <TableCell>
-                        {formatDueDate(inquiry.due_date)}
-                      </TableCell>
-                      <TableCell>
-                        <PriorityBadge priority={inquiry.priority} />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {formatValue(inquiry.estimated_value)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/inquiries/${inquiry.id}`}>
-                                View Details
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {STAGE_ORDER.filter((s) => s !== stage).map((targetStage) => (
-                              <DropdownMenuItem
-                                key={targetStage}
-                                onClick={() => onStageChange?.(inquiry.id, targetStage)}
-                              >
-                                Move to {getStageName(targetStage)}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+              <Sortable
+                value={stageInquiries}
+                onValueChange={(items) => handleReorder(stage, items)}
+                getItemValue={(item) => item.id}
+                strategy="vertical"
+              >
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="w-[40px]"></TableHead>
+                      <TableHead className="w-[280px]">Name</TableHead>
+                      <TableHead>DFY</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {stageInquiries.map((inquiry) => (
+                      <SortableItem key={inquiry.id} value={inquiry.id} asChild>
+                        <TableRow
+                          className="group"
+                          draggable
+                          onDragStart={() => handleDragStart(inquiry.id, stage)}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <TableCell className="w-[40px]">
+                            <SortableItemHandle className="text-muted-foreground hover:text-foreground transition-colors">
+                              <GripVertical className="h-4 w-4" />
+                            </SortableItemHandle>
+                          </TableCell>
+                          <TableCell>
+                            <Link
+                              href={`/inquiries/${inquiry.id}`}
+                              className="flex items-center gap-2 hover:underline"
+                              draggable={false}
+                            >
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">
+                                {inquiry.prospect_company_name || 'Unnamed'}
+                              </span>
+                            </Link>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {inquiry.partner_name}
+                          </TableCell>
+                          <TableCell>
+                            {formatDueDate(inquiry.due_date)}
+                          </TableCell>
+                          <TableCell>
+                            <PriorityBadge priority={inquiry.priority} />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {formatValue(inquiry.estimated_value)}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 opacity-0 group-hover:opacity-100"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/inquiries/${inquiry.id}`}>
+                                    View Details
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                {STAGE_ORDER.filter((s) => s !== stage).map((targetStage) => (
+                                  <DropdownMenuItem
+                                    key={targetStage}
+                                    onClick={() => onStageChange?.(inquiry.id, targetStage)}
+                                  >
+                                    Move to {getStageName(targetStage)}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      </SortableItem>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Sortable>
             )}
 
             {/* Empty State */}

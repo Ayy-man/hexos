@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { format, isPast } from 'date-fns'
 import { Building2, Calendar, User, GripVertical } from 'lucide-react'
@@ -17,7 +17,7 @@ import {
   KanbanOverlay,
   type KanbanMoveEvent,
 } from '@/components/ui/sortable'
-import { StageBadge, STAGE_ORDER, getStageName } from './StageBadge'
+import { StageBadge, STAGE_ORDER } from './StageBadge'
 import { PriorityBadge } from './PriorityBadge'
 import type { ProposalStage, Priority } from '@/lib/api/inquiries'
 
@@ -51,42 +51,52 @@ const STAGE_COLORS: Record<ProposalStage, string> = {
   agreed: 'border-t-green-500',
 }
 
+function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
+  const groups: Record<ProposalStage, Inquiry[]> = {
+    pending: [],
+    proposal_sent: [],
+    proposal_verify: [],
+    on_hold: [],
+    agreed: [],
+  }
+
+  inquiries.forEach((inquiry) => {
+    const stage = inquiry.proposal_stage || 'pending'
+    groups[stage].push(inquiry)
+  })
+
+  return groups
+}
+
 export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewProps) {
-  // Group inquiries by stage into the format Kanban expects
-  const groupedInquiries = useMemo(() => {
-    const groups: Record<ProposalStage, Inquiry[]> = {
-      pending: [],
-      proposal_sent: [],
-      proposal_verify: [],
-      on_hold: [],
-      agreed: [],
-    }
+  // Use local state for the kanban - this allows drag-drop to work
+  const [columns, setColumns] = useState<Record<ProposalStage, Inquiry[]>>(() =>
+    groupInquiriesByStage(inquiries)
+  )
 
-    inquiries.forEach((inquiry) => {
-      const stage = inquiry.proposal_stage || 'pending'
-      groups[stage].push(inquiry)
-    })
-
-    return groups
+  // Sync with props when they change (after server update)
+  useEffect(() => {
+    setColumns(groupInquiriesByStage(inquiries))
   }, [inquiries])
 
   const handleMove = (event: KanbanMoveEvent) => {
     const { activeContainer, overContainer } = event
+    const fromStage = activeContainer as ProposalStage
+    const toStage = overContainer as ProposalStage
 
-    // Find the inquiry that was moved
-    const movedInquiry = groupedInquiries[activeContainer as ProposalStage]?.find(
-      (inquiry) => inquiry.id === event.event.active.id
-    )
+    if (fromStage === toStage) return
 
-    if (movedInquiry && activeContainer !== overContainer && onStageChange) {
-      onStageChange(movedInquiry.id, overContainer as ProposalStage)
+    const inquiryId = event.event.active.id as string
+
+    // Call the parent handler to persist the change
+    if (onStageChange) {
+      onStageChange(inquiryId, toStage)
     }
   }
 
   const handleValueChange = (newColumns: Record<string, Inquiry[]>) => {
-    // This is called for internal reordering within columns
-    // For now, we don't need to persist the order within columns
-    // The onMove callback handles cross-column moves
+    // Update local state immediately for smooth UX
+    setColumns(newColumns as Record<ProposalStage, Inquiry[]>)
   }
 
   const formatValue = (value: number | null) => {
@@ -102,7 +112,7 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
   // Find an inquiry by ID for the overlay
   const findInquiryById = (id: string): Inquiry | undefined => {
     for (const stage of STAGE_ORDER) {
-      const found = groupedInquiries[stage].find((i) => i.id === id)
+      const found = columns[stage]?.find((i) => i.id === id)
       if (found) return found
     }
     return undefined
@@ -110,7 +120,7 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
 
   return (
     <Kanban
-      value={groupedInquiries}
+      value={columns}
       onValueChange={handleValueChange}
       getItemValue={(item) => item.id}
       onMove={handleMove}
@@ -118,13 +128,12 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
     >
       <KanbanBoard className="flex gap-4 overflow-x-auto sm:grid-cols-5">
         {STAGE_ORDER.map((stage) => {
-          const stageInquiries = groupedInquiries[stage]
+          const stageInquiries = columns[stage] || []
 
           return (
             <KanbanColumn
               key={stage}
               value={stage}
-              disabled
               className={cn(
                 'flex-shrink-0 w-[280px] rounded-lg bg-muted/30 border-t-4',
                 STAGE_COLORS[stage]
