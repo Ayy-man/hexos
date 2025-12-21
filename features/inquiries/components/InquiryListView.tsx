@@ -50,7 +50,7 @@ export function InquiryListView({ inquiries, defaultView = 'table' }: InquiryLis
   const handleStageChange = (id: string, stage: ProposalStage) => {
     const inquiry = localInquiries.find((i) => i.id === id)
     const companyName = inquiry?.prospect_company_name || 'Inquiry'
-    const currentStage = inquiry?.proposal_stage || 'pending'
+    const currentStage = inquiry?.proposal_stage || 'unopened'
 
     // Don't do anything if same stage
     if (currentStage === stage) return

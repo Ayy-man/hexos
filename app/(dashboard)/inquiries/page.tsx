@@ -9,10 +9,10 @@ import { InquiryListView } from '@/features/inquiries/components/InquiryListView
 import { STAGE_ORDER } from '@/features/inquiries/components/StageBadge'
 
 const STAGE_STATS: { stage: ProposalStage; label: string; color: string }[] = [
-  { stage: 'agreed', label: 'Agreed', color: 'text-green-600' },
-  { stage: 'proposal_sent', label: 'Sent', color: 'text-blue-600' },
-  { stage: 'proposal_verify', label: 'Verify', color: 'text-yellow-600' },
-  { stage: 'pending', label: 'Pending', color: 'text-red-600' },
+  { stage: 'unopened', label: 'Unopened', color: 'text-red-600' },
+  { stage: 'in_queue', label: 'In Queue', color: 'text-blue-600' },
+  { stage: 'working', label: 'Working', color: 'text-cyan-600' },
+  { stage: 'ready', label: 'Ready', color: 'text-green-600' },
 ]
 
 export default async function InquiriesPage({
@@ -121,7 +121,7 @@ export default async function InquiriesPage({
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${color}`}>
-                  {inquiries.filter((i) => (i.proposal_stage || 'pending') === stage).length}
+                  {inquiries.filter((i) => (i.proposal_stage || 'unopened') === stage).length}
                 </div>
               </CardContent>
             </Card>

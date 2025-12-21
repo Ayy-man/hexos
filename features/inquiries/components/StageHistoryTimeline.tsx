@@ -4,7 +4,7 @@ import { Timeline, type TimelineItem } from '@/components/ui/timeline'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StageBadge, getStageName, STAGE_ORDER } from './StageBadge'
 import type { ProposalStage } from '@/lib/api/inquiries'
-import { FileText, Send, CheckCircle, Clock, PauseCircle, History } from 'lucide-react'
+import { FileText, Send, CheckCircle, Clock, PauseCircle, History, Eye, Briefcase, Search } from 'lucide-react'
 
 interface StageHistoryEntry {
   from: ProposalStage | null
@@ -23,11 +23,13 @@ interface StageHistoryTimelineProps {
 }
 
 const STAGE_ICONS: Record<ProposalStage, React.ReactNode> = {
-  pending: <Clock className="h-3 w-3" />,
-  proposal_sent: <Send className="h-3 w-3" />,
-  proposal_verify: <FileText className="h-3 w-3" />,
+  unopened: <Clock className="h-3 w-3" />,
+  admin_reviewed: <Eye className="h-3 w-3" />,
+  in_queue: <Send className="h-3 w-3" />,
+  working: <Briefcase className="h-3 w-3" />,
   on_hold: <PauseCircle className="h-3 w-3" />,
-  agreed: <CheckCircle className="h-3 w-3" />,
+  final_review: <Search className="h-3 w-3" />,
+  ready: <CheckCircle className="h-3 w-3" />,
 }
 
 function getTimelineStatus(stage: ProposalStage, currentStage: ProposalStage): TimelineItem['status'] {
@@ -35,8 +37,8 @@ function getTimelineStatus(stage: ProposalStage, currentStage: ProposalStage): T
   const stageIndex = STAGE_ORDER.indexOf(stage)
 
   if (stage === currentStage) return 'active'
-  // STAGE_ORDER is ordered from agreed (0) to pending (4), so higher index = earlier stage
-  if (stageIndex > currentIndex) return 'completed'
+  // STAGE_ORDER is ordered from unopened (0) to ready (6), so lower index = earlier stage
+  if (stageIndex < currentIndex) return 'completed'
   return 'pending'
 }
 
@@ -47,7 +49,7 @@ export function StageHistoryTimeline({
   createdAt,
   className,
 }: StageHistoryTimelineProps) {
-  const stage = currentStage || 'pending'
+  const stage = currentStage || 'unopened'
 
   // Build timeline items from stage history
   const historyItems: TimelineItem[] = []
@@ -125,9 +127,9 @@ export function StageHistoryTimeline({
         <div className="pt-2 border-t">
           <p className="text-xs text-muted-foreground mb-2">Overall Progress</p>
           <div className="flex gap-1">
-            {[...STAGE_ORDER].reverse().map((s) => {
+            {STAGE_ORDER.map((s) => {
               const isCurrent = s === stage
-              const isPassed = STAGE_ORDER.indexOf(s) > STAGE_ORDER.indexOf(stage)
+              const isPassed = STAGE_ORDER.indexOf(s) < STAGE_ORDER.indexOf(stage)
 
               return (
                 <div
@@ -145,8 +147,8 @@ export function StageHistoryTimeline({
             })}
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-muted-foreground">Pending</span>
-            <span className="text-[10px] text-muted-foreground">Agreed</span>
+            <span className="text-[10px] text-muted-foreground">Unopened</span>
+            <span className="text-[10px] text-muted-foreground">Ready</span>
           </div>
         </div>
       </CardContent>

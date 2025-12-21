@@ -21,11 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Sortable,
-  SortableItem,
-  SortableItemHandle,
-} from '@/components/ui/sortable'
 import { StageBadge, STAGE_ORDER, getStageName } from './StageBadge'
 import { PriorityBadge } from './PriorityBadge'
 import type { ProposalStage, Priority } from '@/lib/api/inquiries'
@@ -54,15 +49,17 @@ interface InquiryTableViewProps {
 
 function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
   const groups: Record<ProposalStage, Inquiry[]> = {
-    agreed: [],
-    proposal_sent: [],
-    proposal_verify: [],
+    unopened: [],
+    admin_reviewed: [],
+    in_queue: [],
+    working: [],
     on_hold: [],
-    pending: [],
+    final_review: [],
+    ready: [],
   }
 
   inquiries.forEach((inquiry) => {
-    const stage = inquiry.proposal_stage || 'pending'
+    const stage = inquiry.proposal_stage || 'unopened'
     groups[stage].push(inquiry)
   })
 
@@ -120,16 +117,10 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
     )
   }
 
-  // Handle reordering within a stage
-  const handleReorder = (stage: ProposalStage, newItems: Inquiry[]) => {
-    setGroupedInquiries((prev) => ({
-      ...prev,
-      [stage]: newItems,
-    }))
-  }
-
-  // Handle dragging a row to a different stage header
-  const handleDragStart = (inquiryId: string, stage: ProposalStage) => {
+  // Handle HTML5 drag events for cross-stage moves
+  const handleDragStart = (e: React.DragEvent, inquiryId: string, stage: ProposalStage) => {
+    e.dataTransfer.setData('text/plain', inquiryId)
+    e.dataTransfer.effectAllowed = 'move'
     setDraggedInquiry({ id: inquiryId, stage })
   }
 
@@ -140,6 +131,7 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
 
   const handleDragOverStage = (e: React.DragEvent, stage: ProposalStage) => {
     e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
     if (draggedInquiry && draggedInquiry.stage !== stage) {
       setDragOverStage(stage)
     }
@@ -151,8 +143,9 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
 
   const handleDropOnStage = (e: React.DragEvent, stage: ProposalStage) => {
     e.preventDefault()
-    if (draggedInquiry && draggedInquiry.stage !== stage && onStageChange) {
-      onStageChange(draggedInquiry.id, stage)
+    const inquiryId = e.dataTransfer.getData('text/plain')
+    if (inquiryId && draggedInquiry && draggedInquiry.stage !== stage && onStageChange) {
+      onStageChange(inquiryId, stage)
     }
     setDraggedInquiry(null)
     setDragOverStage(null)
@@ -201,101 +194,91 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
 
             {/* Stage Content */}
             {!isCollapsed && count > 0 && (
-              <Sortable
-                value={stageInquiries}
-                onValueChange={(items) => handleReorder(stage, items)}
-                getItemValue={(item) => item.id}
-                strategy="vertical"
-              >
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-[40px]"></TableHead>
-                      <TableHead className="w-[280px]">Name</TableHead>
-                      <TableHead>DFY</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {stageInquiries.map((inquiry) => (
-                      <SortableItem key={inquiry.id} value={inquiry.id} asChild>
-                        <TableRow
-                          className="group"
-                          draggable
-                          onDragStart={() => handleDragStart(inquiry.id, stage)}
-                          onDragEnd={handleDragEnd}
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-[40px]"></TableHead>
+                    <TableHead className="w-[280px]">Name</TableHead>
+                    <TableHead>DFY</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stageInquiries.map((inquiry) => (
+                    <TableRow
+                      key={inquiry.id}
+                      className="group cursor-grab active:cursor-grabbing"
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, inquiry.id, stage)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <TableCell className="w-[40px]">
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/inquiries/${inquiry.id}`}
+                          className="flex items-center gap-2 hover:underline"
+                          draggable={false}
                         >
-                          <TableCell className="w-[40px]">
-                            <SortableItemHandle className="text-muted-foreground hover:text-foreground transition-colors">
-                              <GripVertical className="h-4 w-4" />
-                            </SortableItemHandle>
-                          </TableCell>
-                          <TableCell>
-                            <Link
-                              href={`/inquiries/${inquiry.id}`}
-                              className="flex items-center gap-2 hover:underline"
-                              draggable={false}
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {inquiry.prospect_company_name || 'Unnamed'}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {inquiry.partner_name}
+                      </TableCell>
+                      <TableCell>
+                        {formatDueDate(inquiry.due_date)}
+                      </TableCell>
+                      <TableCell>
+                        <PriorityBadge priority={inquiry.priority} />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatValue(inquiry.estimated_value)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100"
                             >
-                              <Building2 className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">
-                                {inquiry.prospect_company_name || 'Unnamed'}
-                              </span>
-                            </Link>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {inquiry.partner_name}
-                          </TableCell>
-                          <TableCell>
-                            {formatDueDate(inquiry.due_date)}
-                          </TableCell>
-                          <TableCell>
-                            <PriorityBadge priority={inquiry.priority} />
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {formatValue(inquiry.estimated_value)}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/inquiries/${inquiry.id}`}>
-                                    View Details
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                {STAGE_ORDER.filter((s) => s !== stage).map((targetStage) => (
-                                  <DropdownMenuItem
-                                    key={targetStage}
-                                    onClick={() => onStageChange?.(inquiry.id, targetStage)}
-                                  >
-                                    Move to {getStageName(targetStage)}
-                                  </DropdownMenuItem>
-                                ))}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      </SortableItem>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Sortable>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/inquiries/${inquiry.id}`}>
+                                View Details
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {STAGE_ORDER.filter((s) => s !== stage).map((targetStage) => (
+                              <DropdownMenuItem
+                                key={targetStage}
+                                onClick={() => onStageChange?.(inquiry.id, targetStage)}
+                              >
+                                Move to {getStageName(targetStage)}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
 
             {/* Empty State */}

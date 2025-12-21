@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { format, isPast } from 'date-fns'
 import { Building2, Calendar, User, GripVertical } from 'lucide-react'
@@ -15,7 +15,6 @@ import {
   KanbanItem,
   KanbanItemHandle,
   KanbanOverlay,
-  type KanbanMoveEvent,
 } from '@/components/ui/sortable'
 import { StageBadge, STAGE_ORDER } from './StageBadge'
 import { PriorityBadge } from './PriorityBadge'
@@ -44,24 +43,28 @@ interface InquiryBoardViewProps {
 }
 
 const STAGE_COLORS: Record<ProposalStage, string> = {
-  pending: 'border-t-red-500',
-  proposal_sent: 'border-t-blue-500',
-  proposal_verify: 'border-t-yellow-500',
+  unopened: 'border-t-red-500',
+  admin_reviewed: 'border-t-purple-500',
+  in_queue: 'border-t-blue-500',
+  working: 'border-t-cyan-500',
   on_hold: 'border-t-orange-500',
-  agreed: 'border-t-green-500',
+  final_review: 'border-t-yellow-500',
+  ready: 'border-t-green-500',
 }
 
 function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
   const groups: Record<ProposalStage, Inquiry[]> = {
-    pending: [],
-    proposal_sent: [],
-    proposal_verify: [],
+    unopened: [],
+    admin_reviewed: [],
+    in_queue: [],
+    working: [],
     on_hold: [],
-    agreed: [],
+    final_review: [],
+    ready: [],
   }
 
   inquiries.forEach((inquiry) => {
-    const stage = inquiry.proposal_stage || 'pending'
+    const stage = inquiry.proposal_stage || 'unopened'
     groups[stage].push(inquiry)
   })
 
@@ -74,29 +77,38 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
     groupInquiriesByStage(inquiries)
   )
 
+  // Keep track of previous columns to detect moves
+  const prevColumnsRef = useRef<Record<ProposalStage, Inquiry[]>>(columns)
+
   // Sync with props when they change (after server update)
   useEffect(() => {
-    setColumns(groupInquiriesByStage(inquiries))
+    const newColumns = groupInquiriesByStage(inquiries)
+    setColumns(newColumns)
+    prevColumnsRef.current = newColumns
   }, [inquiries])
 
-  const handleMove = (event: KanbanMoveEvent) => {
-    const { activeContainer, overContainer } = event
-    const fromStage = activeContainer as ProposalStage
-    const toStage = overContainer as ProposalStage
-
-    if (fromStage === toStage) return
-
-    const inquiryId = event.event.active.id as string
-
-    // Call the parent handler to persist the change
-    if (onStageChange) {
-      onStageChange(inquiryId, toStage)
-    }
-  }
-
   const handleValueChange = (newColumns: Record<string, Inquiry[]>) => {
-    // Update local state immediately for smooth UX
-    setColumns(newColumns as Record<ProposalStage, Inquiry[]>)
+    const typedNewColumns = newColumns as Record<ProposalStage, Inquiry[]>
+    const prevColumns = prevColumnsRef.current
+
+    // Detect items that moved between columns
+    for (const stage of STAGE_ORDER) {
+      const oldItems = prevColumns[stage] || []
+      const newItems = typedNewColumns[stage] || []
+
+      // Find items that moved INTO this stage (exist in new but not in old)
+      for (const item of newItems) {
+        const wasInThisStage = oldItems.some((old) => old.id === item.id)
+        if (!wasInThisStage && onStageChange) {
+          // This item moved to this stage from somewhere else
+          onStageChange(item.id, stage)
+        }
+      }
+    }
+
+    // Update state and ref
+    setColumns(typedNewColumns)
+    prevColumnsRef.current = typedNewColumns
   }
 
   const formatValue = (value: number | null) => {
@@ -123,10 +135,9 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
       value={columns}
       onValueChange={handleValueChange}
       getItemValue={(item) => item.id}
-      onMove={handleMove}
       className="pb-4"
     >
-      <KanbanBoard className="flex gap-4 overflow-x-auto sm:grid-cols-5">
+      <KanbanBoard className="flex gap-4 overflow-x-auto sm:grid-cols-7">
         {STAGE_ORDER.map((stage) => {
           const stageInquiries = columns[stage] || []
 
@@ -135,7 +146,7 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
               key={stage}
               value={stage}
               className={cn(
-                'flex-shrink-0 w-[280px] rounded-lg bg-muted/30 border-t-4',
+                'flex-shrink-0 w-[260px] rounded-lg bg-muted/30 border-t-4',
                 STAGE_COLORS[stage]
               )}
             >

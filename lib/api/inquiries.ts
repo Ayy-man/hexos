@@ -31,7 +31,7 @@ export async function createInquiry(data: CreateInquiryData) {
 }
 
 export type InquiryFilter = 'active' | 'archived' | 'all'
-export type ProposalStage = 'pending' | 'proposal_sent' | 'proposal_verify' | 'on_hold' | 'agreed'
+export type ProposalStage = 'unopened' | 'admin_reviewed' | 'in_queue' | 'working' | 'on_hold' | 'final_review' | 'ready'
 export type Priority = 'low' | 'normal' | 'high' | 'urgent'
 
 export async function getInquiries(filter: InquiryFilter = 'active') {
@@ -218,7 +218,7 @@ export async function updateInquiryStage(
 
   const stageHistory = (inquiry?.stage_history as unknown[]) || []
   const historyEntry = {
-    from: inquiry?.proposal_stage || 'pending',
+    from: inquiry?.proposal_stage || 'unopened',
     to: stage,
     changed_by: user?.id,
     changed_at: new Date().toISOString(),
