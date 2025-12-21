@@ -183,10 +183,56 @@ CREATE TABLE public.blueprints (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
+  category TEXT,
   default_deliverables JSONB,
   estimated_hours INT,
   base_price DECIMAL(10,2),
+  content JSONB,              -- Rich text content (Plate.js format)
+  pricing_tiers JSONB,        -- Structured tier pricing
+  tags TEXT[],                -- Free-form filtering tags
+  status TEXT DEFAULT 'draft', -- draft/published
+  icon TEXT,                  -- Emoji icon
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Inquiries (DFY partner submissions)
+CREATE TABLE public.inquiries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  submitted_by UUID REFERENCES profiles(id),
+  partner_name TEXT NOT NULL,
+  submission_type TEXT NOT NULL,      -- 'closed' or 'proposal'
+  deal_type TEXT,                      -- e.g., 'new_blueprint', 'existing_blueprint'
+  form_path TEXT NOT NULL,             -- Branch taken in form (e.g., 'A1', 'B2')
+  prospect_company_name TEXT,
+  prospect_website TEXT,
+  industry TEXT,
+  blueprint_id UUID REFERENCES blueprints(id),
+  form_data JSONB,                     -- All form field values
+  forward_emails TEXT[],
+  status TEXT DEFAULT 'new',           -- new, processing, converted, rejected
+  converted_to_project_id UUID REFERENCES projects(id),
+  document_content JSONB,              -- Rich text document (Plate.js format)
+  inline_discussions JSONB DEFAULT '[]', -- Persisted inline comment threads
+  archived_at TIMESTAMPTZ,
+  archived_by UUID REFERENCES profiles(id),
+  deleted_at TIMESTAMPTZ,
+  deleted_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Inquiry Comments (sidebar comment threads)
+CREATE TYPE comment_type AS ENUM ('internal', 'dfy');
+
+CREATE TABLE public.inquiry_comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  inquiry_id UUID REFERENCES inquiries(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES profiles(id),
+  content TEXT NOT NULL,
+  comment_type comment_type DEFAULT 'internal',
+  parent_id UUID REFERENCES inquiry_comments(id), -- For threaded replies
+  resolved BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -194,6 +240,7 @@ CREATE TABLE public.blueprints (
 
 ```
 profiles 1──* projects (as dfy_partner, assigned_dev, client)
+profiles 1──* inquiries (as submitted_by)
 projects 1──* deliverables
 projects 1──* project_files
 projects 1──* payment_milestones
@@ -201,6 +248,10 @@ projects 1──* scope_changes
 projects 1──* activity_log
 deliverables 1──* project_files
 blueprints 1──* projects (via matched_blueprint_id)
+blueprints 1──* inquiries (via blueprint_id)
+inquiries 1──* inquiry_comments
+inquiries 1──1 projects (via converted_to_project_id)
+inquiry_comments 1──* inquiry_comments (threaded replies via parent_id)
 ```
 
 ## Indexes
@@ -212,6 +263,9 @@ CREATE INDEX idx_projects_dev ON projects(assigned_dev_id);
 CREATE INDEX idx_projects_client ON projects(client_id);
 CREATE INDEX idx_deliverables_project ON deliverables(project_id);
 CREATE INDEX idx_activity_project ON activity_log(project_id);
+CREATE INDEX idx_inquiries_submitted_by ON inquiries(submitted_by);
+CREATE INDEX idx_inquiries_status ON inquiries(status);
+CREATE INDEX idx_inquiry_comments_inquiry ON inquiry_comments(inquiry_id);
 ```
 
 See `security.md` for RLS policies on these tables.

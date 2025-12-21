@@ -232,6 +232,33 @@ import { LocationTag } from "@/components/ui/location-tag"
 
 These components are built for the inquiry document editor:
 
+### InquiryDocument
+
+**File:** `features/inquiries/components/InquiryDocument.tsx`
+
+**Purpose:** Plate.js rich text editor with auto-save and inline discussions.
+
+**Features:**
+- Debounced auto-save (1.5s after last change)
+- Inline comments (highlight text to add comments)
+- Suggestion/track-changes mode
+- Block-level discussions with popovers
+- Discussions persisted to database (`inline_discussions` JSONB column)
+
+**Props:**
+```typescript
+interface InquiryDocumentProps {
+  inquiryId: string
+  initialContent: unknown
+  generatedContent: unknown
+  initialDiscussions?: TDiscussion[]  // Persisted inline discussions
+  readOnly?: boolean
+  currentUser?: DiscussionUser
+  onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
+  onFullscreen?: () => void
+}
+```
+
 ### FullscreenDocument
 
 **File:** `features/inquiries/components/FullscreenDocument.tsx`
@@ -244,19 +271,53 @@ These components are built for the inquiry document editor:
 - Escape key to close
 - Body scroll prevention when open
 - All comment/suggestion functionality preserved
+- Inline discussions persisted alongside document content
 
 **Props:**
 ```typescript
 interface FullscreenDocumentProps {
   inquiryId: string
   documentContent: unknown
-  comments: InquiryComment[]
+  initialDiscussions?: TDiscussion[]  // Persisted inline discussions
+  internalComments: InquiryComment[]
+  dfyComments: InquiryComment[]
   readOnly: boolean
   canComment: boolean
   canEdit: boolean
+  showInternalTab: boolean
+  showDfyTab: boolean
+  currentUser?: DiscussionUser
   onClose: () => void
-  onSave?: (content: unknown) => Promise<void>
-  onAddComment?: (content: string, parentId?: string) => Promise<void>
+  onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
+  onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
+  onResolve?: (commentId: string, resolved: boolean) => Promise<void>
+  onDelete?: (commentId: string) => Promise<void>
+}
+```
+
+### CommentsSidebar
+
+**File:** `features/inquiries/components/CommentsSidebar.tsx`
+
+**Purpose:** Tabbed comment sidebar with Internal and DFY chat channels.
+
+**Features:**
+- Two tabs: Internal (admin/internal only) and DFY (visible to DFY partners)
+- Badge counts for unresolved comments per tab
+- Threaded replies (parent_id support)
+- Resolve/unresolve comments
+- Role-based visibility (admin/internal see both tabs, DFY sees DFY only)
+
+**Props:**
+```typescript
+interface CommentsSidebarProps {
+  inquiryId: string
+  internalComments: InquiryComment[]
+  dfyComments: InquiryComment[]
+  canEdit: boolean
+  showInternalTab: boolean
+  showDfyTab: boolean
+  onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
   onResolve?: (commentId: string, resolved: boolean) => Promise<void>
   onDelete?: (commentId: string) => Promise<void>
 }
