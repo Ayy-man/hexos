@@ -17,14 +17,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { signOut } from '@/lib/auth/actions'
 import type { Profile } from '@/lib/auth/types'
 
 interface NavUserProps {
   profile: Profile
-  signOutAction: () => Promise<void>
 }
 
-export function NavUser({ profile, signOutAction }: NavUserProps) {
+export function NavUser({ profile }: NavUserProps) {
   const { isMobile } = useSidebar()
 
   const initials = profile.name
@@ -87,7 +87,7 @@ export function NavUser({ profile, signOutAction }: NavUserProps) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <form action={signOutAction}>
+              <form action={signOut}>
                 <button type="submit" className="flex w-full items-center">
                   <LogOut className="mr-2 size-4" />
                   Sign out

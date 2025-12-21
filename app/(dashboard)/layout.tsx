@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from '@/lib/auth/actions'
 import { getNavigation } from '@/lib/navigation'
 import { AppSidebar } from '@/components/app-sidebar'
 import {
@@ -52,7 +51,6 @@ export default async function DashboardLayout({
       <AppSidebar
         profile={profile as Profile}
         navigation={navigation}
-        signOutAction={signOut}
       />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">

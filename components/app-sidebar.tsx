@@ -25,13 +25,11 @@ import type { NavGroup } from '@/lib/navigation'
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profile: Profile
   navigation: NavGroup[]
-  signOutAction: () => Promise<void>
 }
 
 export function AppSidebar({
   profile,
   navigation,
-  signOutAction,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname()
@@ -90,7 +88,7 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser profile={profile} signOutAction={signOutAction} />
+        <NavUser profile={profile} />
       </SidebarFooter>
 
       <SidebarRail />
