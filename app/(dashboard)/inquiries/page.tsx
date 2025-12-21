@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
 import { getInquiries } from '@/lib/api/inquiries'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Plus, Building2, FileText, ArrowRight } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 
@@ -136,8 +136,9 @@ export default async function InquiriesPage() {
           <CardContent>
             <div className="space-y-4">
               {inquiries.map((inquiry) => (
-                <div
+                <Link
                   key={inquiry.id}
+                  href={`/inquiries/${inquiry.id}`}
                   className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
@@ -171,16 +172,9 @@ export default async function InquiriesPage() {
                     <Badge className={STATUS_COLORS[inquiry.status] || STATUS_COLORS.new}>
                       {inquiry.status}
                     </Badge>
-                    {inquiry.project && (
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/projects/${inquiry.project.id}`}>
-                          View Project
-                          <ArrowRight className="h-4 w-4 ml-1" />
-                        </Link>
-                      </Button>
-                    )}
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </CardContent>
