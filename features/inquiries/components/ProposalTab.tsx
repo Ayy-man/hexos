@@ -59,7 +59,7 @@ export function ProposalTab({
   proposalSubmittedAt,
   isAdmin,
   isDfyOwner,
-  proposalComments: initialComments,
+  proposalComments: initialComments = [],
   currentUser,
   saveProposal,
   submitProposal,
@@ -67,7 +67,7 @@ export function ProposalTab({
   resolveComment,
   deleteComment,
 }: ProposalTabProps) {
-  const [comments, setComments] = useState<InquiryComment[]>(initialComments)
+  const [comments, setComments] = useState<InquiryComment[]>(initialComments || [])
   const [isPending, startTransition] = useTransition()
   const isSubmitted = !!proposalSubmittedAt
 

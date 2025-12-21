@@ -156,22 +156,26 @@ export default async function InquiryDetailPage({
   try {
     if (isInternal) {
       // Fetch all comment types for internal users
-      const [internal, dfy, proposal] = await Promise.all([
+      const [internal, dfy] = await Promise.all([
         getInquiryComments(id, 'internal'),
         getInquiryComments(id, 'dfy'),
-        getInquiryComments(id, 'proposal'),
       ])
       internalComments = internal
       dfyComments = dfy
-      proposalComments = proposal
+      // Proposal comments might fail if enum doesn't exist yet
+      try {
+        proposalComments = await getInquiryComments(id, 'proposal')
+      } catch {
+        proposalComments = []
+      }
     } else if (isDfyOwner && proposalSubmitted) {
       // DFY sees DFY comments and proposal comments (after submission)
-      const [dfy, proposal] = await Promise.all([
-        getInquiryComments(id, 'dfy'),
-        getInquiryComments(id, 'proposal'),
-      ])
-      dfyComments = dfy
-      proposalComments = proposal
+      dfyComments = await getInquiryComments(id, 'dfy')
+      try {
+        proposalComments = await getInquiryComments(id, 'proposal')
+      } catch {
+        proposalComments = []
+      }
     } else {
       // DFY only sees DFY comments
       dfyComments = await getInquiryComments(id, 'dfy')
