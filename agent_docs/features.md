@@ -44,21 +44,21 @@ See `components.md` for details.
 - [ ] Deliverables list + Gantt view
 - [ ] Status transitions
 
-### Phase 4: Inquiry Flow (Priority - Next)
+### Phase 4: Inquiry Flow (Complete)
 
 See `inquiry-form.md` for full specification.
 
-- [ ] Database: inquiries table + RLS policies
-- [ ] Blueprints seed data (for dropdown)
-- [ ] Multi-step form with conditional branching
-  - [ ] Branch A: Closed deals (A1, A2, A3)
-  - [ ] Branch B: Proposal requests (B1, B2, B3)
-- [ ] AI Copilot sidebar (toggleable)
-  - [ ] @assistant-ui/react integration
-  - [ ] OpenRouter API route
-  - [ ] Tool calling for form field population
+- [x] Database: inquiries table + RLS policies
+- [x] Blueprints seed data (12 solutions in 2 categories)
+- [x] Multi-step form with conditional branching
+  - [x] Branch A: Closed deals (A1, A2, A3)
+  - [x] Branch B: Proposal requests (B1, B2, B3)
+- [x] AI Copilot sidebar (toggleable)
+  - [x] Chat interface with Claude 3 Haiku via OpenRouter
+  - [x] Tool calling for form field population (set_form_field)
 - [ ] Inquiry → Project conversion (closed deals)
-- [ ] Inquiries list page (admin/internal + dfy own)
+- [x] Inquiries list page (admin/internal see all, dfy sees own)
+- [x] Inquiry detail page (/inquiries/[id])
 
 ### Phase 5: External Access
 
@@ -151,9 +151,9 @@ export const features = {
   /                         # Inquiry list
   /new                      # Submit inquiry (with form copilot)
   /[id]                     # Inquiry detail
-/settings
-  /profile                  # User profile
-  /team                     # User management (admin only)
+/settings                   # Settings page (placeholder)
+  /profile                  # User profile (coming soon)
+  /team                     # User management (admin only, coming soon)
 /blueprints                 # Blueprint catalog (admin only)
 ```
 
@@ -175,6 +175,7 @@ app/
 │   ├── inquiries/
 │   └── settings/
 └── api/
+    ├── copilot/              # AI form assistant (OpenRouter)
     └── webhooks/
         └── stripe/
 ```
