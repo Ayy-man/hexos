@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useOptimistic } from 'react'
+import { useRouter } from 'next/navigation'
 import { LayoutList, LayoutGrid } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
@@ -36,34 +37,46 @@ interface InquiryListViewProps {
 export function InquiryListView({ inquiries, defaultView = 'table' }: InquiryListViewProps) {
   const [view, setView] = useState<'table' | 'board'>(defaultView)
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
-  // Optimistic updates for smoother UX
-  const [optimisticInquiries, setOptimisticInquiries] = useOptimistic(
-    inquiries,
-    (state, { id, stage }: { id: string; stage: ProposalStage }) =>
-      state.map((inquiry) =>
-        inquiry.id === id ? { ...inquiry, proposal_stage: stage } : inquiry
-      )
-  )
+  // Local state for immediate updates (more reliable than useOptimistic for this case)
+  const [localInquiries, setLocalInquiries] = useState(inquiries)
+
+  // Sync with server data when it changes
+  if (JSON.stringify(inquiries) !== JSON.stringify(localInquiries) && !isPending) {
+    setLocalInquiries(inquiries)
+  }
 
   const handleStageChange = (id: string, stage: ProposalStage) => {
-    const inquiry = inquiries.find((i) => i.id === id)
+    const inquiry = localInquiries.find((i) => i.id === id)
     const companyName = inquiry?.prospect_company_name || 'Inquiry'
+    const currentStage = inquiry?.proposal_stage || 'pending'
+
+    // Don't do anything if same stage
+    if (currentStage === stage) return
+
+    // Immediately update local state
+    setLocalInquiries((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, proposal_stage: stage } : i))
+    )
 
     startTransition(async () => {
-      // Optimistically update the UI
-      setOptimisticInquiries({ id, stage })
-
       try {
         await updateStageAction(id, stage)
         toast.success(`Moved to ${getStageName(stage)}`, {
           description: companyName,
         })
+        // Force refresh to get updated data from server
+        router.refresh()
       } catch (error) {
         console.error('Failed to update stage:', error)
         toast.error('Failed to update stage', {
           description: error instanceof Error ? error.message : 'Please try again',
         })
+        // Revert on error
+        setLocalInquiries((prev) =>
+          prev.map((i) => (i.id === id ? { ...i, proposal_stage: currentStage } : i))
+        )
       }
     })
   }
@@ -90,12 +103,12 @@ export function InquiryListView({ inquiries, defaultView = 'table' }: InquiryLis
       <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
         {view === 'table' ? (
           <InquiryTableView
-            inquiries={optimisticInquiries}
+            inquiries={localInquiries}
             onStageChange={handleStageChange}
           />
         ) : (
           <InquiryBoardView
-            inquiries={optimisticInquiries}
+            inquiries={localInquiries}
             onStageChange={handleStageChange}
           />
         )}

@@ -140,11 +140,29 @@ ClickUp-style inquiry management with pipeline views.
   - [x] HTML5 drag-and-drop between columns
   - [x] Cards: company, priority, value, partner, due date
   - [x] Color-coded column headers
-  - [x] Drop zone highlighting
+  - [x] Drop zone highlighting with ring effect
+  - [x] Cross-browser dataTransfer support
 - [x] View toggle (Table | Board tabs)
 - [x] Stats cards showing stage counts
 - [x] StageBadge component with color coding
 - [x] PriorityBadge component with flag icon
+- [x] Toast notifications (sonner)
+  - [x] Success toast on stage change
+  - [x] Error toast with details on failure
+  - [x] Toaster added to dashboard layout
+- [x] Optimistic updates
+  - [x] UI updates immediately while server processes
+  - [x] Automatic revert on error
+- [x] StageHistoryTimeline component
+  - [x] Shows proposal progress in inquiry detail sidebar
+  - [x] Chronological timeline of stage changes
+  - [x] Visual progress bar (Pending → Agreed)
+  - [x] Visible to all users including DFY partners
+- [x] Timeline UI component (`components/ui/timeline.tsx`)
+  - [x] Vertical/horizontal orientation
+  - [x] Status icons (completed/active/pending/error)
+  - [x] Timestamp formatting
+  - [x] Custom content support
 
 **P1 Features (Planned):**
 - [ ] Public proposal link (client view at /p/[token])
@@ -289,18 +307,20 @@ components/
     ├── toolbar.tsx         # Editor toolbar
     ├── paragraph-node.tsx  # Paragraph element
     ├── heading-node.tsx    # H1-H3 elements
-    └── blockquote-node.tsx # Blockquote element
+    ├── blockquote-node.tsx # Blockquote element
+    └── timeline.tsx        # Reusable timeline component
 
 features/inquiries/components/
 ├── InquiryDocument.tsx     # Plate.js editor wrapper with auto-save
 ├── InquiryDocumentTab.tsx  # Document tab orchestrator
 ├── CommentsSidebar.tsx     # Comment threads UI
 ├── FullscreenDocument.tsx  # Fullscreen modal (70% doc + 30% comments)
-├── InquiryListView.tsx     # View toggle wrapper (Table | Board)
+├── InquiryListView.tsx     # View toggle wrapper (Table | Board) + toast notifications
 ├── InquiryTableView.tsx    # Grouped table with collapsible stages
 ├── InquiryBoardView.tsx    # Kanban board with drag-and-drop
 ├── StageBadge.tsx          # Proposal stage badge (color-coded)
 ├── PriorityBadge.tsx       # Priority badge (urgent/high/normal/low)
+├── StageHistoryTimeline.tsx # Proposal progress timeline for DFY visibility
 └── editor/plugins.ts       # Plate.js plugin configuration
 
 features/blueprints/components/

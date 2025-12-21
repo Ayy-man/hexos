@@ -337,8 +337,9 @@ These components provide ClickUp-style inquiry management:
 
 **Features:**
 - Tab toggle (Table | Board)
-- Optimistic updates using React transitions
-- Shared stage change handler
+- Optimistic updates using `useOptimistic` hook
+- Toast notifications on success/error (via sonner)
+- Shared stage change handler with error handling
 
 **Props:**
 ```typescript
@@ -377,10 +378,12 @@ interface InquiryTableViewProps {
 **Purpose:** Kanban board with drag-and-drop between stage columns.
 
 **Features:**
-- HTML5 drag-and-drop (no external library)
+- HTML5 drag-and-drop with dataTransfer (cross-browser compatible)
 - Color-coded column headers (red→blue→yellow→orange→green)
 - Cards showing: company name, priority, value, partner, due date
-- Drop zone highlighting during drag
+- Drop zone highlighting with ring effect during drag
+- Visual feedback: opacity change + ring highlight on dragged card
+- Smart stage check (only triggers change when moving to different stage)
 - Click card to view inquiry detail
 - Empty state placeholder per column
 
@@ -437,6 +440,98 @@ interface PriorityBadgeProps {
   showLabel?: boolean  // Show text label or just icon
   className?: string
 }
+```
+
+### StageHistoryTimeline
+
+**File:** `features/inquiries/components/StageHistoryTimeline.tsx`
+
+**Purpose:** Shows proposal progress timeline in inquiry detail sidebar.
+
+**Features:**
+- Displays current stage with StageBadge
+- Chronological timeline of all stage transitions
+- Visual progress bar (Pending → Agreed)
+- Shows creation date and stage change dates
+- Stage icons for each transition
+- Visible to all users including DFY partners
+
+**Props:**
+```typescript
+interface StageHistoryTimelineProps {
+  currentStage: ProposalStage | null
+  stageHistory: Array<{
+    from: ProposalStage | null
+    to: ProposalStage
+    changed_by: string
+    changed_at: string
+    notes?: string
+  }>
+  stageEnteredAt: string | null
+  createdAt: string
+  className?: string
+}
+```
+
+---
+
+## UI Components
+
+### Timeline
+
+**File:** `components/ui/timeline.tsx`
+
+**Purpose:** Reusable timeline component for displaying chronological events.
+
+**Features:**
+- Vertical or horizontal orientation
+- Status variants: completed, active, pending, error
+- Custom icons per item
+- Timestamp formatting (configurable position: top, bottom, inline)
+- Custom content support per item
+- Connector lines between items
+- Horizontal scroll with ScrollArea
+
+**Variants:**
+- `default` - Standard gap between items
+- `compact` - Minimal gap
+- `spacious` - Large gap
+
+**Props:**
+```typescript
+interface TimelineItem {
+  id: string
+  title: string
+  description?: string
+  timestamp?: string | Date
+  status?: "default" | "completed" | "active" | "pending" | "error"
+  icon?: React.ReactNode
+  content?: React.ReactNode
+  metadata?: Record<string, unknown>
+}
+
+interface TimelineProps {
+  items: TimelineItem[]
+  className?: string
+  variant?: "default" | "compact" | "spacious"
+  orientation?: "vertical" | "horizontal"
+  showConnectors?: boolean
+  showTimestamps?: boolean
+  timestampPosition?: "top" | "bottom" | "inline"
+}
+```
+
+**Usage:**
+```tsx
+import { Timeline } from "@/components/ui/timeline"
+
+const items = [
+  { id: "1", title: "Started", status: "completed", timestamp: new Date() },
+  { id: "2", title: "In Progress", status: "active" },
+  { id: "3", title: "Pending", status: "pending" },
+]
+
+<Timeline items={items} variant="compact" />
 ```
 
 ---
