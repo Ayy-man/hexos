@@ -66,11 +66,20 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
   const handleDragStart = (e: React.DragEvent, inquiryId: string) => {
     setDraggedId(inquiryId)
     e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', inquiryId)
+    // Add a visual cue for the dragged element
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '0.5'
+    }
   }
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (e: React.DragEvent) => {
     setDraggedId(null)
     setDropTargetStage(null)
+    // Reset opacity
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1'
+    }
   }
 
   const handleDragOver = (e: React.DragEvent, stage: ProposalStage) => {
@@ -85,8 +94,15 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
 
   const handleDrop = (e: React.DragEvent, stage: ProposalStage) => {
     e.preventDefault()
-    if (draggedId && onStageChange) {
-      onStageChange(draggedId, stage)
+    // Try to get ID from dataTransfer first (more reliable across browsers)
+    const inquiryId = e.dataTransfer.getData('text/plain') || draggedId
+    if (inquiryId && onStageChange) {
+      // Only trigger if actually moving to a different stage
+      const inquiry = inquiries.find(i => i.id === inquiryId)
+      const currentStage = inquiry?.proposal_stage || 'pending'
+      if (currentStage !== stage) {
+        onStageChange(inquiryId, stage)
+      }
     }
     setDraggedId(null)
     setDropTargetStage(null)
@@ -160,7 +176,7 @@ interface InquiryCardProps {
   inquiry: Inquiry
   isDragging: boolean
   onDragStart: (e: React.DragEvent) => void
-  onDragEnd: () => void
+  onDragEnd: (e: React.DragEvent) => void
   formatValue: (value: number | null) => string | null
 }
 
@@ -175,12 +191,12 @@ function InquiryCard({
 
   return (
     <Card
-      draggable
+      draggable={true}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
-        'cursor-grab active:cursor-grabbing transition-all',
-        isDragging && 'opacity-50 scale-95'
+        'cursor-grab active:cursor-grabbing transition-all select-none',
+        isDragging && 'opacity-50 scale-95 ring-2 ring-primary'
       )}
     >
       <CardContent className="p-3 space-y-2">

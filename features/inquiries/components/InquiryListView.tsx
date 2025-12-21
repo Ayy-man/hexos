@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useOptimistic } from 'react'
 import { LayoutList, LayoutGrid } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { toast } from 'sonner'
 import { InquiryTableView } from './InquiryTableView'
 import { InquiryBoardView } from './InquiryBoardView'
 import { updateStageAction } from '../actions/inquiryActions'
+import { getStageName } from './StageBadge'
 import type { ProposalStage, Priority } from '@/lib/api/inquiries'
 
 interface Inquiry {
@@ -35,12 +37,33 @@ export function InquiryListView({ inquiries, defaultView = 'table' }: InquiryLis
   const [view, setView] = useState<'table' | 'board'>(defaultView)
   const [isPending, startTransition] = useTransition()
 
+  // Optimistic updates for smoother UX
+  const [optimisticInquiries, setOptimisticInquiries] = useOptimistic(
+    inquiries,
+    (state, { id, stage }: { id: string; stage: ProposalStage }) =>
+      state.map((inquiry) =>
+        inquiry.id === id ? { ...inquiry, proposal_stage: stage } : inquiry
+      )
+  )
+
   const handleStageChange = (id: string, stage: ProposalStage) => {
+    const inquiry = inquiries.find((i) => i.id === id)
+    const companyName = inquiry?.prospect_company_name || 'Inquiry'
+
     startTransition(async () => {
+      // Optimistically update the UI
+      setOptimisticInquiries({ id, stage })
+
       try {
         await updateStageAction(id, stage)
+        toast.success(`Moved to ${getStageName(stage)}`, {
+          description: companyName,
+        })
       } catch (error) {
         console.error('Failed to update stage:', error)
+        toast.error('Failed to update stage', {
+          description: error instanceof Error ? error.message : 'Please try again',
+        })
       }
     })
   }
@@ -67,12 +90,12 @@ export function InquiryListView({ inquiries, defaultView = 'table' }: InquiryLis
       <div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
         {view === 'table' ? (
           <InquiryTableView
-            inquiries={inquiries}
+            inquiries={optimisticInquiries}
             onStageChange={handleStageChange}
           />
         ) : (
           <InquiryBoardView
-            inquiries={inquiries}
+            inquiries={optimisticInquiries}
             onStageChange={handleStageChange}
           />
         )}

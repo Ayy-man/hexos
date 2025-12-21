@@ -16,6 +16,7 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { Toaster } from 'sonner'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -70,6 +71,7 @@ export default async function DashboardLayout({
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
+      <Toaster richColors position="bottom-right" />
     </SidebarProvider>
   )
 }
