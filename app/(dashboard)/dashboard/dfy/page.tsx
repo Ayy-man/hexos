@@ -1,10 +1,12 @@
 import Link from 'next/link'
-import { Briefcase, DollarSign, Send, TrendingUp } from 'lucide-react'
+import { Briefcase, DollarSign, Send, TrendingUp, FileText } from 'lucide-react'
 import { requireRole, getProfile } from '@/lib/auth/guards'
 import { getProjects } from '@/lib/api/projects'
+import { getInquiries } from '@/lib/api/inquiries'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 
 const STATUS_COLORS: Record<string, string> = {
   inquiry_new: 'bg-blue-500',
@@ -22,6 +24,7 @@ export default async function DfyDashboard() {
   const profile = await getProfile()
 
   let projects: Awaited<ReturnType<typeof getProjects>> = []
+  let inquiries: Awaited<ReturnType<typeof getInquiries>> = []
 
   try {
     projects = await getProjects()
@@ -29,13 +32,19 @@ export default async function DfyDashboard() {
     // RLS filters to DFY's deals only
   }
 
+  try {
+    inquiries = await getInquiries()
+  } catch {
+    // RLS filters to DFY's own inquiries
+  }
+
   // Calculate stats
   const activeDeals = projects.filter((p) =>
     !['completed', 'cancelled', 'on_hold'].includes(p.status)
   )
   const completedDeals = projects.filter((p) => p.status === 'completed')
-  const pendingInquiries = projects.filter((p) =>
-    ['inquiry_new', 'ai_matching', 'qualified'].includes(p.status)
+  const pendingInquiries = inquiries.filter((i) =>
+    ['new', 'processing'].includes(i.status)
   )
 
   // Calculate estimated commission (only for completed deals)
@@ -119,13 +128,73 @@ export default async function DfyDashboard() {
         </Card>
       </div>
 
+      {/* My Inquiries */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>My Submissions</CardTitle>
+              <CardDescription>Inquiries you&apos;ve submitted</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/inquiries">View all</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {inquiries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground">No submissions yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Submit an inquiry to get started
+              </p>
+              <Button variant="link" asChild className="mt-2">
+                <Link href="/inquiries/new">Submit your first inquiry</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {inquiries.slice(0, 5).map((inquiry) => (
+                <Link
+                  key={inquiry.id}
+                  href={`/inquiries/${inquiry.id}`}
+                  className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`h-2 w-2 rounded-full ${
+                        inquiry.status === 'new' ? 'bg-blue-500' :
+                        inquiry.status === 'processing' ? 'bg-yellow-500' :
+                        inquiry.status === 'converted' ? 'bg-green-500' : 'bg-stone-400'
+                      }`}
+                    />
+                    <div>
+                      <p className="font-medium">
+                        {inquiry.prospect_company_name || 'Unnamed Prospect'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {PATH_LABELS[inquiry.form_path] || inquiry.form_path}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="capitalize">
+                    {inquiry.status}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* My Deals */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>My Deals</CardTitle>
-              <CardDescription>Projects you&apos;ve referred</CardDescription>
+              <CardDescription>Projects converted from inquiries</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
               <Link href="/projects">View all</Link>
@@ -138,11 +207,8 @@ export default async function DfyDashboard() {
               <Briefcase className="h-12 w-12 text-muted-foreground/50 mb-4" />
               <p className="text-muted-foreground">No deals yet</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Submit an inquiry to get started
+                Deals appear here after your inquiries are converted
               </p>
-              <Button variant="link" asChild className="mt-2">
-                <Link href="/inquiries/new">Submit your first inquiry</Link>
-              </Button>
             </div>
           ) : (
             <div className="space-y-4">
