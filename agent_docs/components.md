@@ -375,15 +375,16 @@ interface InquiryTableViewProps {
 
 **File:** `features/inquiries/components/InquiryBoardView.tsx`
 
-**Purpose:** Kanban board with drag-and-drop between stage columns.
+**Purpose:** Kanban board with drag-and-drop between stage columns using @dnd-kit.
 
 **Features:**
-- HTML5 drag-and-drop with dataTransfer (cross-browser compatible)
+- Uses `@dnd-kit` for smooth, accessible drag-and-drop (replaces HTML5 drag-drop)
 - Color-coded column headers (red→blue→yellow→orange→green)
 - Cards showing: company name, priority, value, partner, due date
-- Drop zone highlighting with ring effect during drag
+- Drag overlay shows card preview while dragging
 - Visual feedback: opacity change + ring highlight on dragged card
-- Smart stage check (only triggers change when moving to different stage)
+- Grip handle for clear drag affordance
+- Keyboard navigation support (accessibility)
 - Click card to view inquiry detail
 - Empty state placeholder per column
 
@@ -532,6 +533,83 @@ const items = [
 ]
 
 <Timeline items={items} variant="compact" />
+```
+
+### Sortable / Kanban
+
+**File:** `components/ui/sortable.tsx`
+
+**Purpose:** Flexible drag-and-drop components using @dnd-kit for kanban boards and sortable lists.
+
+**Dependencies:** `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`, `@radix-ui/react-slot`
+
+**Exports:**
+
+**Kanban Components (for multi-column boards):**
+- `Kanban` - Root context provider for kanban boards
+- `KanbanBoard` - Container for columns
+- `KanbanColumn` - Individual column
+- `KanbanColumnContent` - Sortable area within column
+- `KanbanColumnHandle` - Drag handle for column reordering
+- `KanbanItem` - Draggable item within column
+- `KanbanItemHandle` - Drag handle for items
+- `KanbanOverlay` - Visual preview of dragged item
+
+**Sortable Components (for single-list reordering):**
+- `Sortable` - Root context for sortable lists
+- `SortableItem` - Draggable list item
+- `SortableItemHandle` - Drag handle for items
+
+**Usage (Kanban):**
+```tsx
+import {
+  Kanban, KanbanBoard, KanbanColumn,
+  KanbanColumnContent, KanbanItem, KanbanItemHandle
+} from '@/components/ui/sortable'
+
+<Kanban
+  value={groupedData}
+  onValueChange={setGroupedData}
+  getItemValue={(item) => item.id}
+  onMove={handleMove}
+>
+  <KanbanBoard>
+    {columns.map((col) => (
+      <KanbanColumn key={col.id} value={col.id}>
+        <KanbanColumnContent value={col.id}>
+          {col.items.map((item) => (
+            <KanbanItem key={item.id} value={item.id}>
+              <KanbanItemHandle>
+                <GripVertical />
+              </KanbanItemHandle>
+              {item.name}
+            </KanbanItem>
+          ))}
+        </KanbanColumnContent>
+      </KanbanColumn>
+    ))}
+  </KanbanBoard>
+</Kanban>
+```
+
+**Usage (Sortable List):**
+```tsx
+import { Sortable, SortableItem, SortableItemHandle } from '@/components/ui/sortable'
+
+<Sortable
+  value={items}
+  onValueChange={setItems}
+  getItemValue={(item) => item.id}
+>
+  {items.map((item) => (
+    <SortableItem key={item.id} value={item.id}>
+      <SortableItemHandle>
+        <GripVertical />
+      </SortableItemHandle>
+      {item.name}
+    </SortableItem>
+  ))}
+</Sortable>
 ```
 
 ---

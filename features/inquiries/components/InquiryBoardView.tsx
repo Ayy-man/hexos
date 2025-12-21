@@ -1,12 +1,22 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
-import { formatDistanceToNow, format, isPast } from 'date-fns'
+import { format, isPast } from 'date-fns'
 import { Building2, Calendar, User, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  Kanban,
+  KanbanBoard,
+  KanbanColumn,
+  KanbanColumnContent,
+  KanbanItem,
+  KanbanItemHandle,
+  KanbanOverlay,
+  type KanbanMoveEvent,
+} from '@/components/ui/sortable'
 import { StageBadge, STAGE_ORDER, getStageName } from './StageBadge'
 import { PriorityBadge } from './PriorityBadge'
 import type { ProposalStage, Priority } from '@/lib/api/inquiries'
@@ -42,17 +52,14 @@ const STAGE_COLORS: Record<ProposalStage, string> = {
 }
 
 export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewProps) {
-  const [draggedId, setDraggedId] = useState<string | null>(null)
-  const [dropTargetStage, setDropTargetStage] = useState<ProposalStage | null>(null)
-
-  // Group inquiries by stage
+  // Group inquiries by stage into the format Kanban expects
   const groupedInquiries = useMemo(() => {
     const groups: Record<ProposalStage, Inquiry[]> = {
-      agreed: [],
+      pending: [],
       proposal_sent: [],
       proposal_verify: [],
       on_hold: [],
-      pending: [],
+      agreed: [],
     }
 
     inquiries.forEach((inquiry) => {
@@ -63,49 +70,23 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
     return groups
   }, [inquiries])
 
-  const handleDragStart = (e: React.DragEvent, inquiryId: string) => {
-    setDraggedId(inquiryId)
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', inquiryId)
-    // Add a visual cue for the dragged element
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '0.5'
+  const handleMove = (event: KanbanMoveEvent) => {
+    const { activeContainer, overContainer } = event
+
+    // Find the inquiry that was moved
+    const movedInquiry = groupedInquiries[activeContainer as ProposalStage]?.find(
+      (inquiry) => inquiry.id === event.event.active.id
+    )
+
+    if (movedInquiry && activeContainer !== overContainer && onStageChange) {
+      onStageChange(movedInquiry.id, overContainer as ProposalStage)
     }
   }
 
-  const handleDragEnd = (e: React.DragEvent) => {
-    setDraggedId(null)
-    setDropTargetStage(null)
-    // Reset opacity
-    if (e.currentTarget instanceof HTMLElement) {
-      e.currentTarget.style.opacity = '1'
-    }
-  }
-
-  const handleDragOver = (e: React.DragEvent, stage: ProposalStage) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setDropTargetStage(stage)
-  }
-
-  const handleDragLeave = () => {
-    setDropTargetStage(null)
-  }
-
-  const handleDrop = (e: React.DragEvent, stage: ProposalStage) => {
-    e.preventDefault()
-    // Try to get ID from dataTransfer first (more reliable across browsers)
-    const inquiryId = e.dataTransfer.getData('text/plain') || draggedId
-    if (inquiryId && onStageChange) {
-      // Only trigger if actually moving to a different stage
-      const inquiry = inquiries.find(i => i.id === inquiryId)
-      const currentStage = inquiry?.proposal_stage || 'pending'
-      if (currentStage !== stage) {
-        onStageChange(inquiryId, stage)
-      }
-    }
-    setDraggedId(null)
-    setDropTargetStage(null)
+  const handleValueChange = (newColumns: Record<string, Inquiry[]>) => {
+    // This is called for internal reordering within columns
+    // For now, we don't need to persist the order within columns
+    // The onMove callback handles cross-column moves
   }
 
   const formatValue = (value: number | null) => {
@@ -118,93 +99,113 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
     }).format(value)
   }
 
+  // Find an inquiry by ID for the overlay
+  const findInquiryById = (id: string): Inquiry | undefined => {
+    for (const stage of STAGE_ORDER) {
+      const found = groupedInquiries[stage].find((i) => i.id === id)
+      if (found) return found
+    }
+    return undefined
+  }
+
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
-      {STAGE_ORDER.map((stage) => {
-        const stageInquiries = groupedInquiries[stage]
-        const isDropTarget = dropTargetStage === stage
+    <Kanban
+      value={groupedInquiries}
+      onValueChange={handleValueChange}
+      getItemValue={(item) => item.id}
+      onMove={handleMove}
+      className="pb-4"
+    >
+      <KanbanBoard className="flex gap-4 overflow-x-auto sm:grid-cols-5">
+        {STAGE_ORDER.map((stage) => {
+          const stageInquiries = groupedInquiries[stage]
 
-        return (
-          <div
-            key={stage}
-            className={cn(
-              'flex-shrink-0 w-[280px] rounded-lg bg-muted/30 border-t-4',
-              STAGE_COLORS[stage],
-              isDropTarget && 'ring-2 ring-cyan-500 ring-offset-2'
-            )}
-            onDragOver={(e) => handleDragOver(e, stage)}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, stage)}
-          >
-            {/* Column Header */}
-            <div className="p-3 border-b">
-              <div className="flex items-center justify-between">
-                <StageBadge stage={stage} />
-                <Badge variant="secondary" className="text-xs">
-                  {stageInquiries.length}
-                </Badge>
-              </div>
-            </div>
-
-            {/* Column Content */}
-            <div className="p-2 space-y-2 min-h-[400px]">
-              {stageInquiries.map((inquiry) => (
-                <InquiryCard
-                  key={inquiry.id}
-                  inquiry={inquiry}
-                  isDragging={draggedId === inquiry.id}
-                  onDragStart={(e) => handleDragStart(e, inquiry.id)}
-                  onDragEnd={handleDragEnd}
-                  formatValue={formatValue}
-                />
-              ))}
-
-              {stageInquiries.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Drop inquiries here
-                </div>
+          return (
+            <KanbanColumn
+              key={stage}
+              value={stage}
+              disabled
+              className={cn(
+                'flex-shrink-0 w-[280px] rounded-lg bg-muted/30 border-t-4',
+                STAGE_COLORS[stage]
               )}
-            </div>
-          </div>
-        )
-      })}
-    </div>
+            >
+              {/* Column Header */}
+              <div className="p-3 border-b">
+                <div className="flex items-center justify-between">
+                  <StageBadge stage={stage} />
+                  <Badge variant="secondary" className="text-xs">
+                    {stageInquiries.length}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Column Content */}
+              <KanbanColumnContent value={stage} className="p-2 min-h-[400px]">
+                {stageInquiries.map((inquiry) => (
+                  <KanbanItem key={inquiry.id} value={inquiry.id}>
+                    <InquiryCard
+                      inquiry={inquiry}
+                      formatValue={formatValue}
+                    />
+                  </KanbanItem>
+                ))}
+
+                {stageInquiries.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    Drop inquiries here
+                  </div>
+                )}
+              </KanbanColumnContent>
+            </KanbanColumn>
+          )
+        })}
+      </KanbanBoard>
+
+      {/* Drag Overlay - shows a preview of the dragged card */}
+      <KanbanOverlay>
+        {({ value }) => {
+          const inquiry = findInquiryById(value as string)
+          if (!inquiry) return null
+          return (
+            <InquiryCard
+              inquiry={inquiry}
+              formatValue={formatValue}
+              isDragging
+            />
+          )
+        }}
+      </KanbanOverlay>
+    </Kanban>
   )
 }
 
 interface InquiryCardProps {
   inquiry: Inquiry
-  isDragging: boolean
-  onDragStart: (e: React.DragEvent) => void
-  onDragEnd: (e: React.DragEvent) => void
   formatValue: (value: number | null) => string | null
+  isDragging?: boolean
 }
 
 function InquiryCard({
   inquiry,
-  isDragging,
-  onDragStart,
-  onDragEnd,
   formatValue,
+  isDragging = false,
 }: InquiryCardProps) {
   const isOverdue = inquiry.due_date && isPast(new Date(inquiry.due_date))
 
   return (
     <Card
-      draggable={true}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
       className={cn(
         'transition-all select-none group',
-        isDragging && 'opacity-50 scale-95 ring-2 ring-primary'
+        isDragging && 'shadow-lg ring-2 ring-primary'
       )}
     >
       <CardContent className="p-3 space-y-2">
         {/* Drag Handle + Company Name */}
         <div className="flex items-center gap-2">
-          <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors">
+          <KanbanItemHandle className="text-muted-foreground hover:text-foreground transition-colors">
             <GripVertical className="h-4 w-4" />
-          </div>
+          </KanbanItemHandle>
           <Link
             href={`/inquiries/${inquiry.id}`}
             className="flex items-center gap-2 hover:underline flex-1 min-w-0"
@@ -243,11 +244,6 @@ function InquiryCard({
               <span>{format(new Date(inquiry.due_date), 'MMM d')}</span>
             </div>
           )}
-        </div>
-
-        {/* Created Date */}
-        <div className="text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}
         </div>
       </CardContent>
     </Card>
