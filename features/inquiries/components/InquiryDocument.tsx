@@ -5,6 +5,8 @@ import { Plate, usePlateEditor } from 'platejs/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Editor, EditorContainer } from '@/components/ui/editor'
+import { FloatingToolbar } from '@/components/ui/floating-toolbar'
+import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { InquiryDocumentPlugins } from './editor/plugins'
 import { FileText, Save, CheckCircle } from 'lucide-react'
@@ -153,6 +155,11 @@ export function InquiryDocument({
               className="px-6 py-4"
             />
           </EditorContainer>
+
+          {/* Floating toolbar appears on text selection */}
+          <FloatingToolbar>
+            <FloatingToolbarButtons />
+          </FloatingToolbar>
         </Plate>
       </CardContent>
     </Card>

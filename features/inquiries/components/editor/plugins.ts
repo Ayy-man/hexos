@@ -1,10 +1,6 @@
 'use client'
 
 import {
-  BoldPlugin,
-  ItalicPlugin,
-  UnderlinePlugin,
-  StrikethroughPlugin,
   BlockquotePlugin,
   H1Plugin,
   H2Plugin,
@@ -12,17 +8,11 @@ import {
 } from '@platejs/basic-nodes/react'
 import { ParagraphPlugin } from 'platejs/react'
 
+import { BasicMarksKit } from '@/components/editor/plugins/basic-marks-kit'
+import { CommentKit } from '@/components/editor/plugins/comment-kit'
 import { ParagraphElement } from '@/components/ui/paragraph-node'
 import { H1Element, H2Element, H3Element } from '@/components/ui/heading-node'
 import { BlockquoteElement } from '@/components/ui/blockquote-node'
-
-// Basic marks (inline formatting)
-export const BasicMarksPlugins = [
-  BoldPlugin,
-  ItalicPlugin,
-  UnderlinePlugin,
-  StrikethroughPlugin,
-]
 
 // Basic blocks (paragraph, headings, blockquote)
 export const BasicBlocksPlugins = [
@@ -48,5 +38,6 @@ export const BasicBlocksPlugins = [
 // Combined plugins for the inquiry document editor
 export const InquiryDocumentPlugins = [
   ...BasicBlocksPlugins,
-  ...BasicMarksPlugins,
+  ...BasicMarksKit,
+  ...CommentKit,
 ]
