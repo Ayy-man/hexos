@@ -13,8 +13,13 @@ export async function saveInquiryDocument(
   inquiryId: string,
   content: unknown
 ): Promise<void> {
-  await updateInquiryDocument(inquiryId, content)
-  // Don't revalidate on auto-save to avoid unnecessary re-renders
+  try {
+    await updateInquiryDocument(inquiryId, content)
+    // Don't revalidate on auto-save to avoid unnecessary re-renders
+  } catch (error) {
+    // document_content column may not exist yet - silently fail
+    console.warn('Failed to save document:', error)
+  }
 }
 
 export async function addInquiryComment(

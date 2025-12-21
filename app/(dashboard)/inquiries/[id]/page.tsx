@@ -90,12 +90,18 @@ export default async function InquiryDetailPage({
   let comments: InquiryComment[] = []
   try {
     inquiry = await getInquiry(id)
-    // Only fetch comments for admin/internal
-    if (['admin', 'internal'].includes(profile.role)) {
-      comments = await getInquiryComments(id)
-    }
   } catch {
     notFound()
+  }
+
+  // Fetch comments separately - may fail if table doesn't exist yet
+  if (['admin', 'internal'].includes(profile.role)) {
+    try {
+      comments = await getInquiryComments(id)
+    } catch (error) {
+      // inquiry_comments table may not exist yet - silently fail
+      console.warn('Failed to fetch comments:', error)
+    }
   }
 
   if (!inquiry) {
