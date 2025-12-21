@@ -174,8 +174,6 @@ export default async function BlueprintsPage({ searchParams }: BlueprintsPagePro
               tags={blueprint.tags || []}
               status={blueprint.status || 'published'}
               pricing_tiers={blueprint.pricing_tiers || []}
-              showActions={isDFY}
-              isDFY={isDFY}
             />
           ))}
         </div>

@@ -11,6 +11,9 @@ import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSqu
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocumentTab'
 import { InquiryActions } from '@/features/inquiries/components/InquiryActions'
+import { StageHistoryTimeline } from '@/features/inquiries/components/StageHistoryTimeline'
+import { StageBadge } from '@/features/inquiries/components/StageBadge'
+import type { ProposalStage } from '@/lib/api/inquiries'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
   saveInquiryDocumentWithDiscussions,
@@ -182,9 +185,7 @@ export default async function InquiryDetailPage({
             <h1 className="text-2xl font-semibold tracking-tight">
               {inquiry.prospect_company_name || 'Unnamed Prospect'}
             </h1>
-            <Badge className={STATUS_COLORS[inquiry.status] || STATUS_COLORS.new}>
-              {inquiry.status}
-            </Badge>
+            <StageBadge stage={inquiry.proposal_stage as ProposalStage} />
             {inquiry.archived_at && (
               <Badge variant="outline" className="gap-1">
                 <Archive className="h-3 w-3" />
@@ -342,6 +343,20 @@ export default async function InquiryDetailPage({
                   )}
                 </CardContent>
               </Card>
+
+              {/* Proposal Progress Timeline */}
+              <StageHistoryTimeline
+                currentStage={inquiry.proposal_stage as ProposalStage}
+                stageHistory={(inquiry.stage_history as Array<{
+                  from: ProposalStage | null
+                  to: ProposalStage
+                  changed_by: string
+                  changed_at: string
+                  notes?: string
+                }>) || []}
+                stageEnteredAt={inquiry.stage_entered_at as string | null}
+                createdAt={inquiry.created_at}
+              />
 
               {/* Actions */}
               <Card>

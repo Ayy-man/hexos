@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Clock, DollarSign, ArrowRight } from 'lucide-react'
+import { Clock, DollarSign } from 'lucide-react'
 import type { PricingTier } from '@/lib/api/blueprints'
 
 interface BlueprintCardProps {
@@ -17,8 +16,6 @@ interface BlueprintCardProps {
   tags: string[]
   status: string
   pricing_tiers: PricingTier[]
-  showActions?: boolean
-  isDFY?: boolean
 }
 
 export function BlueprintCard({
@@ -31,8 +28,6 @@ export function BlueprintCard({
   tags,
   status,
   pricing_tiers,
-  showActions = false,
-  isDFY = false,
 }: BlueprintCardProps) {
   // Calculate starting price from tiers or base_price
   const startingPrice = pricing_tiers?.length > 0
@@ -93,31 +88,6 @@ export function BlueprintCard({
             )}
           </div>
         </div>
-
-        {/* Actions */}
-        {showActions && isDFY && (
-          <div className="flex gap-2 pt-2">
-            <Button size="sm" className="flex-1" asChild>
-              <Link href={`/inquiries/new?blueprint=${id}&type=closed`}>
-                Closed Deal
-              </Link>
-            </Button>
-            <Button size="sm" variant="outline" className="flex-1" asChild>
-              <Link href={`/inquiries/new?blueprint=${id}&type=proposal`}>
-                Request Proposal
-              </Link>
-            </Button>
-          </div>
-        )}
-
-        {!showActions && (
-          <Button variant="ghost" size="sm" className="w-full group-hover:bg-muted" asChild>
-            <Link href={`/blueprints/${id}`}>
-              View Details
-              <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
-        )}
       </CardContent>
     </Card>
   )
