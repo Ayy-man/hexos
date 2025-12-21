@@ -15,10 +15,13 @@ See `components.md` for details.
 
 ## MVP Scope (Current Phase)
 
-### Phase 1: Foundation ✅ TODO
+### Phase 1: Foundation (In Progress)
 
-- [ ] Project setup (Next.js + shadcn/ui Vega preset)
-- [ ] Supabase project + initial migration
+- [x] Project setup (Next.js 16 + shadcn/ui Vega preset)
+- [x] Supabase project created + client configured
+- [x] Vercel deployment connected
+- [x] MCP integrations (Supabase + Vercel)
+- [ ] Initial database migration
 - [ ] Auth flow (login/logout)
 - [ ] Basic route structure
 - [ ] Admin seed accounts
