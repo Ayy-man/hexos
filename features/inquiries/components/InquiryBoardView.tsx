@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { format, isPast } from 'date-fns'
 import { Building2, Calendar, User, GripVertical } from 'lucide-react'
@@ -15,6 +15,7 @@ import {
   KanbanItem,
   KanbanItemHandle,
   KanbanOverlay,
+  type KanbanMoveEvent,
 } from '@/components/ui/sortable'
 import { StageBadge, STAGE_ORDER } from './StageBadge'
 import { PriorityBadge } from './PriorityBadge'
@@ -77,38 +78,28 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
     groupInquiriesByStage(inquiries)
   )
 
-  // Keep track of previous columns to detect moves
-  const prevColumnsRef = useRef<Record<ProposalStage, Inquiry[]>>(columns)
-
   // Sync with props when they change (after server update)
   useEffect(() => {
-    const newColumns = groupInquiriesByStage(inquiries)
-    setColumns(newColumns)
-    prevColumnsRef.current = newColumns
+    setColumns(groupInquiriesByStage(inquiries))
   }, [inquiries])
 
-  const handleValueChange = (newColumns: Record<string, Inquiry[]>) => {
-    const typedNewColumns = newColumns as Record<ProposalStage, Inquiry[]>
-    const prevColumns = prevColumnsRef.current
+  // Only called when drag actually ends (drop)
+  const handleMove = (event: KanbanMoveEvent) => {
+    const { activeContainer, overContainer } = event
 
-    // Detect items that moved between columns
-    for (const stage of STAGE_ORDER) {
-      const oldItems = prevColumns[stage] || []
-      const newItems = typedNewColumns[stage] || []
-
-      // Find items that moved INTO this stage (exist in new but not in old)
-      for (const item of newItems) {
-        const wasInThisStage = oldItems.some((old) => old.id === item.id)
-        if (!wasInThisStage && onStageChange) {
-          // This item moved to this stage from somewhere else
-          onStageChange(item.id, stage)
-        }
+    // If moved to a different column, trigger stage change
+    if (activeContainer !== overContainer && onStageChange) {
+      const inquiry = columns[activeContainer as ProposalStage]?.find(
+        (i) => i.id === event.event.active.id
+      )
+      if (inquiry) {
+        onStageChange(inquiry.id, overContainer as ProposalStage)
       }
     }
+  }
 
-    // Update state and ref
-    setColumns(typedNewColumns)
-    prevColumnsRef.current = typedNewColumns
+  const handleValueChange = (newColumns: Record<string, Inquiry[]>) => {
+    setColumns(newColumns as Record<ProposalStage, Inquiry[]>)
   }
 
   const formatValue = (value: number | null) => {
@@ -134,6 +125,7 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
     <Kanban
       value={columns}
       onValueChange={handleValueChange}
+      onMove={handleMove}
       getItemValue={(item) => item.id}
       className="pb-4"
     >
