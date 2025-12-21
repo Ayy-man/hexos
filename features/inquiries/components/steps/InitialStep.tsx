@@ -14,7 +14,7 @@ export function InitialStep() {
       <div className="space-y-3">
         <Label className="text-base font-medium">What are you here for?</Label>
         <RadioGroup
-          value={submissionType}
+          value={submissionType || ""}
           onValueChange={(value) => setValue('submission_type', value)}
           className="space-y-3"
         >

@@ -13,7 +13,7 @@ export function ClosedDealType() {
       <div className="space-y-3">
         <Label className="text-base font-medium">What type of deal did you close?</Label>
         <RadioGroup
-          value={dealType}
+          value={dealType || ""}
           onValueChange={(value) => setValue('closed_deal_type', value)}
           className="space-y-3"
         >

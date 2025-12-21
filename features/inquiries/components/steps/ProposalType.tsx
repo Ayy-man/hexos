@@ -13,7 +13,7 @@ export function ProposalType() {
       <div className="space-y-3">
         <Label className="text-base font-medium">What type of proposal do you need?</Label>
         <RadioGroup
-          value={proposalType}
+          value={proposalType || ""}
           onValueChange={(value) => setValue('proposal_type', value)}
           className="space-y-3"
         >
