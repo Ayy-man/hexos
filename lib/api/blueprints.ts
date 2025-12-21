@@ -5,7 +5,7 @@ export async function getBlueprints() {
 
   const { data, error } = await supabase
     .from('blueprints')
-    .select('id, name, description, base_price')
+    .select('id, name, description, base_price, estimated_hours')
     .order('name')
 
   if (error) throw error

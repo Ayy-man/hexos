@@ -99,7 +99,15 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const error = await response.text()
-      console.error('OpenRouter error:', error)
+      console.error('OpenRouter error:', response.status, error)
+
+      if (response.status === 401) {
+        return NextResponse.json(
+          { error: 'Invalid OpenRouter API key. Please check your OPENROUTER_API_KEY in Vercel.' },
+          { status: 401 }
+        )
+      }
+
       return NextResponse.json(
         { error: 'Failed to get AI response' },
         { status: response.status }
