@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare, Archive } from 'lucide-react'
+import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare, Archive, Send, Lock } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocumentTab'
 import { InquiryActions } from '@/features/inquiries/components/InquiryActions'
@@ -16,6 +16,8 @@ import { StageBadge } from '@/features/inquiries/components/StageBadge'
 import { QuickPricingEditor } from '@/features/inquiries/components/QuickPricingEditor'
 import { ExportPDFButton } from '@/features/inquiries/components/ExportPDFButton'
 import { ShareLinkButton } from '@/features/inquiries/components/ShareLinkButton'
+import { ProposalTab } from '@/features/inquiries/components/ProposalTab'
+import { MyVersionTab } from '@/features/inquiries/components/MyVersionTab'
 import type { ProposalStage } from '@/lib/api/inquiries'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
@@ -24,6 +26,15 @@ import {
   resolveInquiryCommentAction,
   deleteInquiryCommentAction,
 } from '@/features/inquiries/actions/documentActions'
+import {
+  saveProposalContentAction,
+  submitProposalAction,
+  saveDfyVersionAction,
+  copyProposalToDfyVersionAction,
+  addProposalComment,
+  resolveProposalCommentAction,
+  deleteProposalCommentAction,
+} from '@/features/inquiries/actions/proposalActions'
 import type { TDiscussion } from '@/features/inquiries/components/editor/plugins'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -117,17 +128,37 @@ export default async function InquiryDetailPage({
     )
   }
 
+  // Permission variables
+  const isAdmin = ['admin', 'internal'].includes(profile.role)
+  const isDfyOwner = profile.role === 'dfy' && inquiry.submitted_by === profile.id
+  const proposalSubmitted = !!inquiry.proposal_submitted_at
+
+  // Tab visibility
+  const showProposalTab = isAdmin || isDfyOwner
+  const showMyVersionTab = isDfyOwner
+
   // Fetch comments by type - admin/internal see both, DFY only sees DFY
-  const isInternal = ['admin', 'internal'].includes(profile.role)
+  const isInternal = isAdmin
+  let proposalComments: InquiryComment[] = []
   try {
     if (isInternal) {
-      // Fetch both types for internal users
-      const [internal, dfy] = await Promise.all([
+      // Fetch all comment types for internal users
+      const [internal, dfy, proposal] = await Promise.all([
         getInquiryComments(id, 'internal'),
         getInquiryComments(id, 'dfy'),
+        getInquiryComments(id, 'proposal'),
       ])
       internalComments = internal
       dfyComments = dfy
+      proposalComments = proposal
+    } else if (isDfyOwner && proposalSubmitted) {
+      // DFY sees DFY comments and proposal comments (after submission)
+      const [dfy, proposal] = await Promise.all([
+        getInquiryComments(id, 'dfy'),
+        getInquiryComments(id, 'proposal'),
+      ])
+      dfyComments = dfy
+      proposalComments = proposal
     } else {
       // DFY only sees DFY comments
       dfyComments = await getInquiryComments(id, 'dfy')
@@ -138,8 +169,8 @@ export default async function InquiryDetailPage({
   }
 
   const formData = (inquiry.form_data || {}) as Record<string, unknown>
-  const canEdit = ['admin', 'internal'].includes(profile.role)
-  const canEditAsOwner = profile.role === 'dfy' && inquiry.submitted_by === profile.id
+  const canEdit = isAdmin
+  const canEditAsOwner = isDfyOwner
   const canEditDocument = canEdit || canEditAsOwner
   const canComment = ['admin', 'internal', 'dfy'].includes(profile.role)
 
@@ -174,6 +205,43 @@ export default async function InquiryDetailPage({
   const boundDeleteComment = async (commentId: string) => {
     'use server'
     await deleteInquiryCommentAction(id, commentId)
+  }
+
+  // Bound server actions for Proposal tab
+  const boundSaveProposal = async (content: unknown, discussions: TDiscussion[]) => {
+    'use server'
+    await saveProposalContentAction(id, content, discussions)
+  }
+
+  const boundSubmitProposal = async () => {
+    'use server'
+    await submitProposalAction(id)
+  }
+
+  const boundAddProposalComment = async (content: string, parentId?: string) => {
+    'use server'
+    return addProposalComment(id, content, parentId)
+  }
+
+  const boundResolveProposalComment = async (commentId: string, resolved: boolean) => {
+    'use server'
+    await resolveProposalCommentAction(id, commentId, resolved)
+  }
+
+  const boundDeleteProposalComment = async (commentId: string) => {
+    'use server'
+    await deleteProposalCommentAction(id, commentId)
+  }
+
+  // Bound server actions for My Version tab
+  const boundSaveDfyVersion = async (content: unknown) => {
+    'use server'
+    await saveDfyVersionAction(id, content)
+  }
+
+  const boundCopyProposalToDfyVersion = async () => {
+    'use server'
+    await copyProposalToDfyVersionAction(id)
   }
 
   return (
@@ -239,6 +307,31 @@ export default async function InquiryDetailPage({
               ) : null
             })()}
           </TabsTrigger>
+          {showProposalTab && (
+            <TabsTrigger value="proposal" className="flex items-center gap-2">
+              <Send className="h-4 w-4" />
+              Proposal
+              {proposalSubmitted && (
+                <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
+                  Sent
+                </Badge>
+              )}
+              {(() => {
+                const unresolvedCount = proposalComments.filter(c => !c.resolved && !c.parent_id).length
+                return unresolvedCount > 0 ? (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {unresolvedCount}
+                  </Badge>
+                ) : null
+              })()}
+            </TabsTrigger>
+          )}
+          {showMyVersionTab && (
+            <TabsTrigger value="my-version" className="flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              My Version
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Overview Tab */}
@@ -450,6 +543,44 @@ export default async function InquiryDetailPage({
             deleteComment={boundDeleteComment}
           />
         </TabsContent>
+
+        {/* Proposal Tab */}
+        {showProposalTab && (
+          <TabsContent value="proposal">
+            <ProposalTab
+              inquiryId={id}
+              initialContent={inquiry.proposal_content}
+              initialDiscussions={(inquiry.proposal_discussions as TDiscussion[]) || []}
+              proposalSubmittedAt={inquiry.proposal_submitted_at as string | null}
+              isAdmin={isAdmin}
+              isDfyOwner={isDfyOwner}
+              proposalComments={proposalComments}
+              currentUser={{
+                id: profile.id,
+                name: profile.name || profile.email || 'User',
+              }}
+              saveProposal={boundSaveProposal}
+              submitProposal={boundSubmitProposal}
+              addComment={boundAddProposalComment}
+              resolveComment={boundResolveProposalComment}
+              deleteComment={boundDeleteProposalComment}
+            />
+          </TabsContent>
+        )}
+
+        {/* My Version Tab (DFY only) */}
+        {showMyVersionTab && (
+          <TabsContent value="my-version">
+            <MyVersionTab
+              inquiryId={id}
+              initialContent={inquiry.dfy_version_content}
+              proposalContent={inquiry.proposal_content}
+              proposalSubmittedAt={inquiry.proposal_submitted_at as string | null}
+              saveContent={boundSaveDfyVersion}
+              copyFromProposal={boundCopyProposalToDfyVersion}
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

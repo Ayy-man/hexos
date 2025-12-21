@@ -363,3 +363,82 @@ export async function getInquiryPublicToken(id: string) {
   if (error) throw error
   return data?.public_token
 }
+
+// ============================================
+// Proposal Tab Functions
+// ============================================
+
+// Save proposal content (admin only - auto-save)
+export async function updateInquiryProposal(
+  id: string,
+  content: unknown,
+  discussions: unknown
+) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      proposal_content: content,
+      proposal_discussions: discussions,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Submit proposal to DFY partner
+export async function submitProposalToDfy(id: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      proposal_submitted_at: new Date().toISOString(),
+      proposal_submitted_by: user.id,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Save DFY's private version
+export async function updateDfyVersion(id: string, content: unknown) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      dfy_version_content: content,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Copy proposal content to DFY version
+export async function copyProposalToDfyVersion(id: string) {
+  const supabase = await createClient()
+
+  // First get the proposal content
+  const { data, error: fetchError } = await supabase
+    .from('inquiries')
+    .select('proposal_content')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) throw fetchError
+
+  // Then copy it to dfy_version_content
+  const { error: updateError } = await supabase
+    .from('inquiries')
+    .update({
+      dfy_version_content: data.proposal_content,
+    })
+    .eq('id', id)
+
+  if (updateError) throw updateError
+}

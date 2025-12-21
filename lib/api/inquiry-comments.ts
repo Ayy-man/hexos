@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 // Types
-export type CommentType = 'internal' | 'dfy'
+export type CommentType = 'internal' | 'dfy' | 'proposal'
 
 export interface InquiryComment {
   id: string
