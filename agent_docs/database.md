@@ -52,6 +52,15 @@ CREATE TYPE project_type AS ENUM ('blueprint', 'blueprint_custom', 'full_custom'
 CREATE TYPE operational_mode AS ENUM ('internal', 'hexona_devs', 'hexona_devs_dfy');
 CREATE TYPE payment_structure AS ENUM ('100_upfront', '50_50', '40_30_30', 'custom');
 CREATE TYPE scope_change_trigger AS ENUM ('client_request', 'dev_flag', 'deliverable_modified', 'timeline_extended');
+
+-- Proposal workflow stages (ClickUp-style pipeline)
+CREATE TYPE proposal_stage AS ENUM (
+  'pending',         -- Newly submitted, not yet reviewed
+  'proposal_sent',   -- Proposal drafted and sent to prospect
+  'proposal_verify', -- Awaiting client verification/response
+  'on_hold',         -- Paused (client request, timing, etc.)
+  'agreed'           -- Deal agreed, ready to convert to project
+);
 ```
 
 ### Core Tables
@@ -213,6 +222,21 @@ CREATE TABLE public.inquiries (
   converted_to_project_id UUID REFERENCES projects(id),
   document_content JSONB,              -- Rich text document (Plate.js format)
   inline_discussions JSONB DEFAULT '[]', -- Persisted inline comment threads
+
+  -- Proposal workflow (Phase 4.6)
+  proposal_stage proposal_stage DEFAULT 'pending',
+  stage_entered_at TIMESTAMPTZ DEFAULT NOW(),
+  stage_history JSONB DEFAULT '[]',   -- Array of { from, to, changed_by, changed_at, notes }
+  priority TEXT DEFAULT 'normal',      -- low, normal, high, urgent
+  due_date DATE,
+  assigned_to UUID REFERENCES profiles(id),
+  estimated_value DECIMAL(10,2),
+
+  -- Client view link (P1)
+  public_token UUID DEFAULT gen_random_uuid(),
+  client_viewed_at TIMESTAMPTZ,
+  client_view_count INT DEFAULT 0,
+
   archived_at TIMESTAMPTZ,
   archived_by UUID REFERENCES profiles(id),
   deleted_at TIMESTAMPTZ,
@@ -265,6 +289,8 @@ CREATE INDEX idx_deliverables_project ON deliverables(project_id);
 CREATE INDEX idx_activity_project ON activity_log(project_id);
 CREATE INDEX idx_inquiries_submitted_by ON inquiries(submitted_by);
 CREATE INDEX idx_inquiries_status ON inquiries(status);
+CREATE INDEX idx_inquiries_proposal_stage ON inquiries(proposal_stage);
+CREATE INDEX idx_inquiries_public_token ON inquiries(public_token);
 CREATE INDEX idx_inquiry_comments_inquiry ON inquiry_comments(inquiry_id);
 ```
 

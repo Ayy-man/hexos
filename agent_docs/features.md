@@ -113,6 +113,49 @@ See `inquiry-form.md` for full specification.
   - [x] Fullscreen document view with Esc to close
 - [x] Navigation: Blueprints in sidebar for admin, internal, DFY
 
+### Phase 4.6: Enhanced Proposal Flow (Complete)
+
+ClickUp-style inquiry management with pipeline views.
+
+- [x] Database: New proposal stage workflow
+  - [x] proposal_stage enum: pending → proposal_sent → proposal_verify → on_hold → agreed
+  - [x] priority field (low, normal, high, urgent)
+  - [x] due_date, estimated_value, assigned_to columns
+  - [x] stage_history JSONB tracking
+  - [x] public_token for client view links (P1)
+- [x] API layer updates
+  - [x] updateInquiryStage() with history tracking
+  - [x] updateInquiryPriority()
+  - [x] updateInquiryDueDate()
+  - [x] assignInquiry()
+  - [x] bulkUpdateInquiryStage()
+  - [x] getInquiryByPublicToken() (P1)
+- [x] Server actions for all updates
+- [x] InquiryTableView (grouped table)
+  - [x] Collapsible sections by stage
+  - [x] Columns: Name, DFY, Due Date, Priority, Value, Created
+  - [x] Dropdown menu to move between stages
+  - [x] Stage count badges
+- [x] InquiryBoardView (kanban board)
+  - [x] HTML5 drag-and-drop between columns
+  - [x] Cards: company, priority, value, partner, due date
+  - [x] Color-coded column headers
+  - [x] Drop zone highlighting
+- [x] View toggle (Table | Board tabs)
+- [x] Stats cards showing stage counts
+- [x] StageBadge component with color coding
+- [x] PriorityBadge component with flag icon
+
+**P1 Features (Planned):**
+- [ ] Public proposal link (client view at /p/[token])
+- [ ] PDF export
+- [ ] Email notifications on stage change
+
+**P2 Features (Planned):**
+- [ ] Blueprint → template auto-fill
+- [ ] Inquiry attachments
+- [ ] AI proposal writer extensions
+
 ### Phase 5: External Access
 
 - [ ] Dev portal (assigned projects)
@@ -253,6 +296,11 @@ features/inquiries/components/
 ├── InquiryDocumentTab.tsx  # Document tab orchestrator
 ├── CommentsSidebar.tsx     # Comment threads UI
 ├── FullscreenDocument.tsx  # Fullscreen modal (70% doc + 30% comments)
+├── InquiryListView.tsx     # View toggle wrapper (Table | Board)
+├── InquiryTableView.tsx    # Grouped table with collapsible stages
+├── InquiryBoardView.tsx    # Kanban board with drag-and-drop
+├── StageBadge.tsx          # Proposal stage badge (color-coded)
+├── PriorityBadge.tsx       # Priority badge (urgent/high/normal/low)
 └── editor/plugins.ts       # Plate.js plugin configuration
 
 features/blueprints/components/

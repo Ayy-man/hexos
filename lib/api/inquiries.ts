@@ -31,6 +31,8 @@ export async function createInquiry(data: CreateInquiryData) {
 }
 
 export type InquiryFilter = 'active' | 'archived' | 'all'
+export type ProposalStage = 'pending' | 'proposal_sent' | 'proposal_verify' | 'on_hold' | 'agreed'
+export type Priority = 'low' | 'normal' | 'high' | 'urgent'
 
 export async function getInquiries(filter: InquiryFilter = 'active') {
   const supabase = await createClient()
@@ -41,6 +43,7 @@ export async function getInquiries(filter: InquiryFilter = 'active') {
       *,
       blueprint:blueprints(name),
       submitter:profiles!submitted_by(name, email),
+      assignee:profiles!assigned_to(id, name, email),
       project:projects!converted_to_project_id(id, project_name)
     `)
     .is('deleted_at', null) // Never show soft-deleted
@@ -68,6 +71,7 @@ export async function getInquiry(id: string) {
       *,
       blueprint:blueprints(name, description),
       submitter:profiles!submitted_by(name, email),
+      assignee:profiles!assigned_to(id, name, email),
       project:projects!converted_to_project_id(id, project_name)
     `)
     .eq('id', id)
@@ -194,4 +198,122 @@ export async function restoreInquiry(id: string) {
     .eq('id', id)
 
   if (error) throw error
+}
+
+// Proposal stage management
+export async function updateInquiryStage(
+  id: string,
+  stage: ProposalStage,
+  notes?: string
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Get current inquiry to update stage history
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history')
+    .eq('id', id)
+    .single()
+
+  const stageHistory = (inquiry?.stage_history as unknown[]) || []
+  const historyEntry = {
+    from: inquiry?.proposal_stage || 'pending',
+    to: stage,
+    changed_by: user?.id,
+    changed_at: new Date().toISOString(),
+    notes: notes || null,
+  }
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      proposal_stage: stage,
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function updateInquiryPriority(id: string, priority: Priority) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({ priority })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function updateInquiryDueDate(id: string, dueDate: Date | null) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({ due_date: dueDate?.toISOString().split('T')[0] || null })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function assignInquiry(id: string, assignedTo: string | null) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({ assigned_to: assignedTo })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function updateInquiryEstimatedValue(id: string, value: number | null) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({ estimated_value: value })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Bulk operations
+export async function bulkUpdateInquiryStage(ids: string[], stage: ProposalStage) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Update each inquiry with stage history
+  for (const id of ids) {
+    await updateInquiryStage(id, stage, 'Bulk stage update')
+  }
+}
+
+// Get inquiry by public token (for client view)
+export async function getInquiryByPublicToken(token: string) {
+  const supabase = await createClient()
+
+  // Increment view count
+  await supabase.rpc('increment_inquiry_view_count', { token_param: token })
+
+  const { data, error } = await supabase
+    .from('inquiries')
+    .select(`
+      id,
+      prospect_company_name,
+      partner_name,
+      submission_type,
+      form_path,
+      document_content,
+      blueprint:blueprints(name, description),
+      created_at
+    `)
+    .eq('public_token', token)
+    .single()
+
+  if (error) throw error
+  return data
 }

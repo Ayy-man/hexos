@@ -325,6 +325,122 @@ interface CommentsSidebarProps {
 
 ---
 
+## Inquiry Pipeline Components
+
+These components provide ClickUp-style inquiry management:
+
+### InquiryListView
+
+**File:** `features/inquiries/components/InquiryListView.tsx`
+
+**Purpose:** Wrapper component with view toggle between Table and Board views.
+
+**Features:**
+- Tab toggle (Table | Board)
+- Optimistic updates using React transitions
+- Shared stage change handler
+
+**Props:**
+```typescript
+interface InquiryListViewProps {
+  inquiries: Inquiry[]
+  defaultView?: 'table' | 'board'
+}
+```
+
+### InquiryTableView
+
+**File:** `features/inquiries/components/InquiryTableView.tsx`
+
+**Purpose:** Grouped table view with collapsible sections by proposal stage.
+
+**Features:**
+- Collapsible stage groups (click header to expand/collapse)
+- Stage count badges in headers
+- Columns: Name, DFY, Due Date, Priority, Value, Created
+- Dropdown menu to move between stages
+- Overdue date highlighting (red text)
+- Click row to view inquiry detail
+
+**Props:**
+```typescript
+interface InquiryTableViewProps {
+  inquiries: Inquiry[]
+  onStageChange?: (id: string, stage: ProposalStage) => void
+}
+```
+
+### InquiryBoardView
+
+**File:** `features/inquiries/components/InquiryBoardView.tsx`
+
+**Purpose:** Kanban board with drag-and-drop between stage columns.
+
+**Features:**
+- HTML5 drag-and-drop (no external library)
+- Color-coded column headers (red→blue→yellow→orange→green)
+- Cards showing: company name, priority, value, partner, due date
+- Drop zone highlighting during drag
+- Click card to view inquiry detail
+- Empty state placeholder per column
+
+**Props:**
+```typescript
+interface InquiryBoardViewProps {
+  inquiries: Inquiry[]
+  onStageChange?: (id: string, stage: ProposalStage) => void
+}
+```
+
+### StageBadge
+
+**File:** `features/inquiries/components/StageBadge.tsx`
+
+**Purpose:** Color-coded badge for proposal stages.
+
+**Stages:**
+- `pending` - Red
+- `proposal_sent` - Blue
+- `proposal_verify` - Yellow
+- `on_hold` - Orange
+- `agreed` - Green
+
+**Exports:**
+- `StageBadge` component
+- `STAGE_ORDER` array (for consistent column ordering)
+- `getStageName(stage)` helper function
+
+**Props:**
+```typescript
+interface StageBadgeProps {
+  stage: ProposalStage | null | undefined
+  className?: string
+}
+```
+
+### PriorityBadge
+
+**File:** `features/inquiries/components/PriorityBadge.tsx`
+
+**Purpose:** Priority indicator badge with flag icon.
+
+**Priorities:**
+- `urgent` - Red flag
+- `high` - Yellow flag
+- `normal` - Gray flag (default)
+- `low` - Blue flag
+
+**Props:**
+```typescript
+interface PriorityBadgeProps {
+  priority: Priority | null | undefined
+  showLabel?: boolean  // Show text label or just icon
+  className?: string
+}
+```
+
+---
+
 ## Blueprint Components
 
 These components power the blueprints catalog:
