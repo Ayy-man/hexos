@@ -19,15 +19,24 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  // Check if already logged in (auth only, no DB query)
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  let authError: string | null = null
 
-  if (user) {
-    redirect('/dashboard')
+  // Check if already logged in (auth only, no DB query)
+  try {
+    const supabase = await createClient()
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (error) {
+      authError = 'Auth check: ' + error.message
+    } else if (user) {
+      redirect('/dashboard')
+    }
+  } catch (e) {
+    authError = 'Exception: ' + (e instanceof Error ? e.message : String(e))
   }
 
   const { error } = await searchParams
+  const displayError = error || authError
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -40,9 +49,9 @@ export default async function LoginPage({
         </p>
       </div>
 
-      {error && (
+      {displayError && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
-          {error}
+          {displayError}
         </div>
       )}
 
