@@ -13,6 +13,7 @@ import {
   updateInquiryDueDate,
   assignInquiry,
   updateInquiryEstimatedValue,
+  updateInquiryPricing,
   bulkUpdateInquiryStage,
   type ProposalStage,
   type Priority,
@@ -104,4 +105,14 @@ export async function bulkUpdateStageAction(
 ): Promise<void> {
   await bulkUpdateInquiryStage(ids, stage)
   revalidatePath('/inquiries')
+}
+
+export async function updatePricingAction(
+  id: string,
+  estimatedValue: number | null,
+  pricingNotes: string | null
+): Promise<void> {
+  await updateInquiryPricing(id, estimatedValue, pricingNotes)
+  revalidatePath('/inquiries')
+  revalidatePath(`/inquiries/${id}`)
 }

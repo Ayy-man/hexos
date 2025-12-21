@@ -296,9 +296,7 @@ export async function bulkUpdateInquiryStage(ids: string[], stage: ProposalStage
 export async function getInquiryByPublicToken(token: string) {
   const supabase = await createClient()
 
-  // Increment view count
-  await supabase.rpc('increment_inquiry_view_count', { token_param: token })
-
+  // First get the inquiry to check if it exists
   const { data, error } = await supabase
     .from('inquiries')
     .select(`
@@ -308,12 +306,60 @@ export async function getInquiryByPublicToken(token: string) {
       submission_type,
       form_path,
       document_content,
-      blueprint:blueprints(name, description),
-      created_at
+      estimated_value,
+      pricing_notes,
+      blueprint:blueprints(name, description, pricing_tiers),
+      created_at,
+      client_view_count
     `)
     .eq('public_token', token)
+    .is('deleted_at', null)
     .single()
 
   if (error) throw error
+  if (!data) return null
+
+  // Increment view count
+  await supabase
+    .from('inquiries')
+    .update({
+      client_view_count: (data.client_view_count || 0) + 1,
+      client_viewed_at: new Date().toISOString(),
+    })
+    .eq('public_token', token)
+
   return data
+}
+
+// Update pricing (estimated_value + pricing_notes)
+export async function updateInquiryPricing(
+  id: string,
+  estimatedValue: number | null,
+  pricingNotes: string | null
+) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      estimated_value: estimatedValue,
+      pricing_notes: pricingNotes,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Get public token for sharing
+export async function getInquiryPublicToken(id: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('inquiries')
+    .select('public_token')
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+  return data?.public_token
 }

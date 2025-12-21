@@ -13,6 +13,9 @@ import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocum
 import { InquiryActions } from '@/features/inquiries/components/InquiryActions'
 import { StageHistoryTimeline } from '@/features/inquiries/components/StageHistoryTimeline'
 import { StageBadge } from '@/features/inquiries/components/StageBadge'
+import { QuickPricingEditor } from '@/features/inquiries/components/QuickPricingEditor'
+import { ExportPDFButton } from '@/features/inquiries/components/ExportPDFButton'
+import { ShareLinkButton } from '@/features/inquiries/components/ShareLinkButton'
 import type { ProposalStage } from '@/lib/api/inquiries'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
@@ -136,6 +139,8 @@ export default async function InquiryDetailPage({
 
   const formData = (inquiry.form_data || {}) as Record<string, unknown>
   const canEdit = ['admin', 'internal'].includes(profile.role)
+  const canEditAsOwner = profile.role === 'dfy' && inquiry.submitted_by === profile.id
+  const canEditDocument = canEdit || canEditAsOwner
   const canComment = ['admin', 'internal', 'dfy'].includes(profile.role)
 
   // Generate document content from inquiry form_data
@@ -197,6 +202,21 @@ export default async function InquiryDetailPage({
             {PATH_LABELS[inquiry.form_path] || inquiry.form_path} &bull;{' '}
             {inquiry.submission_type === 'closed' ? 'Closed Deal' : 'Proposal Request'}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ShareLinkButton publicToken={inquiry.public_token} />
+          <ExportPDFButton
+            proposal={{
+              id: inquiry.id,
+              prospect_company_name: inquiry.prospect_company_name,
+              partner_name: inquiry.partner_name,
+              created_at: inquiry.created_at,
+              estimated_value: inquiry.estimated_value as number | null,
+              pricing_notes: inquiry.pricing_notes as string | null,
+              blueprint: inquiry.blueprint,
+            }}
+            documentContent={inquiry.document_content || generatedDocumentContent}
+          />
         </div>
       </div>
 
@@ -358,6 +378,23 @@ export default async function InquiryDetailPage({
                 createdAt={inquiry.created_at}
               />
 
+              {/* Quick Pricing Editor */}
+              {canEditDocument && (
+                <QuickPricingEditor
+                  inquiryId={id}
+                  initialValue={inquiry.estimated_value as number | null}
+                  initialNotes={inquiry.pricing_notes as string | null}
+                />
+              )}
+              {!canEditDocument && (inquiry.estimated_value || inquiry.pricing_notes) && (
+                <QuickPricingEditor
+                  inquiryId={id}
+                  initialValue={inquiry.estimated_value as number | null}
+                  initialNotes={inquiry.pricing_notes as string | null}
+                  readOnly
+                />
+              )}
+
               {/* Actions */}
               <Card>
                 <CardHeader>
@@ -399,7 +436,7 @@ export default async function InquiryDetailPage({
             initialInlineDiscussions={(inquiry.inline_discussions as TDiscussion[]) || []}
             internalComments={internalComments}
             dfyComments={dfyComments}
-            canEdit={canEdit}
+            canEdit={canEditDocument}
             canComment={canComment}
             showInternalTab={isInternal}
             showDfyTab={true}
