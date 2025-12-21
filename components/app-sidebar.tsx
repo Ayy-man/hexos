@@ -2,7 +2,18 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Hexagon } from 'lucide-react'
+import {
+  Hexagon,
+  LayoutDashboard,
+  FolderKanban,
+  FileText,
+  Layers,
+  Users,
+  Settings,
+  Send,
+  Briefcase,
+  type LucideIcon,
+} from 'lucide-react'
 
 import {
   Sidebar,
@@ -21,6 +32,18 @@ import { NavUser } from '@/components/nav-user'
 import { Badge } from '@/components/ui/badge'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
+
+// Icon map to resolve string names to components
+const iconMap: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  FolderKanban,
+  FileText,
+  Layers,
+  Users,
+  Settings,
+  Send,
+  Briefcase,
+}
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profile: Profile
@@ -64,12 +87,13 @@ export function AppSidebar({
               <SidebarMenu>
                 {group.items.map((item) => {
                   const isActive = pathname === item.url || pathname.startsWith(item.url + '/')
+                  const Icon = iconMap[item.icon] || LayoutDashboard
 
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                         <Link href={item.url}>
-                          <item.icon />
+                          <Icon />
                           <span>{item.title}</span>
                           {item.badge && (
                             <Badge variant="secondary" className="ml-auto">
