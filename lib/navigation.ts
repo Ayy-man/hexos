@@ -26,6 +26,7 @@ const adminNav: NavGroup[] = [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
+      { title: 'Suggestions', url: '/suggestions', icon: 'Lightbulb' },
       { title: 'Team', url: '/settings/team', icon: 'Users' },
     ],
   },
@@ -50,6 +51,7 @@ const internalNav: NavGroup[] = [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
+      { title: 'Suggestions', url: '/suggestions', icon: 'Lightbulb' },
     ],
   },
   {

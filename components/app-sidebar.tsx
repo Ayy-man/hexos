@@ -12,6 +12,7 @@ import {
   Settings,
   Send,
   Briefcase,
+  Lightbulb,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -27,8 +28,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
 } from '@/components/ui/sidebar'
 import { NavUser } from '@/components/nav-user'
+import { SuggestionBox } from '@/components/suggestion-box'
 import { Badge } from '@/components/ui/badge'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
@@ -43,6 +46,7 @@ const iconMap: Record<string, LucideIcon> = {
   Settings,
   Send,
   Briefcase,
+  Lightbulb,
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -112,6 +116,8 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
+        <SuggestionBox />
+        <SidebarSeparator />
         <NavUser profile={profile} />
       </SidebarFooter>
 
