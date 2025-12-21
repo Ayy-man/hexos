@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireRole } from '@/lib/auth/guards'
 import { createProject } from '@/lib/api/projects'
 import { getDevs, getDfyPartners } from '@/lib/api/profiles'
+import { SubmitButton } from './submit-button'
 
 async function handleCreate(formData: FormData): Promise<void> {
   'use server'
@@ -237,12 +238,7 @@ export default async function NewProjectPage() {
           >
             Cancel
           </a>
-          <button
-            type="submit"
-            className="rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700"
-          >
-            Create Project
-          </button>
+          <SubmitButton />
         </div>
       </form>
     </div>
