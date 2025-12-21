@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow, format, isPast } from 'date-fns'
-import { Building2, Calendar, User } from 'lucide-react'
+import { Building2, Calendar, User, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -195,22 +195,28 @@ function InquiryCard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
-        'cursor-grab active:cursor-grabbing transition-all select-none',
+        'transition-all select-none group',
         isDragging && 'opacity-50 scale-95 ring-2 ring-primary'
       )}
     >
       <CardContent className="p-3 space-y-2">
-        {/* Company Name */}
-        <Link
-          href={`/inquiries/${inquiry.id}`}
-          className="flex items-center gap-2 hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          <span className="font-medium text-sm truncate">
-            {inquiry.prospect_company_name || 'Unnamed'}
-          </span>
-        </Link>
+        {/* Drag Handle + Company Name */}
+        <div className="flex items-center gap-2">
+          <div className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors">
+            <GripVertical className="h-4 w-4" />
+          </div>
+          <Link
+            href={`/inquiries/${inquiry.id}`}
+            className="flex items-center gap-2 hover:underline flex-1 min-w-0"
+            onClick={(e) => e.stopPropagation()}
+            draggable={false}
+          >
+            <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="font-medium text-sm truncate">
+              {inquiry.prospect_company_name || 'Unnamed'}
+            </span>
+          </Link>
+        </div>
 
         {/* Priority & Value */}
         <div className="flex items-center justify-between">
