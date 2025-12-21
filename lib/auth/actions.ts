@@ -16,14 +16,21 @@ export async function signIn(formData: FormData): Promise<void> {
   })
 
   if (error) {
-    // For now, redirect back to login. Error handling can be improved with useFormState
     redirect('/login?error=' + encodeURIComponent(error.message))
+  }
+
+  // Get the logged-in user
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login?error=' + encodeURIComponent('Authentication failed'))
   }
 
   // Get profile to determine dashboard
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
+    .eq('id', user.id)
     .single()
 
   const dashboardRoute = profile ? DASHBOARD_ROUTES[profile.role as keyof typeof DASHBOARD_ROUTES] : '/dashboard/admin'
