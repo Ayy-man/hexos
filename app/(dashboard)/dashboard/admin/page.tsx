@@ -1,6 +1,21 @@
 import Link from 'next/link'
+import { FolderKanban, FileText, TrendingUp, DollarSign, Plus } from 'lucide-react'
 import { requireRole } from '@/lib/auth/guards'
 import { getProjectStats, getProjects } from '@/lib/api/projects'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+
+const STATUS_COLORS: Record<string, string> = {
+  inquiry_new: 'bg-blue-500',
+  in_progress: 'bg-cyan-500',
+  completed: 'bg-green-500',
+  cancelled: 'bg-stone-400',
+}
+
+function formatStatus(status: string) {
+  return status.replace(/_/g, ' ')
+}
 
 export default async function AdminDashboard() {
   await requireRole(['admin'])
@@ -17,70 +32,120 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-        Admin Dashboard
-      </h1>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of all projects and business metrics
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/projects/new">
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Link>
+        </Button>
+      </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-          <p className="text-sm text-stone-500 dark:text-stone-400">Total Projects</p>
-          <p className="text-2xl font-semibold text-stone-900 dark:text-stone-100">{stats.total}</p>
-        </div>
-        <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-          <p className="text-sm text-stone-500 dark:text-stone-400">Active</p>
-          <p className="text-2xl font-semibold text-cyan-600">{stats.active}</p>
-        </div>
-        <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-          <p className="text-sm text-stone-500 dark:text-stone-400">Inquiries</p>
-          <p className="text-2xl font-semibold text-blue-600">{stats.inquiry}</p>
-        </div>
-        <div className="rounded-lg border border-stone-200 bg-white p-4 dark:border-stone-800 dark:bg-stone-900">
-          <p className="text-sm text-stone-500 dark:text-stone-400">Completed</p>
-          <p className="text-2xl font-semibold text-green-600">{stats.completed}</p>
-        </div>
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <FolderKanban className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <TrendingUp className="h-4 w-4 text-cyan-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-cyan-600">{stats.active}</div>
+            <p className="text-xs text-muted-foreground">In progress</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Inquiries</CardTitle>
+            <FileText className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.inquiry}</div>
+            <p className="text-xs text-muted-foreground">Pending review</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+            <p className="text-xs text-muted-foreground">Delivered</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Projects */}
-      <div className="rounded-lg border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-        <div className="flex items-center justify-between border-b border-stone-200 px-4 py-3 dark:border-stone-800">
-          <h2 className="font-medium text-stone-900 dark:text-stone-100">Recent Projects</h2>
-          <Link href="/projects" className="text-sm text-cyan-600 hover:text-cyan-700">
-            View all
-          </Link>
-        </div>
-        {recentProjects.length === 0 ? (
-          <div className="p-8 text-center text-stone-500 dark:text-stone-400">
-            No projects yet.{' '}
-            <Link href="/projects/new" className="text-cyan-600 hover:underline">
-              Create your first project
-            </Link>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Recent Projects</CardTitle>
+              <CardDescription>Latest activity across all projects</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/projects">View all</Link>
+            </Button>
           </div>
-        ) : (
-          <ul className="divide-y divide-stone-200 dark:divide-stone-800">
-            {recentProjects.map((project) => (
-              <li key={project.id} className="px-4 py-3">
+        </CardHeader>
+        <CardContent>
+          {recentProjects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <FolderKanban className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-muted-foreground">No projects yet</p>
+              <Button variant="link" asChild className="mt-2">
+                <Link href="/projects/new">Create your first project</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentProjects.map((project) => (
                 <Link
+                  key={project.id}
                   href={`/projects/${project.id}`}
-                  className="flex items-center justify-between hover:text-cyan-600"
+                  className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
                 >
-                  <div>
-                    <p className="font-medium text-stone-900 dark:text-stone-100">
-                      {project.project_name}
-                    </p>
-                    <p className="text-sm text-stone-500 dark:text-stone-400">
-                      {project.client_name}
-                    </p>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`h-2 w-2 rounded-full ${STATUS_COLORS[project.status] || 'bg-stone-400'}`}
+                    />
+                    <div>
+                      <p className="font-medium">{project.project_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {project.client_name}
+                        {project.assigned_dev && ` · ${project.assigned_dev.name}`}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-sm text-stone-500 dark:text-stone-400">
-                    {project.status.replace(/_/g, ' ')}
-                  </span>
+                  <Badge variant="secondary" className="capitalize">
+                    {formatStatus(project.status)}
+                  </Badge>
                 </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

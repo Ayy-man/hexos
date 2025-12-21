@@ -35,8 +35,12 @@ See `components.md` for details.
 
 ### Phase 3: Dashboards
 
-- [ ] Admin dashboard (all projects, financials)
-- [ ] Project detail view
+- [x] Admin dashboard (all projects, financials)
+- [x] Dev dashboard (assigned projects, deliverables)
+- [x] DFY dashboard (deals, commissions)
+- [x] Client dashboard (project progress)
+- [x] Sidebar layout with role-based navigation
+- [ ] Project detail view improvements
 - [ ] Deliverables list + Gantt view
 - [ ] Status transitions
 
