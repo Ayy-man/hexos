@@ -44,12 +44,21 @@ See `components.md` for details.
 - [ ] Deliverables list + Gantt view
 - [ ] Status transitions
 
-### Phase 4: Inquiry Flow
+### Phase 4: Inquiry Flow (Priority - Next)
 
-- [ ] Inquiry form
-- [ ] AI blueprint matching
-- [ ] Form copilot (AI-assisted filling)
-- [ ] Inquiry → Project conversion
+See `inquiry-form.md` for full specification.
+
+- [ ] Database: inquiries table + RLS policies
+- [ ] Blueprints seed data (for dropdown)
+- [ ] Multi-step form with conditional branching
+  - [ ] Branch A: Closed deals (A1, A2, A3)
+  - [ ] Branch B: Proposal requests (B1, B2, B3)
+- [ ] AI Copilot sidebar (toggleable)
+  - [ ] @assistant-ui/react integration
+  - [ ] OpenRouter API route
+  - [ ] Tool calling for form field population
+- [ ] Inquiry → Project conversion (closed deals)
+- [ ] Inquiries list page (admin/internal + dfy own)
 
 ### Phase 5: External Access
 
