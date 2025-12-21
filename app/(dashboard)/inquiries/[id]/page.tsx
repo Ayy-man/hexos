@@ -128,6 +128,19 @@ export default async function InquiryDetailPage({
     )
   }
 
+  // Auto-advance from "unopened" to "admin_reviewed" when admin views inquiry
+  const isAdminRole = ['admin', 'internal'].includes(profile.role)
+  if (isAdminRole && inquiry.proposal_stage === 'unopened') {
+    try {
+      const { updateInquiryStage } = await import('@/lib/api/inquiries')
+      await updateInquiryStage(id, 'admin_reviewed', 'Auto-advanced on first admin view')
+      // Update local state so UI reflects the change
+      inquiry.proposal_stage = 'admin_reviewed'
+    } catch (error) {
+      console.warn('Failed to auto-advance stage:', error)
+    }
+  }
+
   // Permission variables
   const isAdmin = ['admin', 'internal'].includes(profile.role)
   const isDfyOwner = profile.role === 'dfy' && inquiry.submitted_by === profile.id
