@@ -166,6 +166,7 @@ export default async function CaseStudiesPage({ searchParams }: CaseStudiesPageP
               name={caseStudy.name}
               description={caseStudy.description}
               icon={caseStudy.icon}
+              image_url={caseStudy.image_url}
               client_name={caseStudy.client_name}
               industry={caseStudy.industry}
               tags={caseStudy.tags || []}

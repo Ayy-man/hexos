@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { requireRole } from '@/lib/auth/guards'
 import { getCaseStudy, getBlueprintsForSelect } from '@/lib/api/case-studies'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -60,6 +61,19 @@ export default async function CaseStudyDetailPage({
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+
+      {/* Cover Image */}
+      {caseStudy.image_url && !isEditMode && (
+        <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden">
+          <Image
+            src={caseStudy.image_url}
+            alt={caseStudy.name}
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-start justify-between">

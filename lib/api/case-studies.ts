@@ -1,5 +1,32 @@
 import { createClient } from '@/lib/supabase/server'
 
+// Upload image to Supabase storage
+export async function uploadCaseStudyImage(file: File): Promise<string> {
+  const supabase = await createClient()
+
+  const fileExt = file.name.split('.').pop()
+  const fileName = `case-studies/${Date.now()}.${fileExt}`
+
+  const { data, error } = await supabase.storage
+    .from('general-purpose')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    })
+
+  if (error) {
+    console.error('Upload error:', error)
+    throw new Error('Failed to upload image')
+  }
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('general-purpose')
+    .getPublicUrl(data.path)
+
+  return urlData.publicUrl
+}
+
 // Types
 export interface CaseStudy {
   id: string
@@ -14,6 +41,7 @@ export interface CaseStudy {
   tags: string[]
   status: 'draft' | 'published'
   icon: string | null
+  image_url: string | null
   blueprint_id: string | null
   blueprint?: { id: string; name: string; icon: string | null }
   created_at: string
@@ -32,6 +60,7 @@ export interface CreateCaseStudyInput {
   tags?: string[]
   status?: 'draft' | 'published'
   icon?: string
+  image_url?: string
   blueprint_id?: string
 }
 
@@ -47,6 +76,7 @@ export interface UpdateCaseStudyInput {
   tags?: string[]
   status?: 'draft' | 'published'
   icon?: string
+  image_url?: string | null
   blueprint_id?: string | null
 }
 
@@ -62,7 +92,7 @@ export async function getCaseStudies(options?: {
     .from('case_studies')
     .select(`
       id, name, description, client_name, industry,
-      challenge, solution, results, tags, status, icon,
+      challenge, solution, results, tags, status, icon, image_url,
       blueprint_id, created_at,
       blueprint:blueprints(id, name, icon)
     `)
@@ -158,6 +188,7 @@ export async function createCaseStudy(input: CreateCaseStudyInput): Promise<Case
       tags: input.tags || [],
       status: input.status || 'draft',
       icon: input.icon || null,
+      image_url: input.image_url || null,
       blueprint_id: input.blueprint_id || null,
     })
     .select()
@@ -182,6 +213,7 @@ export async function updateCaseStudy(id: string, input: UpdateCaseStudyInput): 
   if (input.tags !== undefined) updateData.tags = input.tags
   if (input.status !== undefined) updateData.status = input.status
   if (input.icon !== undefined) updateData.icon = input.icon
+  if (input.image_url !== undefined) updateData.image_url = input.image_url
   if (input.blueprint_id !== undefined) updateData.blueprint_id = input.blueprint_id
 
   const { data, error } = await supabase
@@ -222,6 +254,7 @@ export async function duplicateCaseStudy(id: string): Promise<CaseStudy> {
     tags: original.tags || [],
     status: 'draft', // Always create as draft
     icon: original.icon || undefined,
+    image_url: original.image_url || undefined,
     blueprint_id: original.blueprint_id || undefined,
   })
 }

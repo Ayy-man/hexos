@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, Save } from 'lucide-react'
+import { Loader2, Save, Upload, X, ImageIcon } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -18,9 +19,11 @@ import {
 } from '@/components/ui/select'
 import { TagInput } from '@/features/blueprints/components/TagInput'
 import { IconPicker } from '@/features/blueprints/components/IconPicker'
+import { useImageUpload } from '@/components/hooks/use-image-upload'
 import {
   createCaseStudyAction,
   updateCaseStudyAction,
+  uploadCaseStudyImageAction,
 } from '../actions/caseStudyActions'
 import type { CaseStudy, CreateCaseStudyInput } from '@/lib/api/case-studies'
 
@@ -33,6 +36,7 @@ interface CaseStudyFormProps {
 export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isUploading, setIsUploading] = useState(false)
 
   // Form state
   const [name, setName] = useState(caseStudy?.name || '')
@@ -46,9 +50,36 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
   const [tags, setTags] = useState<string[]>(caseStudy?.tags || [])
   const [blueprintId, setBlueprintId] = useState<string | null>(caseStudy?.blueprint_id || null)
   const [isPublished, setIsPublished] = useState(caseStudy?.status === 'published')
+  const [imageUrl, setImageUrl] = useState<string | null>(caseStudy?.image_url || null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const {
+    previewUrl,
+    file,
+    fileInputRef,
+    handleThumbnailClick,
+    handleFileChange,
+    handleRemove,
+  } = useImageUpload()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    let finalImageUrl = imageUrl
+
+    // Upload new image if selected
+    if (file) {
+      setIsUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        finalImageUrl = await uploadCaseStudyImageAction(formData)
+      } catch (error) {
+        console.error('Failed to upload image:', error)
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
+    }
 
     const data: CreateCaseStudyInput = {
       name,
@@ -61,6 +92,7 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
       results: results || undefined,
       tags,
       blueprint_id: blueprintId || undefined,
+      image_url: finalImageUrl || undefined,
       status: isPublished ? 'published' : 'draft',
     }
 
@@ -73,6 +105,13 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
       }
     })
   }
+
+  const handleRemoveImage = () => {
+    handleRemove()
+    setImageUrl(null)
+  }
+
+  const displayImage = previewUrl || imageUrl
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -140,6 +179,57 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
               placeholder="Add tags (e.g., automation, lead-gen, ai)"
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Cover Image */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Cover Image</CardTitle>
+          <CardDescription>Add a featured image for this case study</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {displayImage ? (
+            <div className="relative w-full max-w-md">
+              <div className="relative aspect-video rounded-lg overflow-hidden border">
+                <Image
+                  src={displayImage}
+                  alt="Case study cover"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 h-6 w-6"
+                onClick={handleRemoveImage}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleThumbnailClick}
+              className="h-32 w-full max-w-md border-dashed"
+            >
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <ImageIcon className="h-8 w-8" />
+                <span>Click to upload image</span>
+              </div>
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -229,17 +319,17 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                disabled={isPending}
+                disabled={isPending || isUploading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending || !name}>
-                {isPending ? (
+              <Button type="submit" disabled={isPending || isUploading || !name}>
+                {(isPending || isUploading) ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                {mode === 'create' ? 'Create Case Study' : 'Save Changes'}
+                {isUploading ? 'Uploading...' : mode === 'create' ? 'Create Case Study' : 'Save Changes'}
               </Button>
             </div>
           </div>

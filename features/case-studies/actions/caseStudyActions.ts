@@ -7,9 +7,16 @@ import {
   updateCaseStudy,
   deleteCaseStudy,
   duplicateCaseStudy,
+  uploadCaseStudyImage,
   type CreateCaseStudyInput,
   type UpdateCaseStudyInput,
 } from '@/lib/api/case-studies'
+
+export async function uploadCaseStudyImageAction(formData: FormData): Promise<string> {
+  const file = formData.get('file') as File
+  if (!file) throw new Error('No file provided')
+  return uploadCaseStudyImage(file)
+}
 
 export async function createCaseStudyAction(input: CreateCaseStudyInput) {
   const caseStudy = await createCaseStudy(input)

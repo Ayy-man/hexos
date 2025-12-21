@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Briefcase, ExternalLink } from 'lucide-react'
@@ -11,6 +12,7 @@ interface CaseStudyCardProps {
   name: string
   description: string | null
   icon: string | null
+  image_url?: string | null
   client_name: string | null
   industry: string | null
   tags: string[]
@@ -24,6 +26,7 @@ export function CaseStudyCard({
   name,
   description,
   icon,
+  image_url,
   client_name,
   industry,
   tags,
@@ -32,7 +35,19 @@ export function CaseStudyCard({
   showBlueprintLink = true,
 }: CaseStudyCardProps) {
   return (
-    <Card className="group hover:shadow-md transition-shadow">
+    <Card className="group hover:shadow-md transition-shadow overflow-hidden">
+      {image_url && (
+        <Link href={`/case-studies/${id}`}>
+          <div className="relative aspect-video w-full">
+            <Image
+              src={image_url}
+              alt={name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        </Link>
+      )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
