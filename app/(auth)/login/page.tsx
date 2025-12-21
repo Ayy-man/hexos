@@ -26,7 +26,8 @@ export default async function LoginPage({
     const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
 
-    if (error) {
+    // "Auth session missing" is expected when not logged in - ignore it
+    if (error && !error.message.includes('session missing')) {
       authError = 'Auth check: ' + error.message
     } else if (user) {
       redirect('/dashboard')
