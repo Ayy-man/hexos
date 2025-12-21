@@ -10,6 +10,8 @@ import { ParagraphPlugin } from 'platejs/react'
 
 import { BasicMarksKit } from '@/components/editor/plugins/basic-marks-kit'
 import { CommentKit } from '@/components/editor/plugins/comment-kit'
+import { SuggestionKit } from '@/components/editor/plugins/suggestion-kit'
+import { DiscussionKit } from '@/components/editor/plugins/discussion-kit'
 import { ParagraphElement } from '@/components/ui/paragraph-node'
 import { H1Element, H2Element, H3Element } from '@/components/ui/heading-node'
 import { BlockquoteElement } from '@/components/ui/blockquote-node'
@@ -40,4 +42,6 @@ export const InquiryDocumentPlugins = [
   ...BasicBlocksPlugins,
   ...BasicMarksKit,
   ...CommentKit,
+  ...SuggestionKit,
+  ...DiscussionKit,
 ]

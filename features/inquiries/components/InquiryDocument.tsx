@@ -9,7 +9,8 @@ import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { Skeleton } from '@/components/ui/skeleton'
 import { InquiryDocumentPlugins } from './editor/plugins'
-import { FileText, Save, CheckCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { FileText, Save, CheckCircle, Maximize2 } from 'lucide-react'
 
 interface InquiryDocumentProps {
   inquiryId: string
@@ -17,6 +18,7 @@ interface InquiryDocumentProps {
   generatedContent: unknown // Pre-generated from form_data
   readOnly?: boolean
   onSave?: (content: unknown) => Promise<void>
+  onFullscreen?: () => void
 }
 
 export function InquiryDocument({
@@ -25,6 +27,7 @@ export function InquiryDocument({
   generatedContent,
   readOnly = false,
   onSave,
+  onFullscreen,
 }: InquiryDocumentProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -139,7 +142,20 @@ export function InquiryDocument({
               </span>
             )}
           </CardTitle>
-          {!readOnly && <SaveStatus />}
+          <div className="flex items-center gap-2">
+            {!readOnly && <SaveStatus />}
+            {onFullscreen && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onFullscreen}
+                className="h-8 w-8"
+                title="Open fullscreen"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>

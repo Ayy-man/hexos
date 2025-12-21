@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useState, useTransition } from 'react'
+import { useCallback, useState, useTransition, useMemo } from 'react'
 import { InquiryDocument } from './InquiryDocument'
 import { CommentsSidebar } from './CommentsSidebar'
+import { FullscreenDocument } from './FullscreenDocument'
 import type { InquiryComment } from '@/lib/api/inquiry-comments'
 
 interface InquiryDocumentTabProps {
@@ -32,6 +33,18 @@ export function InquiryDocumentTab({
 }: InquiryDocumentTabProps) {
   const [comments, setComments] = useState<InquiryComment[]>(initialComments)
   const [isPending, startTransition] = useTransition()
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Compute the current document content (saved or generated)
+  const currentDocumentContent = useMemo(() => {
+    if (initialDocumentContent && Array.isArray(initialDocumentContent) && initialDocumentContent.length > 0) {
+      return initialDocumentContent
+    }
+    if (generatedDocumentContent && Array.isArray(generatedDocumentContent) && generatedDocumentContent.length > 0) {
+      return generatedDocumentContent
+    }
+    return [{ type: 'p', children: [{ text: 'No content available' }] }]
+  }, [initialDocumentContent, generatedDocumentContent])
 
   // Handle saving document
   const handleSaveDocument = useCallback(
@@ -91,29 +104,49 @@ export function InquiryDocumentTab({
   )
 
   return (
-    <div className="grid gap-6 md:grid-cols-3">
-      {/* Document Editor */}
-      <div className="md:col-span-2">
-        <InquiryDocument
-          inquiryId={inquiryId}
-          initialContent={initialDocumentContent}
-          generatedContent={generatedDocumentContent}
-          readOnly={!canEdit}
-          onSave={canEdit ? handleSaveDocument : undefined}
-        />
+    <>
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Document Editor */}
+        <div className="md:col-span-2">
+          <InquiryDocument
+            inquiryId={inquiryId}
+            initialContent={initialDocumentContent}
+            generatedContent={generatedDocumentContent}
+            readOnly={!canEdit}
+            onSave={canEdit ? handleSaveDocument : undefined}
+            onFullscreen={() => setIsFullscreen(true)}
+          />
+        </div>
+
+        {/* Comments Sidebar */}
+        <div>
+          <CommentsSidebar
+            inquiryId={inquiryId}
+            comments={comments}
+            canEdit={canComment}
+            onAddComment={canComment ? handleAddComment : undefined}
+            onResolve={canEdit ? handleResolveComment : undefined}
+            onDelete={canEdit ? handleDeleteComment : undefined}
+          />
+        </div>
       </div>
 
-      {/* Comments Sidebar */}
-      <div>
-        <CommentsSidebar
+      {/* Fullscreen Modal */}
+      {isFullscreen && (
+        <FullscreenDocument
           inquiryId={inquiryId}
+          documentContent={currentDocumentContent}
           comments={comments}
-          canEdit={canComment}
+          readOnly={!canEdit}
+          canComment={canComment}
+          canEdit={canEdit}
+          onClose={() => setIsFullscreen(false)}
+          onSave={canEdit ? handleSaveDocument : undefined}
           onAddComment={canComment ? handleAddComment : undefined}
           onResolve={canEdit ? handleResolveComment : undefined}
           onDelete={canEdit ? handleDeleteComment : undefined}
         />
-      </div>
-    </div>
+      )}
+    </>
   )
 }
