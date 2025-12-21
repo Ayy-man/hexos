@@ -226,6 +226,44 @@ import { KanbanBoard } from "@/components/ui/trello-kanban-board"
 import { LocationTag } from "@/components/ui/location-tag"
 ```
 
+---
+
+## Inquiry Document Components
+
+These components are built for the inquiry document editor:
+
+### FullscreenDocument
+
+**File:** `features/inquiries/components/FullscreenDocument.tsx`
+
+**Purpose:** Fullscreen modal overlay for reading and discussing proposals.
+
+**Features:**
+- Portal-based rendering at document root
+- Side-by-side layout: 70% document + 30% comments
+- Escape key to close
+- Body scroll prevention when open
+- All comment/suggestion functionality preserved
+
+**Props:**
+```typescript
+interface FullscreenDocumentProps {
+  inquiryId: string
+  documentContent: unknown
+  comments: InquiryComment[]
+  readOnly: boolean
+  canComment: boolean
+  canEdit: boolean
+  onClose: () => void
+  onSave?: (content: unknown) => Promise<void>
+  onAddComment?: (content: string, parentId?: string) => Promise<void>
+  onResolve?: (commentId: string, resolved: boolean) => Promise<void>
+  onDelete?: (commentId: string) => Promise<void>
+}
+```
+
+---
+
 ## Future Components (Not Yet Available)
 
 These may be added later:

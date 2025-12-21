@@ -66,6 +66,10 @@ See `inquiry-form.md` for full specification.
   - [x] Rich text editing (headings, bold, italic, blockquote)
   - [x] Auto-save with 1.5s debounce
   - [x] document_content JSONB column on inquiries
+  - [x] Inline comments (CommentKit plugin)
+  - [x] Suggestion/track-changes mode (SuggestionKit plugin)
+  - [x] Block-level discussions (DiscussionKit plugin)
+  - [x] Fullscreen document view (side-by-side with comments)
 - [x] Comments/annotations system
   - [x] inquiry_comments table with RLS
   - [x] Thread support (replies)
@@ -208,6 +212,7 @@ features/inquiries/components/
 ├── InquiryDocument.tsx     # Plate.js editor wrapper with auto-save
 ├── InquiryDocumentTab.tsx  # Document tab orchestrator
 ├── CommentsSidebar.tsx     # Comment threads UI
+├── FullscreenDocument.tsx  # Fullscreen modal (70% doc + 30% comments)
 └── editor/plugins.ts       # Plate.js plugin configuration
 ```
 
