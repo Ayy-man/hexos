@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
-import { requireProfile } from '@/lib/auth/guards'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/lib/auth/actions'
 import { getNavigation } from '@/lib/navigation'
 import { AppSidebar } from '@/components/app-sidebar'
@@ -15,14 +16,32 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb'
+import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const profile = await requireProfile()
-  const navigation = getNavigation(profile.role)
+  const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    redirect('/login?error=' + encodeURIComponent(authError?.message || 'Not authenticated'))
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || !profile) {
+    redirect('/login?error=' + encodeURIComponent(profileError?.message || 'Profile not found'))
+  }
+
+  const navigation = getNavigation((profile as Profile).role)
 
   // Get sidebar state from cookie
   const cookieStore = await cookies()
@@ -31,7 +50,7 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar
-        profile={profile}
+        profile={profile as Profile}
         navigation={navigation}
         signOutAction={signOut}
       />
