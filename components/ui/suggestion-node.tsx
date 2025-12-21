@@ -66,6 +66,7 @@ export function SuggestionLeaf(props: PlateLeafProps<TSuggestionText>) {
       {...props}
       as={Component}
       className={cn(
+        'cursor-pointer', // Make suggestions clickable
         suggestionVariants({
           insertActive: hasActive || hasHover,
           remove: hasRemove,
@@ -74,6 +75,10 @@ export function SuggestionLeaf(props: PlateLeafProps<TSuggestionText>) {
       )}
       attributes={{
         ...props.attributes,
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setOption('activeId', leafId);
+        },
         onMouseEnter: () => setOption('hoverId', leafId),
         onMouseLeave: () => setOption('hoverId', null),
       }}
