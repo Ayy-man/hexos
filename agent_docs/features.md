@@ -15,7 +15,7 @@ See `components.md` for details.
 
 ## MVP Scope (Current Phase)
 
-### Phase 1: Foundation (In Progress)
+### Phase 1: Foundation (Complete)
 
 - [x] Project setup (Next.js 16 + shadcn/ui Vega preset)
 - [x] Supabase project created + client configured
@@ -24,7 +24,7 @@ See `components.md` for details.
 - [x] Initial database migration
 - [x] Auth flow (login/logout)
 - [x] Basic route structure
-- [ ] Admin seed accounts
+- [x] Test accounts (admin, dev, dfy, client)
 
 ### Phase 2: Core Data
 
