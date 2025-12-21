@@ -70,11 +70,37 @@ See `inquiry-form.md` for full specification.
   - [x] Suggestion/track-changes mode (SuggestionKit plugin)
   - [x] Block-level discussions (DiscussionKit plugin)
   - [x] Fullscreen document view (side-by-side with comments)
+  - [x] Inline discussions persisted to database
 - [x] Comments/annotations system
   - [x] inquiry_comments table with RLS
   - [x] Thread support (replies)
   - [x] Resolve/unresolve comments
   - [x] Role-based access (admin/internal can edit, dfy can view own)
+
+### Phase 4.5: Blueprints Catalog (Complete)
+
+- [x] Database: Extended blueprints table
+  - [x] content (JSONB) - Rich text content
+  - [x] pricing_tiers (JSONB) - Structured tier pricing
+  - [x] tags (TEXT[]) - Free-form filtering tags
+  - [x] status (draft/published)
+  - [x] icon (emoji)
+- [x] Blueprint editor (Plate.js)
+  - [x] Basic blocks (headings, paragraphs, blockquotes)
+  - [x] Lists (bulleted, numbered via indent system)
+  - [x] Links
+  - [x] Auto-save with debounce
+- [x] Blueprint pages
+  - [x] /blueprints - List with search, tag filters, status filters
+  - [x] /blueprints/[id] - Detail view with viewer/editor modes
+  - [x] /blueprints/new - Create page (admin only)
+- [x] Role-based access
+  - [x] Admin/Internal: Full CRUD, see drafts
+  - [x] DFY: View published only, quick actions
+- [x] DFY action buttons
+  - [x] "Closed Deal" → Creates closed-deal inquiry
+  - [x] "Request Proposal" → Creates proposal inquiry
+- [x] Navigation: Blueprints in sidebar for admin, internal, DFY
 
 ### Phase 5: External Access
 
@@ -170,7 +196,10 @@ export const features = {
 /settings                   # Settings page (placeholder)
   /profile                  # User profile (coming soon)
   /team                     # Team management (admin only, placeholder)
-/blueprints                 # Blueprint catalog (admin/internal)
+/blueprints                 # Blueprint catalog (admin/internal/dfy)
+  /                         # List with search, tags, filters
+  /[id]                     # Detail view + edit mode
+  /new                      # Create blueprint (admin only)
 ```
 
 ## Component Hierarchy
@@ -214,6 +243,15 @@ features/inquiries/components/
 ├── CommentsSidebar.tsx     # Comment threads UI
 ├── FullscreenDocument.tsx  # Fullscreen modal (70% doc + 30% comments)
 └── editor/plugins.ts       # Plate.js plugin configuration
+
+features/blueprints/components/
+├── BlueprintViewer.tsx     # Read-only Plate.js display
+├── BlueprintEditor.tsx     # Editable Plate.js with auto-save
+├── BlueprintForm.tsx       # Create/edit form (name, desc, icon, tiers, tags)
+├── BlueprintCard.tsx       # Card for list view with DFY actions
+├── PricingTiersDisplay.tsx # Tier cards display
+├── PricingTiersEditor.tsx  # CRUD for pricing tiers
+└── TagInput.tsx            # Tag chips input
 ```
 
 ## Data Fetching Pattern
