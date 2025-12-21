@@ -12,25 +12,15 @@ import { FileText, Save, CheckCircle } from 'lucide-react'
 interface InquiryDocumentProps {
   inquiryId: string
   initialContent: unknown
+  generatedContent: unknown // Pre-generated from form_data
   readOnly?: boolean
   onSave?: (content: unknown) => Promise<void>
 }
 
-// Default empty document content
-const defaultValue = [
-  {
-    type: 'h2',
-    children: [{ text: 'Internal Notes' }],
-  },
-  {
-    type: 'p',
-    children: [{ text: 'Add notes about this inquiry here...' }],
-  },
-]
-
 export function InquiryDocument({
   inquiryId,
   initialContent,
+  generatedContent,
   readOnly = false,
   onSave,
 }: InquiryDocumentProps) {
@@ -39,13 +29,18 @@ export function InquiryDocument({
   const [hasChanges, setHasChanges] = useState(false)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Parse initial content or use default
+  // Use saved content if available, otherwise use generated content from form_data
   const parsedInitialContent = React.useMemo(() => {
     if (initialContent && Array.isArray(initialContent) && initialContent.length > 0) {
       return initialContent
     }
-    return defaultValue
-  }, [initialContent])
+    // Use pre-generated content from inquiry form_data
+    if (generatedContent && Array.isArray(generatedContent) && generatedContent.length > 0) {
+      return generatedContent
+    }
+    // Fallback
+    return [{ type: 'p', children: [{ text: 'No content available' }] }]
+  }, [initialContent, generatedContent])
 
   const editor = usePlateEditor({
     plugins: InquiryDocumentPlugins,

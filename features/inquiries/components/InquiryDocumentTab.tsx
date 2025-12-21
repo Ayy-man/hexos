@@ -8,8 +8,10 @@ import type { InquiryComment } from '@/lib/api/inquiry-comments'
 interface InquiryDocumentTabProps {
   inquiryId: string
   initialDocumentContent: unknown
+  generatedDocumentContent: unknown // Generated from form_data
   initialComments: InquiryComment[]
   canEdit: boolean
+  canComment: boolean // DFY can comment but not edit
   saveDocument: (content: unknown) => Promise<void>
   addComment: (content: string, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
@@ -19,8 +21,10 @@ interface InquiryDocumentTabProps {
 export function InquiryDocumentTab({
   inquiryId,
   initialDocumentContent,
+  generatedDocumentContent,
   initialComments,
   canEdit,
+  canComment,
   saveDocument,
   addComment,
   resolveComment,
@@ -93,6 +97,7 @@ export function InquiryDocumentTab({
         <InquiryDocument
           inquiryId={inquiryId}
           initialContent={initialDocumentContent}
+          generatedContent={generatedDocumentContent}
           readOnly={!canEdit}
           onSave={canEdit ? handleSaveDocument : undefined}
         />
@@ -103,8 +108,8 @@ export function InquiryDocumentTab({
         <CommentsSidebar
           inquiryId={inquiryId}
           comments={comments}
-          canEdit={canEdit}
-          onAddComment={canEdit ? handleAddComment : undefined}
+          canEdit={canComment}
+          onAddComment={canComment ? handleAddComment : undefined}
           onResolve={canEdit ? handleResolveComment : undefined}
           onDelete={canEdit ? handleDeleteComment : undefined}
         />

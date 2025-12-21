@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocumentTab'
+import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
   saveInquiryDocument,
   addInquiryComment,
@@ -94,16 +95,6 @@ export default async function InquiryDetailPage({
     notFound()
   }
 
-  // Fetch comments separately - may fail if table doesn't exist yet
-  if (['admin', 'internal'].includes(profile.role)) {
-    try {
-      comments = await getInquiryComments(id)
-    } catch (error) {
-      // inquiry_comments table may not exist yet - silently fail
-      console.warn('Failed to fetch comments:', error)
-    }
-  }
-
   if (!inquiry) {
     notFound()
   }
@@ -117,8 +108,30 @@ export default async function InquiryDetailPage({
     )
   }
 
+  // Fetch comments separately - may fail if table doesn't exist yet
+  // DFY can also view comments on their own inquiries
+  try {
+    comments = await getInquiryComments(id)
+  } catch (error) {
+    // inquiry_comments table may not exist yet - silently fail
+    console.warn('Failed to fetch comments:', error)
+  }
+
   const formData = (inquiry.form_data || {}) as Record<string, unknown>
   const canEdit = ['admin', 'internal'].includes(profile.role)
+  const canComment = ['admin', 'internal', 'dfy'].includes(profile.role)
+
+  // Generate document content from inquiry form_data
+  const generatedDocumentContent = generateDocumentFromInquiry({
+    id: inquiry.id,
+    partner_name: inquiry.partner_name,
+    prospect_company_name: inquiry.prospect_company_name,
+    form_path: inquiry.form_path,
+    submission_type: inquiry.submission_type,
+    created_at: inquiry.created_at,
+    form_data: formData,
+    blueprint: inquiry.blueprint,
+  })
 
   // Create bound server actions
   const boundSaveDocument = async (content: unknown) => {
@@ -335,8 +348,10 @@ export default async function InquiryDetailPage({
           <InquiryDocumentTab
             inquiryId={id}
             initialDocumentContent={inquiry.document_content}
+            generatedDocumentContent={generatedDocumentContent}
             initialComments={comments}
             canEdit={canEdit}
+            canComment={canComment}
             saveDocument={boundSaveDocument}
             addComment={boundAddComment}
             resolveComment={boundResolveComment}
