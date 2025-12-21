@@ -84,16 +84,10 @@ export async function createSuggestion(input: CreateSuggestionInput): Promise<Su
 export async function getSuggestions(): Promise<Suggestion[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  // First get suggestions without join (to avoid RLS issues on profiles)
+  const { data: suggestions, error } = await supabase
     .from('suggestions')
-    .select(`
-      *,
-      profiles:user_id (
-        name,
-        email,
-        role
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -101,14 +95,30 @@ export async function getSuggestions(): Promise<Suggestion[]> {
     throw new Error('Failed to fetch suggestions')
   }
 
-  // Transform the joined data
-  return (data || []).map(suggestion => ({
-    ...suggestion,
-    user_name: suggestion.profiles?.name,
-    user_email: suggestion.profiles?.email,
-    user_role: suggestion.profiles?.role,
-    profiles: undefined,
-  })) as Suggestion[]
+  if (!suggestions || suggestions.length === 0) {
+    return []
+  }
+
+  // Get unique user IDs and fetch their profiles separately
+  const userIds = [...new Set(suggestions.map(s => s.user_id))]
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, name, email, role')
+    .in('id', userIds)
+
+  // Create a map of profiles for quick lookup
+  const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
+
+  // Transform the data
+  return suggestions.map(suggestion => {
+    const profile = profileMap.get(suggestion.user_id)
+    return {
+      ...suggestion,
+      user_name: profile?.name || 'Unknown',
+      user_email: profile?.email || '',
+      user_role: profile?.role || '',
+    }
+  }) as Suggestion[]
 }
 
 // Get user's own suggestions
