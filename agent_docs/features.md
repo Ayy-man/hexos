@@ -21,14 +21,14 @@ See `components.md` for details.
 - [x] Supabase project created + client configured
 - [x] Vercel deployment connected
 - [x] MCP integrations (Supabase + Vercel)
-- [ ] Initial database migration
-- [ ] Auth flow (login/logout)
-- [ ] Basic route structure
+- [x] Initial database migration
+- [x] Auth flow (login/logout)
+- [x] Basic route structure
 - [ ] Admin seed accounts
 
 ### Phase 2: Core Data
 
-- [ ] Projects CRUD
+- [x] Projects CRUD
 - [ ] Deliverables CRUD
 - [ ] Status management
 - [ ] Activity logging

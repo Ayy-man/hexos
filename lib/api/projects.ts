@@ -1,0 +1,189 @@
+import { createClient } from '@/lib/supabase/server'
+import type { UserRole } from '@/lib/auth/types'
+
+export interface Project {
+  id: string
+  project_name: string
+  client_name: string
+  client_email: string | null
+  client_business: string | null
+  status: string
+  project_type: string | null
+  operational_mode: string
+  blueprint_match_score: number | null
+  matched_blueprint_id: string | null
+  quoted_price: number | null
+  dev_cost: number | null
+  dfy_commission_pct: number | null
+  payment_structure: string
+  created_at: string
+  updated_at: string
+  proposal_sent_at: string | null
+  started_at: string | null
+  target_delivery_date: string | null
+  delivered_at: string | null
+  notes: string | null
+  dfy_partner_id: string | null
+  assigned_dev_id: string | null
+  client_id: string | null
+}
+
+export interface ProjectWithRelations extends Project {
+  dfy_partner?: { id: string; name: string; email: string } | null
+  assigned_dev?: { id: string; name: string; email: string } | null
+  client?: { id: string; name: string; email: string } | null
+  deliverables?: Array<{
+    id: string
+    title: string
+    status: string
+    due_date: string | null
+  }>
+}
+
+export interface CreateProjectInput {
+  project_name: string
+  client_name: string
+  client_email?: string
+  client_business?: string
+  project_type?: 'blueprint' | 'blueprint_custom' | 'full_custom'
+  operational_mode?: 'internal' | 'hexona_devs' | 'hexona_devs_dfy'
+  matched_blueprint_id?: string
+  quoted_price?: number
+  target_delivery_date?: string
+  notes?: string
+  dfy_partner_id?: string
+  assigned_dev_id?: string
+}
+
+export interface UpdateProjectInput extends Partial<CreateProjectInput> {
+  status?: string
+  dev_cost?: number
+  dfy_commission_pct?: number
+  payment_structure?: '100_upfront' | '50_50' | '40_30_30' | 'custom'
+}
+
+// Get all projects (filtered by RLS based on user role)
+export async function getProjects() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select(`
+      *,
+      dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
+      assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
+      client:profiles!projects_client_id_fkey(id, name, email)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data as ProjectWithRelations[]
+}
+
+// Get single project by ID
+export async function getProject(id: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select(`
+      *,
+      dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
+      assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
+      client:profiles!projects_client_id_fkey(id, name, email),
+      deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order)
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+  return data as ProjectWithRelations
+}
+
+// Create new project (admin/internal only via RLS)
+export async function createProject(input: CreateProjectInput) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .insert(input)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Project
+}
+
+// Update project
+export async function updateProject(id: string, input: UpdateProjectInput) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .update(input)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Project
+}
+
+// Delete project (admin only via RLS)
+export async function deleteProject(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Get projects by status
+export async function getProjectsByStatus(status: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('status', status)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data as Project[]
+}
+
+// Get project counts by status (for dashboard)
+export async function getProjectStats() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('status')
+
+  if (error) throw error
+
+  const stats = {
+    total: data.length,
+    inquiry: 0,
+    active: 0,
+    completed: 0,
+  }
+
+  const inquiryStatuses = ['inquiry_new', 'ai_matching', 'qualified']
+  const completedStatuses = ['completed', 'cancelled', 'on_hold']
+
+  data.forEach((p) => {
+    if (inquiryStatuses.includes(p.status)) {
+      stats.inquiry++
+    } else if (completedStatuses.includes(p.status)) {
+      stats.completed++
+    } else {
+      stats.active++
+    }
+  })
+
+  return stats
+}
