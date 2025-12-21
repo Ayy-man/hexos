@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare, Archive } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocumentTab'
+import { InquiryActions } from '@/features/inquiries/components/InquiryActions'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
   saveInquiryDocument,
@@ -171,6 +172,12 @@ export default async function InquiryDetailPage({
             <Badge className={STATUS_COLORS[inquiry.status] || STATUS_COLORS.new}>
               {inquiry.status}
             </Badge>
+            {inquiry.archived_at && (
+              <Badge variant="outline" className="gap-1">
+                <Archive className="h-3 w-3" />
+                Archived
+              </Badge>
+            )}
           </div>
           <p className="text-muted-foreground">
             {PATH_LABELS[inquiry.form_path] || inquiry.form_path} &bull;{' '}
@@ -339,6 +346,15 @@ export default async function InquiryDetailPage({
                   )}
                 </CardContent>
               </Card>
+
+              {/* Admin Actions - Archive/Delete */}
+              {canEdit && (
+                <InquiryActions
+                  inquiryId={id}
+                  isArchived={!!inquiry.archived_at}
+                  hasProject={!!inquiry.project}
+                />
+              )}
             </div>
           </div>
         </TabsContent>

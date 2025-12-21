@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
-import { getInquiries } from '@/lib/api/inquiries'
+import { getInquiries, type InquiryFilter } from '@/lib/api/inquiries'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Plus, Building2, FileText, ArrowRight } from 'lucide-react'
+import { Plus, Building2, FileText, ArrowRight, Archive, Inbox } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -22,9 +22,14 @@ function formatDate(dateString: string) {
   })
 }
 
-export default async function InquiriesPage() {
+export default async function InquiriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>
+}) {
   await requireAuth()
   const profile = await getProfile()
+  const { filter: filterParam } = await searchParams
 
   // Only admin, internal, and dfy can access
   if (!profile || !['admin', 'internal', 'dfy'].includes(profile.role)) {
@@ -35,15 +40,22 @@ export default async function InquiriesPage() {
     )
   }
 
+  const isInternal = profile.role === 'admin' || profile.role === 'internal'
+  const filter: InquiryFilter = (filterParam === 'archived' ? 'archived' : 'active') as InquiryFilter
+
   let inquiries: Awaited<ReturnType<typeof getInquiries>> = []
+  let archivedCount = 0
 
   try {
-    inquiries = await getInquiries()
+    inquiries = await getInquiries(filter)
+    // Get archived count for badge
+    if (isInternal && filter === 'active') {
+      const archived = await getInquiries('archived')
+      archivedCount = archived.length
+    }
   } catch (error) {
     console.error('Failed to fetch inquiries:', error)
   }
-
-  const isInternal = profile.role === 'admin' || profile.role === 'internal'
 
   return (
     <div className="space-y-6">
@@ -67,70 +79,119 @@ export default async function InquiriesPage() {
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inquiries.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">New</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {inquiries.filter((i) => i.status === 'new').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-600">Processing</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {inquiries.filter((i) => i.status === 'processing').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-600">Converted</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {inquiries.filter((i) => i.status === 'converted').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Filter Tabs - Admin/Internal only */}
+      {isInternal && (
+        <div className="flex gap-2">
+          <Button
+            variant={filter === 'active' ? 'default' : 'outline'}
+            size="sm"
+            asChild
+          >
+            <Link href="/inquiries">
+              <Inbox className="h-4 w-4 mr-2" />
+              Active
+            </Link>
+          </Button>
+          <Button
+            variant={filter === 'archived' ? 'default' : 'outline'}
+            size="sm"
+            asChild
+          >
+            <Link href="/inquiries?filter=archived">
+              <Archive className="h-4 w-4 mr-2" />
+              Archived
+              {archivedCount > 0 && filter === 'active' && (
+                <Badge variant="secondary" className="ml-2">
+                  {archivedCount}
+                </Badge>
+              )}
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {/* Stats - only for active view */}
+      {filter === 'active' && (
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inquiries.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-blue-600">New</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {inquiries.filter((i) => i.status === 'new').length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-yellow-600">Processing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {inquiries.filter((i) => i.status === 'processing').length}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-green-600">Converted</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {inquiries.filter((i) => i.status === 'converted').length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Inquiries List */}
       {inquiries.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No submissions yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Submit your first deal or proposal request
-            </p>
-            <Button variant="link" asChild className="mt-2">
-              <Link href="/inquiries/new">Create new submission</Link>
-            </Button>
+            {filter === 'archived' ? (
+              <>
+                <Archive className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">No archived inquiries</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Archived inquiries will appear here
+                </p>
+              </>
+            ) : (
+              <>
+                <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground">No submissions yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Submit your first deal or proposal request
+                </p>
+                <Button variant="link" asChild className="mt-2">
+                  <Link href="/inquiries/new">Create new submission</Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Recent Submissions</CardTitle>
+            <CardTitle>
+              {filter === 'archived' ? 'Archived Inquiries' : 'Recent Submissions'}
+            </CardTitle>
             <CardDescription>
-              {isInternal
-                ? 'Click on a submission to view details or convert to project'
-                : 'Your submitted deals and proposal requests'}
+              {filter === 'archived'
+                ? 'Previously archived inquiries'
+                : isInternal
+                  ? 'Click on a submission to view details or convert to project'
+                  : 'Your submitted deals and proposal requests'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -143,7 +204,11 @@ export default async function InquiriesPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                      <Building2 className="h-5 w-5 text-muted-foreground" />
+                      {inquiry.archived_at ? (
+                        <Archive className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <Building2 className="h-5 w-5 text-muted-foreground" />
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
@@ -153,6 +218,12 @@ export default async function InquiriesPage() {
                         <Badge variant="outline" className="text-xs">
                           {inquiry.submission_type === 'closed' ? 'Closed Deal' : 'Proposal'}
                         </Badge>
+                        {inquiry.archived_at && (
+                          <Badge variant="secondary" className="text-xs gap-1">
+                            <Archive className="h-3 w-3" />
+                            Archived
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{PATH_LABELS[inquiry.form_path] || inquiry.form_path}</span>

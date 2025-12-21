@@ -30,10 +30,12 @@ export async function createInquiry(data: CreateInquiryData) {
   return inquiry
 }
 
-export async function getInquiries() {
+export type InquiryFilter = 'active' | 'archived' | 'all'
+
+export async function getInquiries(filter: InquiryFilter = 'active') {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('inquiries')
     .select(`
       *,
@@ -41,7 +43,17 @@ export async function getInquiries() {
       submitter:profiles!submitted_by(name, email),
       project:projects!converted_to_project_id(id, project_name)
     `)
-    .order('created_at', { ascending: false })
+    .is('deleted_at', null) // Never show soft-deleted
+
+  // Filter by archive status
+  if (filter === 'active') {
+    query = query.is('archived_at', null)
+  } else if (filter === 'archived') {
+    query = query.not('archived_at', 'is', null)
+  }
+  // 'all' shows both archived and active
+
+  const { data, error } = await query.order('created_at', { ascending: false })
 
   if (error) throw error
   return data || []
@@ -113,4 +125,64 @@ export async function getInquiryDocument(id: string) {
 
   if (error) throw error
   return data
+}
+
+// Archive/Unarchive/Delete operations
+export async function archiveInquiry(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      archived_at: new Date().toISOString(),
+      archived_by: user?.id,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function unarchiveInquiry(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      archived_at: null,
+      archived_by: null,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function deleteInquiry(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Soft delete
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: user?.id,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+export async function restoreInquiry(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      deleted_at: null,
+      deleted_by: null,
+    })
+    .eq('id', id)
+
+  if (error) throw error
 }
