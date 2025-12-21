@@ -232,9 +232,23 @@ function ProposalEditor({
     return [{ type: 'p', children: [{ text: 'Start writing your proposal...' }] }]
   }, [initialContent])
 
+  // Ensure discussions are valid arrays with proper structure
+  const safeDiscussions = useMemo(() => {
+    if (!initialDiscussions || !Array.isArray(initialDiscussions)) {
+      return []
+    }
+    return initialDiscussions.filter(
+      (d): d is TDiscussion =>
+        d &&
+        typeof d === 'object' &&
+        typeof d.id === 'string' &&
+        Array.isArray(d.comments)
+    )
+  }, [initialDiscussions])
+
   const plugins = useMemo(
-    () => createInquiryDocumentPlugins(currentUser, initialDiscussions),
-    [currentUser, initialDiscussions]
+    () => createInquiryDocumentPlugins(currentUser, safeDiscussions),
+    [currentUser, safeDiscussions]
   )
 
   const editor = usePlateEditor({
