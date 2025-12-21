@@ -30,7 +30,6 @@ import {
 } from '@/components/ui/sidebar'
 import { NavUser } from '@/components/nav-user'
 import { Badge } from '@/components/ui/badge'
-import { ThemeToggle } from '@/components/theme-toggle'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
 
@@ -78,9 +77,6 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex justify-end px-2 group-data-[collapsible=icon]:hidden">
-          <ThemeToggle />
-        </div>
       </SidebarHeader>
 
       <SidebarContent>
