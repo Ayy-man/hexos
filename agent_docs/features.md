@@ -89,7 +89,11 @@ See `inquiry-form.md` for full specification.
   - [x] Basic blocks (headings, paragraphs, blockquotes)
   - [x] Lists (bulleted, numbered via indent system)
   - [x] Links
+  - [x] Code blocks (syntax highlighting ready)
+  - [x] Callout blocks (info, warning, error, tip variants)
   - [x] Auto-save with debounce
+  - [x] Fixed toolbar header in edit mode
+  - [x] Fullscreen editing mode
 - [x] Blueprint pages
   - [x] /blueprints - List with search, tag filters, status filters
   - [x] /blueprints/[id] - Detail view with viewer/editor modes
@@ -97,9 +101,16 @@ See `inquiry-form.md` for full specification.
 - [x] Role-based access
   - [x] Admin/Internal: Full CRUD, see drafts
   - [x] DFY: View published only, quick actions
+- [x] Admin actions
+  - [x] Edit mode toggle
+  - [x] Duplicate blueprint (creates copy as draft)
+  - [x] Delete blueprint (with confirmation)
 - [x] DFY action buttons
   - [x] "Closed Deal" → Creates closed-deal inquiry
   - [x] "Request Proposal" → Creates proposal inquiry
+- [x] UX enhancements
+  - [x] Full emoji picker (Frimousse) for icons
+  - [x] Fullscreen document view with Esc to close
 - [x] Navigation: Blueprints in sidebar for admin, internal, DFY
 
 ### Phase 5: External Access
@@ -245,13 +256,22 @@ features/inquiries/components/
 └── editor/plugins.ts       # Plate.js plugin configuration
 
 features/blueprints/components/
-├── BlueprintViewer.tsx     # Read-only Plate.js display
-├── BlueprintEditor.tsx     # Editable Plate.js with auto-save
-├── BlueprintForm.tsx       # Create/edit form (name, desc, icon, tiers, tags)
-├── BlueprintCard.tsx       # Card for list view with DFY actions
-├── PricingTiersDisplay.tsx # Tier cards display
-├── PricingTiersEditor.tsx  # CRUD for pricing tiers
-└── TagInput.tsx            # Tag chips input
+├── BlueprintViewer.tsx        # Read-only Plate.js display
+├── BlueprintEditor.tsx        # Editable Plate.js with fixed toolbar + auto-save
+├── BlueprintForm.tsx          # Create/edit form (name, desc, icon, tiers, tags)
+├── BlueprintCard.tsx          # Card for list view with DFY actions
+├── BlueprintActions.tsx       # Admin dropdown (duplicate, delete)
+├── BlueprintContentSection.tsx # Client wrapper for fullscreen state
+├── FullscreenBlueprint.tsx    # Fullscreen modal for viewing/editing
+├── IconPicker.tsx             # Frimousse emoji picker in popover
+├── PricingTiersDisplay.tsx    # Tier cards display
+├── PricingTiersEditor.tsx     # CRUD for pricing tiers
+└── TagInput.tsx               # Tag chips input
+
+components/ui/ (editor elements)
+├── code-block-node.tsx     # Code block element
+├── callout-node.tsx        # Callout element (info/warning/error/tip)
+└── emoji-picker.tsx        # Frimousse emoji picker components
 ```
 
 ## Data Fetching Pattern

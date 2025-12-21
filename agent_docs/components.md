@@ -325,6 +325,130 @@ interface CommentsSidebarProps {
 
 ---
 
+## Blueprint Components
+
+These components power the blueprints catalog:
+
+### BlueprintEditor
+
+**File:** `features/blueprints/components/BlueprintEditor.tsx`
+
+**Purpose:** Plate.js rich text editor with fixed toolbar and auto-save.
+
+**Features:**
+- Fixed toolbar header (bold, italic, underline, strikethrough, code, links)
+- Debounced auto-save (1.5s after last change)
+- Code blocks with monospace styling
+- Callout blocks (info, warning, error, tip variants)
+- Fullscreen button to expand editor
+
+**Props:**
+```typescript
+interface BlueprintEditorProps {
+  blueprintId: string
+  initialContent: unknown
+  onFullscreen?: () => void
+}
+```
+
+### FullscreenBlueprint
+
+**File:** `features/blueprints/components/FullscreenBlueprint.tsx`
+
+**Purpose:** Fullscreen modal overlay for viewing/editing blueprints.
+
+**Features:**
+- Portal-based rendering at document root
+- Header with blueprint name, save status, and close button
+- Fixed toolbar in edit mode
+- Escape key to close
+- Auto-save in fullscreen mode
+
+**Props:**
+```typescript
+interface FullscreenBlueprintProps {
+  blueprintId: string
+  blueprintName: string
+  blueprintIcon?: string | null
+  content: unknown
+  readOnly: boolean
+  onClose: () => void
+  onSave?: (content: unknown) => Promise<void>
+}
+```
+
+### IconPicker
+
+**File:** `features/blueprints/components/IconPicker.tsx`
+
+**Purpose:** Full emoji picker for blueprint icons using Frimousse.
+
+**Features:**
+- Searchable emoji catalog
+- Categories (smileys, objects, symbols, etc.)
+- Popover trigger showing current selection
+- Keyboard navigation
+
+**Props:**
+```typescript
+interface IconPickerProps {
+  value: string
+  onChange: (emoji: string) => void
+}
+```
+
+### BlueprintActions
+
+**File:** `features/blueprints/components/BlueprintActions.tsx`
+
+**Purpose:** Admin action dropdown for blueprint management.
+
+**Features:**
+- Edit/View mode toggle button
+- Dropdown menu with:
+  - Duplicate (creates copy as draft)
+  - Delete (with confirmation dialog)
+- Loading state during actions
+
+**Props:**
+```typescript
+interface BlueprintActionsProps {
+  blueprintId: string
+  isEditMode: boolean
+}
+```
+
+---
+
+## Editor Block Components
+
+These components render custom block types in Plate.js editors:
+
+### CodeBlockElement
+
+**File:** `components/ui/code-block-node.tsx`
+
+**Purpose:** Renders code blocks with monospace styling.
+
+**Usage:** Configured in `blueprint-editor-kit.ts` with `CodeBlockPlugin`.
+
+### CalloutElement
+
+**File:** `components/ui/callout-node.tsx`
+
+**Purpose:** Renders callout/alert blocks with different variants.
+
+**Variants:**
+- `info` - Blue styling with Info icon
+- `warning` - Yellow styling with AlertTriangle icon
+- `error` - Red styling with AlertCircle icon
+- `tip` - Green styling with Lightbulb icon
+- `default` - Muted styling with Info icon
+
+**Usage:** Configured in `blueprint-editor-kit.ts` with `CalloutPlugin`.
+
+---
+
 ## Future Components (Not Yet Available)
 
 These may be added later:
