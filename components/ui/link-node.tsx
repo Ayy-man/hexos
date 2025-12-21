@@ -12,9 +12,9 @@ import { PlateElement } from 'platejs/react';
 import { cn } from '@/lib/utils';
 
 export function LinkElement(props: PlateElementProps<TLinkElement>) {
-  const suggestionData = props.editor
-    .getApi(SuggestionPlugin)
-    .suggestion.suggestionData(props.element) as
+  // Safely access suggestion data - may be undefined if SuggestionPlugin isn't registered
+  const suggestionApi = props.editor.getApi(SuggestionPlugin);
+  const suggestionData = suggestionApi?.suggestion?.suggestionData?.(props.element) as
     | TInlineSuggestionData
     | undefined;
 
