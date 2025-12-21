@@ -1,10 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 
 // Types
+export type CommentType = 'internal' | 'dfy'
+
 export interface InquiryComment {
   id: string
   inquiry_id: string
   content: string
+  comment_type: CommentType
   anchor_id: string | null
   parent_id: string | null
   author_id: string
@@ -24,6 +27,7 @@ export interface InquiryComment {
 export interface CreateCommentInput {
   inquiry_id: string
   content: string
+  comment_type?: CommentType
   anchor_id?: string | null
   parent_id?: string | null
 }
@@ -33,17 +37,25 @@ export interface UpdateCommentInput {
 }
 
 // Get all comments for an inquiry with author info
-export async function getInquiryComments(inquiryId: string): Promise<InquiryComment[]> {
+export async function getInquiryComments(
+  inquiryId: string,
+  commentType?: CommentType
+): Promise<InquiryComment[]> {
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('inquiry_comments')
     .select(`
       *,
       author:profiles!author_id(id, name, email)
     `)
     .eq('inquiry_id', inquiryId)
-    .order('created_at', { ascending: true })
+
+  if (commentType) {
+    query = query.eq('comment_type', commentType)
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: true })
 
   if (error) throw error
   return (data || []) as InquiryComment[]
@@ -79,6 +91,7 @@ export async function createInquiryComment(input: CreateCommentInput): Promise<I
     .insert({
       inquiry_id: input.inquiry_id,
       content: input.content,
+      comment_type: input.comment_type || 'internal',
       anchor_id: input.anchor_id || null,
       parent_id: input.parent_id || null,
       author_id: user.id,

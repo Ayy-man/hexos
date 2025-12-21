@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
 import { getInquiry } from '@/lib/api/inquiries'
-import { getInquiryComments, type InquiryComment } from '@/lib/api/inquiry-comments'
+import { getInquiryComments, type InquiryComment, type CommentType } from '@/lib/api/inquiry-comments'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -89,7 +89,8 @@ export default async function InquiryDetailPage({
   }
 
   let inquiry
-  let comments: InquiryComment[] = []
+  let internalComments: InquiryComment[] = []
+  let dfyComments: InquiryComment[] = []
   try {
     inquiry = await getInquiry(id)
   } catch {
@@ -109,10 +110,21 @@ export default async function InquiryDetailPage({
     )
   }
 
-  // Fetch comments separately - may fail if table doesn't exist yet
-  // DFY can also view comments on their own inquiries
+  // Fetch comments by type - admin/internal see both, DFY only sees DFY
+  const isInternal = ['admin', 'internal'].includes(profile.role)
   try {
-    comments = await getInquiryComments(id)
+    if (isInternal) {
+      // Fetch both types for internal users
+      const [internal, dfy] = await Promise.all([
+        getInquiryComments(id, 'internal'),
+        getInquiryComments(id, 'dfy'),
+      ])
+      internalComments = internal
+      dfyComments = dfy
+    } else {
+      // DFY only sees DFY comments
+      dfyComments = await getInquiryComments(id, 'dfy')
+    }
   } catch (error) {
     // inquiry_comments table may not exist yet - silently fail
     console.warn('Failed to fetch comments:', error)
@@ -140,9 +152,9 @@ export default async function InquiryDetailPage({
     await saveInquiryDocument(id, content)
   }
 
-  const boundAddComment = async (content: string, parentId?: string) => {
+  const boundAddComment = async (content: string, commentType: CommentType, parentId?: string) => {
     'use server'
-    return addInquiryComment(id, content, parentId)
+    return addInquiryComment(id, content, commentType, parentId)
   }
 
   const boundResolveComment = async (commentId: string, resolved: boolean) => {
@@ -196,11 +208,14 @@ export default async function InquiryDetailPage({
           <TabsTrigger value="document" className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4" />
             Document
-            {comments.filter(c => !c.resolved && !c.parent_id).length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {comments.filter(c => !c.resolved && !c.parent_id).length}
-              </Badge>
-            )}
+            {(() => {
+              const unresolvedCount = [...internalComments, ...dfyComments].filter(c => !c.resolved && !c.parent_id).length
+              return unresolvedCount > 0 ? (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {unresolvedCount}
+                </Badge>
+              ) : null
+            })()}
           </TabsTrigger>
         </TabsList>
 
@@ -365,9 +380,12 @@ export default async function InquiryDetailPage({
             inquiryId={id}
             initialDocumentContent={inquiry.document_content}
             generatedDocumentContent={generatedDocumentContent}
-            initialComments={comments}
+            internalComments={internalComments}
+            dfyComments={dfyComments}
             canEdit={canEdit}
             canComment={canComment}
+            showInternalTab={isInternal}
+            showDfyTab={true}
             currentUser={{
               id: profile.id,
               name: profile.name || profile.email || 'User',

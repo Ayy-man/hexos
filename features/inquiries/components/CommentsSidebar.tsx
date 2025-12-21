@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   MessageSquare,
   Send,
@@ -16,6 +17,8 @@ import {
   MoreHorizontal,
   Reply,
   Trash2,
+  Users,
+  Building2,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -23,25 +26,126 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { InquiryComment } from '@/lib/api/inquiry-comments'
+import type { InquiryComment, CommentType } from '@/lib/api/inquiry-comments'
 
 interface CommentsSidebarProps {
   inquiryId: string
-  comments: InquiryComment[]
+  internalComments: InquiryComment[]
+  dfyComments: InquiryComment[]
   canEdit?: boolean
-  onAddComment?: (content: string, parentId?: string) => Promise<void>
+  showInternalTab?: boolean // Admin/internal can see internal chat
+  showDfyTab?: boolean // Everyone can see DFY chat (if they have access to inquiry)
+  onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
   onResolve?: (commentId: string, resolved: boolean) => Promise<void>
   onDelete?: (commentId: string) => Promise<void>
 }
 
 export function CommentsSidebar({
   inquiryId,
-  comments,
+  internalComments,
+  dfyComments,
   canEdit = false,
+  showInternalTab = false,
+  showDfyTab = true,
   onAddComment,
   onResolve,
   onDelete,
 }: CommentsSidebarProps) {
+  // Default to first available tab
+  const defaultTab = showInternalTab ? 'internal' : 'dfy'
+  const [activeTab, setActiveTab] = useState<CommentType>(defaultTab)
+
+  const internalUnresolved = internalComments.filter((c) => !c.resolved && !c.parent_id).length
+  const dfyUnresolved = dfyComments.filter((c) => !c.resolved && !c.parent_id).length
+
+  // Only show tabs if user has access to both
+  const showTabs = showInternalTab && showDfyTab
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <MessageSquare className="h-4 w-4" />
+          Comments
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {showTabs ? (
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CommentType)}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="internal" className="gap-2">
+                <Users className="h-3 w-3" />
+                Internal
+                {internalUnresolved > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {internalUnresolved}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="dfy" className="gap-2">
+                <Building2 className="h-3 w-3" />
+                DFY
+                {dfyUnresolved > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {dfyUnresolved}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="internal" className="mt-4">
+              <CommentsList
+                comments={internalComments}
+                commentType="internal"
+                canEdit={canEdit}
+                onAddComment={onAddComment}
+                onResolve={onResolve}
+                onDelete={onDelete}
+              />
+            </TabsContent>
+            <TabsContent value="dfy" className="mt-4">
+              <CommentsList
+                comments={dfyComments}
+                commentType="dfy"
+                canEdit={canEdit}
+                onAddComment={onAddComment}
+                onResolve={onResolve}
+                onDelete={onDelete}
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          // Single tab view (for DFY users who only see DFY chat)
+          <CommentsList
+            comments={showInternalTab ? internalComments : dfyComments}
+            commentType={showInternalTab ? 'internal' : 'dfy'}
+            canEdit={canEdit}
+            onAddComment={onAddComment}
+            onResolve={onResolve}
+            onDelete={onDelete}
+          />
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+interface CommentsListProps {
+  comments: InquiryComment[]
+  commentType: CommentType
+  canEdit: boolean
+  onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
+  onResolve?: (commentId: string, resolved: boolean) => Promise<void>
+  onDelete?: (commentId: string) => Promise<void>
+}
+
+function CommentsList({
+  comments,
+  commentType,
+  canEdit,
+  onAddComment,
+  onResolve,
+  onDelete,
+}: CommentsListProps) {
   const [newComment, setNewComment] = useState('')
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyContent, setReplyContent] = useState('')
@@ -69,22 +173,22 @@ export function CommentsSidebar({
     if (!newComment.trim() || !onAddComment) return
 
     startTransition(async () => {
-      await onAddComment(newComment.trim())
+      await onAddComment(newComment.trim(), commentType)
       setNewComment('')
     })
-  }, [newComment, onAddComment])
+  }, [newComment, onAddComment, commentType])
 
   const handleAddReply = useCallback(
     async (parentId: string) => {
       if (!replyContent.trim() || !onAddComment) return
 
       startTransition(async () => {
-        await onAddComment(replyContent.trim(), parentId)
+        await onAddComment(replyContent.trim(), commentType, parentId)
         setReplyContent('')
         setReplyingTo(null)
       })
     },
-    [replyContent, onAddComment]
+    [replyContent, onAddComment, commentType]
   )
 
   const handleResolve = useCallback(
@@ -109,90 +213,87 @@ export function CommentsSidebar({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m`
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h`
+
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
     })
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MessageSquare className="h-4 w-4" />
-            Comments
-            {unresolvedCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {unresolvedCount}
-              </Badge>
-            )}
-          </CardTitle>
+    <div className="space-y-4">
+      {/* Add new comment */}
+      {canEdit && (
+        <div className="space-y-2">
+          <Textarea
+            placeholder={commentType === 'internal' ? 'Internal note...' : 'Message to DFY partner...'}
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="min-h-[80px] resize-none text-sm"
+            disabled={isPending}
+          />
+          <Button
+            size="sm"
+            onClick={handleAddComment}
+            disabled={!newComment.trim() || isPending}
+            className="w-full"
+          >
+            <Send className="mr-2 h-3 w-3" />
+            Add Comment
+          </Button>
+        </div>
+      )}
+
+      {/* Show All / Hide Resolved toggle */}
+      {topLevelComments.length > 0 && (
+        <div className="flex justify-end">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowResolved(!showResolved)}
-            className="text-xs"
+            className="text-xs h-6"
           >
             {showResolved ? 'Hide Resolved' : 'Show All'}
           </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Add new comment */}
-        {canEdit && (
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="min-h-[80px] resize-none text-sm"
-              disabled={isPending}
-            />
-            <Button
-              size="sm"
-              onClick={handleAddComment}
-              disabled={!newComment.trim() || isPending}
-              className="w-full"
-            >
-              <Send className="mr-2 h-3 w-3" />
-              Add Comment
-            </Button>
-          </div>
-        )}
+      )}
 
-        {/* Comments list */}
-        <div className="space-y-3">
-          {filteredComments.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              {showResolved
-                ? 'No comments yet'
-                : 'No unresolved comments'}
-            </p>
-          ) : (
-            filteredComments.map((comment) => (
-              <CommentThread
-                key={comment.id}
-                comment={comment}
-                replies={repliesMap.get(comment.id) || []}
-                canEdit={canEdit}
-                replyingTo={replyingTo}
-                replyContent={replyContent}
-                isPending={isPending}
-                onSetReplyingTo={setReplyingTo}
-                onSetReplyContent={setReplyContent}
-                onAddReply={handleAddReply}
-                onResolve={handleResolve}
-                onDelete={handleDelete}
-                formatDate={formatDate}
-              />
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      {/* Comments list */}
+      <div className="space-y-3">
+        {filteredComments.length === 0 ? (
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            {topLevelComments.length === 0
+              ? 'No comments yet'
+              : 'No unresolved comments'}
+          </p>
+        ) : (
+          filteredComments.map((comment) => (
+            <CommentThread
+              key={comment.id}
+              comment={comment}
+              replies={repliesMap.get(comment.id) || []}
+              canEdit={canEdit}
+              replyingTo={replyingTo}
+              replyContent={replyContent}
+              isPending={isPending}
+              onSetReplyingTo={setReplyingTo}
+              onSetReplyContent={setReplyContent}
+              onAddReply={handleAddReply}
+              onResolve={handleResolve}
+              onDelete={handleDelete}
+              formatDate={formatDate}
+            />
+          ))
+        )}
+      </div>
+    </div>
   )
 }
 

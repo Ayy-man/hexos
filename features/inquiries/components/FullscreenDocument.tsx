@@ -10,19 +10,22 @@ import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
 import { CommentsSidebar } from './CommentsSidebar'
 import { createInquiryDocumentPlugins, type DiscussionUser } from './editor/plugins'
-import type { InquiryComment } from '@/lib/api/inquiry-comments'
+import type { InquiryComment, CommentType } from '@/lib/api/inquiry-comments'
 
 interface FullscreenDocumentProps {
   inquiryId: string
   documentContent: unknown
-  comments: InquiryComment[]
+  internalComments: InquiryComment[]
+  dfyComments: InquiryComment[]
   readOnly: boolean
   canComment: boolean
   canEdit: boolean
+  showInternalTab: boolean
+  showDfyTab: boolean
   currentUser?: DiscussionUser
   onClose: () => void
   onSave?: (content: unknown) => Promise<void>
-  onAddComment?: (content: string, parentId?: string) => Promise<void>
+  onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
   onResolve?: (commentId: string, resolved: boolean) => Promise<void>
   onDelete?: (commentId: string) => Promise<void>
 }
@@ -30,10 +33,13 @@ interface FullscreenDocumentProps {
 export function FullscreenDocument({
   inquiryId,
   documentContent,
-  comments,
+  internalComments,
+  dfyComments,
   readOnly,
   canComment,
   canEdit,
+  showInternalTab,
+  showDfyTab,
   currentUser,
   onClose,
   onSave,
@@ -122,8 +128,11 @@ export function FullscreenDocument({
         <div className="flex-[3] overflow-auto bg-muted/30 p-4">
           <CommentsSidebar
             inquiryId={inquiryId}
-            comments={comments}
+            internalComments={internalComments}
+            dfyComments={dfyComments}
             canEdit={canComment}
+            showInternalTab={showInternalTab}
+            showDfyTab={showDfyTab}
             onAddComment={onAddComment}
             onResolve={canEdit ? onResolve : undefined}
             onDelete={canEdit ? onDelete : undefined}

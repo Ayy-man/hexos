@@ -7,6 +7,7 @@ import {
   resolveInquiryComment,
   deleteInquiryComment,
   type InquiryComment,
+  type CommentType,
 } from '@/lib/api/inquiry-comments'
 
 export async function saveInquiryDocument(
@@ -25,11 +26,13 @@ export async function saveInquiryDocument(
 export async function addInquiryComment(
   inquiryId: string,
   content: string,
+  commentType: CommentType = 'internal',
   parentId?: string
 ): Promise<InquiryComment> {
   const comment = await createInquiryComment({
     inquiry_id: inquiryId,
     content,
+    comment_type: commentType,
     parent_id: parentId || null,
   })
   revalidatePath(`/inquiries/${inquiryId}`)
