@@ -66,4 +66,4 @@ CREATE POLICY "inquiries_admin_all" ON inquiries
 CREATE TRIGGER update_inquiries_updated_at
   BEFORE UPDATE ON inquiries
   FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at_column();
+  EXECUTE FUNCTION handle_updated_at();
