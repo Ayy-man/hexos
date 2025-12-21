@@ -13,6 +13,7 @@ import {
   Send,
   Briefcase,
   Lightbulb,
+  BookOpen,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -47,6 +48,7 @@ const iconMap: Record<string, LucideIcon> = {
   Send,
   Briefcase,
   Lightbulb,
+  BookOpen,
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {

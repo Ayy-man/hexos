@@ -26,6 +26,7 @@ const adminNav: NavGroup[] = [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
+      { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
       { title: 'Suggestions', url: '/suggestions', icon: 'Lightbulb' },
       { title: 'Team', url: '/settings/team', icon: 'Users' },
     ],
@@ -51,6 +52,7 @@ const internalNav: NavGroup[] = [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
+      { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
       { title: 'Suggestions', url: '/suggestions', icon: 'Lightbulb' },
     ],
   },
@@ -94,6 +96,7 @@ const dfyNav: NavGroup[] = [
     label: 'Business',
     items: [
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
+      { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
       { title: 'My Deals', url: '/projects', icon: 'Briefcase' },
       { title: 'Submit Inquiry', url: '/inquiries/new', icon: 'Send' },
     ],

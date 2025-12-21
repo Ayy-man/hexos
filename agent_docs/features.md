@@ -113,6 +113,38 @@ See `inquiry-form.md` for full specification.
   - [x] Fullscreen document view with Esc to close
 - [x] Navigation: Blueprints in sidebar for admin, internal, DFY
 
+### Phase 4.55: Case Studies Catalog (Complete)
+
+- [x] Database: case_studies table
+  - [x] name, description, icon (emoji)
+  - [x] client_name, industry (meta fields)
+  - [x] challenge, solution, results (text)
+  - [x] content (JSONB) - Rich text content
+  - [x] tags (TEXT[]) - Free-form filtering tags
+  - [x] status (draft/published)
+  - [x] blueprint_id (FK) - Optional link to blueprint
+  - [x] RLS: Admin/Internal full CRUD, DFY view published
+- [x] Case Study editor (Plate.js)
+  - [x] Same editor kit as blueprints
+  - [x] Auto-save with debounce
+  - [x] Fullscreen editing mode
+- [x] Case Study pages
+  - [x] /case-studies - List with search, tag filters, status filters
+  - [x] /case-studies/[id] - Detail view with Challenge/Solution/Results cards
+  - [x] /case-studies/new - Create page (admin only)
+- [x] Role-based access
+  - [x] Admin/Internal: Full CRUD, see drafts
+  - [x] DFY: View published only
+- [x] Admin actions
+  - [x] Edit mode toggle
+  - [x] Duplicate case study (creates copy as draft)
+  - [x] Delete case study (with confirmation)
+- [x] Features
+  - [x] "View Related Blueprint" link (if linked)
+  - [x] Full emoji picker for icons
+  - [x] Fullscreen document view
+- [x] Navigation: Case Studies in sidebar for admin, internal, DFY
+
 ### Phase 4.6: Enhanced Proposal Flow (Complete)
 
 ClickUp-style inquiry management with pipeline views.
@@ -275,6 +307,10 @@ export const features = {
   /                         # List with search, tags, filters
   /[id]                     # Detail view + edit mode
   /new                      # Create blueprint (admin only)
+/case-studies               # Case studies catalog (admin/internal/dfy)
+  /                         # List with search, tags, filters
+  /[id]                     # Detail view + edit mode
+  /new                      # Create case study (admin only)
 ```
 
 ## Component Hierarchy
@@ -339,6 +375,15 @@ features/blueprints/components/
 ├── PricingTiersDisplay.tsx    # Tier cards display
 ├── PricingTiersEditor.tsx     # CRUD for pricing tiers
 └── TagInput.tsx               # Tag chips input
+
+features/case-studies/components/
+├── CaseStudyViewer.tsx        # Read-only Plate.js display
+├── CaseStudyEditor.tsx        # Editable Plate.js with fixed toolbar + auto-save
+├── CaseStudyForm.tsx          # Create/edit form (name, desc, client, industry, etc.)
+├── CaseStudyCard.tsx          # Card for list view with blueprint link
+├── CaseStudyActions.tsx       # Admin dropdown (duplicate, delete)
+├── CaseStudyContentSection.tsx # Client wrapper for fullscreen state
+└── FullscreenCaseStudy.tsx    # Fullscreen modal for viewing/editing
 
 components/ui/ (editor elements)
 ├── code-block-node.tsx     # Code block element
