@@ -24,6 +24,7 @@ import {
   Reply,
   Trash2,
   SendHorizontal,
+  Undo2,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -47,6 +48,7 @@ interface ProposalTabProps {
   currentUser?: DiscussionUser
   saveProposal: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   submitProposal: () => Promise<void>
+  unsubmitProposal?: () => Promise<void> // Undo send - admin only
   addComment: (content: string, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
   deleteComment: (commentId: string) => Promise<void>
@@ -63,6 +65,7 @@ export function ProposalTab({
   currentUser,
   saveProposal,
   submitProposal,
+  unsubmitProposal,
   addComment,
   resolveComment,
   deleteComment,
@@ -148,6 +151,17 @@ export function ProposalTab({
     }
   }, [submitProposal])
 
+  const handleUnsubmitProposal = useCallback(async () => {
+    if (!unsubmitProposal) return
+    try {
+      await unsubmitProposal()
+      toast.success('Proposal submission undone')
+    } catch (error) {
+      console.error('Failed to unsubmit proposal:', error)
+      toast.error('Failed to undo submission')
+    }
+  }, [unsubmitProposal])
+
   return (
     <div className="grid gap-6 md:grid-cols-3">
       {/* Proposal Editor */}
@@ -160,6 +174,7 @@ export function ProposalTab({
           isSubmitted={isSubmitted}
           onSave={isAdmin ? saveProposal : undefined}
           onSubmit={isAdmin && !isSubmitted ? handleSubmitProposal : undefined}
+          onUnsubmit={isAdmin && isSubmitted && unsubmitProposal ? handleUnsubmitProposal : undefined}
         />
       </div>
 
@@ -191,6 +206,7 @@ interface ProposalEditorProps {
   isSubmitted: boolean
   onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   onSubmit?: () => Promise<void>
+  onUnsubmit?: () => Promise<void>
 }
 
 function ProposalEditor({
@@ -201,6 +217,7 @@ function ProposalEditor({
   isSubmitted,
   onSave,
   onSubmit,
+  onUnsubmit,
 }: ProposalEditorProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -331,6 +348,16 @@ function ProposalEditor({
                 holdingText="Submitting..."
                 variant="default"
                 className="bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-700"
+              />
+            )}
+            {onUnsubmit && isSubmitted && (
+              <ButtonHoldAndRelease
+                holdDuration={2000}
+                onHoldComplete={onUnsubmit}
+                icon={<Undo2 className="h-4 w-4" />}
+                defaultText="Undo Send"
+                holdingText="Undoing..."
+                variant="default"
               />
             )}
           </div>

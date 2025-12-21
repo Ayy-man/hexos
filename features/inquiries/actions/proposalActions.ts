@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import {
   updateInquiryProposal,
   submitProposalToDfy,
+  unsubmitProposalFromDfy,
   updateDfyVersion,
   copyProposalToDfyVersion,
 } from '@/lib/api/inquiries'
@@ -32,6 +33,12 @@ export async function saveProposalContentAction(
 // Submit proposal to DFY partner
 export async function submitProposalAction(inquiryId: string): Promise<void> {
   await submitProposalToDfy(inquiryId)
+  revalidatePath(`/inquiries/${inquiryId}`)
+}
+
+// Unsubmit proposal (undo send) - admin only
+export async function unsubmitProposalAction(inquiryId: string): Promise<void> {
+  await unsubmitProposalFromDfy(inquiryId)
   revalidatePath(`/inquiries/${inquiryId}`)
 }
 

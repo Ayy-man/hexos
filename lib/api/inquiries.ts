@@ -405,6 +405,21 @@ export async function submitProposalToDfy(id: string) {
   if (error) throw error
 }
 
+// Unsubmit proposal (undo send) - admin only
+export async function unsubmitProposalFromDfy(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      proposal_submitted_at: null,
+      proposal_submitted_by: null,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
 // Save DFY's private version
 export async function updateDfyVersion(id: string, content: unknown) {
   const supabase = await createClient()

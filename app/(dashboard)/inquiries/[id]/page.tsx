@@ -29,6 +29,7 @@ import {
 import {
   saveProposalContentAction,
   submitProposalAction,
+  unsubmitProposalAction,
   saveDfyVersionAction,
   copyProposalToDfyVersionAction,
   addProposalComment,
@@ -233,6 +234,11 @@ export default async function InquiryDetailPage({
   const boundSubmitProposal = async () => {
     'use server'
     await submitProposalAction(id)
+  }
+
+  const boundUnsubmitProposal = async () => {
+    'use server'
+    await unsubmitProposalAction(id)
   }
 
   const boundAddProposalComment = async (content: string, parentId?: string) => {
@@ -578,6 +584,7 @@ export default async function InquiryDetailPage({
               }}
               saveProposal={boundSaveProposal}
               submitProposal={boundSubmitProposal}
+              unsubmitProposal={isAdmin ? boundUnsubmitProposal : undefined}
               addComment={boundAddProposalComment}
               resolveComment={boundResolveProposalComment}
               deleteComment={boundDeleteProposalComment}
