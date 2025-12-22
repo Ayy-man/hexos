@@ -186,23 +186,26 @@ export function ProposalTab({
           onSubmit={isAdmin && !isSubmitted ? handleSubmitProposal : undefined}
           onUnsubmit={isAdmin && isSubmitted && unsubmitProposal ? handleUnsubmitProposal : undefined}
         />
-
-        {/* Suggest Changes Button for DFY */}
-        {canSuggestChanges && (
-          <div className="mt-4 p-4 border rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground mb-3">
-              Want to suggest changes to the deliverables or pricing? Extract the deliverables and make your edits.
-            </p>
-            <SuggestChangesButton
-              inquiryId={inquiryId}
-              onStartNegotiation={onStartNegotiation!}
-            />
-          </div>
-        )}
       </div>
 
-      {/* Comments Sidebar */}
-      <div>
+      {/* Sidebar */}
+      <div className="space-y-4">
+        {/* Suggest Changes Card for DFY */}
+        {canSuggestChanges && (
+          <Card>
+            <CardContent className="pt-4">
+              <p className="text-sm text-muted-foreground mb-3">
+                Want to suggest changes to the deliverables or pricing?
+              </p>
+              <SuggestChangesButton
+                inquiryId={inquiryId}
+                onStartNegotiation={onStartNegotiation!}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Comments Sidebar */}
         <ProposalCommentsSidebar
           comments={comments}
           canComment={isAdmin || (isDfyOwner && isSubmitted)}
