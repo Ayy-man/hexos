@@ -199,10 +199,44 @@ ClickUp-style inquiry management with pipeline views.
   - [x] Timestamp formatting
   - [x] Custom content support
 
-**P1 Features (Planned):**
-- [ ] Public proposal link (client view at /p/[token])
+### Phase 4.7: Proposal + My Version Tabs (Complete)
+
+Admin-to-DFY proposal workflow with private DFY workspace.
+
+- [x] Database: Proposal columns
+  - [x] proposal_content (JSONB) - Rich text proposal
+  - [x] proposal_submitted_at, proposal_submitted_by - Submission tracking
+  - [x] dfy_version_content (JSONB) - DFY private copy
+  - [x] proposal_discussions (JSONB) - Inline discussions
+  - [x] 'proposal' comment_type for sidebar comments
+  - [x] RLS policies for proposal comments (DFY access after submission)
+- [x] Proposal Tab
+  - [x] Admin: Full edit access, Plate.js editor with auto-save
+  - [x] DFY: Read-only view after proposal submitted
+  - [x] "Submit to Partner" button (hold 2 seconds to confirm)
+  - [x] "Undo Send" button for admins (hold 2 seconds)
+  - [x] Two-way comments (admin + DFY can comment after submission)
+  - [x] Comments sidebar with threads, resolve/unresolve
+  - [x] "Not Yet Available" placeholder for DFY before submission
+- [x] My Version Tab (DFY only)
+  - [x] Private workspace - admins cannot see
+  - [x] Privacy disclaimer banner
+  - [x] "Copy from Proposal" button with confirmation
+  - [x] Full Plate.js editor with auto-save
+  - [x] Available only after proposal is submitted
+- [x] Auto-advance stage
+  - [x] Inquiry moves from "unopened" to "admin_reviewed" on first admin view
+- [x] Tab visibility matrix
+  - [x] Overview: Admin (edit), DFY owner (view)
+  - [x] Document: Admin (edit), DFY owner (edit)
+  - [x] Proposal: Admin (edit always), DFY owner (view after submit)
+  - [x] My Version: DFY owner only (admin cannot access)
+
+**P1 Features:**
+- [x] Public proposal link (client view at /p/[token])
 - [ ] PDF export
 - [ ] Email notifications on stage change
+- [ ] DFY quick edit on proposal
 
 **P2 Features (Planned):**
 - [ ] Blueprint → template auto-fill
