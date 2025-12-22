@@ -397,9 +397,10 @@ export default async function InquiryDetailPage({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
+      {/* Header - Sticky */}
+      <div className="flex-shrink-0 pb-4">
+        <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/inquiries">
             <ArrowLeft className="h-4 w-4" />
@@ -437,12 +438,14 @@ export default async function InquiryDetailPage({
             }}
             documentContent={inquiry.document_content || generatedDocumentContent}
           />
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
+      <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0">
+        <div className="flex-shrink-0">
+          <TabsList>
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Overview
@@ -500,10 +503,11 @@ export default async function InquiryDetailPage({
               )}
             </TabsTrigger>
           )}
-        </TabsList>
+          </TabsList>
+        </div>
 
         {/* Overview Tab */}
-        <TabsContent value="overview">
+        <TabsContent value="overview" className="flex-1 overflow-y-auto mt-4">
           <div className="grid gap-6 md:grid-cols-3">
             {/* Main Content */}
             <div className="md:col-span-2 space-y-6">
@@ -702,7 +706,7 @@ export default async function InquiryDetailPage({
         </TabsContent>
 
         {/* Document Tab */}
-        <TabsContent value="document">
+        <TabsContent value="document" className="flex-1 overflow-y-auto mt-4">
           <InquiryDocumentTab
             inquiryId={id}
             initialDocumentContent={inquiry.document_content}
@@ -727,7 +731,7 @@ export default async function InquiryDetailPage({
 
         {/* Proposal Tab */}
         {showProposalTab && (
-          <TabsContent value="proposal">
+          <TabsContent value="proposal" className="flex-1 overflow-y-auto mt-4">
             <ProposalTab
               inquiryId={id}
               initialContent={inquiry.proposal_content}
@@ -752,7 +756,7 @@ export default async function InquiryDetailPage({
 
         {/* My Version Tab (DFY only) */}
         {showMyVersionTab && (
-          <TabsContent value="my-version">
+          <TabsContent value="my-version" className="flex-1 overflow-y-auto mt-4">
             <MyVersionTab
               inquiryId={id}
               initialContent={inquiry.dfy_version_content}
@@ -766,7 +770,7 @@ export default async function InquiryDetailPage({
 
         {/* Deliverables Tab */}
         {showDeliverablesTab && (
-          <TabsContent value="deliverables">
+          <TabsContent value="deliverables" className="flex-1 overflow-y-auto mt-4">
             <DeliverablesTab
               inquiryId={id}
               deliverables={deliverables}
