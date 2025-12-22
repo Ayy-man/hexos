@@ -1,7 +1,19 @@
 import { createClient } from '@/lib/supabase/server'
 import type { CreateInquiryData } from '@/features/inquiries/types'
+import type { CreateRequirementInput } from './project-requirements'
+import { bulkCreateProjectRequirements } from './project-requirements'
 
 export type { CreateInquiryData }
+
+// Deliverables negotiation status
+export type DeliverablesNegotiationStatus =
+  | 'none'
+  | 'parsing'
+  | 'dfy_editing'
+  | 'dfy_submitted'
+  | 'int_reviewing'
+  | 'approved'
+  | 'needs_revision'
 
 export async function createInquiry(data: CreateInquiryData) {
   const supabase = await createClient()
@@ -456,4 +468,178 @@ export async function copyProposalToDfyVersion(id: string) {
     .eq('id', id)
 
   if (updateError) throw updateError
+}
+
+// ============================================
+// Deliverables Negotiation Functions
+// ============================================
+
+// Update deliverables negotiation status
+export async function updateDeliverablesStatus(
+  id: string,
+  status: DeliverablesNegotiationStatus
+) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({ deliverables_status: status })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Mark inquiry as closed by DFY
+export async function markInquiryAsClosed(
+  id: string,
+  notes?: string,
+  clientEmail?: string
+) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      closed_at: new Date().toISOString(),
+      closed_by: user.id,
+      closed_notes: notes || null,
+      client_email: clientEmail || null,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Undo mark as closed
+export async function unmarkInquiryAsClosed(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      closed_at: null,
+      closed_by: null,
+      closed_notes: null,
+      client_email: null,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// ============================================
+// Project Conversion Functions
+// ============================================
+
+export interface ConvertToProjectInput {
+  project_name: string
+  client_name: string
+  client_email?: string
+  client_business?: string
+  project_type?: string
+  operational_mode?: string
+  target_delivery_date?: string
+  quoted_price?: number
+  notes?: string
+}
+
+// Convert inquiry to project with deliverables and requirements
+export async function convertInquiryToProjectFull(
+  inquiryId: string,
+  projectData: ConvertToProjectInput,
+  deliverableIds: string[],
+  requirements: Array<{ title: string; description?: string }>
+) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Get the inquiry to extract source info
+  const { data: inquiry, error: inquiryError } = await supabase
+    .from('inquiries')
+    .select('submitted_by, blueprint_id')
+    .eq('id', inquiryId)
+    .single()
+
+  if (inquiryError) throw inquiryError
+
+  // 1. Create the project
+  const { data: project, error: projectError } = await supabase
+    .from('projects')
+    .insert({
+      project_name: projectData.project_name,
+      client_name: projectData.client_name,
+      client_email: projectData.client_email || null,
+      client_business: projectData.client_business || null,
+      project_type: projectData.project_type || 'blueprint',
+      operational_mode: projectData.operational_mode || 'hexona_devs_dfy',
+      target_delivery_date: projectData.target_delivery_date || null,
+      quoted_price: projectData.quoted_price || null,
+      notes: projectData.notes || null,
+      dfy_partner_id: inquiry.submitted_by,
+      matched_blueprint_id: inquiry.blueprint_id,
+      source_inquiry_id: inquiryId,
+      status: 'collecting_access',
+    })
+    .select()
+    .single()
+
+  if (projectError) throw projectError
+
+  // 2. Copy deliverables from proposal_deliverables to project deliverables
+  if (deliverableIds.length > 0) {
+    // Get the proposal deliverables
+    const { data: proposalDeliverables, error: delError } = await supabase
+      .from('proposal_deliverables')
+      .select('*')
+      .in('id', deliverableIds)
+
+    if (delError) throw delError
+
+    // Create project deliverables
+    const projectDeliverables = proposalDeliverables
+      .filter((d) => d.change_status !== 'removed' && d.change_status !== 'rejected')
+      .map((d, index) => ({
+        project_id: project.id,
+        name: d.name,
+        description: d.description,
+        price: d.counter_price ?? d.price, // Use counter if exists
+        status: 'pending',
+        sort_order: index,
+      }))
+
+    if (projectDeliverables.length > 0) {
+      const { error: insertDelError } = await supabase
+        .from('deliverables')
+        .insert(projectDeliverables)
+
+      if (insertDelError) throw insertDelError
+    }
+  }
+
+  // 3. Create project requirements
+  if (requirements.length > 0) {
+    await bulkCreateProjectRequirements(project.id, requirements)
+  }
+
+  // 4. Update the inquiry to link to the project
+  const { error: updateError } = await supabase
+    .from('inquiries')
+    .update({
+      status: 'converted',
+      converted_to_project_id: project.id,
+    })
+    .eq('id', inquiryId)
+
+  if (updateError) throw updateError
+
+  return project
 }
