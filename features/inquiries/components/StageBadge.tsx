@@ -38,6 +38,15 @@ const STAGE_CONFIG: Record<ProposalStage, { label: string; dfyLabel?: string; cl
     dfyLabel: 'READY',
     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
   },
+  closed: {
+    label: 'CLOSED',
+    dfyLabel: 'WON',
+    className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200 dark:border-teal-800',
+  },
+  lost: {
+    label: 'LOST',
+    className: 'bg-stone-100 text-stone-700 dark:bg-stone-900/30 dark:text-stone-400 border-stone-200 dark:border-stone-800',
+  },
 }
 
 interface StageBadgeProps {
@@ -74,6 +83,8 @@ export const STAGE_ORDER: ProposalStage[] = [
   'final_review',
   'ready',
   'sent',
+  'closed',
+  'lost',
 ]
 
 export function getStageName(stage: ProposalStage | null | undefined, viewAs: 'admin' | 'dfy' = 'admin'): string {

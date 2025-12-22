@@ -23,6 +23,7 @@ import { MyVersionTab } from '@/features/inquiries/components/MyVersionTab'
 import { DeliverablesTab } from '@/features/inquiries/components/deliverables'
 import { MarkAsClosedButton } from '@/features/inquiries/components/MarkAsClosedButton'
 import { ConvertToProjectButton } from '@/features/inquiries/components/conversion'
+import { ReopenInquiryButton } from '@/features/inquiries/components/ReopenInquiryButton'
 import type { ProposalStage } from '@/lib/api/inquiries'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
@@ -59,6 +60,7 @@ import {
   markAsClosedAction,
   unmarkAsClosedAction,
   convertToProjectAction,
+  reopenInquiryAction,
 } from '@/features/inquiries/actions/conversionActions'
 import type { TDiscussion } from '@/features/inquiries/components/editor/plugins'
 
@@ -221,6 +223,7 @@ export default async function InquiryDetailPage({
   let blueprints: Awaited<ReturnType<typeof getBlueprints>> = []
   const deliverablesStatus = (inquiry.deliverables_status || 'none') as DeliverablesNegotiationStatus
   const isClosed = !!inquiry.closed_at
+  const isClosedOrLostStage = inquiry.proposal_stage === 'closed' || inquiry.proposal_stage === 'lost'
   const showDeliverablesTab = proposalSubmitted && (deliverablesStatus !== 'none' || isClosed)
 
   try {
@@ -393,6 +396,11 @@ export default async function InquiryDetailPage({
   ) => {
     'use server'
     return convertToProjectAction(id, projectData, deliverableIds, requirements)
+  }
+
+  const boundReopenInquiry = async () => {
+    'use server'
+    return reopenInquiryAction(id)
   }
 
   // Bound server action for starting negotiation (DFY initiates)
@@ -689,8 +697,8 @@ export default async function InquiryDetailPage({
                         />
                       )}
 
-                      {/* Admin: Convert to Project - always available after proposal sent */}
-                      {isAdmin && proposalSubmitted && (
+                      {/* Admin: Convert to Project - available after proposal sent but not if already closed */}
+                      {isAdmin && proposalSubmitted && !isClosedOrLostStage && (
                         <ConvertToProjectButton
                           inquiry={{
                             id: inquiry.id,
@@ -704,6 +712,14 @@ export default async function InquiryDetailPage({
                           deliverables={deliverables}
                           onConvert={boundConvertToProject}
                           variant="inline"
+                        />
+                      )}
+
+                      {/* Admin: Reopen Inquiry - only when closed or lost */}
+                      {isAdmin && isClosedOrLostStage && (
+                        <ReopenInquiryButton
+                          inquiryId={id}
+                          onReopen={boundReopenInquiry}
                         />
                       )}
 

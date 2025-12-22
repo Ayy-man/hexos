@@ -43,7 +43,7 @@ export async function createInquiry(data: CreateInquiryData) {
 }
 
 export type InquiryFilter = 'active' | 'archived' | 'all'
-export type ProposalStage = 'unopened' | 'admin_reviewed' | 'in_queue' | 'working' | 'on_hold' | 'final_review' | 'ready' | 'sent'
+export type ProposalStage = 'unopened' | 'admin_reviewed' | 'in_queue' | 'working' | 'on_hold' | 'final_review' | 'ready' | 'sent' | 'closed' | 'lost'
 export type Priority = 'low' | 'normal' | 'high' | 'urgent'
 
 export async function getInquiries(filter: InquiryFilter = 'active') {
@@ -573,6 +573,53 @@ export async function unmarkInquiryAsClosed(id: string) {
   if (error) throw error
 }
 
+// Reopen a closed/lost inquiry back to sent stage (admin only)
+export async function reopenInquiry(id: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Get current stage history
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history, status')
+    .eq('id', id)
+    .single()
+
+  // Only allow reopening closed or lost inquiries
+  if (inquiry?.proposal_stage !== 'closed' && inquiry?.proposal_stage !== 'lost') {
+    throw new Error('Can only reopen closed or lost inquiries')
+  }
+
+  const stageHistory = (inquiry?.stage_history as Array<unknown>) || []
+  const historyEntry = {
+    from: inquiry?.proposal_stage,
+    to: 'sent',
+    changed_by: user.id,
+    changed_at: new Date().toISOString(),
+    notes: 'Inquiry reopened by admin',
+  }
+
+  const { error } = await supabase
+    .from('inquiries')
+    .update({
+      proposal_stage: 'sent',
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
+      // Clear conversion if it was converted
+      status: inquiry?.status === 'converted' ? 'pending' : inquiry?.status,
+      converted_to_project_id: null,
+      // Clear closed fields
+      closed_at: null,
+      closed_by: null,
+      closed_notes: null,
+    })
+    .eq('id', id)
+
+  if (error) throw error
+}
+
 // ============================================
 // Project Conversion Functions
 // ============================================
@@ -671,12 +718,31 @@ export async function convertInquiryToProjectFull(
     await bulkCreateProjectRequirements(project.id, requirements)
   }
 
-  // 4. Update the inquiry to link to the project
+  // 4. Update the inquiry to link to the project and set stage to 'closed'
+  // Get current stage history
+  const { data: currentInquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history')
+    .eq('id', inquiryId)
+    .single()
+
+  const stageHistory = (currentInquiry?.stage_history as Array<unknown>) || []
+  const historyEntry = {
+    from: currentInquiry?.proposal_stage || 'sent',
+    to: 'closed',
+    changed_by: user.id,
+    changed_at: new Date().toISOString(),
+    notes: 'Deal closed - converted to project',
+  }
+
   const { error: updateError } = await supabase
     .from('inquiries')
     .update({
       status: 'converted',
       converted_to_project_id: project.id,
+      proposal_stage: 'closed',
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
     })
     .eq('id', inquiryId)
 

@@ -57,6 +57,8 @@ function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inqu
     final_review: [],
     ready: [],
     sent: [],
+    closed: [],
+    lost: [],
   }
 
   inquiries.forEach((inquiry) => {

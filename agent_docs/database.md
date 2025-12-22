@@ -62,7 +62,9 @@ CREATE TYPE proposal_stage AS ENUM (
   'on_hold',         -- Paused (client request, timing, etc.)
   'final_review',    -- Final internal review
   'ready',           -- Ready to send to partner
-  'sent'             -- Proposal sent to DFY partner (auto-transitions on submit)
+  'sent',            -- Proposal sent to DFY partner (auto-transitions on submit)
+  'closed',          -- Deal won, converted to project (auto-transitions on conversion)
+  'lost'             -- Deal lost, no conversion
 );
 
 -- Deliverables negotiation status

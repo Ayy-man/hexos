@@ -52,6 +52,8 @@ const STAGE_COLORS: Record<ProposalStage, string> = {
   final_review: 'border-t-yellow-500',
   ready: 'border-t-green-500',
   sent: 'border-t-emerald-500',
+  closed: 'border-t-teal-500',
+  lost: 'border-t-stone-500',
 }
 
 function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
@@ -64,6 +66,8 @@ function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inqu
     final_review: [],
     ready: [],
     sent: [],
+    closed: [],
+    lost: [],
   }
 
   inquiries.forEach((inquiry) => {

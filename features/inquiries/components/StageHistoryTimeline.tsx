@@ -31,6 +31,8 @@ const STAGE_ICONS: Record<ProposalStage, React.ReactNode> = {
   final_review: <Search className="h-3 w-3" />,
   ready: <CheckCircle className="h-3 w-3" />,
   sent: <Send className="h-3 w-3" />,
+  closed: <CheckCircle className="h-3 w-3" />,
+  lost: <Clock className="h-3 w-3" />,
 }
 
 function getTimelineStatus(stage: ProposalStage, currentStage: ProposalStage): TimelineItem['status'] {
@@ -148,8 +150,8 @@ export function StageHistoryTimeline({
             })}
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-muted-foreground">Unopened</span>
-            <span className="text-[10px] text-muted-foreground">Ready</span>
+            <span className="text-[10px] text-muted-foreground">Pending</span>
+            <span className="text-[10px] text-muted-foreground">Closed</span>
           </div>
         </div>
       </CardContent>

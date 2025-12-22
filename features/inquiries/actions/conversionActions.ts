@@ -6,6 +6,7 @@ import {
   markInquiryAsClosed,
   unmarkInquiryAsClosed,
   convertInquiryToProjectFull,
+  reopenInquiry,
   type ConvertToProjectInput,
 } from '@/lib/api/inquiries'
 
@@ -73,4 +74,14 @@ export async function convertAndRedirectAction(
   revalidatePath(`/projects/${project.id}`)
 
   redirect(`/projects/${project.id}`)
+}
+
+// ============================================
+// Reopen Inquiry Actions (Admin only)
+// ============================================
+
+export async function reopenInquiryAction(inquiryId: string): Promise<void> {
+  await reopenInquiry(inquiryId)
+  revalidatePath(`/inquiries/${inquiryId}`)
+  revalidatePath('/inquiries')
 }

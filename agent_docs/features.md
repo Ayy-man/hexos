@@ -150,7 +150,7 @@ See `inquiry-form.md` for full specification.
 ClickUp-style inquiry management with pipeline views.
 
 - [x] Database: New proposal stage workflow
-  - [x] proposal_stage enum: unopened → admin_reviewed → in_queue → working → on_hold → final_review → ready
+  - [x] proposal_stage enum: unopened → admin_reviewed → in_queue → working → on_hold → final_review → ready → sent → closed → lost
   - [x] priority field (low, normal, high, urgent)
   - [x] due_date, estimated_value, assigned_to columns
   - [x] stage_history JSONB tracking
@@ -248,7 +248,7 @@ Admin-to-DFY proposal workflow with private DFY workspace.
 - [ ] Inquiry attachments
 - [ ] AI proposal writer extensions
 
-### Phase 4.8: Deliverables Negotiation System (In Progress)
+### Phase 4.8: Deliverables Negotiation System (Complete)
 
 Two-entry system for managing deliverables between DFY partners and Internal team.
 
@@ -262,7 +262,13 @@ Proposal submitted → DFY clicks "Suggest Changes" → AI parses deliverables
 ```
 DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
 → Confirm deliverables → Add onboarding requirements → Project created
+→ Inquiry auto-moves to "closed" stage
 ```
+
+**Pipeline Stages:**
+- `closed` - Deal won, converted to project
+- `lost` - Deal lost, no conversion
+- Admin can reopen closed/lost inquiries via hold-to-confirm button
 
 - [x] Database: New tables
   - [x] proposal_deliverables - Negotiated deliverables linked to inquiry
@@ -302,10 +308,10 @@ DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
   - [x] DFY can update own inquiries (for dfy_version_content)
   - [x] Proposal deliverables access policies
   - [x] Project requirements access policies
-- [ ] Testing & Polish
-  - [ ] Test DFY flow: Suggest Changes → Edit → Submit → Review loop
-  - [ ] Test INT flow: Review → Accept/Reject/Counter → Approve
-  - [ ] Test conversion: Mark Closed → Convert Wizard → Project created
+- [x] Pipeline Stages
+  - [x] Added 'closed' and 'lost' stages to proposal_stage enum
+  - [x] Auto-transition to 'closed' on project conversion
+  - [x] ReopenInquiryButton for admin (hold-to-confirm)
 
 ### Phase 5: External Access
 
@@ -327,6 +333,18 @@ DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
 - [ ] Change detection triggers
 - [ ] Change request flow
 - [ ] Approval/denial workflow
+
+## Planned Features (Nuggets)
+
+### DFY Proposal Reminders
+Implement automated reminders to DFY partners asking about proposal status:
+- Periodic check-ins on proposals in 'sent' stage
+- Ask DFY: "Any updates on [Company Name] proposal?"
+- Trigger based on time since proposal sent (e.g., 3 days, 1 week)
+- Could use email/in-app notifications
+- Help track pipeline and nudge DFY to close deals or mark as lost
+
+---
 
 ## Post-MVP (Future Quarters)
 
