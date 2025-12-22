@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
         'X-Title': 'hexOS Deliverables Parser',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3-haiku',
+        model: 'anthropic/claude-3.5-haiku',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           {
