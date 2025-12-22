@@ -24,7 +24,7 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSend = async () => {
-    if (!input.trim() || !currentPath) return
+    if (!input.trim()) return
 
     const userMessage = input.trim()
     setInput('')
@@ -38,7 +38,7 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: userMessage }],
           formPath: currentPath,
-          availableFields: FIELD_LISTS[currentPath] || [],
+          availableFields: currentPath ? FIELD_LISTS[currentPath] : [],
         }),
       })
 
@@ -83,11 +83,12 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
           <Bot className="h-5 w-5 text-cyan-500" />
           AI Assistant
         </CardTitle>
-        {currentPath && (
-          <p className="text-xs text-muted-foreground">
-            Helping with: {PATH_LABELS[currentPath] || currentPath}
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground">
+          {currentPath
+            ? `Helping with: ${PATH_LABELS[currentPath] || currentPath}`
+            : 'Ready to help with your intake form'
+          }
+        </p>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col min-h-0">
@@ -131,12 +132,12 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
             onKeyDown={handleKeyDown}
             rows={2}
             className="resize-none"
-            disabled={isLoading || !currentPath}
+            disabled={isLoading}
           />
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={isLoading || !input.trim() || !currentPath}
+            disabled={isLoading || !input.trim()}
           >
             <Send className="h-4 w-4" />
           </Button>
