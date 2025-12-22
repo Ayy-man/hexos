@@ -9,32 +9,38 @@ export function InitialStep() {
   const submissionType = watch('submission_type')
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-3">
-        <Label className="text-base font-medium">What are you here for?</Label>
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">What are you here for?</h2>
         <RadioGroup
           value={submissionType || ""}
           onValueChange={(value) => setValue('submission_type', value)}
           className="space-y-3"
         >
-          <div className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-muted/50 cursor-pointer">
-            <RadioGroupItem value="closed" id="closed" className="mt-0.5" />
-            <Label htmlFor="closed" className="cursor-pointer flex-1">
-              <div className="font-medium">I have closed a deal</div>
-              <div className="text-sm text-muted-foreground">
+          <label
+            htmlFor="closed"
+            className="flex items-start space-x-4 p-5 rounded-xl border-2 hover:bg-muted/50 hover:border-primary/50 cursor-pointer transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+          >
+            <RadioGroupItem value="closed" id="closed" className="mt-1" />
+            <div className="flex-1">
+              <span className="text-base font-medium block">I have closed a deal</span>
+              <span className="text-sm text-muted-foreground mt-1 block">
                 Contract signed / cash collected
-              </div>
-            </Label>
-          </div>
-          <div className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-muted/50 cursor-pointer">
-            <RadioGroupItem value="proposal" id="proposal" className="mt-0.5" />
-            <Label htmlFor="proposal" className="cursor-pointer flex-1">
-              <div className="font-medium">I&apos;m requesting a proposal</div>
-              <div className="text-sm text-muted-foreground">
+              </span>
+            </div>
+          </label>
+          <label
+            htmlFor="proposal"
+            className="flex items-start space-x-4 p-5 rounded-xl border-2 hover:bg-muted/50 hover:border-primary/50 cursor-pointer transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+          >
+            <RadioGroupItem value="proposal" id="proposal" className="mt-1" />
+            <div className="flex-1">
+              <span className="text-base font-medium block">I&apos;m requesting a proposal</span>
+              <span className="text-sm text-muted-foreground mt-1 block">
                 Need a proposal to be made for a prospect
-              </div>
-            </Label>
-          </div>
+              </span>
+            </div>
+          </label>
         </RadioGroup>
       </div>
     </div>
