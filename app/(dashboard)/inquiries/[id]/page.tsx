@@ -396,6 +396,12 @@ export default async function InquiryDetailPage({
     return convertToProjectAction(id, projectData, deliverableIds, requirements)
   }
 
+  // Bound server action for starting negotiation (DFY initiates)
+  const boundStartNegotiation = async () => {
+    'use server'
+    await triggerParseDeliverablesAction(id, inquiry.proposal_content)
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header - Sticky */}
@@ -744,12 +750,14 @@ export default async function InquiryDetailPage({
                 id: profile.id,
                 name: profile.name || profile.email || 'User',
               }}
+              deliverablesStatus={deliverablesStatus}
               saveProposal={boundSaveProposal}
               submitProposal={boundSubmitProposal}
               unsubmitProposal={isAdmin ? boundUnsubmitProposal : undefined}
               addComment={boundAddProposalComment}
               resolveComment={boundResolveProposalComment}
               deleteComment={boundDeleteProposalComment}
+              onStartNegotiation={isDfyOwner ? boundStartNegotiation : undefined}
             />
           </TabsContent>
         )}

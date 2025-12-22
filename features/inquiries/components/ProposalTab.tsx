@@ -36,6 +36,8 @@ import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } f
 import { BlueprintEditorPlugins } from '@/components/editor/plugins/blueprint-editor-kit'
 import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
 import type { InquiryComment } from '@/lib/api/inquiry-comments'
+import type { DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
+import { SuggestChangesButton } from './SuggestChangesButton'
 import { toast } from 'sonner'
 
 interface ProposalTabProps {
@@ -47,12 +49,14 @@ interface ProposalTabProps {
   isDfyOwner: boolean // DFY who submitted the inquiry
   proposalComments: InquiryComment[]
   currentUser?: DiscussionUser
+  deliverablesStatus?: DeliverablesNegotiationStatus
   saveProposal: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   submitProposal: () => Promise<void>
   unsubmitProposal?: () => Promise<void> // Undo send - admin only
   addComment: (content: string, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
   deleteComment: (commentId: string) => Promise<void>
+  onStartNegotiation?: () => Promise<void>
 }
 
 export function ProposalTab({
@@ -64,16 +68,21 @@ export function ProposalTab({
   isDfyOwner,
   proposalComments: initialComments = [],
   currentUser,
+  deliverablesStatus = 'none',
   saveProposal,
   submitProposal,
   unsubmitProposal,
   addComment,
   resolveComment,
   deleteComment,
+  onStartNegotiation,
 }: ProposalTabProps) {
   const [comments, setComments] = useState<InquiryComment[]>(initialComments || [])
   const [isPending, startTransition] = useTransition()
   const isSubmitted = !!proposalSubmittedAt
+
+  // Show suggest changes button for DFY when proposal is submitted and no negotiation started
+  const canSuggestChanges = isDfyOwner && isSubmitted && deliverablesStatus === 'none' && onStartNegotiation
 
   // DFY who hasn't had proposal submitted yet
   if (isDfyOwner && !isSubmitted) {
@@ -177,6 +186,19 @@ export function ProposalTab({
           onSubmit={isAdmin && !isSubmitted ? handleSubmitProposal : undefined}
           onUnsubmit={isAdmin && isSubmitted && unsubmitProposal ? handleUnsubmitProposal : undefined}
         />
+
+        {/* Suggest Changes Button for DFY */}
+        {canSuggestChanges && (
+          <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+            <p className="text-sm text-muted-foreground mb-3">
+              Want to suggest changes to the deliverables or pricing? Extract the deliverables and make your edits.
+            </p>
+            <SuggestChangesButton
+              inquiryId={inquiryId}
+              onStartNegotiation={onStartNegotiation!}
+            />
+          </div>
+        )}
       </div>
 
       {/* Comments Sidebar */}
