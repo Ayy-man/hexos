@@ -679,13 +679,25 @@ export default async function InquiryDetailPage({
                   <CardTitle className="text-base">Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {inquiry.project ? (
+                  {/* View Project button - always show if project exists */}
+                  {inquiry.project && (
                     <Button className="w-full" asChild>
                       <Link href={`/projects/${inquiry.project.id}`}>
                         View Project
                       </Link>
                     </Button>
-                  ) : (
+                  )}
+
+                  {/* Admin: Reopen Inquiry - available when closed or lost (even with project) */}
+                  {isAdmin && isClosedOrLostStage && (
+                    <ReopenInquiryButton
+                      inquiryId={id}
+                      onReopen={boundReopenInquiry}
+                    />
+                  )}
+
+                  {/* Other actions only when no project */}
+                  {!inquiry.project && (
                     <>
                       {/* DFY: Mark as Closed */}
                       {isDfyOwner && proposalSubmitted && (
@@ -712,14 +724,6 @@ export default async function InquiryDetailPage({
                           deliverables={deliverables}
                           onConvert={boundConvertToProject}
                           variant="inline"
-                        />
-                      )}
-
-                      {/* Admin: Reopen Inquiry - only when closed or lost */}
-                      {isAdmin && isClosedOrLostStage && (
-                        <ReopenInquiryButton
-                          inquiryId={id}
-                          onReopen={boundReopenInquiry}
                         />
                       )}
 
