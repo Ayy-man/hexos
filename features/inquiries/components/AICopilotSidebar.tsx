@@ -38,7 +38,9 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: userMessage }],
           formPath: currentPath,
-          availableFields: currentPath ? FIELD_LISTS[currentPath] : [],
+          availableFields: currentPath
+            ? FIELD_LISTS[currentPath]
+            : ['prospect_company_name', 'prospect_website', 'industry', 'additional_notes'],
         }),
       })
 
@@ -47,16 +49,27 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
       const data = await response.json()
 
       // Handle tool calls if present
+      const filledFields: string[] = []
       if (data.choices?.[0]?.message?.tool_calls) {
         for (const toolCall of data.choices[0].message.tool_calls) {
           if (toolCall.function?.name === 'set_form_field') {
-            const args = JSON.parse(toolCall.function.arguments)
-            onSetField(args.field_name, args.value)
+            try {
+              const args = JSON.parse(toolCall.function.arguments)
+              onSetField(args.field_name, args.value)
+              filledFields.push(`${args.field_name}: "${args.value}"`)
+            } catch (e) {
+              console.error('Failed to parse tool call:', e)
+            }
           }
         }
       }
 
-      const assistantContent = data.choices?.[0]?.message?.content || 'I\'ve updated the form fields based on your input.'
+      let assistantContent = data.choices?.[0]?.message?.content || ''
+      if (filledFields.length > 0) {
+        assistantContent = `Filled ${filledFields.length} field(s):\n${filledFields.map(f => `• ${f}`).join('\n')}${assistantContent ? `\n\n${assistantContent}` : ''}`
+      } else if (!assistantContent) {
+        assistantContent = 'I couldn\'t find any fields to fill. Make sure you\'ve selected your form type first.'
+      }
       setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }])
     } catch (error) {
       console.error('Copilot error:', error)
