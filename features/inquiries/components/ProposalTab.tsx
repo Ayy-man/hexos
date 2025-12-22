@@ -226,12 +226,49 @@ function ProposalEditor({
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const editorRef = useRef<ReturnType<typeof usePlateEditor> | null>(null)
 
+  // Sanitize content for read-only view by stripping plugin-specific marks
+  // This prevents errors when content saved with full plugins is rendered with simpler plugins
+  const sanitizeContentForReadOnly = useCallback((content: unknown[]): unknown[] => {
+    const sanitizeNode = (node: Record<string, unknown>): Record<string, unknown> => {
+      const sanitized: Record<string, unknown> = {}
+
+      for (const [key, value] of Object.entries(node)) {
+        // Skip comment, suggestion, and discussion-related keys
+        if (
+          key.startsWith('comment') ||
+          key.startsWith('suggestion') ||
+          key.startsWith('discussion') ||
+          key === 'suggestionId' ||
+          key === 'suggestionDeletion' ||
+          key === 'commentId'
+        ) {
+          continue
+        }
+
+        // Recursively sanitize children
+        if (key === 'children' && Array.isArray(value)) {
+          sanitized.children = value.map((child: Record<string, unknown>) => sanitizeNode(child))
+        } else {
+          sanitized[key] = value
+        }
+      }
+
+      return sanitized
+    }
+
+    return content.map((node) => sanitizeNode(node as Record<string, unknown>))
+  }, [])
+
   const parsedInitialContent = useMemo(() => {
     if (initialContent && Array.isArray(initialContent) && initialContent.length > 0) {
+      // Sanitize content for read-only mode to remove plugin-specific marks
+      if (readOnly) {
+        return sanitizeContentForReadOnly(initialContent as unknown[])
+      }
       return initialContent
     }
     return [{ type: 'p', children: [{ text: 'Start writing your proposal...' }] }]
-  }, [initialContent])
+  }, [initialContent, readOnly, sanitizeContentForReadOnly])
 
   // Use simpler plugins for read-only view (DFY) to avoid complex discussion plugin issues
   // Full discussion plugins only for admin edit mode
