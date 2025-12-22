@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Trash2, GripVertical } from 'lucide-react'
+import { Plus, Trash2, GripVertical, ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface RequirementItem {
@@ -26,15 +26,35 @@ export function RequirementsBuilder({
   suggestions = [],
 }: RequirementsBuilderProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [customSuggestion, setCustomSuggestion] = useState('')
+
+  const toggleExpanded = (id: string) => {
+    const newSet = new Set(expandedIds)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setExpandedIds(newSet)
+  }
 
   const addRequirement = () => {
     const newId = `req-${Date.now()}`
     onChange([...requirements, { id: newId, title: '', description: '' }])
+    // Auto-expand new items
+    setExpandedIds((prev) => new Set([...prev, newId]))
   }
 
   const addSuggestion = (suggestion: string) => {
     const newId = `req-${Date.now()}`
     onChange([...requirements, { id: newId, title: suggestion, description: '' }])
+  }
+
+  const addCustomSuggestion = () => {
+    if (!customSuggestion.trim()) return
+    addSuggestion(customSuggestion.trim())
+    setCustomSuggestion('')
   }
 
   const updateRequirement = (
@@ -49,6 +69,11 @@ export function RequirementsBuilder({
 
   const removeRequirement = (id: string) => {
     onChange(requirements.filter((r) => r.id !== id))
+    setExpandedIds((prev) => {
+      const newSet = new Set(prev)
+      newSet.delete(id)
+      return newSet
+    })
   }
 
   const handleDragStart = (index: number) => {
@@ -78,9 +103,9 @@ export function RequirementsBuilder({
   return (
     <div className="space-y-4">
       {/* Quick add suggestions */}
-      {availableSuggestions.length > 0 && (
+      <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-muted-foreground mr-2">
+          <span className="text-sm text-muted-foreground mr-2 py-1">
             Quick add:
           </span>
           {availableSuggestions.slice(0, 5).map((suggestion) => (
@@ -95,61 +120,107 @@ export function RequirementsBuilder({
             </Button>
           ))}
         </div>
-      )}
+
+        {/* Custom quick-add input */}
+        <div className="flex gap-2">
+          <Input
+            placeholder="Add custom requirement..."
+            value={customSuggestion}
+            onChange={(e) => setCustomSuggestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                addCustomSuggestion()
+              }
+            }}
+            className="flex-1"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={addCustomSuggestion}
+            disabled={!customSuggestion.trim()}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
       {/* Requirements list */}
-      <div className="space-y-3">
-        {requirements.map((requirement, index) => (
-          <Card
-            key={requirement.id}
-            draggable
-            onDragStart={() => handleDragStart(index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDragEnd={handleDragEnd}
-            className={cn(
-              'cursor-move transition-opacity',
-              draggedIndex === index && 'opacity-50'
-            )}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-2 text-muted-foreground">
-                  <GripVertical className="h-5 w-5" />
-                </div>
-                <div className="flex-1 space-y-2">
+      <div className="space-y-2">
+        {requirements.map((requirement, index) => {
+          const isExpanded = expandedIds.has(requirement.id) || !!requirement.description
+
+          return (
+            <Card
+              key={requirement.id}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragEnd={handleDragEnd}
+              className={cn(
+                'cursor-move transition-opacity',
+                draggedIndex === index && 'opacity-50'
+              )}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  <div className="text-muted-foreground">
+                    <GripVertical className="h-4 w-4" />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(requirement.id)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
+
                   <Input
-                    placeholder="Requirement title (e.g., Instagram login credentials)"
+                    placeholder="Requirement (e.g., Instagram login credentials)"
                     value={requirement.title}
                     onChange={(e) =>
                       updateRequirement(requirement.id, 'title', e.target.value)
                     }
+                    className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-8"
                   />
-                  <Textarea
-                    placeholder="Additional details (optional)"
-                    value={requirement.description}
-                    onChange={(e) =>
-                      updateRequirement(
-                        requirement.id,
-                        'description',
-                        e.target.value
-                      )
-                    }
-                    rows={2}
-                    className="text-sm"
-                  />
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={() => removeRequirement(requirement.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive"
-                  onClick={() => removeRequirement(requirement.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+
+                {isExpanded && (
+                  <div className="mt-2 ml-10 mr-10">
+                    <Textarea
+                      placeholder="Description (optional) - add details about what's needed..."
+                      value={requirement.description}
+                      onChange={(e) =>
+                        updateRequirement(
+                          requirement.id,
+                          'description',
+                          e.target.value
+                        )
+                      }
+                      rows={2}
+                      className="text-sm resize-none"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Add button */}
@@ -160,10 +231,10 @@ export function RequirementsBuilder({
 
       {/* Empty state */}
       {requirements.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
+        <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg">
           <p>No requirements added yet.</p>
-          <p className="text-sm">
-            Add items that need to be collected from the client before starting.
+          <p className="text-sm mt-1">
+            Use quick-add above or click &quot;Add Requirement&quot; below.
           </p>
         </div>
       )}
