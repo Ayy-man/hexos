@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } from './editor/plugins'
+import { BlueprintEditorPlugins } from '@/components/editor/plugins/blueprint-editor-kit'
 import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
 import type { InquiryComment } from '@/lib/api/inquiry-comments'
 import { toast } from 'sonner'
@@ -232,27 +233,29 @@ function ProposalEditor({
     return [{ type: 'p', children: [{ text: 'Start writing your proposal...' }] }]
   }, [initialContent])
 
-  // Ensure discussions are valid arrays with proper structure
-  const safeDiscussions = useMemo(() => {
-    if (!initialDiscussions || !Array.isArray(initialDiscussions)) {
-      return []
+  // Use simpler plugins for read-only view (DFY) to avoid complex discussion plugin issues
+  // Full discussion plugins only for admin edit mode
+  const plugins = useMemo(() => {
+    if (readOnly) {
+      // Simpler plugins for read-only - no discussion/suggestion/comment plugins
+      return BlueprintEditorPlugins
     }
-    return initialDiscussions.filter(
-      (d): d is TDiscussion =>
-        d &&
-        typeof d === 'object' &&
-        typeof d.id === 'string' &&
-        Array.isArray(d.comments)
-    )
-  }, [initialDiscussions])
-
-  const plugins = useMemo(
-    () => createInquiryDocumentPlugins(currentUser, safeDiscussions),
-    [currentUser, safeDiscussions]
-  )
+    // Ensure discussions are valid arrays with proper structure
+    const safeDiscussions = initialDiscussions && Array.isArray(initialDiscussions)
+      ? initialDiscussions.filter(
+          (d): d is TDiscussion =>
+            d &&
+            typeof d === 'object' &&
+            typeof d.id === 'string' &&
+            Array.isArray(d.comments)
+        )
+      : []
+    return createInquiryDocumentPlugins(currentUser, safeDiscussions)
+  }, [readOnly, currentUser, initialDiscussions])
 
   const editor = usePlateEditor({
-    plugins,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    plugins: plugins as any,
     value: parsedInitialContent,
   })
   editorRef.current = editor
