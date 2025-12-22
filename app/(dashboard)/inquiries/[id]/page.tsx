@@ -222,7 +222,6 @@ export default async function InquiryDetailPage({
   const deliverablesStatus = (inquiry.deliverables_status || 'none') as DeliverablesNegotiationStatus
   const isClosed = !!inquiry.closed_at
   const showDeliverablesTab = proposalSubmitted && (deliverablesStatus !== 'none' || isClosed)
-  const showConversionWizard = isClosed && isAdmin && !inquiry.project
 
   try {
     const [d, b] = await Promise.all([
@@ -678,23 +677,43 @@ export default async function InquiryDetailPage({
                         View Project
                       </Link>
                     </Button>
-                  ) : isDfyOwner && proposalSubmitted ? (
-                    <MarkAsClosedButton
-                      inquiryId={id}
-                      isClosed={isClosed}
-                      onMarkAsClosed={boundMarkAsClosed}
-                      onUnmarkAsClosed={!isClosed ? undefined : boundUnmarkAsClosed}
-                    />
-                  ) : isAdmin && isClosed ? (
-                    <div className="text-sm text-muted-foreground">
-                      Use the floating button to convert this closed deal to a project.
-                    </div>
                   ) : (
-                    <div className="text-sm text-muted-foreground">
-                      {!proposalSubmitted
-                        ? 'Submit the proposal first before marking as closed.'
-                        : 'Waiting for the deal to be closed.'}
-                    </div>
+                    <>
+                      {/* DFY: Mark as Closed */}
+                      {isDfyOwner && proposalSubmitted && (
+                        <MarkAsClosedButton
+                          inquiryId={id}
+                          isClosed={isClosed}
+                          onMarkAsClosed={boundMarkAsClosed}
+                          onUnmarkAsClosed={isClosed ? boundUnmarkAsClosed : undefined}
+                        />
+                      )}
+
+                      {/* Admin: Convert to Project - always available after proposal sent */}
+                      {isAdmin && proposalSubmitted && (
+                        <ConvertToProjectButton
+                          inquiry={{
+                            id: inquiry.id,
+                            prospect_company_name: inquiry.prospect_company_name,
+                            prospect_website: inquiry.prospect_website,
+                            industry: inquiry.industry,
+                            partner_name: inquiry.partner_name,
+                            estimated_value: inquiry.estimated_value as number | null,
+                            blueprint: inquiry.blueprint,
+                          }}
+                          deliverables={deliverables}
+                          onConvert={boundConvertToProject}
+                          variant="inline"
+                        />
+                      )}
+
+                      {/* Waiting state */}
+                      {!proposalSubmitted && (
+                        <div className="text-sm text-muted-foreground">
+                          Submit the proposal first.
+                        </div>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
@@ -804,22 +823,6 @@ export default async function InquiryDetailPage({
         )}
       </Tabs>
 
-      {/* Conversion Button (INT only, when deal is closed) */}
-      {showConversionWizard && (
-        <ConvertToProjectButton
-          inquiry={{
-            id: inquiry.id,
-            prospect_company_name: inquiry.prospect_company_name,
-            prospect_website: inquiry.prospect_website,
-            industry: inquiry.industry,
-            partner_name: inquiry.partner_name,
-            estimated_value: inquiry.estimated_value as number | null,
-            blueprint: inquiry.blueprint,
-          }}
-          deliverables={deliverables}
-          onConvert={boundConvertToProject}
-        />
-      )}
     </div>
   )
 }

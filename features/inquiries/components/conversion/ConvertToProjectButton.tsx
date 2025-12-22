@@ -23,27 +23,39 @@ interface ConvertToProjectButtonProps {
     deliverableIds: string[],
     requirements: Array<{ title: string; description?: string }>
   ) => Promise<{ projectId: string }>
+  variant?: 'floating' | 'inline'
 }
 
 export function ConvertToProjectButton({
   inquiry,
   deliverables,
   onConvert,
+  variant = 'floating',
 }: ConvertToProjectButtonProps) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-50">
+      {variant === 'floating' ? (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button
+            size="lg"
+            className="bg-cyan-600 hover:bg-cyan-700 shadow-lg"
+            onClick={() => setOpen(true)}
+          >
+            <Package className="h-5 w-5 mr-2" />
+            Convert to Project
+          </Button>
+        </div>
+      ) : (
         <Button
-          size="lg"
-          className="bg-cyan-600 hover:bg-cyan-700 shadow-lg"
+          className="w-full bg-cyan-600 hover:bg-cyan-700"
           onClick={() => setOpen(true)}
         >
-          <Package className="h-5 w-5 mr-2" />
+          <Package className="h-4 w-4 mr-2" />
           Convert to Project
         </Button>
-      </div>
+      )}
       <ConvertToProjectWizard
         open={open}
         onOpenChange={setOpen}
