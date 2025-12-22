@@ -199,3 +199,75 @@ Set automatically on status change:
 | `dev_assigned` | `started_at` |
 | `delivered` | `delivered_at` |
 | `completed` | `updated_at` |
+
+## Proposal Stage Workflow (Phase 4.6+)
+
+Inquiry-level proposal stages (ClickUp-style):
+
+```
+unopened → admin_reviewed → in_queue → working → on_hold → final_review → ready → sent
+```
+
+| Stage | Description | Trigger |
+|-------|-------------|---------|
+| `unopened` | Newly submitted | DFY submits inquiry |
+| `admin_reviewed` | First admin view | Auto on admin page load |
+| `in_queue` | In proposal queue | Manual stage change |
+| `working` | Actively drafting | Manual stage change |
+| `on_hold` | Paused | Manual stage change |
+| `final_review` | Internal review | Manual stage change |
+| `ready` | Ready to send | Manual stage change |
+| `sent` | Submitted to DFY | Auto when proposal submitted |
+
+**Stage History:** All transitions recorded with timestamp, user, and optional notes.
+
+## Deliverables Negotiation (Phase 4.8)
+
+Two-entry system for DFY partners and internal team.
+
+### Entry A: Pre-Close (Suggest Changes)
+
+```
+Proposal sent → DFY clicks "Suggest Changes" → AI parses deliverables
+→ DFY edits table → Submits → INT reviews → Accept/Reject/Counter → Loop until Approved
+```
+
+**Negotiation Status Flow:**
+```
+none → parsing → dfy_editing → dfy_submitted → int_reviewing → approved
+                     ↑                              ↓
+                     └──────── needs_revision ←─────┘
+```
+
+| Status | Description | Who Acts |
+|--------|-------------|----------|
+| `none` | No negotiation | - |
+| `parsing` | AI parsing proposal | System |
+| `dfy_editing` | DFY editing deliverables | DFY |
+| `dfy_submitted` | Submitted for review | DFY → INT |
+| `int_reviewing` | Under review | INT |
+| `approved` | All approved | - |
+| `needs_revision` | Sent back | INT → DFY |
+
+**Deliverable Change Status:**
+- `original` — From AI parse
+- `edited` — DFY modified
+- `added` — DFY added new
+- `removed` — DFY marked for removal
+- `approved` — INT approved
+- `rejected` — INT rejected
+- `countered` — INT proposed different price
+
+### Entry B: Post-Close (Convert to Project)
+
+```
+DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
+→ Confirm deliverables → Add onboarding requirements → Project created
+```
+
+**Conversion Wizard Steps:**
+1. **Deliverables** — Confirm which deliverables to include
+2. **Requirements** — Add onboarding checklist items
+3. **Review** — Summary and create project
+
+**Project Link:** New project gets `source_inquiry_id` linking back to original inquiry.

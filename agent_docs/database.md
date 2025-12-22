@@ -55,11 +55,51 @@ CREATE TYPE scope_change_trigger AS ENUM ('client_request', 'dev_flag', 'deliver
 
 -- Proposal workflow stages (ClickUp-style pipeline)
 CREATE TYPE proposal_stage AS ENUM (
-  'pending',         -- Newly submitted, not yet reviewed
-  'proposal_sent',   -- Proposal drafted and sent to prospect
-  'proposal_verify', -- Awaiting client verification/response
+  'unopened',        -- Newly submitted, not yet reviewed
+  'admin_reviewed',  -- Admin has viewed the inquiry
+  'in_queue',        -- In the proposal queue
+  'working',         -- Actively working on proposal
   'on_hold',         -- Paused (client request, timing, etc.)
-  'agreed'           -- Deal agreed, ready to convert to project
+  'final_review',    -- Final internal review
+  'ready',           -- Ready to send to partner
+  'sent'             -- Proposal sent to DFY partner (auto-transitions on submit)
+);
+
+-- Deliverables negotiation status
+CREATE TYPE deliverables_negotiation_status AS ENUM (
+  'none',            -- No negotiation started
+  'parsing',         -- AI parsing proposal
+  'dfy_editing',     -- DFY editing deliverables
+  'dfy_submitted',   -- DFY submitted for review
+  'int_reviewing',   -- Internal team reviewing
+  'approved',        -- Negotiation approved
+  'needs_revision'   -- Sent back for revision
+);
+
+-- Deliverable change status
+CREATE TYPE deliverable_change_status AS ENUM (
+  'original',   -- Original from AI parse
+  'edited',     -- DFY edited
+  'added',      -- DFY added
+  'removed',    -- DFY marked for removal
+  'approved',   -- INT approved
+  'rejected',   -- INT rejected
+  'countered'   -- INT countered with different price
+);
+
+-- Deliverable source
+CREATE TYPE deliverable_source AS ENUM (
+  'ai_parsed',       -- Parsed from proposal by AI
+  'blueprint_tier',  -- Added from blueprint tier
+  'custom'           -- Manually added
+);
+
+-- Project requirement status
+CREATE TYPE requirement_status AS ENUM (
+  'pending',     -- Not started
+  'in_progress', -- Being worked on
+  'completed',   -- Done
+  'blocked'      -- Blocked by something
 );
 ```
 
@@ -224,18 +264,33 @@ CREATE TABLE public.inquiries (
   inline_discussions JSONB DEFAULT '[]', -- Persisted inline comment threads
 
   -- Proposal workflow (Phase 4.6)
-  proposal_stage proposal_stage DEFAULT 'pending',
+  proposal_stage proposal_stage DEFAULT 'unopened',
   stage_entered_at TIMESTAMPTZ DEFAULT NOW(),
   stage_history JSONB DEFAULT '[]',   -- Array of { from, to, changed_by, changed_at, notes }
   priority TEXT DEFAULT 'normal',      -- low, normal, high, urgent
   due_date DATE,
   assigned_to UUID REFERENCES profiles(id),
   estimated_value DECIMAL(10,2),
+  pricing_notes TEXT,
+
+  -- Proposal content (Phase 4.7)
+  proposal_content JSONB,              -- Rich text proposal (Plate.js format)
+  proposal_discussions JSONB DEFAULT '[]', -- Inline discussions
+  proposal_submitted_at TIMESTAMPTZ,
+  proposal_submitted_by UUID REFERENCES profiles(id),
+  dfy_version_content JSONB,           -- DFY private copy of proposal
 
   -- Client view link (P1)
   public_token UUID DEFAULT gen_random_uuid(),
   client_viewed_at TIMESTAMPTZ,
   client_view_count INT DEFAULT 0,
+
+  -- Deliverables negotiation (Phase 4.8)
+  deliverables_status deliverables_negotiation_status DEFAULT 'none',
+  closed_at TIMESTAMPTZ,               -- When DFY marked deal as closed
+  closed_by UUID REFERENCES profiles(id),
+  closed_notes TEXT,
+  client_email TEXT,                   -- Client email for project conversion
 
   archived_at TIMESTAMPTZ,
   archived_by UUID REFERENCES profiles(id),
@@ -245,7 +300,7 @@ CREATE TABLE public.inquiries (
 );
 
 -- Inquiry Comments (sidebar comment threads)
-CREATE TYPE comment_type AS ENUM ('internal', 'dfy');
+CREATE TYPE comment_type AS ENUM ('internal', 'dfy', 'proposal');
 
 CREATE TABLE public.inquiry_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -257,6 +312,54 @@ CREATE TABLE public.inquiry_comments (
   resolved BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Proposal Deliverables (Phase 4.8 - negotiated deliverables)
+CREATE TABLE public.proposal_deliverables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  inquiry_id UUID NOT NULL REFERENCES inquiries(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2),
+  source deliverable_source DEFAULT 'custom',
+  source_blueprint_id UUID REFERENCES blueprints(id),
+  source_tier_name TEXT,
+  ai_confidence DECIMAL(3,2),       -- AI parsing confidence 0-1
+  ai_source_text TEXT,              -- Original text AI parsed from
+  change_status deliverable_change_status DEFAULT 'original',
+  original_name TEXT,               -- Pre-edit values for diff display
+  original_description TEXT,
+  original_price DECIMAL(10,2),
+  counter_price DECIMAL(10,2),      -- INT counter-offer price
+  counter_note TEXT,                -- INT counter-offer note
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES profiles(id),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  sort_order INT DEFAULT 0
+);
+
+-- Proposal Deliverable Comments (per-deliverable discussion)
+CREATE TABLE public.proposal_deliverable_comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  deliverable_id UUID NOT NULL REFERENCES proposal_deliverables(id) ON DELETE CASCADE,
+  content TEXT NOT NULL,
+  author_id UUID NOT NULL REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Project Requirements (onboarding checklist items)
+CREATE TABLE public.project_requirements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  status requirement_status DEFAULT 'pending',
+  file_id UUID REFERENCES project_files(id),
+  completed_at TIMESTAMPTZ,
+  completed_by UUID REFERENCES profiles(id),
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -270,12 +373,16 @@ projects 1──* project_files
 projects 1──* payment_milestones
 projects 1──* scope_changes
 projects 1──* activity_log
+projects 1──* project_requirements
 deliverables 1──* project_files
 blueprints 1──* projects (via matched_blueprint_id)
 blueprints 1──* inquiries (via blueprint_id)
 inquiries 1──* inquiry_comments
+inquiries 1──* proposal_deliverables
 inquiries 1──1 projects (via converted_to_project_id)
+projects 1──1 inquiries (via source_inquiry_id)
 inquiry_comments 1──* inquiry_comments (threaded replies via parent_id)
+proposal_deliverables 1──* proposal_deliverable_comments
 ```
 
 ## Indexes
@@ -285,13 +392,18 @@ CREATE INDEX idx_projects_status ON projects(status);
 CREATE INDEX idx_projects_dfy ON projects(dfy_partner_id);
 CREATE INDEX idx_projects_dev ON projects(assigned_dev_id);
 CREATE INDEX idx_projects_client ON projects(client_id);
+CREATE INDEX idx_projects_source_inquiry ON projects(source_inquiry_id);
 CREATE INDEX idx_deliverables_project ON deliverables(project_id);
 CREATE INDEX idx_activity_project ON activity_log(project_id);
 CREATE INDEX idx_inquiries_submitted_by ON inquiries(submitted_by);
 CREATE INDEX idx_inquiries_status ON inquiries(status);
 CREATE INDEX idx_inquiries_proposal_stage ON inquiries(proposal_stage);
 CREATE INDEX idx_inquiries_public_token ON inquiries(public_token);
+CREATE INDEX idx_inquiries_deliverables_status ON inquiries(deliverables_status);
 CREATE INDEX idx_inquiry_comments_inquiry ON inquiry_comments(inquiry_id);
+CREATE INDEX idx_proposal_deliverables_inquiry ON proposal_deliverables(inquiry_id);
+CREATE INDEX idx_proposal_deliverable_comments_deliverable ON proposal_deliverable_comments(deliverable_id);
+CREATE INDEX idx_project_requirements_project ON project_requirements(project_id);
 ```
 
 See `security.md` for RLS policies on these tables.

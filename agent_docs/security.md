@@ -222,6 +222,53 @@ INSERT INTO profiles (id, email, name, role) VALUES
   ('66666666-6666-6666-6666-666666666666', 'internal@test.hexos', 'Test Internal', 'internal');
 ```
 
+### Inquiries (DFY Update)
+
+```sql
+-- DFY partners can update their own inquiries
+-- (specifically for dfy_version_content column)
+CREATE POLICY "inquiries_dfy_update_own" ON inquiries
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL
+    AND get_user_role() = 'dfy'
+    AND submitted_by = auth.uid()
+  )
+  WITH CHECK (
+    auth.uid() IS NOT NULL
+    AND get_user_role() = 'dfy'
+    AND submitted_by = auth.uid()
+  );
+```
+
+### Proposal Deliverables
+
+```sql
+ALTER TABLE proposal_deliverables ENABLE ROW LEVEL SECURITY;
+
+-- Admin/Internal: full access
+CREATE POLICY "admin_internal_all" ON proposal_deliverables
+  FOR ALL USING (get_user_role() IN ('admin', 'internal'));
+
+-- DFY: read/write own inquiry's deliverables
+CREATE POLICY "dfy_own_inquiry" ON proposal_deliverables
+  FOR ALL USING (
+    get_user_role() = 'dfy'
+    AND inquiry_id IN (
+      SELECT id FROM inquiries WHERE submitted_by = auth.uid()
+    )
+  );
+```
+
+### Project Requirements
+
+```sql
+ALTER TABLE project_requirements ENABLE ROW LEVEL SECURITY;
+
+-- Access via project
+CREATE POLICY "access_via_project" ON project_requirements
+  FOR ALL USING (can_access_project(project_id));
+```
+
 ## Dev Workflow
 
 1. Develop logged in as admin — full access, no friction
