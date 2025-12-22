@@ -77,7 +77,7 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
   }
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="flex flex-col max-h-[500px]">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Bot className="h-5 w-5 text-cyan-500" />
@@ -102,7 +102,7 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
         )}
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+        <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-[100px] max-h-[280px]">
           {messages.map((msg, idx) => (
             <div
               key={idx}
