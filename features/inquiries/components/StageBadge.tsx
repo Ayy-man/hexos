@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { ProposalStage } from '@/lib/api/inquiries'
 
-const STAGE_CONFIG: Record<ProposalStage, { label: string; className: string }> = {
+const STAGE_CONFIG: Record<ProposalStage, { label: string; dfyLabel?: string; className: string }> = {
   unopened: {
     label: 'UNOPENED',
     className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
@@ -33,15 +33,22 @@ const STAGE_CONFIG: Record<ProposalStage, { label: string; className: string }> 
     label: 'READY',
     className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800',
   },
+  sent: {
+    label: 'SENT',
+    dfyLabel: 'READY',
+    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+  },
 }
 
 interface StageBadgeProps {
   stage: ProposalStage | null | undefined
   className?: string
+  viewAs?: 'admin' | 'dfy'
 }
 
-export function StageBadge({ stage, className }: StageBadgeProps) {
+export function StageBadge({ stage, className, viewAs = 'admin' }: StageBadgeProps) {
   const config = STAGE_CONFIG[stage || 'unopened']
+  const label = viewAs === 'dfy' && config.dfyLabel ? config.dfyLabel : config.label
 
   return (
     <Badge
@@ -52,7 +59,7 @@ export function StageBadge({ stage, className }: StageBadgeProps) {
         className
       )}
     >
-      {config.label}
+      {label}
     </Badge>
   )
 }
@@ -66,9 +73,11 @@ export const STAGE_ORDER: ProposalStage[] = [
   'on_hold',
   'final_review',
   'ready',
+  'sent',
 ]
 
-export function getStageName(stage: ProposalStage | null | undefined): string {
+export function getStageName(stage: ProposalStage | null | undefined, viewAs: 'admin' | 'dfy' = 'admin'): string {
   const config = STAGE_CONFIG[stage || 'unopened']
-  return config?.label || 'Unknown'
+  if (!config) return 'Unknown'
+  return viewAs === 'dfy' && config.dfyLabel ? config.dfyLabel : config.label
 }

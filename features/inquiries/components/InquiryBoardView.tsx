@@ -51,6 +51,7 @@ const STAGE_COLORS: Record<ProposalStage, string> = {
   on_hold: 'border-t-orange-500',
   final_review: 'border-t-yellow-500',
   ready: 'border-t-green-500',
+  sent: 'border-t-emerald-500',
 }
 
 function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
@@ -62,6 +63,7 @@ function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inqu
     on_hold: [],
     final_review: [],
     ready: [],
+    sent: [],
   }
 
   inquiries.forEach((inquiry) => {

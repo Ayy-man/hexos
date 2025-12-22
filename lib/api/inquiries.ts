@@ -43,7 +43,7 @@ export async function createInquiry(data: CreateInquiryData) {
 }
 
 export type InquiryFilter = 'active' | 'archived' | 'all'
-export type ProposalStage = 'unopened' | 'admin_reviewed' | 'in_queue' | 'working' | 'on_hold' | 'final_review' | 'ready'
+export type ProposalStage = 'unopened' | 'admin_reviewed' | 'in_queue' | 'working' | 'on_hold' | 'final_review' | 'ready' | 'sent'
 export type Priority = 'low' | 'normal' | 'high' | 'urgent'
 
 export async function getInquiries(filter: InquiryFilter = 'active') {
@@ -406,11 +406,30 @@ export async function submitProposalToDfy(id: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
+  // Get current stage history
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history')
+    .eq('id', id)
+    .single()
+
+  const stageHistory = (inquiry?.stage_history as Array<unknown>) || []
+  const historyEntry = {
+    from: inquiry?.proposal_stage || 'ready',
+    to: 'sent',
+    changed_by: user.id,
+    changed_at: new Date().toISOString(),
+    notes: 'Proposal sent to DFY partner',
+  }
+
   const { error } = await supabase
     .from('inquiries')
     .update({
       proposal_submitted_at: new Date().toISOString(),
       proposal_submitted_by: user.id,
+      proposal_stage: 'sent',
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
     })
     .eq('id', id)
 

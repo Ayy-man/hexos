@@ -30,6 +30,7 @@ const STAGE_ICONS: Record<ProposalStage, React.ReactNode> = {
   on_hold: <PauseCircle className="h-3 w-3" />,
   final_review: <Search className="h-3 w-3" />,
   ready: <CheckCircle className="h-3 w-3" />,
+  sent: <Send className="h-3 w-3" />,
 }
 
 function getTimelineStatus(stage: ProposalStage, currentStage: ProposalStage): TimelineItem['status'] {
