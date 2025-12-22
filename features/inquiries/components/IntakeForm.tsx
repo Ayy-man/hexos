@@ -37,6 +37,7 @@ const baseSchema = z.object({
 
 interface IntakeFormProps {
   blueprints: Array<{ id: string; name: string; description: string | null; base_price: number | null }>
+  partnerName: string
 }
 
 type Step =
@@ -47,7 +48,7 @@ type Step =
   | 'forward'
   | 'confirmation'
 
-export function IntakeForm({ blueprints }: IntakeFormProps) {
+export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
   const [step, setStep] = useState<Step>('initial')
   const [copilotEnabled, setCopilotEnabled] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -55,7 +56,9 @@ export function IntakeForm({ blueprints }: IntakeFormProps) {
 
   const methods = useForm<IntakeFormState>({
     resolver: zodResolver(baseSchema),
-    defaultValues: {},
+    defaultValues: {
+      partner_name: partnerName,
+    },
   })
 
   const { watch, handleSubmit, setValue } = methods
@@ -287,7 +290,7 @@ export function IntakeForm({ blueprints }: IntakeFormProps) {
 function canProceed(step: Step, data: IntakeFormState, path: FormPath | null): boolean {
   switch (step) {
     case 'initial':
-      return !!data.submission_type && !!data.partner_name
+      return !!data.submission_type
     case 'closed_type':
       return !!data.closed_deal_type
     case 'proposal_type':

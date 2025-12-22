@@ -2,11 +2,10 @@
 
 import { useFormContext } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 export function InitialStep() {
-  const { register, watch, setValue } = useFormContext()
+  const { watch, setValue } = useFormContext()
   const submissionType = watch('submission_type')
 
   return (
@@ -37,15 +36,6 @@ export function InitialStep() {
             </Label>
           </div>
         </RadioGroup>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="partner_name">What&apos;s your name (Arbitrage Partner)?</Label>
-        <Input
-          id="partner_name"
-          placeholder="Your name"
-          {...register('partner_name')}
-        />
       </div>
     </div>
   )
