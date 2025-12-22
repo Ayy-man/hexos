@@ -16,12 +16,12 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Package, PenLine, Info } from 'lucide-react'
 import { BlueprintTierSelector } from './BlueprintTierSelector'
-import type { Blueprint } from '@/lib/api/blueprints'
+import type { BlueprintSummary } from '@/lib/api/blueprints'
 
 interface AddDeliverableModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  blueprints: Blueprint[]
+  blueprints: BlueprintSummary[]
   onAddFromBlueprint: (
     blueprintId: string,
     tierName: string,

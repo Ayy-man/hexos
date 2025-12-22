@@ -379,22 +379,14 @@ export function ConvertToProjectWizard({
 
             {step === 'review' && (
               <ButtonHoldAndRelease
-                onComplete={handleConvert}
+                onHoldComplete={handleConvert}
                 holdDuration={2000}
                 disabled={isPending || !projectName.trim() || !clientName.trim()}
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Rocket className="h-4 w-4 mr-2" />
-                    Hold to Create Project
-                  </>
-                )}
-              </ButtonHoldAndRelease>
+                variant="default"
+                icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+                defaultText={isPending ? "Creating..." : "Hold to Create Project"}
+                holdingText="Release to Create"
+              />
             )}
           </div>
         </div>

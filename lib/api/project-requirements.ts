@@ -143,7 +143,7 @@ export async function updateProjectRequirement(
     if (input.status === 'completed') {
       updateData.completed_at = new Date().toISOString()
       updateData.completed_by = user?.id
-    } else if (input.status !== 'completed') {
+    } else {
       // Clear completed fields if changing away from completed
       updateData.completed_at = null
       updateData.completed_by = null

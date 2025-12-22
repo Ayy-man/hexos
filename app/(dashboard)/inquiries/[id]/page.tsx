@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
-import { getInquiry } from '@/lib/api/inquiries'
+import { getInquiry, type DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
 import { getInquiryComments, type InquiryComment, type CommentType } from '@/lib/api/inquiry-comments'
+import { getProposalDeliverables, type ProposalDeliverable } from '@/lib/api/proposal-deliverables'
+import { getBlueprints } from '@/lib/api/blueprints'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare, Archive, Send, Lock } from 'lucide-react'
+import { ArrowLeft, Building2, Calendar, User, Mail, Globe, FileText, MessageSquare, Archive, Send, Lock, Package } from 'lucide-react'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
 import { InquiryDocumentTab } from '@/features/inquiries/components/InquiryDocumentTab'
 import { InquiryActions } from '@/features/inquiries/components/InquiryActions'
@@ -18,6 +20,9 @@ import { ExportPDFButton } from '@/features/inquiries/components/ExportPDFButton
 import { ShareLinkButton } from '@/features/inquiries/components/ShareLinkButton'
 import { ProposalTab } from '@/features/inquiries/components/ProposalTab'
 import { MyVersionTab } from '@/features/inquiries/components/MyVersionTab'
+import { DeliverablesTab } from '@/features/inquiries/components/deliverables'
+import { MarkAsClosedButton } from '@/features/inquiries/components/MarkAsClosedButton'
+import { ConvertToProjectButton } from '@/features/inquiries/components/conversion'
 import type { ProposalStage } from '@/lib/api/inquiries'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
@@ -36,6 +41,25 @@ import {
   resolveProposalCommentAction,
   deleteProposalCommentAction,
 } from '@/features/inquiries/actions/proposalActions'
+import {
+  triggerParseDeliverablesAction,
+  createDeliverableAction,
+  updateDeliverableAction,
+  markDeliverableRemovedAction,
+  revertDeliverableAction,
+  addFromBlueprintTierAction,
+  submitDeliverablesForReviewAction,
+  withdrawDeliverablesSubmissionAction,
+  reviewDeliverableAction,
+  bulkApproveDeliverablesAction,
+  finalApproveDeliverablesAction,
+  sendBackForRevisionAction,
+} from '@/features/inquiries/actions/deliverableActions'
+import {
+  markAsClosedAction,
+  unmarkAsClosedAction,
+  convertToProjectAction,
+} from '@/features/inquiries/actions/conversionActions'
 import type { TDiscussion } from '@/features/inquiries/components/editor/plugins'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -192,6 +216,25 @@ export default async function InquiryDetailPage({
   const canEditDocument = canEdit || canEditAsOwner
   const canComment = ['admin', 'internal', 'dfy'].includes(profile.role)
 
+  // Fetch deliverables and blueprints for negotiation
+  let deliverables: ProposalDeliverable[] = []
+  let blueprints: Awaited<ReturnType<typeof getBlueprints>> = []
+  const deliverablesStatus = (inquiry.deliverables_status || 'none') as DeliverablesNegotiationStatus
+  const isClosed = !!inquiry.closed_at
+  const showDeliverablesTab = proposalSubmitted && (deliverablesStatus !== 'none' || isClosed)
+  const showConversionWizard = isClosed && isAdmin && !inquiry.project
+
+  try {
+    const [d, b] = await Promise.all([
+      getProposalDeliverables(id),
+      getBlueprints(),
+    ])
+    deliverables = d
+    blueprints = b
+  } catch (error) {
+    console.warn('Failed to fetch deliverables or blueprints:', error)
+  }
+
   // Generate document content from inquiry form_data
   const generatedDocumentContent = generateDocumentFromInquiry({
     id: inquiry.id,
@@ -265,6 +308,92 @@ export default async function InquiryDetailPage({
   const boundCopyProposalToDfyVersion = async () => {
     'use server'
     await copyProposalToDfyVersionAction(id)
+  }
+
+  // Bound server actions for Deliverables tab
+  const boundParseDeliverables = async (content: unknown) => {
+    'use server'
+    return triggerParseDeliverablesAction(id, content)
+  }
+
+  const boundCreateDeliverable = async (name: string, description?: string) => {
+    'use server'
+    await createDeliverableAction({ inquiry_id: id, name, description })
+  }
+
+  const boundUpdateDeliverable = async (deliverableId: string, data: { name?: string; description?: string; price?: number }) => {
+    'use server'
+    await updateDeliverableAction(deliverableId, id, data)
+  }
+
+  const boundRemoveDeliverable = async (deliverableId: string) => {
+    'use server'
+    await markDeliverableRemovedAction(deliverableId, id)
+  }
+
+  const boundRevertDeliverable = async (deliverableId: string) => {
+    'use server'
+    await revertDeliverableAction(deliverableId, id)
+  }
+
+  const boundAddFromBlueprint = async (blueprintId: string, tierName: string, tierPrice: number, features: string[]) => {
+    'use server'
+    await addFromBlueprintTierAction(id, blueprintId, tierName, tierPrice, features)
+  }
+
+  const boundSubmitDeliverables = async () => {
+    'use server'
+    await submitDeliverablesForReviewAction(id)
+  }
+
+  const boundWithdrawDeliverables = async () => {
+    'use server'
+    await withdrawDeliverablesSubmissionAction(id)
+  }
+
+  const boundReviewDeliverable = async (
+    deliverableId: string,
+    decision: 'approved' | 'rejected' | 'countered',
+    counterPrice?: number,
+    counterNote?: string
+  ) => {
+    'use server'
+    await reviewDeliverableAction(deliverableId, id, decision, counterPrice, counterNote)
+  }
+
+  const boundBulkApprove = async (deliverableIds: string[]) => {
+    'use server'
+    await bulkApproveDeliverablesAction(deliverableIds, id)
+  }
+
+  const boundFinalApprove = async () => {
+    'use server'
+    await finalApproveDeliverablesAction(id)
+  }
+
+  const boundSendBackForRevision = async () => {
+    'use server'
+    await sendBackForRevisionAction(id)
+  }
+
+  // Bound server actions for conversion
+  const boundMarkAsClosed = async (notes?: string, clientEmail?: string) => {
+    'use server'
+    return markAsClosedAction(id, notes, clientEmail)
+  }
+
+  const boundUnmarkAsClosed = async () => {
+    'use server'
+    return unmarkAsClosedAction(id)
+  }
+
+  const boundConvertToProject = async (
+    projectData: { project_name: string; client_name: string; quoted_price?: number; notes?: string },
+    deliverableIds: string[],
+    requirements: Array<{ title: string; description?: string }>
+  ) => {
+    'use server'
+    return convertToProjectAction(id, projectData, deliverableIds, requirements)
   }
 
   return (
@@ -353,6 +482,22 @@ export default async function InquiryDetailPage({
             <TabsTrigger value="my-version" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               My Version
+            </TabsTrigger>
+          )}
+          {showDeliverablesTab && (
+            <TabsTrigger value="deliverables" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Deliverables
+              {deliverablesStatus === 'approved' && (
+                <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
+                  Approved
+                </Badge>
+              )}
+              {deliverablesStatus === 'dfy_submitted' && (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  Pending
+                </Badge>
+              )}
             </TabsTrigger>
           )}
         </TabsList>
@@ -516,17 +661,30 @@ export default async function InquiryDetailPage({
                 <CardHeader>
                   <CardTitle className="text-base">Actions</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-3">
                   {inquiry.project ? (
                     <Button className="w-full" asChild>
                       <Link href={`/projects/${inquiry.project.id}`}>
                         View Project
                       </Link>
                     </Button>
+                  ) : isDfyOwner && proposalSubmitted ? (
+                    <MarkAsClosedButton
+                      inquiryId={id}
+                      isClosed={isClosed}
+                      onMarkAsClosed={boundMarkAsClosed}
+                      onUnmarkAsClosed={!isClosed ? undefined : boundUnmarkAsClosed}
+                    />
+                  ) : isAdmin && isClosed ? (
+                    <div className="text-sm text-muted-foreground">
+                      Use the floating button to convert this closed deal to a project.
+                    </div>
                   ) : (
-                    <Button className="w-full" disabled>
-                      Convert to Project (Coming Soon)
-                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                      {!proposalSubmitted
+                        ? 'Submit the proposal first before marking as closed.'
+                        : 'Waiting for the deal to be closed.'}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -605,7 +763,51 @@ export default async function InquiryDetailPage({
             />
           </TabsContent>
         )}
+
+        {/* Deliverables Tab */}
+        {showDeliverablesTab && (
+          <TabsContent value="deliverables">
+            <DeliverablesTab
+              inquiryId={id}
+              deliverables={deliverables}
+              deliverablesStatus={deliverablesStatus}
+              proposalContent={inquiry.proposal_content}
+              blueprints={blueprints}
+              isAdmin={isAdmin}
+              isDfyOwner={isDfyOwner}
+              parseDeliverables={boundParseDeliverables}
+              createDeliverable={boundCreateDeliverable}
+              addFromBlueprintTier={boundAddFromBlueprint}
+              updateDeliverable={boundUpdateDeliverable}
+              removeDeliverable={boundRemoveDeliverable}
+              revertDeliverable={boundRevertDeliverable}
+              submitForReview={boundSubmitDeliverables}
+              withdrawSubmission={boundWithdrawDeliverables}
+              reviewDeliverable={boundReviewDeliverable}
+              bulkApprove={boundBulkApprove}
+              finalApprove={boundFinalApprove}
+              sendBackForRevision={boundSendBackForRevision}
+            />
+          </TabsContent>
+        )}
       </Tabs>
+
+      {/* Conversion Button (INT only, when deal is closed) */}
+      {showConversionWizard && (
+        <ConvertToProjectButton
+          inquiry={{
+            id: inquiry.id,
+            prospect_company_name: inquiry.prospect_company_name,
+            prospect_website: inquiry.prospect_website,
+            industry: inquiry.industry,
+            partner_name: inquiry.partner_name,
+            estimated_value: inquiry.estimated_value as number | null,
+            blueprint: inquiry.blueprint,
+          }}
+          deliverables={deliverables}
+          onConvert={boundConvertToProject}
+        />
+      )}
     </div>
   )
 }

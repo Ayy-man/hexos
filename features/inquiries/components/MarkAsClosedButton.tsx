@@ -150,23 +150,15 @@ export function MarkAsClosedButton({
               Cancel
             </Button>
             <ButtonHoldAndRelease
-              onComplete={handleMarkAsClosed}
+              onHoldComplete={handleMarkAsClosed}
               holdDuration={2000}
               disabled={isPending}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Marking...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Hold to Confirm
-                </>
-              )}
-            </ButtonHoldAndRelease>
+              variant="default"
+              icon={isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+              defaultText={isPending ? "Marking..." : "Hold to Confirm"}
+              holdingText="Release to Confirm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+            />
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -24,6 +24,19 @@ export interface Blueprint {
   updated_at: string | null
 }
 
+// Lighter type for list views (what getBlueprints returns)
+export interface BlueprintSummary {
+  id: string
+  name: string
+  description: string | null
+  base_price: number | null
+  estimated_hours: number | null
+  tags: string[]
+  status: 'draft' | 'published'
+  icon: string | null
+  pricing_tiers: PricingTier[]
+}
+
 export interface CreateBlueprintInput {
   name: string
   description?: string

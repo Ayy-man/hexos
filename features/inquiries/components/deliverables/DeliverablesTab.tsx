@@ -20,14 +20,14 @@ import { DeliverablesTable } from './DeliverablesTable'
 import { AddDeliverableModal } from './AddDeliverableModal'
 import type { ProposalDeliverable, UpdateDeliverableInput } from '@/lib/api/proposal-deliverables'
 import type { DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
-import type { Blueprint } from '@/lib/api/blueprints'
+import type { BlueprintSummary } from '@/lib/api/blueprints'
 
 interface DeliverablesTabProps {
   inquiryId: string
   deliverables: ProposalDeliverable[]
   deliverablesStatus: DeliverablesNegotiationStatus
   proposalContent: unknown
-  blueprints: Blueprint[]
+  blueprints: BlueprintSummary[]
   isAdmin: boolean
   isDfyOwner: boolean
   // Bound server actions
@@ -291,13 +291,14 @@ export function DeliverablesTab({
         {/* DFY Submit */}
         {canSubmit && (
           <ButtonHoldAndRelease
-            onComplete={handleSubmit}
+            onHoldComplete={handleSubmit}
             holdDuration={2000}
             disabled={isSubmitting}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Submit Changes for Review
-          </ButtonHoldAndRelease>
+            variant="default"
+            icon={<Send className="h-4 w-4" />}
+            defaultText="Submit Changes for Review"
+            holdingText="Release to Submit"
+          />
         )}
 
         {/* DFY Withdraw */}
@@ -317,13 +318,14 @@ export function DeliverablesTab({
             </Button>
             {canFinalApprove && (
               <ButtonHoldAndRelease
-                onComplete={handleFinalApprove}
+                onHoldComplete={handleFinalApprove}
                 holdDuration={2000}
                 disabled={isSubmitting}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Final Approve & Lock
-              </ButtonHoldAndRelease>
+                variant="default"
+                icon={<CheckCircle className="h-4 w-4" />}
+                defaultText="Final Approve & Lock"
+                holdingText="Release to Approve"
+              />
             )}
           </>
         )}

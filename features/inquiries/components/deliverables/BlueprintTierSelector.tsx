@@ -13,10 +13,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Blueprint, PricingTier } from '@/lib/api/blueprints'
+import type { BlueprintSummary, PricingTier } from '@/lib/api/blueprints'
 
 interface BlueprintTierSelectorProps {
-  blueprints: Blueprint[]
+  blueprints: BlueprintSummary[]
   onSelect: (
     blueprintId: string,
     tierName: string,
