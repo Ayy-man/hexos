@@ -68,6 +68,7 @@ export const STAGE_ORDER: ProposalStage[] = [
   'ready',
 ]
 
-export function getStageName(stage: ProposalStage): string {
-  return STAGE_CONFIG[stage].label
+export function getStageName(stage: ProposalStage | null | undefined): string {
+  const config = STAGE_CONFIG[stage || 'unopened']
+  return config?.label || 'Unknown'
 }
