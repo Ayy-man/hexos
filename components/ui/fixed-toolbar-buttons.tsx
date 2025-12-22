@@ -17,6 +17,7 @@ import { KEYS } from 'platejs'
 import { useEditorReadOnly } from 'platejs/react'
 
 import { LinkToolbarButton } from './link-toolbar-button'
+import { ImageToolbarButton } from './image-toolbar-button'
 import { MarkToolbarButton } from './mark-toolbar-button'
 import { ToolbarGroup } from './toolbar'
 import { TurnIntoToolbarButton } from './turn-into-toolbar-button'
@@ -62,6 +63,7 @@ export function FixedToolbarButtons() {
 
       <ToolbarGroup>
         <LinkToolbarButton />
+        <ImageToolbarButton />
       </ToolbarGroup>
     </>
   )

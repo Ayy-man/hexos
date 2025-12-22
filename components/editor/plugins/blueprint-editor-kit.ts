@@ -10,6 +10,7 @@ import { CodeBlockPlugin, CodeLinePlugin, CodeSyntaxPlugin } from '@platejs/code
 import { CalloutPlugin } from '@platejs/callout/react'
 import { LinkPlugin } from '@platejs/link/react'
 import { ListPlugin } from '@platejs/list/react'
+import { ImagePlugin } from '@platejs/media/react'
 import { ParagraphPlugin } from 'platejs/react'
 
 import { BasicMarksKit } from '@/components/editor/plugins/basic-marks-kit'
@@ -19,6 +20,7 @@ import { BlockquoteElement } from '@/components/ui/blockquote-node'
 import { LinkElement } from '@/components/ui/link-node'
 import { CodeBlockElement, CodeLineElement, CodeSyntaxLeaf } from '@/components/ui/code-block-node'
 import { CalloutElement } from '@/components/ui/callout-node'
+import { ImageElement } from '@/components/ui/image-node'
 
 // Basic blocks (paragraph, headings, blockquote)
 const BasicBlocksPlugins = [
@@ -73,6 +75,13 @@ const CalloutPlugins = [
   }),
 ]
 
+// Image plugin
+const ImagePlugins = [
+  ImagePlugin.configure({
+    node: { component: ImageElement },
+  }),
+]
+
 // Complete blueprint editor plugins
 // No comments/suggestions - blueprints are documentation, not collaborative
 export const BlueprintEditorPlugins = [
@@ -81,5 +90,6 @@ export const BlueprintEditorPlugins = [
   ...LinkPlugins,
   ...CodeBlockPlugins,
   ...CalloutPlugins,
+  ...ImagePlugins,
   ...BasicMarksKit,
 ]
