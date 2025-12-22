@@ -440,11 +440,33 @@ export async function submitProposalToDfy(id: string) {
 export async function unsubmitProposalFromDfy(id: string) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get current stage history
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history')
+    .eq('id', id)
+    .single()
+
+  const stageHistory = (inquiry?.stage_history as Array<unknown>) || []
+  const historyEntry = {
+    from: inquiry?.proposal_stage || 'sent',
+    to: 'ready',
+    changed_by: user.id,
+    changed_at: new Date().toISOString(),
+    notes: 'Proposal submission undone',
+  }
+
   const { error } = await supabase
     .from('inquiries')
     .update({
       proposal_submitted_at: null,
       proposal_submitted_by: null,
+      proposal_stage: 'ready',
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
     })
     .eq('id', id)
 
