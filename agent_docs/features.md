@@ -226,11 +226,16 @@ Admin-to-DFY proposal workflow with private DFY workspace.
   - [x] Available only after proposal is submitted
 - [x] Auto-advance stage
   - [x] Inquiry moves from "unopened" to "admin_reviewed" on first admin view
+- [x] Auto-transition to "sent" stage
+  - [x] Proposal stage auto-transitions to "sent" when submitted to DFY
+  - [x] Role-aware labels: Admin sees "SENT", DFY sees "READY"
+  - [x] Undo send reverts stage back to "ready"
 - [x] Tab visibility matrix
   - [x] Overview: Admin (edit), DFY owner (view)
   - [x] Document: Admin (edit), DFY owner (edit)
   - [x] Proposal: Admin (edit always), DFY owner (view after submit)
   - [x] My Version: DFY owner only (admin cannot access)
+- [x] Independent tab scrolling (each tab scrolls independently)
 
 **P1 Features:**
 - [x] Public proposal link (client view at /p/[token])
@@ -242,6 +247,65 @@ Admin-to-DFY proposal workflow with private DFY workspace.
 - [ ] Blueprint → template auto-fill
 - [ ] Inquiry attachments
 - [ ] AI proposal writer extensions
+
+### Phase 4.8: Deliverables Negotiation System (In Progress)
+
+Two-entry system for managing deliverables between DFY partners and Internal team.
+
+**Entry A (Pre-Close):** DFY suggests changes to proposal deliverables
+```
+Proposal submitted → DFY clicks "Suggest Changes" → AI parses deliverables
+→ DFY edits table → Submits → INT reviews → Accept/Reject/Counter loop → Approved
+```
+
+**Entry B (Post-Close):** Convert approved inquiry to project
+```
+DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
+→ Confirm deliverables → Add onboarding requirements → Project created
+```
+
+- [x] Database: New tables
+  - [x] proposal_deliverables - Negotiated deliverables linked to inquiry
+  - [x] proposal_deliverable_comments - Per-deliverable discussion
+  - [x] project_requirements - Onboarding checklist items
+- [x] Database: Inquiry modifications
+  - [x] deliverables_status enum (none, parsing, dfy_editing, dfy_submitted, int_reviewing, approved, needs_revision)
+  - [x] closed_at, closed_by, closed_notes, client_email columns
+- [x] Database: Project modification
+  - [x] source_inquiry_id column linking project to source inquiry
+- [x] API Layer
+  - [x] lib/api/proposal-deliverables.ts - Deliverables CRUD
+  - [x] lib/api/project-requirements.ts - Requirements CRUD
+  - [x] Inquiry conversion functions (markAsClosed, convertToProject)
+- [x] AI Parser
+  - [x] app/api/parse-deliverables/route.ts (OpenRouter + Claude Haiku)
+  - [x] Plate.js to plain text converter
+- [x] Deliverables Components
+  - [x] DeliverablesTab.tsx - Main orchestrator
+  - [x] DeliverablesTable.tsx - Editable table with diff display
+  - [x] DeliverableRow.tsx - Single row with inline editing
+  - [x] DeliverableDiff.tsx - Strikethrough/highlight diff
+  - [x] AddDeliverableModal.tsx - Modal: blueprint tier OR custom
+  - [x] BlueprintTierSelector.tsx - Blueprint → tier picker
+  - [x] ReviewPanel.tsx - INT review UI with per-line decisions
+- [x] Server Actions
+  - [x] deliverableActions.ts - All deliverable CRUD + review actions
+  - [x] conversionActions.ts - Close deal + convert to project
+- [x] Conversion Components
+  - [x] MarkAsClosedButton.tsx - DFY action with hold-to-confirm
+  - [x] ConvertToProjectButton.tsx - INT action trigger
+  - [x] ConvertToProjectWizard.tsx - 3-step wizard
+  - [x] Step1Deliverables.tsx - Confirm deliverables
+  - [x] Step2Requirements.tsx - Onboarding checklist builder
+  - [x] Step3Review.tsx - Review & create
+- [x] RLS Policies
+  - [x] DFY can update own inquiries (for dfy_version_content)
+  - [x] Proposal deliverables access policies
+  - [x] Project requirements access policies
+- [ ] Testing & Polish
+  - [ ] Test DFY flow: Suggest Changes → Edit → Submit → Review loop
+  - [ ] Test INT flow: Review → Accept/Reject/Counter → Approve
+  - [ ] Test conversion: Mark Closed → Convert Wizard → Project created
 
 ### Phase 5: External Access
 
