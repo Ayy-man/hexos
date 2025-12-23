@@ -200,11 +200,14 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
     return <ConfirmationScreen isClosedDeal={submittedPath?.startsWith('A') || false} />
   }
 
+  // Only show copilot sidebar on detail pages
+  const showCopilot = copilotEnabled && (step === 'path_form' || step === 'forward')
+
   return (
     <FormProvider {...methods}>
-      <div className={`flex gap-6 ${copilotEnabled ? '' : ''}`}>
+      <div className="flex gap-6">
         {/* Form Panel */}
-        <div className={`flex-1 ${copilotEnabled ? 'max-w-[60%]' : 'max-w-2xl mx-auto'}`}>
+        <div className={`flex-1 ${showCopilot ? 'max-w-[60%]' : 'max-w-2xl mx-auto'}`}>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -216,17 +219,20 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
                     </CardDescription>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Bot className={`h-4 w-4 ${copilotEnabled ? 'text-cyan-500' : 'text-muted-foreground'}`} />
-                  <Label htmlFor="copilot-toggle" className="text-sm">
-                    AI Copilot
-                  </Label>
-                  <Switch
-                    id="copilot-toggle"
-                    checked={copilotEnabled}
-                    onCheckedChange={setCopilotEnabled}
-                  />
-                </div>
+                {/* Only show AI Copilot on detail pages, not on initial selection pages */}
+                {(step === 'path_form' || step === 'forward') && (
+                  <div className="flex items-center gap-2">
+                    <Bot className={`h-4 w-4 ${copilotEnabled ? 'text-cyan-500' : 'text-muted-foreground'}`} />
+                    <Label htmlFor="copilot-toggle" className="text-sm">
+                      AI Copilot
+                    </Label>
+                    <Switch
+                      id="copilot-toggle"
+                      checked={copilotEnabled}
+                      onCheckedChange={setCopilotEnabled}
+                    />
+                  </div>
+                )}
               </div>
               <FormStepIndicator
                 currentStep={step}
@@ -292,8 +298,8 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
           </Card>
         </div>
 
-        {/* AI Copilot Sidebar */}
-        {copilotEnabled && (
+        {/* AI Copilot Sidebar - only on detail pages */}
+        {showCopilot && (
           <div className="w-[40%] min-w-[350px]">
             <AICopilotSidebar
               currentPath={currentPath}
