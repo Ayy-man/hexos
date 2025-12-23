@@ -137,18 +137,19 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
         </div>
 
         {/* Input */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-end">
           <Textarea
             placeholder="Paste notes or ask a question..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={2}
-            className="resize-none"
+            className="resize-none flex-1 max-h-[120px]"
             disabled={isLoading}
           />
           <Button
             size="icon"
+            className="shrink-0 h-10 w-10"
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
           >
