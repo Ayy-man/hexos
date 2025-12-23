@@ -200,8 +200,8 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
     return <ConfirmationScreen isClosedDeal={submittedPath?.startsWith('A') || false} />
   }
 
-  // Only show copilot sidebar on detail pages
-  const showCopilot = copilotEnabled && (step === 'path_form' || step === 'forward')
+  // Only show copilot sidebar on the main detail page
+  const showCopilot = copilotEnabled && step === 'path_form'
 
   return (
     <FormProvider {...methods}>
@@ -219,8 +219,8 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
                     </CardDescription>
                   )}
                 </div>
-                {/* Only show AI Copilot on detail pages, not on initial selection pages */}
-                {(step === 'path_form' || step === 'forward') && (
+                {/* Only show AI Copilot on the main detail page */}
+                {step === 'path_form' && (
                   <div className="flex items-center gap-2">
                     <Bot className={`h-4 w-4 ${copilotEnabled ? 'text-cyan-500' : 'text-muted-foreground'}`} />
                     <Label htmlFor="copilot-toggle" className="text-sm">
