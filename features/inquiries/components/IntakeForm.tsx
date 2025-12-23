@@ -278,6 +278,7 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
             <AICopilotSidebar
               currentPath={currentPath}
               onSetField={handleSetField}
+              onNext={handleNext}
             />
           </div>
         )}

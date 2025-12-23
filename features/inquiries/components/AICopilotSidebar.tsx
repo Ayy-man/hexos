@@ -16,9 +16,10 @@ interface Message {
 interface AICopilotSidebarProps {
   currentPath: FormPath | null
   onSetField: (fieldName: string, value: unknown) => void
+  onNext?: () => void
 }
 
-export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarProps) {
+export function AICopilotSidebar({ currentPath, onSetField, onNext }: AICopilotSidebarProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -50,6 +51,7 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
 
       // Handle tool calls if present
       const filledFields: string[] = []
+      let didNavigate = false
       if (data.choices?.[0]?.message?.tool_calls) {
         for (const toolCall of data.choices[0].message.tool_calls) {
           if (toolCall.function?.name === 'set_form_field') {
@@ -60,13 +62,27 @@ export function AICopilotSidebar({ currentPath, onSetField }: AICopilotSidebarPr
             } catch (e) {
               console.error('Failed to parse tool call:', e)
             }
+          } else if (toolCall.function?.name === 'go_to_next_step' && onNext) {
+            // Small delay to let form values settle before navigating
+            setTimeout(() => onNext(), 100)
+            didNavigate = true
           }
         }
       }
 
       let assistantContent = data.choices?.[0]?.message?.content || ''
-      if (filledFields.length > 0) {
-        assistantContent = `Filled ${filledFields.length} field(s):\n${filledFields.map(f => `• ${f}`).join('\n')}${assistantContent ? `\n\n${assistantContent}` : ''}`
+      if (filledFields.length > 0 || didNavigate) {
+        const parts: string[] = []
+        if (filledFields.length > 0) {
+          parts.push(`Filled ${filledFields.length} field(s):\n${filledFields.map(f => `• ${f}`).join('\n')}`)
+        }
+        if (didNavigate) {
+          parts.push('Moving to next step...')
+        }
+        if (assistantContent) {
+          parts.push(assistantContent)
+        }
+        assistantContent = parts.join('\n\n')
       } else if (!assistantContent) {
         assistantContent = 'I couldn\'t find any fields to fill. Make sure you\'ve selected your form type first.'
       }

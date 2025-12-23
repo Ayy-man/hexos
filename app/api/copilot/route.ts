@@ -37,9 +37,10 @@ const SYSTEM_PROMPT = `You are a form-filling assistant for Hexona Systems. Extr
 
 ## Instructions
 1. Fill ALL fields you can infer from the text - text fields AND radio/checkboxes
-2. After filling, list which REQUIRED fields are still missing and ask about them
+2. After filling fields on a step, call go_to_next_step to advance the form
 3. For radio buttons, pick the closest match based on context clues
-4. Never say "I'll fill" - just DO IT with tool calls immediately`
+4. Never say "I'll fill" - just DO IT with tool calls immediately
+5. If user says "proposal" or "custom" etc, set submission_type and proposal_type/closed_deal_type, then advance`
 
 export async function POST(req: NextRequest) {
   try {
@@ -94,6 +95,17 @@ export async function POST(req: NextRequest) {
                   },
                 },
                 required: ['field_name', 'value'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'go_to_next_step',
+              description: 'Advance the form to the next step. Use after filling all available fields on current step.',
+              parameters: {
+                type: 'object',
+                properties: {},
               },
             },
           },
