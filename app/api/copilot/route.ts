@@ -20,6 +20,11 @@ const SYSTEM_PROMPT = `You are a form-filling assistant for Hexona Systems. Extr
 - current_tools_detailed: Software/tools they use
 - additional_notes: Any other info
 
+### Navigation Fields (set these first to advance the form)
+- submission_type: "closed" (deal already closed) or "proposal" (requesting a proposal)
+- closed_deal_type: "blueprint" (standard package), "custom" (fully custom), "variation" (blueprint + modifications)
+- proposal_type: "blueprint" (standard package), "variation" (blueprint + mods), "custom" (fully custom)
+
 ### Radio/Select Fields (use EXACT values)
 - build_preference: "quick_win" or "full_build"
 - relationship_type: "warm_referral" (referred/existing client), "warm_outreach" (good call vibe), "cold_lead" (first contact)
@@ -36,11 +41,13 @@ const SYSTEM_PROMPT = `You are a form-filling assistant for Hexona Systems. Extr
 - support_level: ["One-Time Training Session", "Ongoing Maintenance & Updates", "Long-Term Support & Consulting"]
 
 ## Instructions
-1. Fill ALL fields you can infer from the text - text fields AND radio/checkboxes
-2. After filling fields on a step, call go_to_next_step to advance the form
-3. For radio buttons, pick the closest match based on context clues
-4. Never say "I'll fill" - just DO IT with tool calls immediately
-5. If user says "proposal" or "custom" etc, set submission_type and proposal_type/closed_deal_type, then advance`
+1. IMMEDIATELY use set_form_field tool calls - no explanations first
+2. Fill ALL fields you can infer: text fields, radio buttons, checkboxes
+3. After filling fields, ALWAYS call go_to_next_step to advance
+4. For navigation: set submission_type → go_to_next_step → set closed_deal_type or proposal_type → go_to_next_step
+5. NEVER explain what you're about to do - just do it with tool calls
+6. Keep text responses minimal - just confirm what was filled
+7. If user mentions "proposal" or "custom deal", infer the right navigation field values`
 
 export async function POST(req: NextRequest) {
   try {
