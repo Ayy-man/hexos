@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Bot, Send, Loader2 } from 'lucide-react'
+import { Bot, Send, Loader2, Sparkles } from 'lucide-react'
 import { FIELD_LISTS, PATH_LABELS } from '../constants/fieldMappings'
 import type { FormPath } from '../schemas/intakeFormSchema'
 
@@ -23,6 +23,7 @@ export function AICopilotSidebar({ currentPath, onSetField, onNext }: AICopilotS
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [tokenUsage, setTokenUsage] = useState({ prompt: 0, completion: 0, total: 0 })
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -48,6 +49,15 @@ export function AICopilotSidebar({ currentPath, onSetField, onNext }: AICopilotS
       if (!response.ok) throw new Error('Failed to get response')
 
       const data = await response.json()
+
+      // Track token usage
+      if (data.usage) {
+        setTokenUsage(prev => ({
+          prompt: prev.prompt + (data.usage.prompt_tokens || 0),
+          completion: prev.completion + (data.usage.completion_tokens || 0),
+          total: prev.total + (data.usage.total_tokens || 0),
+        }))
+      }
 
       // Handle tool calls if present
       const filledFields: string[] = []
@@ -108,10 +118,18 @@ export function AICopilotSidebar({ currentPath, onSetField, onNext }: AICopilotS
   return (
     <Card className="flex flex-col max-h-[500px]">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Bot className="h-5 w-5 text-cyan-500" />
-          AI Assistant
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Bot className="h-5 w-5 text-cyan-500" />
+            AI Assistant
+          </CardTitle>
+          {tokenUsage.total > 0 && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+              <Sparkles className="h-3 w-3" />
+              <span>{tokenUsage.total.toLocaleString()} tokens</span>
+            </div>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground">
           {currentPath
             ? `Helping with: ${PATH_LABELS[currentPath] || currentPath}`
