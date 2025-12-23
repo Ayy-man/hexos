@@ -144,12 +144,18 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setValue(fieldName as any, value, { shouldDirty: true, shouldTouch: true })
 
-    // Trigger visual flash animation on filled field
+    // Trigger visual flash animation on filled field (non-critical, fail silently)
     setTimeout(() => {
-      const element = document.querySelector(`[name="${fieldName}"], [data-field="${fieldName}"]`)
-      if (element) {
-        element.classList.add('ai-filled-flash')
-        setTimeout(() => element.classList.remove('ai-filled-flash'), 1000)
+      try {
+        // Escape special characters in field name for valid CSS selector
+        const escapedName = CSS.escape(fieldName)
+        const element = document.querySelector(`[name="${escapedName}"], [data-field="${escapedName}"]`)
+        if (element) {
+          element.classList.add('ai-filled-flash')
+          setTimeout(() => element.classList.remove('ai-filled-flash'), 1000)
+        }
+      } catch {
+        // Animation is non-critical, ignore selector errors
       }
     }, 0)
   }
