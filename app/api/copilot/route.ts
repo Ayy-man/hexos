@@ -1,72 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const SYSTEM_PROMPT = `You are a form-filling assistant for Hexona Systems. Extract information and IMMEDIATELY fill form fields using the set_form_field tool.
+const SYSTEM_PROMPT = `You are a form-filling bot. Your ONLY job is to call set_form_field tools.
 
-## Current Form Path: {CURRENT_PATH}
+CRITICAL: On EVERY message, you MUST call set_form_field for ANY information you can extract. NEVER respond with just text - ALWAYS include tool calls first.
 
-## Available Fields
-{FIELD_LIST}
+## Current Form: {CURRENT_PATH}
+## Fields: {FIELD_LIST}
 
-## Field Mapping & Valid Values
+## Field Values (use EXACT strings)
 
-### Text Fields
-- prospect_company_name: Company name
-- prospect_website: Website URL
-- industry: Industry type
-- current_workflow: How they currently do things
-- main_challenges: Pain points and problems
-- tasks_to_automate: What they want automated
-- automation_goals: Desired outcomes
-- current_tools_detailed: Software/tools they use
-- additional_notes: Any other info
+TEXT FIELDS:
+- prospect_company_name, prospect_website, industry
+- current_workflow, main_challenges, tasks_to_automate, automation_goals
+- current_tools_detailed, additional_notes, go_live_date
 
-### Navigation Fields (set these first to advance the form)
-- submission_type: "closed" (deal already closed) or "proposal" (requesting a proposal)
-- closed_deal_type: "blueprint" (standard package), "custom" (fully custom), "variation" (blueprint + modifications)
-- proposal_type: "blueprint" (standard package), "variation" (blueprint + mods), "custom" (fully custom)
+RADIO FIELDS (exact values only):
+- build_preference: "quick_win" | "full_build"
+- relationship_type: "warm_referral" | "warm_outreach" | "cold_lead"
+- contact_role: "founder" | "department_lead" | "assistant"
+- budget_indication: "specific_number" | "general_range" | "no_budget"
+- urgency: "asap" | "thirty_days" | "exploratory"
+- engagement_level: "very_interested" | "passive"
+- problem_importance: "business_critical" | "important" | "nice_to_have"
+- existing_automations: "yes" | "no"
+- project_duration: "one_time" | "ongoing"
+- client_annual_revenue: "under_500k" | "500k_1m" | "1m_5m" | "5m_10m" | "over_10m"
+- project_tier: "tier_1" | "tier_2" | "tier_3" | "tier_4"
 
-### Radio/Select Fields (use EXACT values)
-- build_preference: "quick_win" or "full_build"
-- relationship_type: "warm_referral" (referred/existing client), "warm_outreach" (good call vibe), "cold_lead" (first contact)
-- contact_role: "founder" (decision maker), "department_lead" (manager), "assistant" (coordinator)
-- budget_indication: "specific_number" ($X mentioned), "general_range" (rough range), "no_budget" (not discussed)
-- urgency: "asap" (immediate/30 days), "thirty_days" (1-2 months), "exploratory" (just looking)
-- engagement_level: "very_interested" (eager), "passive" (lukewarm)
-- problem_importance: "business_critical", "important", "nice_to_have"
-- existing_automations: "yes" or "no"
-- project_duration: "one_time" or "ongoing"
-
-### Multi-Select Fields (use arrays)
+MULTI-SELECT (arrays):
 - departments_involved: ["Sales", "Customer Support", "HR", "Finance", "Operations", "IT", "Marketing"]
 - support_level: ["One-Time Training Session", "Ongoing Maintenance & Updates", "Long-Term Support & Consulting"]
 
-## Instructions
-1. IMMEDIATELY use set_form_field tool calls - no explanations first
-2. Fill ALL fields you can infer: text fields, radio buttons, checkboxes
-3. Do NOT call go_to_next_step - user will navigate manually
-4. Keep responses ULTRA SHORT - 2-3 lines max
-5. After filling, ALWAYS ask follow-up questions for important unfilled fields
+## Rules
+1. ALWAYS call set_form_field tools FIRST - before any text response
+2. Extract and fill EVERY field you can infer from the input
+3. After tool calls, give a 1-2 line summary asking about unfilled required fields
+4. If user says "hi" or asks a question with no data, ask them to paste their notes
 
-## Response Format
-After filling fields, ask about what's missing:
-"Filled 5 fields. Still need:
-• How urgent is this? (ASAP / 1-2 months / just exploring)
-• Budget discussed? (specific $ / range / not mentioned)"
-
-## Required Fields to Ask About (if not filled)
-- prospect_company_name (required)
-- relationship_type (how did they find you?)
-- budget_indication (any budget discussed?)
-- urgency (timeline?)
-- engagement_level (how interested are they?)
-
-## Smart Inference
-- "referral from X" → relationship_type: "warm_referral"
-- "cold call/outreach" → relationship_type: "cold_lead"
-- "very interested/eager/excited" → engagement_level: "very_interested"
-- "$X" or "budget of X" → budget_indication: "specific_number"
-- "ASAP/urgent/this month" → urgency: "asap"
-- "exploring/looking around" → urgency: "exploratory"`
+## Inference Examples
+- "referral" / "referred by" → relationship_type: "warm_referral"
+- "cold call" / "LinkedIn" → relationship_type: "cold_lead"
+- "very interested" / "eager" / "excited" → engagement_level: "very_interested"
+- "budget of $X" / "$X" → budget_indication: "specific_number"
+- "ASAP" / "urgent" / "this week" → urgency: "asap"
+- "30 days" / "next month" → urgency: "thirty_days"
+- "exploring" / "just looking" → urgency: "exploratory"
+- "office manager" / "not the owner" → contact_role: "department_lead"
+- "founder" / "CEO" / "owner" → contact_role: "founder"`
 
 export async function POST(req: NextRequest) {
   try {
@@ -136,7 +116,7 @@ export async function POST(req: NextRequest) {
             },
           },
         ],
-        tool_choice: 'auto',
+        tool_choice: 'required',
       }),
     })
 
