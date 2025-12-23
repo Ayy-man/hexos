@@ -73,8 +73,8 @@ export function AICopilotSidebar({ currentPath, onSetField, onNext }: AICopilotS
               console.error('Failed to parse tool call:', e)
             }
           } else if (toolCall.function?.name === 'go_to_next_step' && onNext) {
-            // Small delay to let form values settle before navigating
-            setTimeout(() => onNext(), 100)
+            // Use requestAnimationFrame to sync with render cycle
+            requestAnimationFrame(() => onNext())
             didNavigate = true
           }
         }

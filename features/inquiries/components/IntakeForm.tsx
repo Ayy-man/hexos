@@ -70,17 +70,20 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
     formData.proposal_type
   )
 
-  // Navigation logic
+  // Navigation logic - uses getValues() for fresh data (not stale closure)
   const handleNext = () => {
+    const data = methods.getValues()
+    const freshPath = getFormPath(data.submission_type, data.closed_deal_type, data.proposal_type)
+
     if (step === 'initial') {
-      if (formData.submission_type === 'closed') {
+      if (data.submission_type === 'closed') {
         setStep('closed_type')
-      } else if (formData.submission_type === 'proposal') {
+      } else if (data.submission_type === 'proposal') {
         setStep('proposal_type')
       }
     } else if (step === 'closed_type' || step === 'proposal_type') {
       // B1 path shows info only, no form
-      if (currentPath === 'B1') {
+      if (freshPath === 'B1') {
         // Stay on proposal_type, show info
       } else {
         setStep('path_form')
@@ -88,15 +91,17 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
     } else if (step === 'path_form') {
       setStep('forward')
     } else if (step === 'forward') {
-      onSubmit(formData)
+      onSubmit(data)
     }
   }
 
   const handleBack = () => {
+    const data = methods.getValues()
+
     if (step === 'closed_type' || step === 'proposal_type') {
       setStep('initial')
     } else if (step === 'path_form') {
-      if (formData.submission_type === 'closed') {
+      if (data.submission_type === 'closed') {
         setStep('closed_type')
       } else {
         setStep('proposal_type')
@@ -137,7 +142,16 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
   // Handle AI setting form fields
   const handleSetField = (fieldName: string, value: unknown) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setValue(fieldName as any, value)
+    setValue(fieldName as any, value, { shouldDirty: true, shouldTouch: true })
+
+    // Trigger visual flash animation on filled field
+    setTimeout(() => {
+      const element = document.querySelector(`[name="${fieldName}"], [data-field="${fieldName}"]`)
+      if (element) {
+        element.classList.add('ai-filled-flash')
+        setTimeout(() => element.classList.remove('ai-filled-flash'), 1000)
+      }
+    }, 0)
   }
 
   const getStepTitle = () => {

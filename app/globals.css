@@ -133,3 +133,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* AI Copilot field fill animation */
+@keyframes ai-fill-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgb(6 182 212 / 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgb(6 182 212 / 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(6 182 212 / 0);
+  }
+}
+
+.ai-filled-flash {
+  animation: ai-fill-flash 1s ease-out;
+}
