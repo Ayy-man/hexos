@@ -55,8 +55,14 @@ See `inquiry-form.md` for full specification.
   - [x] Branch A: Closed deals (A1, A2, A3)
   - [x] Branch B: Proposal requests (B1, B2, B3)
 - [x] AI Copilot sidebar (toggleable)
-  - [x] Chat interface with Claude 3 Haiku via OpenRouter
+  - [x] Chat interface with Claude 3.5 Haiku via OpenRouter
   - [x] Tool calling for form field population (set_form_field)
+  - [x] Only visible on step 3 (detail form page)
+  - [x] Smart inference (referral → warm_referral, $X → specific_number, etc.)
+  - [x] Follow-up questions for unfilled required fields
+  - [x] Token usage tracking displayed in sidebar header
+  - [x] Field flash animation (cyan glow when AI fills a field)
+  - [x] Compact response format (2-3 lines max)
 - [ ] Inquiry → Project conversion (closed deals)
 - [x] Inquiries list page (admin/internal see all, dfy sees own)
 - [x] Inquiry detail page (/inquiries/[id])
