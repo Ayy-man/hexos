@@ -178,6 +178,11 @@ export async function createProposalDeliverable(
     .single()
 
   if (error) throw error
+
+  // Log history for new deliverable
+  const action = input.source === 'ai_parsed' ? 'created' : 'dfy_added'
+  await logDeliverableHistory(data.id, action, input.source === 'ai_parsed' ? 'system' : 'dfy')
+
   return data
 }
 
@@ -216,6 +221,14 @@ export async function bulkCreateDeliverablesFromAI(
     .select()
 
   if (error) throw error
+
+  // Log history for each created deliverable
+  if (data) {
+    await Promise.all(
+      data.map((d) => logDeliverableHistory(d.id, 'created', 'system'))
+    )
+  }
+
   return data || []
 }
 
@@ -261,6 +274,14 @@ export async function bulkCreateFromBlueprintTier(
     .select()
 
   if (error) throw error
+
+  // Log history for each created deliverable
+  if (data) {
+    await Promise.all(
+      data.map((d) => logDeliverableHistory(d.id, 'dfy_added', 'dfy'))
+    )
+  }
+
   return data || []
 }
 
@@ -355,6 +376,12 @@ export async function updateProposalDeliverable(
     .single()
 
   if (error) throw error
+
+  // Log history if this was an actual edit (not just status/counter update)
+  if (isEdit) {
+    await logDeliverableHistory(id, 'dfy_edited', 'dfy')
+  }
+
   return data
 }
 
@@ -391,6 +418,10 @@ export async function revertDeliverable(id: string): Promise<ProposalDeliverable
     .single()
 
   if (error) throw error
+
+  // Log history for revert
+  await logDeliverableHistory(id, 'reverted', 'dfy')
+
   return data
 }
 
@@ -506,6 +537,10 @@ export async function markDeliverableRemoved(id: string): Promise<ProposalDelive
     .single()
 
   if (error) throw error
+
+  // Log history for removal
+  await logDeliverableHistory(id, 'dfy_removed', 'dfy')
+
   return data
 }
 
