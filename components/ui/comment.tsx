@@ -270,6 +270,7 @@ export function Comment(props: {
                 <Button
                   size="icon"
                   variant="ghost"
+                  className="size-[28px]"
                   onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
                     void onSave();
