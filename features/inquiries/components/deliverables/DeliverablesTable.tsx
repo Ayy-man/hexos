@@ -23,15 +23,20 @@ interface DeliverablesTableProps {
   deliverables: ProposalDeliverable[]
   isEditable: boolean
   isReviewer: boolean
+  isDfyOwner?: boolean
   onUpdate: (id: string, input: UpdateDeliverableInput) => Promise<void>
   onRemove: (id: string) => Promise<void>
   onRevert: (id: string) => Promise<void>
   onReview?: (
     id: string,
     decision: 'approved' | 'rejected' | 'countered',
+    counterName?: string,
+    counterDescription?: string,
     counterPrice?: number,
     counterNote?: string
   ) => Promise<void>
+  onAcceptCounter?: (id: string) => Promise<void>
+  onRejectCounter?: (id: string, reason?: string) => Promise<void>
   onBulkApprove?: (ids: string[]) => Promise<void>
   onAddDeliverable?: () => void
   onOpenComments?: (id: string) => void
@@ -42,10 +47,13 @@ export function DeliverablesTable({
   deliverables,
   isEditable,
   isReviewer,
+  isDfyOwner = false,
   onUpdate,
   onRemove,
   onRevert,
   onReview,
+  onAcceptCounter,
+  onRejectCounter,
   onBulkApprove,
   onAddDeliverable,
   onOpenComments,
@@ -180,11 +188,14 @@ export function DeliverablesTable({
                 deliverable={deliverable}
                 isEditable={isEditable}
                 isReviewer={isReviewer}
+                isDfyOwner={isDfyOwner}
                 commentCount={commentCounts[deliverable.id]}
                 onUpdate={onUpdate}
                 onRemove={onRemove}
                 onRevert={onRevert}
                 onReview={onReview}
+                onAcceptCounter={onAcceptCounter}
+                onRejectCounter={onRejectCounter}
                 onOpenComments={onOpenComments}
               />
             ))}

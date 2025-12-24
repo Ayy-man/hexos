@@ -13,10 +13,14 @@ import {
   bulkCreateFromBlueprintTier,
   addDeliverableComment,
   deleteDeliverableComment,
+  acceptCounter,
+  rejectCounter,
+  getDeliverableHistory,
   type CreateDeliverableInput,
   type UpdateDeliverableInput,
   type ProposalDeliverable,
   type DeliverableComment,
+  type DeliverableHistoryEntry,
 } from '@/lib/api/proposal-deliverables'
 import { updateDeliverablesStatus, type DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
 import { extractDeliverablesSection } from '@/features/inquiries/utils/plateToText'
@@ -328,12 +332,16 @@ export async function reviewDeliverableAction(
   deliverableId: string,
   inquiryId: string,
   decision: 'approved' | 'rejected' | 'countered',
+  counterName?: string,
+  counterDescription?: string,
   counterPrice?: number,
   counterNote?: string
 ): Promise<ProposalDeliverable> {
   const deliverable = await reviewDeliverable(
     deliverableId,
     decision,
+    counterName,
+    counterDescription,
     counterPrice,
     counterNote
   )
@@ -395,4 +403,37 @@ export async function updateDeliverablesStatusAction(
 ): Promise<void> {
   await updateDeliverablesStatus(inquiryId, status)
   revalidatePath(`/inquiries/${inquiryId}`)
+}
+
+// ============================================
+// Counter Response Actions (DFY)
+// ============================================
+
+export async function acceptCounterAction(
+  deliverableId: string,
+  inquiryId: string
+): Promise<ProposalDeliverable> {
+  const deliverable = await acceptCounter(deliverableId)
+  revalidatePath(`/inquiries/${inquiryId}`)
+  return deliverable
+}
+
+export async function rejectCounterAction(
+  deliverableId: string,
+  inquiryId: string,
+  reason?: string
+): Promise<ProposalDeliverable> {
+  const deliverable = await rejectCounter(deliverableId, reason)
+  revalidatePath(`/inquiries/${inquiryId}`)
+  return deliverable
+}
+
+// ============================================
+// History Actions
+// ============================================
+
+export async function getDeliverableHistoryAction(
+  deliverableId: string
+): Promise<DeliverableHistoryEntry[]> {
+  return getDeliverableHistory(deliverableId)
 }

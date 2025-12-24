@@ -109,6 +109,64 @@ export function PriceDiff({
   )
 }
 
+interface TextDiffWithCounterProps {
+  originalValue: string | null | undefined
+  currentValue: string | null | undefined
+  counterValue: string | null | undefined
+  className?: string
+}
+
+/**
+ * Text diff that also shows counter-offer value
+ */
+export function TextDiffWithCounter({
+  originalValue,
+  currentValue,
+  counterValue,
+  className,
+}: TextDiffWithCounterProps) {
+  // Determine what to display
+  const displayValue = counterValue ?? currentValue
+  const hasOriginalChange =
+    originalValue !== null &&
+    originalValue !== undefined &&
+    originalValue !== currentValue
+  const hasCounter = counterValue !== null && counterValue !== undefined
+
+  if (!hasOriginalChange && !hasCounter) {
+    // No changes at all
+    return <span className={className}>{currentValue ?? '-'}</span>
+  }
+
+  return (
+    <span className={cn('inline-flex flex-col gap-0.5', className)}>
+      {/* Original value if changed by DFY */}
+      {hasOriginalChange && (
+        <span className="text-muted-foreground line-through text-xs">
+          {originalValue ?? '-'}
+        </span>
+      )}
+      {/* DFY's edit (if countered, show as intermediate) */}
+      {hasCounter && hasOriginalChange ? (
+        <span className="text-muted-foreground text-xs">
+          {currentValue ?? '-'}
+        </span>
+      ) : hasOriginalChange ? (
+        <span className="bg-green-100 dark:bg-green-900/30 px-1 rounded text-green-700 dark:text-green-400 font-medium">
+          {currentValue ?? '-'}
+        </span>
+      ) : null}
+      {/* Counter value (amber highlight) */}
+      {hasCounter && (
+        <span className="bg-amber-100 dark:bg-amber-900/30 px-1 rounded text-amber-700 dark:text-amber-400 font-medium">
+          {counterValue}
+          <span className="text-xs ml-1">(counter)</span>
+        </span>
+      )}
+    </span>
+  )
+}
+
 interface TotalsDiffProps {
   originalTotal: number
   currentTotal: number

@@ -11,11 +11,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
 import { TableRow, TableCell } from '@/components/ui/table'
 import {
   MoreHorizontal,
@@ -30,12 +25,15 @@ import {
 import { cn } from '@/lib/utils'
 import { DeliverableDiff, PriceDiff } from './DeliverableDiff'
 import { DeliverableStatusBadge, needsReview } from './DeliverableStatusBadge'
+import { CounterOfferDialog } from './CounterOfferDialog'
+import { CounterResponseCard } from './CounterResponseCard'
 import type { ProposalDeliverable, UpdateDeliverableInput } from '@/lib/api/proposal-deliverables'
 
 interface DeliverableRowProps {
   deliverable: ProposalDeliverable
   isEditable: boolean
   isReviewer: boolean
+  isDfyOwner?: boolean
   commentCount?: number
   onUpdate: (id: string, input: UpdateDeliverableInput) => Promise<void>
   onRemove: (id: string) => Promise<void>
@@ -43,9 +41,13 @@ interface DeliverableRowProps {
   onReview?: (
     id: string,
     decision: 'approved' | 'rejected' | 'countered',
+    counterName?: string,
+    counterDescription?: string,
     counterPrice?: number,
     counterNote?: string
   ) => Promise<void>
+  onAcceptCounter?: (id: string) => Promise<void>
+  onRejectCounter?: (id: string, reason?: string) => Promise<void>
   onOpenComments?: (id: string) => void
 }
 
@@ -53,15 +55,18 @@ export function DeliverableRow({
   deliverable,
   isEditable,
   isReviewer,
+  isDfyOwner = false,
   commentCount = 0,
   onUpdate,
   onRemove,
   onRevert,
   onReview,
+  onAcceptCounter,
+  onRejectCounter,
   onOpenComments,
 }: DeliverableRowProps) {
   const [isEditing, setIsEditing] = useState(false)
-  const [isCountering, setIsCountering] = useState(false)
+  const [isCounterDialogOpen, setIsCounterDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   // Edit form state
@@ -71,12 +76,10 @@ export function DeliverableRow({
   )
   const [editPrice, setEditPrice] = useState(deliverable.price?.toString() || '')
 
-  // Counter form state
-  const [counterPrice, setCounterPrice] = useState('')
-  const [counterNote, setCounterNote] = useState('')
-
   const isRemoved = deliverable.change_status === 'removed'
   const hasChanges = needsReview(deliverable.change_status)
+  const isCountered = deliverable.change_status === 'countered'
+  const needsDfyResponse = isCountered && isDfyOwner
 
   const handleSaveEdit = () => {
     startTransition(async () => {
@@ -122,28 +125,53 @@ export function DeliverableRow({
     })
   }
 
-  const handleCounter = () => {
+  const handleCounter = async (
+    counterName?: string,
+    counterDescription?: string,
+    counterPrice?: number,
+    counterNote?: string
+  ) => {
     if (!onReview) return
+    await onReview(
+      deliverable.id,
+      'countered',
+      counterName,
+      counterDescription,
+      counterPrice,
+      counterNote
+    )
+    setIsCounterDialogOpen(false)
+  }
+
+  const handleAcceptCounter = () => {
+    if (!onAcceptCounter) return
     startTransition(async () => {
-      await onReview(
-        deliverable.id,
-        'countered',
-        counterPrice ? parseFloat(counterPrice) : undefined,
-        counterNote || undefined
-      )
-      setIsCountering(false)
-      setCounterPrice('')
-      setCounterNote('')
+      await onAcceptCounter(deliverable.id)
     })
   }
 
+  const handleRejectCounter = async (reason?: string) => {
+    if (!onRejectCounter) return
+    await onRejectCounter(deliverable.id, reason)
+  }
+
+  const handleEditAgain = () => {
+    // Start editing mode with current values
+    setEditName(deliverable.name)
+    setEditDescription(deliverable.description || '')
+    setEditPrice(deliverable.price?.toString() || '')
+    setIsEditing(true)
+  }
+
   return (
-    <TableRow
-      className={cn(
-        isRemoved && 'opacity-50 bg-muted/50',
-        isPending && 'opacity-70'
-      )}
-    >
+    <>
+      <TableRow
+        className={cn(
+          isRemoved && 'opacity-50 bg-muted/50',
+          isPending && 'opacity-70',
+          needsDfyResponse && 'border-b-0'
+        )}
+      >
       {/* Name */}
       <TableCell className="font-medium">
         {isEditing ? (
@@ -257,47 +285,14 @@ export function DeliverableRow({
             </>
           )}
 
-          {/* Counter form */}
-          {isCountering && (
-            <Popover open={isCountering} onOpenChange={setIsCountering}>
-              <PopoverTrigger asChild>
-                <span />
-              </PopoverTrigger>
-              <PopoverContent className="w-64" align="end">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium">Counter Offer</div>
-                  <Input
-                    type="number"
-                    placeholder="New price"
-                    value={counterPrice}
-                    onChange={(e) => setCounterPrice(e.target.value)}
-                  />
-                  <Textarea
-                    placeholder="Note (optional)"
-                    value={counterNote}
-                    onChange={(e) => setCounterNote(e.target.value)}
-                    rows={2}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleCounter}
-                      disabled={isPending}
-                    >
-                      Submit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setIsCountering(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
+          {/* Counter offer dialog (for admin) */}
+          <CounterOfferDialog
+            open={isCounterDialogOpen}
+            onOpenChange={setIsCounterDialogOpen}
+            deliverable={deliverable}
+            onSubmit={handleCounter}
+            isSubmitting={isPending}
+          />
 
           {/* Reviewer actions */}
           {isReviewer && hasChanges && !isEditing && (
@@ -326,7 +321,7 @@ export function DeliverableRow({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
-                onClick={() => setIsCountering(true)}
+                onClick={() => setIsCounterDialogOpen(true)}
                 disabled={isPending}
                 title="Counter"
               >
@@ -374,5 +369,21 @@ export function DeliverableRow({
         </div>
       </TableCell>
     </TableRow>
+
+    {/* Counter response row for DFY */}
+    {needsDfyResponse && (
+      <TableRow className="hover:bg-transparent">
+        <TableCell colSpan={5} className="pt-0 pb-4">
+          <CounterResponseCard
+            deliverable={deliverable}
+            onAccept={handleAcceptCounter}
+            onReject={handleRejectCounter}
+            onEdit={handleEditAgain}
+            isSubmitting={isPending}
+          />
+        </TableCell>
+      </TableRow>
+    )}
+    </>
   )
 }

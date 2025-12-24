@@ -53,6 +53,8 @@ import {
   withdrawDeliverablesSubmissionAction,
   startReviewAction,
   reviewDeliverableAction,
+  acceptCounterAction,
+  rejectCounterAction,
   bulkApproveDeliverablesAction,
   finalApproveDeliverablesAction,
   sendBackForRevisionAction,
@@ -362,11 +364,31 @@ export default async function InquiryDetailPage({
   const boundReviewDeliverable = async (
     deliverableId: string,
     decision: 'approved' | 'rejected' | 'countered',
+    counterName?: string,
+    counterDescription?: string,
     counterPrice?: number,
     counterNote?: string
   ) => {
     'use server'
-    await reviewDeliverableAction(deliverableId, id, decision, counterPrice, counterNote)
+    await reviewDeliverableAction(
+      deliverableId,
+      id,
+      decision,
+      counterName,
+      counterDescription,
+      counterPrice,
+      counterNote
+    )
+  }
+
+  const boundAcceptCounter = async (deliverableId: string) => {
+    'use server'
+    await acceptCounterAction(deliverableId, id)
+  }
+
+  const boundRejectCounter = async (deliverableId: string, reason?: string) => {
+    'use server'
+    await rejectCounterAction(deliverableId, id, reason)
   }
 
   const boundBulkApprove = async (deliverableIds: string[]) => {
@@ -855,6 +877,8 @@ export default async function InquiryDetailPage({
               withdrawSubmission={boundWithdrawDeliverables}
               startReview={boundStartReview}
               reviewDeliverable={boundReviewDeliverable}
+              acceptCounter={boundAcceptCounter}
+              rejectCounter={boundRejectCounter}
               bulkApprove={boundBulkApprove}
               finalApprove={boundFinalApprove}
               sendBackForRevision={boundSendBackForRevision}

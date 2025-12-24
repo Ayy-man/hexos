@@ -12,6 +12,8 @@ export type DeliverableChangeStatus =
   | 'approved'
   | 'rejected'
   | 'countered'
+  | 'counter_accepted'  // DFY accepted the counter
+  | 'counter_rejected'  // DFY rejected the counter, needs re-review
 
 export type DeliverableSource = 'ai_parsed' | 'blueprint_tier' | 'custom'
 
@@ -30,6 +32,8 @@ export interface ProposalDeliverable {
   original_name: string | null
   original_description: string | null
   original_price: number | null
+  counter_name: string | null
+  counter_description: string | null
   counter_price: number | null
   counter_note: string | null
   created_by: string | null
@@ -66,9 +70,46 @@ export interface UpdateDeliverableInput {
   description?: string
   price?: number
   change_status?: DeliverableChangeStatus
+  counter_name?: string
+  counter_description?: string
   counter_price?: number
   counter_note?: string
   sort_order?: number
+}
+
+// ============================================
+// History Types
+// ============================================
+
+export type HistoryAction =
+  | 'created'
+  | 'dfy_edited'
+  | 'dfy_removed'
+  | 'dfy_added'
+  | 'int_approved'
+  | 'int_rejected'
+  | 'int_countered'
+  | 'dfy_accepted_counter'
+  | 'dfy_rejected_counter'
+  | 'reverted'
+
+export interface DeliverableHistoryEntry {
+  id: string
+  deliverable_id: string
+  version: number
+  name: string
+  description: string | null
+  price: number | null
+  change_status: string | null
+  counter_name: string | null
+  counter_description: string | null
+  counter_price: number | null
+  counter_note: string | null
+  action: HistoryAction
+  actor_id: string | null
+  actor_role: 'dfy' | 'admin' | 'system'
+  note: string | null
+  created_at: string
 }
 
 // ============================================
@@ -289,6 +330,12 @@ export async function updateProposalDeliverable(
   }
 
   // Counter-offer fields
+  if (input.counter_name !== undefined) {
+    updateData.counter_name = input.counter_name
+  }
+  if (input.counter_description !== undefined) {
+    updateData.counter_description = input.counter_description
+  }
   if (input.counter_price !== undefined) {
     updateData.counter_price = input.counter_price
   }
@@ -354,6 +401,8 @@ export async function revertDeliverable(id: string): Promise<ProposalDeliverable
 export async function reviewDeliverable(
   id: string,
   decision: 'approved' | 'rejected' | 'countered',
+  counterName?: string,
+  counterDescription?: string,
   counterPrice?: number,
   counterNote?: string
 ): Promise<ProposalDeliverable> {
@@ -362,6 +411,15 @@ export async function reviewDeliverable(
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Get current state for history logging
+  const { data: current } = await supabase
+    .from('proposal_deliverables')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (!current) throw new Error('Deliverable not found')
+
   const updateData: Record<string, unknown> = {
     change_status: decision,
     updated_by: user?.id,
@@ -369,8 +427,11 @@ export async function reviewDeliverable(
   }
 
   if (decision === 'countered') {
-    updateData.counter_price = counterPrice
-    updateData.counter_note = counterNote
+    // Set counter fields (only if provided or explicitly changing)
+    updateData.counter_name = counterName ?? null
+    updateData.counter_description = counterDescription ?? null
+    updateData.counter_price = counterPrice ?? null
+    updateData.counter_note = counterNote ?? null
   }
 
   const { data, error } = await supabase
@@ -381,6 +442,15 @@ export async function reviewDeliverable(
     .single()
 
   if (error) throw error
+
+  // Log history
+  const actionMap = {
+    approved: 'int_approved',
+    rejected: 'int_rejected',
+    countered: 'int_countered',
+  } as const
+  await logDeliverableHistory(id, actionMap[decision], 'admin', counterNote)
+
   return data
 }
 
@@ -542,4 +612,167 @@ export async function getDeliverablesSummary(inquiryId: string): Promise<{
   ).length
 
   return { total, originalTotal, hasChanges, pendingReview }
+}
+
+// ============================================
+// History Functions
+// ============================================
+
+export async function logDeliverableHistory(
+  deliverableId: string,
+  action: HistoryAction,
+  actorRole: 'dfy' | 'admin' | 'system',
+  note?: string
+): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Get current deliverable state
+  const { data: deliverable, error: fetchError } = await supabase
+    .from('proposal_deliverables')
+    .select('*')
+    .eq('id', deliverableId)
+    .single()
+
+  if (fetchError || !deliverable) {
+    console.error('[logDeliverableHistory] Failed to fetch deliverable:', fetchError)
+    return
+  }
+
+  // Get next version number
+  const { data: lastVersion } = await supabase
+    .from('proposal_deliverable_history')
+    .select('version')
+    .eq('deliverable_id', deliverableId)
+    .order('version', { ascending: false })
+    .limit(1)
+    .single()
+
+  const nextVersion = (lastVersion?.version || 0) + 1
+
+  const { error: insertError } = await supabase.from('proposal_deliverable_history').insert({
+    deliverable_id: deliverableId,
+    version: nextVersion,
+    name: deliverable.name,
+    description: deliverable.description,
+    price: deliverable.price,
+    change_status: deliverable.change_status,
+    counter_name: deliverable.counter_name,
+    counter_description: deliverable.counter_description,
+    counter_price: deliverable.counter_price,
+    counter_note: deliverable.counter_note,
+    action,
+    actor_id: user?.id,
+    actor_role: actorRole,
+    note,
+  })
+
+  if (insertError) {
+    console.error('[logDeliverableHistory] Failed to insert history:', insertError)
+  }
+}
+
+export async function getDeliverableHistory(
+  deliverableId: string
+): Promise<DeliverableHistoryEntry[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('proposal_deliverable_history')
+    .select('*')
+    .eq('deliverable_id', deliverableId)
+    .order('version', { ascending: false })
+
+  if (error) throw error
+  return (data || []) as DeliverableHistoryEntry[]
+}
+
+// ============================================
+// DFY Counter Response Functions
+// ============================================
+
+export async function acceptCounter(id: string): Promise<ProposalDeliverable> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Get current deliverable to apply counter values
+  const { data: current, error: fetchError } = await supabase
+    .from('proposal_deliverables')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !current) throw new Error('Deliverable not found')
+
+  // Apply counter values as new values
+  const updateData: Record<string, unknown> = {
+    change_status: 'counter_accepted',
+    updated_by: user?.id,
+    updated_at: new Date().toISOString(),
+  }
+
+  // Apply counter name if it exists
+  if (current.counter_name) {
+    updateData.name = current.counter_name
+  }
+  // Apply counter description if it exists
+  if (current.counter_description) {
+    updateData.description = current.counter_description
+  }
+  // Apply counter price if it exists
+  if (current.counter_price !== null) {
+    updateData.price = current.counter_price
+  }
+
+  // Clear counter fields after accepting
+  updateData.counter_name = null
+  updateData.counter_description = null
+  updateData.counter_price = null
+  updateData.counter_note = null
+
+  const { data, error } = await supabase
+    .from('proposal_deliverables')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  // Log history
+  await logDeliverableHistory(id, 'dfy_accepted_counter', 'dfy')
+
+  return data
+}
+
+export async function rejectCounter(id: string, reason?: string): Promise<ProposalDeliverable> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Keep the current values but change status to counter_rejected
+  // This signals to admin they need to re-review
+  const { data, error } = await supabase
+    .from('proposal_deliverables')
+    .update({
+      change_status: 'counter_rejected',
+      updated_by: user?.id,
+      updated_at: new Date().toISOString(),
+      // Keep counter values visible so admin can see what was rejected
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  // Log history
+  await logDeliverableHistory(id, 'dfy_rejected_counter', 'dfy', reason)
+
+  return data
 }

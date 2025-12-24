@@ -48,9 +48,13 @@ interface DeliverablesTabProps {
   reviewDeliverable: (
     id: string,
     decision: 'approved' | 'rejected' | 'countered',
+    counterName?: string,
+    counterDescription?: string,
     counterPrice?: number,
     counterNote?: string
   ) => Promise<void>
+  acceptCounter: (id: string) => Promise<void>
+  rejectCounter: (id: string, reason?: string) => Promise<void>
   bulkApprove: (ids: string[]) => Promise<void>
   finalApprove: () => Promise<void>
   sendBackForRevision: () => Promise<void>
@@ -74,6 +78,8 @@ export function DeliverablesTab({
   withdrawSubmission,
   startReview,
   reviewDeliverable,
+  acceptCounter,
+  rejectCounter,
   bulkApprove,
   finalApprove,
   sendBackForRevision,
@@ -97,7 +103,8 @@ export function DeliverablesTab({
       (d) =>
         d.change_status === 'original' ||
         d.change_status === 'approved' ||
-        d.change_status === 'rejected'
+        d.change_status === 'rejected' ||
+        d.change_status === 'counter_accepted'
     )
 
   // Pending review count
@@ -292,10 +299,13 @@ export function DeliverablesTab({
             deliverables={deliverables}
             isEditable={isEditable}
             isReviewer={isReviewer}
+            isDfyOwner={isDfyOwner}
             onUpdate={updateDeliverable}
             onRemove={removeDeliverable}
             onRevert={revertDeliverable}
             onReview={reviewDeliverable}
+            onAcceptCounter={acceptCounter}
+            onRejectCounter={rejectCounter}
             onBulkApprove={bulkApprove}
             onAddDeliverable={isEditable ? () => setShowAddModal(true) : undefined}
           />

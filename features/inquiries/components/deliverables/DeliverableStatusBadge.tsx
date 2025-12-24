@@ -43,6 +43,16 @@ const STATUS_CONFIG: Record<
     className:
       'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800',
   },
+  counter_accepted: {
+    label: 'Accepted',
+    className:
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+  },
+  counter_rejected: {
+    label: 'Counter Rejected',
+    className:
+      'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+  },
 }
 
 interface DeliverableStatusBadgeProps {
@@ -66,12 +76,22 @@ export function DeliverableStatusBadge({
   )
 }
 
-// Helper to determine if a status needs review
+// Helper to determine if a status needs review by admin
 export function needsReview(status: DeliverableChangeStatus): boolean {
-  return status === 'edited' || status === 'added' || status === 'removed'
+  return (
+    status === 'edited' ||
+    status === 'added' ||
+    status === 'removed' ||
+    status === 'counter_rejected'
+  )
 }
 
 // Helper to determine if a status is final
 export function isFinalStatus(status: DeliverableChangeStatus): boolean {
-  return status === 'approved' || status === 'rejected'
+  return status === 'approved' || status === 'rejected' || status === 'counter_accepted'
+}
+
+// Helper to determine if DFY needs to respond to a counter
+export function needsDfyResponse(status: DeliverableChangeStatus): boolean {
+  return status === 'countered'
 }
