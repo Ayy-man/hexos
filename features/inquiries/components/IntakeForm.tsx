@@ -53,6 +53,7 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
   const [copilotEnabled, setCopilotEnabled] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedPath, setSubmittedPath] = useState<FormPath | null>(null)
+  const [submittedInquiryId, setSubmittedInquiryId] = useState<string | null>(null)
 
   const methods = useForm<IntakeFormState>({
     resolver: zodResolver(baseSchema),
@@ -129,8 +130,9 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
         forward_emails: [data.forward_email_1, data.forward_email_2].filter(Boolean) as string[],
       }
 
-      await submitInquiry(inquiryData)
+      const inquiry = await submitInquiry(inquiryData)
       setSubmittedPath(currentPath)
+      setSubmittedInquiryId(inquiry.id)
       setStep('confirmation')
     } catch (error) {
       console.error('Failed to submit inquiry:', error)
@@ -197,7 +199,7 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
   }
 
   if (step === 'confirmation') {
-    return <ConfirmationScreen isClosedDeal={submittedPath?.startsWith('A') || false} />
+    return <ConfirmationScreen isClosedDeal={submittedPath?.startsWith('A') || false} inquiryId={submittedInquiryId} />
   }
 
   // Only show copilot sidebar on the main detail page

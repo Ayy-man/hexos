@@ -7,9 +7,10 @@ import { Card, CardContent } from '@/components/ui/card'
 
 interface ConfirmationScreenProps {
   isClosedDeal: boolean
+  inquiryId: string | null
 }
 
-export function ConfirmationScreen({ isClosedDeal }: ConfirmationScreenProps) {
+export function ConfirmationScreen({ isClosedDeal, inquiryId }: ConfirmationScreenProps) {
   return (
     <Card className="max-w-lg mx-auto">
       <CardContent className="pt-8 pb-8 text-center">
@@ -31,7 +32,9 @@ export function ConfirmationScreen({ isClosedDeal }: ConfirmationScreenProps) {
 
         <div className="flex justify-center gap-3">
           <Button variant="outline" asChild>
-            <Link href="/inquiries">View My Submissions</Link>
+            <Link href={inquiryId ? `/inquiries/${inquiryId}` : '/inquiries'}>
+              View Submission
+            </Link>
           </Button>
           <Button asChild>
             <Link href="/inquiries/new">Submit Another</Link>
