@@ -177,10 +177,64 @@ export function ProjectForm() {
     resolver: zodResolver(projectSchema),
     defaultValues: { ... }
   })
-  
+
   // ...
 }
 ```
+
+### Long Form Pattern (Card Sections)
+
+For forms with many fields (like CustomProposal), use card-based sections:
+
+```tsx
+// Use FormSection wrapper with icon
+<FormSection icon={Building2} title="Prospect Info" description="Basic details">
+  {/* fields */}
+</FormSection>
+
+// Use OptionCard for important single-select
+<OptionCard
+  value="quick_win"
+  currentValue={watch('build_preference')}
+  onSelect={(v) => setValue('build_preference', v)}
+  icon={Zap}
+  title="Quick Win"
+  description="24-48 hour proposal"
+  fieldName="build_preference"  // Required for AI Copilot
+/>
+
+// Use InlineRadioGroup (pills) for simple choices
+<InlineRadioGroup
+  value={watch('urgency')}
+  onValueChange={(v) => setValue('urgency', v)}
+  fieldName="urgency"  // Required for AI Copilot
+  options={[
+    { value: 'asap', label: '< 7 days' },
+    { value: 'thirty_days', label: '< 30 days' },
+  ]}
+/>
+
+// Use pill toggles for multi-select
+<div data-field="departments_involved">  {/* Required for AI Copilot */}
+  {options.map((opt) => (
+    <button
+      onClick={() => toggleArrayValue('departments_involved', opt, current)}
+      className={cn(
+        'px-3 py-1.5 rounded-full text-sm',
+        selected ? 'bg-primary text-primary-foreground' : 'bg-muted'
+      )}
+    >
+      {opt}
+    </button>
+  ))}
+</div>
+```
+
+**Key rules:**
+1. Always add `data-field` or `fieldName` prop for AI Copilot flash animation
+2. Use grid layouts for related questions (2-3 columns)
+3. Group sections logically with Card + icon headers
+4. Use OptionCards for choices with descriptions, pills for simple yes/no
 
 ## Imports
 

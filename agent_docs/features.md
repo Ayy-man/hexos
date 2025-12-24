@@ -63,6 +63,13 @@ See `inquiry-form.md` for full specification.
   - [x] Token usage tracking displayed in sidebar header
   - [x] Field flash animation (cyan glow when AI fills a field)
   - [x] Compact response format (2-3 lines max)
+- [x] CustomProposal form redesign (Path B3)
+  - [x] Card-based sections with icons for visual hierarchy
+  - [x] OptionCard components for important choices (Build Preference, Problem Importance, Project Tier)
+  - [x] InlineRadioGroup (pill buttons) for simple choices (Budget, Urgency, Engagement)
+  - [x] Pill toggles for multi-select (Departments, Support Level)
+  - [x] Grid layouts for related questions (2-3 columns)
+  - [x] All components have `data-field` attributes for AI Copilot flash animation
 - [ ] Inquiry → Project conversion (closed deals)
 - [x] Inquiries list page (admin/internal see all, dfy sees own)
 - [x] Inquiry detail page (/inquiries/[id])

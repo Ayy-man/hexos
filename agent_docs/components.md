@@ -740,6 +740,110 @@ These components render custom block types in Plate.js editors:
 
 ---
 
+## Intake Form Components
+
+These components power the DFY intake forms with AI Copilot integration:
+
+### CustomProposal (Path B3)
+
+**File:** `features/inquiries/components/steps/CustomProposal.tsx`
+
+**Purpose:** Multi-section form for custom deal proposals with card-based layout.
+
+**Features:**
+- Card sections with icons for visual hierarchy
+- OptionCard for important single-select choices
+- InlineRadioGroup (pill buttons) for simple choices
+- Pill toggles for multi-select (departments, support level)
+- Grid layouts for related questions
+- All components have `data-field` attributes for AI Copilot flash animation
+
+**Internal Components:**
+
+```typescript
+// Visual selection card for important choices
+function OptionCard({
+  value: string
+  currentValue: string
+  onSelect: (value: string) => void
+  title: string
+  description?: string
+  icon?: React.ComponentType
+  fieldName?: string  // For AI Copilot flash animation
+})
+
+// Pill buttons for simple choices
+function InlineRadioGroup({
+  value: string
+  onValueChange: (value: string) => void
+  options: { value: string; label: string }[]
+  fieldName?: string  // For AI Copilot flash animation
+})
+
+// Card wrapper with icon header
+function FormSection({
+  icon: React.ComponentType
+  title: string
+  description?: string
+  children: React.ReactNode
+})
+
+// Question wrapper with label and hint
+function QuestionGroup({
+  label: string
+  hint?: string
+  required?: boolean
+  children: React.ReactNode
+})
+```
+
+**Sections:**
+1. **Prospect Info** — Company name, website, industry
+2. **Build Preference** — Quick Win vs Full Build (OptionCards)
+3. **Lead Qualification** — Relationship, contact role, budget, urgency, engagement, importance
+4. **Process Details** — Departments, workflow, challenges, tasks, goals
+5. **Tech Context** — Current tools, existing automations
+6. **Budget & Timeline** — Revenue, project tier, duration, go-live date
+7. **Support & Notes** — Support level, additional notes
+
+### AI Copilot Integration
+
+**File:** `features/inquiries/components/AICopilotSidebar.tsx`
+
+**Purpose:** AI-powered form filling assistant using OpenRouter API.
+
+**Features:**
+- Paste discovery call notes → AI extracts and fills fields
+- Uses `set_form_field` tool calling to fill form values
+- `go_to_next_step` tool to advance form
+- Token usage display
+- Flash animation on filled fields via `data-field` attribute
+
+**How it works:**
+1. User pastes notes into chat
+2. AI analyzes and calls `set_form_field` for each extractable value
+3. `handleSetField` in IntakeForm calls `setValue(fieldName, value)`
+4. React Hook Form updates state
+5. Flash animation triggers on `[data-field="${fieldName}"]` elements
+
+**API Route:** `app/api/copilot/route.ts`
+- Uses `anthropic/claude-3.5-haiku` via OpenRouter
+- System prompt with field mappings and inference rules
+- `tool_choice: 'required'` to force tool calls
+
+**Important:** Custom form components must include `data-field` attribute for the AI-fill flash animation to work:
+```tsx
+<div data-field="departments_involved">
+  {/* pill buttons */}
+</div>
+
+<OptionCard fieldName="build_preference" ... />
+
+<InlineRadioGroup fieldName="urgency" ... />
+```
+
+---
+
 ## Future Components (Not Yet Available)
 
 These may be added later:
@@ -748,4 +852,3 @@ These may be added later:
 - **Activity Feed** — For project activity log display
 - **Payment Progress** — For milestone payment visualization
 - **Scope Diff Viewer** — For scope change comparisons
-- **AI Chat Panel** — For form copilot sidebar
