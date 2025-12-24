@@ -520,7 +520,9 @@ export async function updateDeliverablesStatus(
   id: string,
   status: DeliverablesNegotiationStatus
 ) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS - status updates are triggered by system actions
+  const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('inquiries')

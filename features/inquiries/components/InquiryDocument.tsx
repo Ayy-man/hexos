@@ -69,32 +69,6 @@ export function InquiryDocument({
   // Track previous discussions to detect changes
   const prevDiscussionsRef = useRef<string>('')
 
-  // Watch for discussion changes and trigger save
-  useEffect(() => {
-    if (readOnly || !onSave) return
-
-    const checkDiscussions = () => {
-      const currentDiscussions = editor.getOption(discussionPlugin, 'discussions') as TDiscussion[]
-      const currentJson = JSON.stringify(currentDiscussions)
-
-      if (prevDiscussionsRef.current && prevDiscussionsRef.current !== currentJson) {
-        // Discussions changed, trigger save
-        setHasChanges(true)
-        if (saveTimeoutRef.current) {
-          clearTimeout(saveTimeoutRef.current)
-        }
-        saveTimeoutRef.current = setTimeout(() => {
-          debouncedSave(editor.children)
-        }, 1500)
-      }
-      prevDiscussionsRef.current = currentJson
-    }
-
-    // Check periodically for discussion changes (comment edits don't trigger onChange)
-    const interval = setInterval(checkDiscussions, 500)
-    return () => clearInterval(interval)
-  }, [editor, readOnly, onSave, debouncedSave])
-
   // Debounced auto-save function
   const debouncedSave = useCallback(
     async (content: unknown) => {
@@ -148,6 +122,31 @@ export function InquiryDocument({
       }
     }
   }, [])
+
+  // Watch for discussion changes and trigger save (comment edits don't trigger onChange)
+  useEffect(() => {
+    if (readOnly || !onSave) return
+
+    const checkDiscussions = () => {
+      const currentDiscussions = editor.getOption(discussionPlugin, 'discussions') as TDiscussion[]
+      const currentJson = JSON.stringify(currentDiscussions)
+
+      if (prevDiscussionsRef.current && prevDiscussionsRef.current !== currentJson) {
+        // Discussions changed, trigger save
+        setHasChanges(true)
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current)
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+          debouncedSave(editor.children)
+        }, 1500)
+      }
+      prevDiscussionsRef.current = currentJson
+    }
+
+    const interval = setInterval(checkDiscussions, 500)
+    return () => clearInterval(interval)
+  }, [editor, readOnly, onSave, debouncedSave])
 
   // Save status indicator
   const SaveStatus = () => {
