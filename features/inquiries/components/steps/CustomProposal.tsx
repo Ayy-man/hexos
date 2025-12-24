@@ -313,43 +313,76 @@ export function CustomProposal() {
           </QuestionGroup>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <QuestionGroup label="Budget Indication" required>
-            <InlineRadioGroup
-              value={watch('budget_indication') || ''}
-              onValueChange={(v) => setValue('budget_indication', v)}
-              fieldName="budget_indication"
-              options={[
+            <div className="flex gap-2" data-field="budget_indication">
+              {[
                 { value: 'specific_number', label: 'Specific $' },
                 { value: 'general_range', label: 'Vague range' },
                 { value: 'no_budget', label: 'No mention' },
-              ]}
-            />
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setValue('budget_indication', opt.value)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap',
+                    watch('budget_indication') === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </QuestionGroup>
 
           <QuestionGroup label="Urgency" required>
-            <InlineRadioGroup
-              value={watch('urgency') || ''}
-              onValueChange={(v) => setValue('urgency', v)}
-              fieldName="urgency"
-              options={[
+            <div className="flex gap-2" data-field="urgency">
+              {[
                 { value: 'asap', label: '< 7 days' },
                 { value: 'thirty_days', label: '< 30 days' },
                 { value: 'exploratory', label: 'No rush' },
-              ]}
-            />
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setValue('urgency', opt.value)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap',
+                    watch('urgency') === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </QuestionGroup>
 
-          <QuestionGroup label="Engagement Level" required>
-            <InlineRadioGroup
-              value={watch('engagement_level') || ''}
-              onValueChange={(v) => setValue('engagement_level', v)}
-              fieldName="engagement_level"
-              options={[
-                { value: 'very_interested', label: 'Very interested' },
+          <QuestionGroup label="Engagement" required>
+            <div className="flex gap-2" data-field="engagement_level">
+              {[
+                { value: 'very_interested', label: 'Interested' },
                 { value: 'passive', label: 'Passive' },
-              ]}
-            />
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setValue('engagement_level', opt.value)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap',
+                    watch('engagement_level') === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </QuestionGroup>
         </div>
 
