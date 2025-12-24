@@ -32,15 +32,21 @@ export async function triggerParseDeliverablesAction(
   await updateDeliverablesStatus(inquiryId, 'parsing')
 
   try {
+    // Build absolute URL - server-side fetch requires full URL
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+
+    if (!baseUrl) {
+      throw new Error('App URL not configured - set NEXT_PUBLIC_APP_URL or VERCEL_URL')
+    }
+
     // Call the parse API
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL || ''}/api/parse-deliverables`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ proposalContent }),
-      }
-    )
+    const response = await fetch(`${baseUrl}/api/parse-deliverables`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalContent }),
+    })
 
     if (!response.ok) {
       throw new Error('Failed to parse deliverables')
