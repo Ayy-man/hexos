@@ -582,13 +582,26 @@ export default async function InquiryDetailPage({
                 <CardContent>
                   <div className="space-y-4">
                     {Object.entries(formData)
-                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type'].includes(key))
+                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type', 'blueprint_id'].includes(key))
                       .map(([key, value]) => {
-                        if (!value || (Array.isArray(value) && value.length === 0)) return null
+                        if (value === null || value === undefined) return null
+                        if (Array.isArray(value) && value.length === 0) return null
 
-                        const displayValue = Array.isArray(value)
-                          ? value.join(', ')
-                          : String(value)
+                        // Handle different value types
+                        let displayValue: string
+                        if (Array.isArray(value)) {
+                          // Handle arrays - filter out non-string items and join
+                          displayValue = value
+                            .filter((item): item is string => typeof item === 'string')
+                            .join(', ')
+                        } else if (typeof value === 'object') {
+                          // Skip objects entirely (they shouldn't be here)
+                          return null
+                        } else if (typeof value === 'boolean') {
+                          displayValue = value ? 'Yes' : 'No'
+                        } else {
+                          displayValue = String(value)
+                        }
 
                         if (!displayValue.trim()) return null
 
