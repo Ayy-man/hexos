@@ -351,6 +351,62 @@ DFY edits → Submits → Admin reviews each item:
   - [x] Auto-transition to 'closed' on project conversion
   - [x] ReopenInquiryButton for admin (hold-to-confirm)
 
+### Phase 4.9: Post-Close Project Management (Next)
+
+After inquiry converts to project, manage it through to delivery.
+
+**Flow:**
+```
+Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → Dev Assigned → In Progress → Delivered
+```
+
+**Who Sees Projects:**
+- Admin: Full access, all projects
+- DFY: Their referred projects (view + sign-off)
+- Dev: Assigned projects only
+
+**Project Detail Page** (`/projects/[id]`) - ClickUp-style horizontal tabs:
+- [ ] Overview tab (status, info, assigned dev, key dates)
+- [ ] Deliverables tab (final list, status per item, source of truth)
+- [ ] Requirements tab (onboarding checklist, auto-track completion)
+- [ ] Files tab (project file storage - docs/PDFs/images)
+- [ ] Activity tab (timeline of all changes)
+
+**Deliverables Sign-off Flow:**
+- [ ] Admin reviews deliverables one last time after conversion
+- [ ] Admin clicks "Send for Sign-off"
+- [ ] DFY receives notification, reviews
+- [ ] DFY clicks "Confirm on behalf of client"
+- [ ] Deliverables locked as source of truth
+- [ ] Copy `proposal_deliverables` → `deliverables` table
+
+**Dev Assignment:**
+- [ ] Admin can assign dev at any point
+- [ ] Dev sees project in `/dashboard/dev`
+- [ ] Assignment triggers stage change
+
+**Onboarding Automation:**
+- [ ] Requirements checklist (already created in wizard)
+- [ ] Track completion status per item
+- [ ] Auto-advance when all items completed
+
+**File Storage:**
+- [ ] Supabase Storage for project files
+- [ ] Organize by project: `project-files/{project_id}/`
+- [ ] Upload UI in Files tab
+- [ ] Support docs, PDFs, images
+
+**Status Transitions (Manual for MVP):**
+- [ ] `created` → `deliverables_confirmed` → `awaiting_signoff` → `signed_off`
+- [ ] `signed_off` → `onboarding` → `in_progress` → `delivered` → `completed`
+- [ ] Manual stage buttons with hold-to-confirm for critical transitions
+
+**Slated for Later:**
+- Agreement/contract phase (see future-features.md)
+- Claude artifact-style proposal pages (see future-features.md)
+- Stripe payment integration
+- Email notifications on stage change
+
 ### Phase 5: External Access
 
 - [ ] Dev portal (assigned projects)

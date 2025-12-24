@@ -154,7 +154,46 @@ CREATE TABLE time_entries (
 );
 ```
 
-### 9. Recurring Projects / Retainers
+### 9. Agreement / Contract Phase
+
+Digital contracts and e-signatures before project kickoff.
+
+**Keep in Mind:**
+- Agreement step between "closed" and "onboarding"
+- E-signature integration (DocuSign, HelloSign, or custom)
+- Contract templates per blueprint
+- Legal review workflow
+
+**Future Flow:**
+```
+Deal Closed → Agreement Generated → Sent for Signature → Signed → Onboarding Begins
+```
+
+### 10. Claude Artifact-Style Proposal Pages
+
+Interactive, rich proposal pages generated as Claude artifacts - like mini-websites that clients can interact with.
+
+**Keep in Mind:**
+- Proposals currently rendered via Plate.js
+- Could generate interactive React components
+- Allow client to configure options, see price updates live
+- Share via public link (already have `/p/[token]`)
+
+**Future Pattern:**
+```typescript
+// AI generates interactive proposal artifact
+const proposalArtifact = await claude.generateArtifact({
+  type: 'proposal_page',
+  data: {
+    deliverables,
+    pricing,
+    options: blueprintTiers
+  }
+})
+// Rendered as interactive page at /p/[token]
+```
+
+### 11. Recurring Projects / Retainers
 
 Monthly retainer management.
 
