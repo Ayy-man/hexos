@@ -111,10 +111,7 @@ export function DeliverableHistory({
     }
   }, [isOpen, hasLoaded, deliverableId, getHistory])
 
-  if (history.length === 0 && !isOpen) {
-    return null
-  }
-
+  // Always show the button - history loads on first click
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
