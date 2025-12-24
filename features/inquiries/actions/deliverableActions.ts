@@ -62,14 +62,25 @@ interface ParsedDeliverable {
 }
 
 async function parseDeliverablesWithAI(proposalContent: unknown): Promise<ParsedDeliverable[]> {
+  // Check API key
   if (!process.env.OPENROUTER_API_KEY) {
+    console.error('[parseDeliverables] OPENROUTER_API_KEY not configured')
     throw new Error('OpenRouter API key not configured')
   }
 
+  // Check proposal content
+  if (!proposalContent) {
+    console.error('[parseDeliverables] proposalContent is null/undefined')
+    throw new Error('No proposal content to parse - admin must write proposal first')
+  }
+
+  // Extract text from Plate.js content
   const deliverablesText = extractDeliverablesSection(proposalContent)
+  console.log('[parseDeliverables] Extracted text length:', deliverablesText?.length || 0)
 
   if (!deliverablesText || deliverablesText.length < 10) {
-    throw new Error('Could not extract deliverables section from proposal')
+    console.error('[parseDeliverables] Extracted text too short:', deliverablesText)
+    throw new Error('Proposal is empty or too short to extract deliverables')
   }
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -124,20 +135,40 @@ async function parseDeliverablesWithAI(proposalContent: unknown): Promise<Parsed
   })
 
   if (!response.ok) {
-    const error = await response.text()
-    console.error('OpenRouter error:', response.status, error)
-    throw new Error(`OpenRouter API error: ${response.status}`)
+    const errorText = await response.text()
+    console.error('[parseDeliverables] OpenRouter error:', response.status, errorText)
+
+    if (response.status === 401) {
+      throw new Error('Invalid OpenRouter API key')
+    }
+    if (response.status === 402) {
+      throw new Error('OpenRouter payment required - check account credits')
+    }
+    if (response.status === 429) {
+      throw new Error('OpenRouter rate limit exceeded - try again later')
+    }
+    throw new Error(`AI service error (${response.status})`)
   }
 
   const data = await response.json()
+  console.log('[parseDeliverables] OpenRouter response received')
 
   const toolCall = data.choices?.[0]?.message?.tool_calls?.[0]
   if (!toolCall || toolCall.function.name !== 'extracted_deliverables') {
+    console.error('[parseDeliverables] No tool call in response:', JSON.stringify(data, null, 2))
     throw new Error('AI did not return structured deliverables')
   }
 
-  const parsed = JSON.parse(toolCall.function.arguments)
+  let parsed: { deliverables: ParsedDeliverable[] }
+  try {
+    parsed = JSON.parse(toolCall.function.arguments)
+  } catch (parseErr) {
+    console.error('[parseDeliverables] Failed to parse tool arguments:', toolCall.function.arguments)
+    throw new Error('Failed to parse AI response')
+  }
+
   const deliverables: ParsedDeliverable[] = parsed.deliverables || []
+  console.log('[parseDeliverables] Extracted', deliverables.length, 'deliverables')
 
   // Clean and validate
   return deliverables
@@ -159,6 +190,8 @@ export async function triggerParseDeliverablesAction(
   inquiryId: string,
   proposalContent: unknown
 ): Promise<ProposalDeliverable[]> {
+  console.log('[triggerParse] Starting for inquiry:', inquiryId)
+
   // Update status to parsing
   await updateDeliverablesStatus(inquiryId, 'parsing')
 
@@ -167,14 +200,18 @@ export async function triggerParseDeliverablesAction(
     const parsedDeliverables = await parseDeliverablesWithAI(proposalContent)
 
     if (!parsedDeliverables.length) {
-      throw new Error('No deliverables extracted')
+      throw new Error('No deliverables extracted from proposal')
     }
+
+    console.log('[triggerParse] Creating', parsedDeliverables.length, 'deliverables in DB')
 
     // Create the deliverables in the database
     const deliverables = await bulkCreateDeliverablesFromAI(
       inquiryId,
       parsedDeliverables
     )
+
+    console.log('[triggerParse] Successfully created deliverables')
 
     // Update status to dfy_editing
     await updateDeliverablesStatus(inquiryId, 'dfy_editing')
@@ -183,6 +220,7 @@ export async function triggerParseDeliverablesAction(
 
     return deliverables
   } catch (error) {
+    console.error('[triggerParse] Error:', error)
     // Reset status on error
     await updateDeliverablesStatus(inquiryId, 'none')
     throw error
