@@ -17,6 +17,7 @@ import { needsReview } from './DeliverableStatusBadge'
 import type {
   ProposalDeliverable,
   UpdateDeliverableInput,
+  DeliverableHistoryEntry,
 } from '@/lib/api/proposal-deliverables'
 
 interface DeliverablesTableProps {
@@ -37,6 +38,7 @@ interface DeliverablesTableProps {
   ) => Promise<void>
   onAcceptCounter?: (id: string) => Promise<void>
   onRejectCounter?: (id: string, reason?: string) => Promise<void>
+  onGetHistory?: (id: string) => Promise<DeliverableHistoryEntry[]>
   onBulkApprove?: (ids: string[]) => Promise<void>
   onAddDeliverable?: () => void
   onOpenComments?: (id: string) => void
@@ -54,6 +56,7 @@ export function DeliverablesTable({
   onReview,
   onAcceptCounter,
   onRejectCounter,
+  onGetHistory,
   onBulkApprove,
   onAddDeliverable,
   onOpenComments,
@@ -196,6 +199,7 @@ export function DeliverablesTable({
                 onReview={onReview}
                 onAcceptCounter={onAcceptCounter}
                 onRejectCounter={onRejectCounter}
+                onGetHistory={onGetHistory}
                 onOpenComments={onOpenComments}
               />
             ))}

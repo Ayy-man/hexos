@@ -55,6 +55,7 @@ import {
   reviewDeliverableAction,
   acceptCounterAction,
   rejectCounterAction,
+  getDeliverableHistoryAction,
   bulkApproveDeliverablesAction,
   finalApproveDeliverablesAction,
   sendBackForRevisionAction,
@@ -389,6 +390,11 @@ export default async function InquiryDetailPage({
   const boundRejectCounter = async (deliverableId: string, reason?: string) => {
     'use server'
     await rejectCounterAction(deliverableId, id, reason)
+  }
+
+  const boundGetHistory = async (deliverableId: string) => {
+    'use server'
+    return getDeliverableHistoryAction(deliverableId)
   }
 
   const boundBulkApprove = async (deliverableIds: string[]) => {
@@ -879,6 +885,7 @@ export default async function InquiryDetailPage({
               reviewDeliverable={boundReviewDeliverable}
               acceptCounter={boundAcceptCounter}
               rejectCounter={boundRejectCounter}
+              getHistory={boundGetHistory}
               bulkApprove={boundBulkApprove}
               finalApprove={boundFinalApprove}
               sendBackForRevision={boundSendBackForRevision}

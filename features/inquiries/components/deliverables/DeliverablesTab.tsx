@@ -18,7 +18,7 @@ import {
 import { toast } from 'sonner'
 import { DeliverablesTable } from './DeliverablesTable'
 import { AddDeliverableModal } from './AddDeliverableModal'
-import type { ProposalDeliverable, UpdateDeliverableInput } from '@/lib/api/proposal-deliverables'
+import type { ProposalDeliverable, UpdateDeliverableInput, DeliverableHistoryEntry } from '@/lib/api/proposal-deliverables'
 import type { DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
 import type { BlueprintSummary } from '@/lib/api/blueprints'
 
@@ -55,6 +55,7 @@ interface DeliverablesTabProps {
   ) => Promise<void>
   acceptCounter: (id: string) => Promise<void>
   rejectCounter: (id: string, reason?: string) => Promise<void>
+  getHistory: (id: string) => Promise<DeliverableHistoryEntry[]>
   bulkApprove: (ids: string[]) => Promise<void>
   finalApprove: () => Promise<void>
   sendBackForRevision: () => Promise<void>
@@ -80,6 +81,7 @@ export function DeliverablesTab({
   reviewDeliverable,
   acceptCounter,
   rejectCounter,
+  getHistory,
   bulkApprove,
   finalApprove,
   sendBackForRevision,
@@ -306,6 +308,7 @@ export function DeliverablesTab({
             onReview={reviewDeliverable}
             onAcceptCounter={acceptCounter}
             onRejectCounter={rejectCounter}
+            onGetHistory={getHistory}
             onBulkApprove={bulkApprove}
             onAddDeliverable={isEditable ? () => setShowAddModal(true) : undefined}
           />

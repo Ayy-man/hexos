@@ -27,7 +27,8 @@ import { DeliverableDiff, PriceDiff } from './DeliverableDiff'
 import { DeliverableStatusBadge, needsReview } from './DeliverableStatusBadge'
 import { CounterOfferDialog } from './CounterOfferDialog'
 import { CounterResponseCard } from './CounterResponseCard'
-import type { ProposalDeliverable, UpdateDeliverableInput } from '@/lib/api/proposal-deliverables'
+import { DeliverableHistory } from './DeliverableHistory'
+import type { ProposalDeliverable, UpdateDeliverableInput, DeliverableHistoryEntry } from '@/lib/api/proposal-deliverables'
 
 interface DeliverableRowProps {
   deliverable: ProposalDeliverable
@@ -48,6 +49,7 @@ interface DeliverableRowProps {
   ) => Promise<void>
   onAcceptCounter?: (id: string) => Promise<void>
   onRejectCounter?: (id: string, reason?: string) => Promise<void>
+  onGetHistory?: (id: string) => Promise<DeliverableHistoryEntry[]>
   onOpenComments?: (id: string) => void
 }
 
@@ -63,6 +65,7 @@ export function DeliverableRow({
   onReview,
   onAcceptCounter,
   onRejectCounter,
+  onGetHistory,
   onOpenComments,
 }: DeliverableRowProps) {
   const [isEditing, setIsEditing] = useState(false)
@@ -181,15 +184,24 @@ export function DeliverableRow({
             className="h-8"
           />
         ) : (
-          <div className={cn(isRemoved && 'line-through')}>
-            {deliverable.original_name &&
-            deliverable.original_name !== deliverable.name ? (
-              <DeliverableDiff
-                originalValue={deliverable.original_name}
-                currentValue={deliverable.name}
+          <div className="space-y-1">
+            <div className={cn(isRemoved && 'line-through')}>
+              {deliverable.original_name &&
+              deliverable.original_name !== deliverable.name ? (
+                <DeliverableDiff
+                  originalValue={deliverable.original_name}
+                  currentValue={deliverable.name}
+                />
+              ) : (
+                deliverable.name
+              )}
+            </div>
+            {/* History timeline */}
+            {onGetHistory && (
+              <DeliverableHistory
+                deliverableId={deliverable.id}
+                getHistory={onGetHistory}
               />
-            ) : (
-              deliverable.name
             )}
           </div>
         )}
