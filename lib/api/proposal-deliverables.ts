@@ -180,8 +180,9 @@ export async function createProposalDeliverable(
   if (error) throw error
 
   // Log history for new deliverable
-  const action = input.source === 'ai_parsed' ? 'created' : 'dfy_added'
-  await logDeliverableHistory(data.id, action, input.source === 'ai_parsed' ? 'system' : 'dfy')
+  const action: HistoryAction = input.source === 'ai_parsed' ? 'created' : 'dfy_added'
+  const actorRole: 'dfy' | 'admin' | 'system' = input.source === 'ai_parsed' ? 'system' : 'dfy'
+  await insertHistory(supabase, data.id, data, action, user?.id || null, actorRole)
 
   return data
 }
@@ -225,7 +226,7 @@ export async function bulkCreateDeliverablesFromAI(
   // Log history for each created deliverable
   if (data) {
     await Promise.all(
-      data.map((d) => logDeliverableHistory(d.id, 'created', 'system'))
+      data.map((d) => insertHistory(supabase, d.id, d, 'created', user?.id || null, 'system'))
     )
   }
 
@@ -278,7 +279,7 @@ export async function bulkCreateFromBlueprintTier(
   // Log history for each created deliverable
   if (data) {
     await Promise.all(
-      data.map((d) => logDeliverableHistory(d.id, 'dfy_added', 'dfy'))
+      data.map((d) => insertHistory(supabase, d.id, d, 'dfy_added', user?.id || null, 'dfy'))
     )
   }
 
@@ -380,9 +381,8 @@ export async function updateProposalDeliverable(
   // Log history if this was an actual edit (not just status/counter update)
   console.log('[updateProposalDeliverable] isEdit:', isEdit, 'for deliverable:', id)
   if (isEdit) {
-    console.log('[updateProposalDeliverable] Calling logDeliverableHistory...')
-    await logDeliverableHistory(id, 'dfy_edited', 'dfy')
-    console.log('[updateProposalDeliverable] logDeliverableHistory complete')
+    console.log('[updateProposalDeliverable] Calling insertHistory...')
+    await insertHistory(supabase, id, data, 'dfy_edited', user?.id || null, 'dfy')
   }
 
   return data
@@ -423,7 +423,7 @@ export async function revertDeliverable(id: string): Promise<ProposalDeliverable
   if (error) throw error
 
   // Log history for revert
-  await logDeliverableHistory(id, 'reverted', 'dfy')
+  await insertHistory(supabase, id, data, 'reverted', user?.id || null, 'dfy')
 
   return data
 }
@@ -483,7 +483,7 @@ export async function reviewDeliverable(
     rejected: 'int_rejected',
     countered: 'int_countered',
   } as const
-  await logDeliverableHistory(id, actionMap[decision], 'admin', counterNote)
+  await insertHistory(supabase, id, data, actionMap[decision], user?.id || null, 'admin', counterNote)
 
   return data
 }
@@ -542,7 +542,7 @@ export async function markDeliverableRemoved(id: string): Promise<ProposalDelive
   if (error) throw error
 
   // Log history for removal
-  await logDeliverableHistory(id, 'dfy_removed', 'dfy')
+  await insertHistory(supabase, id, data, 'dfy_removed', user?.id || null, 'dfy')
 
   return data
 }
@@ -656,73 +656,50 @@ export async function getDeliverablesSummary(inquiryId: string): Promise<{
 // History Functions
 // ============================================
 
-export async function logDeliverableHistory(
+// Helper to insert history - takes supabase client as param to use the same authenticated client
+async function insertHistory(
+  supabase: Awaited<ReturnType<typeof createClient>>,
   deliverableId: string,
+  deliverable: ProposalDeliverable,
   action: HistoryAction,
+  actorId: string | null,
   actorRole: 'dfy' | 'admin' | 'system',
   note?: string
 ): Promise<void> {
-  try {
-    // Use admin client to bypass RLS - history logging is a system operation
-    const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
-    const adminSupabase = createAdminClient()
+  // Get next version number
+  const { data: lastVersion } = await supabase
+    .from('proposal_deliverable_history')
+    .select('version')
+    .eq('deliverable_id', deliverableId)
+    .order('version', { ascending: false })
+    .limit(1)
+    .single()
 
-    // Get user ID from regular client for audit trail
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+  const nextVersion = (lastVersion?.version || 0) + 1
 
-    // Get current deliverable state
-    const { data: deliverable, error: fetchError } = await adminSupabase
-      .from('proposal_deliverables')
-      .select('*')
-      .eq('id', deliverableId)
-      .single()
+  console.log('[insertHistory] Inserting version', nextVersion, 'for', deliverableId, 'action:', action)
 
-    if (fetchError || !deliverable) {
-      console.error('[logDeliverableHistory] Failed to fetch deliverable:', fetchError)
-      return
-    }
+  const { error } = await supabase.from('proposal_deliverable_history').insert({
+    deliverable_id: deliverableId,
+    version: nextVersion,
+    name: deliverable.name,
+    description: deliverable.description,
+    price: deliverable.price,
+    change_status: deliverable.change_status,
+    counter_name: deliverable.counter_name,
+    counter_description: deliverable.counter_description,
+    counter_price: deliverable.counter_price,
+    counter_note: deliverable.counter_note,
+    action,
+    actor_id: actorId,
+    actor_role: actorRole,
+    note: note || null,
+  })
 
-    // Get next version number
-    const { data: lastVersion } = await adminSupabase
-      .from('proposal_deliverable_history')
-      .select('version')
-      .eq('deliverable_id', deliverableId)
-      .order('version', { ascending: false })
-      .limit(1)
-      .single()
-
-    const nextVersion = (lastVersion?.version || 0) + 1
-
-    console.log('[logDeliverableHistory] Inserting version', nextVersion, 'for deliverable', deliverableId, 'action:', action)
-
-    const { error: insertError } = await adminSupabase.from('proposal_deliverable_history').insert({
-      deliverable_id: deliverableId,
-      version: nextVersion,
-      name: deliverable.name,
-      description: deliverable.description,
-      price: deliverable.price,
-      change_status: deliverable.change_status,
-      counter_name: deliverable.counter_name,
-      counter_description: deliverable.counter_description,
-      counter_price: deliverable.counter_price,
-      counter_note: deliverable.counter_note,
-      action,
-      actor_id: user?.id || null,
-      actor_role: actorRole,
-      note,
-    })
-
-    if (insertError) {
-      console.error('[logDeliverableHistory] Failed to insert history:', insertError)
-    } else {
-      console.log('[logDeliverableHistory] Successfully inserted version', nextVersion)
-    }
-  } catch (err) {
-    // Don't let history logging crash the main operation
-    console.error('[logDeliverableHistory] Error:', err)
+  if (error) {
+    console.error('[insertHistory] FAILED:', error.message, error.details, error.hint)
+  } else {
+    console.log('[insertHistory] SUCCESS: version', nextVersion)
   }
 }
 
@@ -796,7 +773,7 @@ export async function acceptCounter(id: string): Promise<ProposalDeliverable> {
   if (error) throw error
 
   // Log history
-  await logDeliverableHistory(id, 'dfy_accepted_counter', 'dfy')
+  await insertHistory(supabase, id, data, 'dfy_accepted_counter', user?.id || null, 'dfy')
 
   return data
 }
@@ -824,7 +801,7 @@ export async function rejectCounter(id: string, reason?: string): Promise<Propos
   if (error) throw error
 
   // Log history
-  await logDeliverableHistory(id, 'dfy_rejected_counter', 'dfy', reason)
+  await insertHistory(supabase, id, data, 'dfy_rejected_counter', user?.id || null, 'dfy', reason)
 
   return data
 }
