@@ -44,6 +44,7 @@ interface DeliverablesTabProps {
   revertDeliverable: (id: string) => Promise<void>
   submitForReview: () => Promise<void>
   withdrawSubmission: () => Promise<void>
+  startReview: () => Promise<void>
   reviewDeliverable: (
     id: string,
     decision: 'approved' | 'rejected' | 'countered',
@@ -71,6 +72,7 @@ export function DeliverablesTab({
   revertDeliverable,
   submitForReview,
   withdrawSubmission,
+  startReview,
   reviewDeliverable,
   bulkApprove,
   finalApprove,
@@ -87,6 +89,7 @@ export function DeliverablesTab({
   const isReviewer = isAdmin && deliverablesStatus === 'int_reviewing'
   const canSubmit = isDfyOwner && isEditable && deliverables.length > 0
   const canWithdraw = isDfyOwner && deliverablesStatus === 'dfy_submitted'
+  const canStartReview = isAdmin && deliverablesStatus === 'dfy_submitted'
   const canFinalApprove =
     isAdmin &&
     deliverablesStatus === 'int_reviewing' &&
@@ -146,6 +149,19 @@ export function DeliverablesTab({
       } catch (error) {
         console.error('Withdraw error:', error)
         toast.error('Failed to withdraw submission')
+      }
+    })
+  }
+
+  // Handle start review (admin)
+  const handleStartReview = () => {
+    startSubmitTransition(async () => {
+      try {
+        await startReview()
+        toast.success('Review started - you can now approve/reject changes')
+      } catch (error) {
+        console.error('Start review error:', error)
+        toast.error('Failed to start review')
       }
     })
   }
@@ -309,7 +325,15 @@ export function DeliverablesTab({
           </Button>
         )}
 
-        {/* INT Actions */}
+        {/* INT Start Review */}
+        {canStartReview && (
+          <Button onClick={handleStartReview} disabled={isSubmitting}>
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Start Review
+          </Button>
+        )}
+
+        {/* INT Actions (during review) */}
         {isAdmin && deliverablesStatus === 'int_reviewing' && (
           <>
             <Button variant="outline" onClick={handleSendBack} disabled={isSubmitting}>

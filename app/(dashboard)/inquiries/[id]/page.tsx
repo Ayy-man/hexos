@@ -51,6 +51,7 @@ import {
   addFromBlueprintTierAction,
   submitDeliverablesForReviewAction,
   withdrawDeliverablesSubmissionAction,
+  startReviewAction,
   reviewDeliverableAction,
   bulkApproveDeliverablesAction,
   finalApproveDeliverablesAction,
@@ -351,6 +352,11 @@ export default async function InquiryDetailPage({
   const boundWithdrawDeliverables = async () => {
     'use server'
     await withdrawDeliverablesSubmissionAction(id)
+  }
+
+  const boundStartReview = async () => {
+    'use server'
+    await startReviewAction(id)
   }
 
   const boundReviewDeliverable = async (
@@ -847,6 +853,7 @@ export default async function InquiryDetailPage({
               revertDeliverable={boundRevertDeliverable}
               submitForReview={boundSubmitDeliverables}
               withdrawSubmission={boundWithdrawDeliverables}
+              startReview={boundStartReview}
               reviewDeliverable={boundReviewDeliverable}
               bulkApprove={boundBulkApprove}
               finalApprove={boundFinalApprove}
