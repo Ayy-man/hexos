@@ -306,6 +306,7 @@ DFY edits → Submits → Admin reviews each item:
 - [x] Database: Deliverables columns
   - [x] counter_name, counter_description, counter_price, counter_note
   - [x] change_status includes: counter_accepted, counter_rejected
+  - [x] Auto-reset to 'edited' when DFY modifies approved/rejected items
 - [x] Database: Project modification
   - [x] source_inquiry_id column linking project to source inquiry
 - [x] API Layer
@@ -313,7 +314,8 @@ DFY edits → Submits → Admin reviews each item:
   - [x] lib/api/project-requirements.ts - Requirements CRUD
   - [x] Inquiry conversion functions (markAsClosed, convertToProject)
   - [x] acceptCounter(), rejectCounter() - DFY counter response
-  - [x] logDeliverableHistory(), getDeliverableHistory() - Version tracking
+  - [x] insertHistory() helper - Version tracking (uses same auth client)
+  - [x] getDeliverableHistory() - Fetch version history
 - [x] AI Parser
   - [x] Direct OpenRouter call from server action (Claude Haiku)
   - [x] Plate.js to plain text converter
