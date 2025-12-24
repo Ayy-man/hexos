@@ -659,13 +659,18 @@ export async function logDeliverableHistory(
   actorRole: 'dfy' | 'admin' | 'system',
   note?: string
 ): Promise<void> {
+  // Use admin client to bypass RLS - history logging is a system operation
+  const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
+  const adminSupabase = createAdminClient()
+
+  // Get user ID from regular client for audit trail
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   // Get current deliverable state
-  const { data: deliverable, error: fetchError } = await supabase
+  const { data: deliverable, error: fetchError } = await adminSupabase
     .from('proposal_deliverables')
     .select('*')
     .eq('id', deliverableId)
@@ -677,7 +682,7 @@ export async function logDeliverableHistory(
   }
 
   // Get next version number
-  const { data: lastVersion } = await supabase
+  const { data: lastVersion } = await adminSupabase
     .from('proposal_deliverable_history')
     .select('version')
     .eq('deliverable_id', deliverableId)
@@ -687,7 +692,7 @@ export async function logDeliverableHistory(
 
   const nextVersion = (lastVersion?.version || 0) + 1
 
-  const { error: insertError } = await supabase.from('proposal_deliverable_history').insert({
+  const { error: insertError } = await adminSupabase.from('proposal_deliverable_history').insert({
     deliverable_id: deliverableId,
     version: nextVersion,
     name: deliverable.name,
@@ -699,7 +704,7 @@ export async function logDeliverableHistory(
     counter_price: deliverable.counter_price,
     counter_note: deliverable.counter_note,
     action,
-    actor_id: user?.id,
+    actor_id: user?.id || null,
     actor_role: actorRole,
     note,
   })
