@@ -21,6 +21,7 @@ interface PublicProposal {
   estimated_value: number | null
   pricing_notes: string | null
   blueprint: BlueprintData | BlueprintData[] | null
+  partner: { logo_url: string | null } | { logo_url: string | null }[] | null
   created_at: string
 }
 
@@ -33,6 +34,12 @@ export function PublicProposalView({ proposal }: PublicProposalViewProps) {
   const blueprint: BlueprintData | null = Array.isArray(proposal.blueprint)
     ? proposal.blueprint[0] || null
     : proposal.blueprint
+
+  // Normalize partner - Supabase may return array for joins
+  const partner = Array.isArray(proposal.partner)
+    ? proposal.partner[0] || null
+    : proposal.partner
+  const partnerLogo = partner?.logo_url || null
 
   const hasContent = proposal.document_content &&
     Array.isArray(proposal.document_content) &&
@@ -73,6 +80,7 @@ export function PublicProposalView({ proposal }: PublicProposalViewProps) {
                 estimated_value: proposal.estimated_value,
                 pricing_notes: proposal.pricing_notes,
                 blueprint: blueprint,
+                partnerLogo: partnerLogo,
               }}
               documentContent={proposal.document_content}
             />

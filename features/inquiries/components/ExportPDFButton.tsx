@@ -15,6 +15,7 @@ interface ExportPDFButtonProps {
     estimated_value: number | null
     pricing_notes: string | null
     blueprint: { name: string; description: string | null } | null
+    partnerLogo?: string | null
   }
   documentContent: unknown
   variant?: 'default' | 'outline' | 'ghost'

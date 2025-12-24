@@ -6,6 +6,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from '@react-pdf/renderer'
 import { format } from 'date-fns'
@@ -23,6 +24,12 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     borderBottom: '2px solid #0891b2',
     paddingBottom: 20,
+  },
+  partnerLogo: {
+    maxWidth: 150,
+    maxHeight: 50,
+    marginBottom: 16,
+    objectFit: 'contain' as const,
   },
   headerTitle: {
     fontSize: 10,
@@ -126,6 +133,7 @@ interface ProposalPDFProps {
     estimated_value: number | null
     pricing_notes: string | null
     blueprint: { name: string; description: string | null } | null
+    partnerLogo?: string | null
   }
   documentContent: unknown
 }
@@ -149,6 +157,9 @@ export function ProposalPDF({ proposal, documentContent }: ProposalPDFProps) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
+          {proposal.partnerLogo && (
+            <Image src={proposal.partnerLogo} style={styles.partnerLogo} />
+          )}
           <Text style={styles.headerTitle}>Proposal</Text>
           <Text style={styles.companyName}>
             {proposal.prospect_company_name || 'Your Project'}

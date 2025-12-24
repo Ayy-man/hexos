@@ -321,6 +321,7 @@ export async function getInquiryByPublicToken(token: string) {
       estimated_value,
       pricing_notes,
       blueprint:blueprints(name, description, pricing_tiers),
+      partner:profiles!submitted_by(logo_url),
       created_at,
       client_view_count
     `)
