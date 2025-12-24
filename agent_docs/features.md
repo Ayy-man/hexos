@@ -263,6 +263,8 @@ Admin-to-DFY proposal workflow with private DFY workspace.
 
 ### Phase 4.8: Deliverables Negotiation System (Complete)
 
+> **TODO:** The Deliverables Tab UI needs significant improvement. Current implementation is functional but rough. Will revisit for better UX - cleaner table design, better visual hierarchy, improved diff display, smoother editing flow.
+
 Two-entry system for managing deliverables between DFY partners and Internal team.
 
 **Entry A (Pre-Close):** DFY suggests changes to proposal deliverables
