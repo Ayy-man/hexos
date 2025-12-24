@@ -252,7 +252,8 @@ Admin-to-DFY proposal workflow with private DFY workspace.
 
 **P1 Features:**
 - [x] Public proposal link (client view at /p/[token])
-- [ ] PDF export
+- [x] PDF export (@react-pdf/renderer with Plate.js conversion)
+- [x] DFY logo upload (settings page, appears on PDF exports)
 - [ ] Email notifications on stage change
 - [ ] DFY quick edit on proposal
 
