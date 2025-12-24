@@ -679,6 +679,7 @@ async function insertHistory(
 
   console.log('[insertHistory] Inserting version', nextVersion, 'for', deliverableId, 'action:', action)
 
+  // Only insert core fields - counter fields may not exist in production
   const { error } = await supabase.from('proposal_deliverable_history').insert({
     deliverable_id: deliverableId,
     version: nextVersion,
@@ -686,10 +687,6 @@ async function insertHistory(
     description: deliverable.description,
     price: deliverable.price,
     change_status: deliverable.change_status,
-    counter_name: deliverable.counter_name,
-    counter_description: deliverable.counter_description,
-    counter_price: deliverable.counter_price,
-    counter_note: deliverable.counter_note,
     action,
     actor_id: actorId,
     actor_role: actorRole,
