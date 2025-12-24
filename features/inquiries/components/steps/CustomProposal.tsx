@@ -1,24 +1,26 @@
 'use client'
 
 import { useFormContext } from 'react-hook-form'
+import { format } from 'date-fns'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import {
   Building2,
   Users,
   Wallet,
-  Clock,
   Zap,
   Settings,
   MessageSquare,
-  Target,
   Briefcase,
-  CalendarDays,
+  CalendarIcon,
   Wrench,
 } from 'lucide-react'
 import {
@@ -585,14 +587,35 @@ export function CustomProposal() {
           </QuestionGroup>
 
           <div className="space-y-2">
-            <Label htmlFor="go_live_date">
+            <Label>
               Preferred Go-Live Date <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="go_live_date"
-              placeholder="e.g., End of January, Before Feb 15 launch"
-              {...register('go_live_date')}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  data-field="go_live_date"
+                  className={cn(
+                    'w-full justify-start text-left font-normal',
+                    !watch('go_live_date') && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {watch('go_live_date')
+                    ? format(new Date(watch('go_live_date')), 'PPP')
+                    : 'Pick a date'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={watch('go_live_date') ? new Date(watch('go_live_date')) : undefined}
+                  onSelect={(date) => setValue('go_live_date', date ? date.toISOString() : '')}
+                  disabled={(date) => date < new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </FormSection>
