@@ -263,8 +263,6 @@ Admin-to-DFY proposal workflow with private DFY workspace.
 
 ### Phase 4.8: Deliverables Negotiation System (Complete)
 
-> **TODO:** The Deliverables Tab UI needs significant improvement. Current implementation is functional but rough. Will revisit for better UX - cleaner table design, better visual hierarchy, improved diff display, smoother editing flow.
-
 Two-entry system for managing deliverables between DFY partners and Internal team.
 
 **Entry A (Pre-Close):** DFY suggests changes to proposal deliverables
@@ -285,32 +283,53 @@ DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
 - `lost` - Deal lost, no conversion
 - Admin can reopen closed/lost inquiries via hold-to-confirm button
 
+**Multi-Round Negotiation Flow:**
+```
+DFY edits → Submits → Admin reviews each item:
+  - Approve → Item approved
+  - Reject → Item rejected
+  - Counter (name/desc/price) → DFY responds:
+    - Accept Counter → Values applied, item marked counter_accepted
+    - Reject Counter → Item needs re-review (counter_rejected)
+    - Edit Again → DFY makes new edits, resubmits
+→ All items resolved → Admin clicks "Final Approve" → Deliverables locked
+```
+
 - [x] Database: New tables
   - [x] proposal_deliverables - Negotiated deliverables linked to inquiry
   - [x] proposal_deliverable_comments - Per-deliverable discussion
+  - [x] proposal_deliverable_history - Version history with audit trail
   - [x] project_requirements - Onboarding checklist items
 - [x] Database: Inquiry modifications
   - [x] deliverables_status enum (none, parsing, dfy_editing, dfy_submitted, int_reviewing, approved, needs_revision)
   - [x] closed_at, closed_by, closed_notes, client_email columns
+- [x] Database: Deliverables columns
+  - [x] counter_name, counter_description, counter_price, counter_note
+  - [x] change_status includes: counter_accepted, counter_rejected
 - [x] Database: Project modification
   - [x] source_inquiry_id column linking project to source inquiry
 - [x] API Layer
-  - [x] lib/api/proposal-deliverables.ts - Deliverables CRUD
+  - [x] lib/api/proposal-deliverables.ts - Deliverables CRUD + counter response
   - [x] lib/api/project-requirements.ts - Requirements CRUD
   - [x] Inquiry conversion functions (markAsClosed, convertToProject)
+  - [x] acceptCounter(), rejectCounter() - DFY counter response
+  - [x] logDeliverableHistory(), getDeliverableHistory() - Version tracking
 - [x] AI Parser
-  - [x] app/api/parse-deliverables/route.ts (OpenRouter + Claude Haiku)
+  - [x] Direct OpenRouter call from server action (Claude Haiku)
   - [x] Plate.js to plain text converter
 - [x] Deliverables Components
   - [x] DeliverablesTab.tsx - Main orchestrator
   - [x] DeliverablesTable.tsx - Editable table with diff display
-  - [x] DeliverableRow.tsx - Single row with inline editing
-  - [x] DeliverableDiff.tsx - Strikethrough/highlight diff
+  - [x] DeliverableRow.tsx - Single row with inline editing + history
+  - [x] DeliverableDiff.tsx - Strikethrough/highlight diff + counter values
+  - [x] DeliverableStatusBadge.tsx - All statuses including counter_accepted/rejected
+  - [x] CounterOfferDialog.tsx - Admin counter with name/desc/price fields
+  - [x] CounterResponseCard.tsx - DFY accept/reject/edit counter UI
+  - [x] DeliverableHistory.tsx - Expandable version timeline (v1, v2, v3...)
   - [x] AddDeliverableModal.tsx - Modal: blueprint tier OR custom
   - [x] BlueprintTierSelector.tsx - Blueprint → tier picker
-  - [x] ReviewPanel.tsx - INT review UI with per-line decisions
 - [x] Server Actions
-  - [x] deliverableActions.ts - All deliverable CRUD + review actions
+  - [x] deliverableActions.ts - All deliverable CRUD + review + counter actions
   - [x] conversionActions.ts - Close deal + convert to project
 - [x] Conversion Components
   - [x] MarkAsClosedButton.tsx - DFY action with hold-to-confirm
@@ -322,6 +341,7 @@ DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
 - [x] RLS Policies
   - [x] DFY can update own inquiries (for dfy_version_content)
   - [x] Proposal deliverables access policies
+  - [x] Proposal deliverable history access policies
   - [x] Project requirements access policies
 - [x] Pipeline Stages
   - [x] Added 'closed' and 'lost' stages to proposal_stage enum
