@@ -378,8 +378,11 @@ export async function updateProposalDeliverable(
   if (error) throw error
 
   // Log history if this was an actual edit (not just status/counter update)
+  console.log('[updateProposalDeliverable] isEdit:', isEdit, 'for deliverable:', id)
   if (isEdit) {
+    console.log('[updateProposalDeliverable] Calling logDeliverableHistory...')
     await logDeliverableHistory(id, 'dfy_edited', 'dfy')
+    console.log('[updateProposalDeliverable] logDeliverableHistory complete')
   }
 
   return data
@@ -659,58 +662,67 @@ export async function logDeliverableHistory(
   actorRole: 'dfy' | 'admin' | 'system',
   note?: string
 ): Promise<void> {
-  // Use admin client to bypass RLS - history logging is a system operation
-  const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
-  const adminSupabase = createAdminClient()
+  try {
+    // Use admin client to bypass RLS - history logging is a system operation
+    const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
+    const adminSupabase = createAdminClient()
 
-  // Get user ID from regular client for audit trail
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    // Get user ID from regular client for audit trail
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  // Get current deliverable state
-  const { data: deliverable, error: fetchError } = await adminSupabase
-    .from('proposal_deliverables')
-    .select('*')
-    .eq('id', deliverableId)
-    .single()
+    // Get current deliverable state
+    const { data: deliverable, error: fetchError } = await adminSupabase
+      .from('proposal_deliverables')
+      .select('*')
+      .eq('id', deliverableId)
+      .single()
 
-  if (fetchError || !deliverable) {
-    console.error('[logDeliverableHistory] Failed to fetch deliverable:', fetchError)
-    return
-  }
+    if (fetchError || !deliverable) {
+      console.error('[logDeliverableHistory] Failed to fetch deliverable:', fetchError)
+      return
+    }
 
-  // Get next version number
-  const { data: lastVersion } = await adminSupabase
-    .from('proposal_deliverable_history')
-    .select('version')
-    .eq('deliverable_id', deliverableId)
-    .order('version', { ascending: false })
-    .limit(1)
-    .single()
+    // Get next version number
+    const { data: lastVersion } = await adminSupabase
+      .from('proposal_deliverable_history')
+      .select('version')
+      .eq('deliverable_id', deliverableId)
+      .order('version', { ascending: false })
+      .limit(1)
+      .single()
 
-  const nextVersion = (lastVersion?.version || 0) + 1
+    const nextVersion = (lastVersion?.version || 0) + 1
 
-  const { error: insertError } = await adminSupabase.from('proposal_deliverable_history').insert({
-    deliverable_id: deliverableId,
-    version: nextVersion,
-    name: deliverable.name,
-    description: deliverable.description,
-    price: deliverable.price,
-    change_status: deliverable.change_status,
-    counter_name: deliverable.counter_name,
-    counter_description: deliverable.counter_description,
-    counter_price: deliverable.counter_price,
-    counter_note: deliverable.counter_note,
-    action,
-    actor_id: user?.id || null,
-    actor_role: actorRole,
-    note,
-  })
+    console.log('[logDeliverableHistory] Inserting version', nextVersion, 'for deliverable', deliverableId, 'action:', action)
 
-  if (insertError) {
-    console.error('[logDeliverableHistory] Failed to insert history:', insertError)
+    const { error: insertError } = await adminSupabase.from('proposal_deliverable_history').insert({
+      deliverable_id: deliverableId,
+      version: nextVersion,
+      name: deliverable.name,
+      description: deliverable.description,
+      price: deliverable.price,
+      change_status: deliverable.change_status,
+      counter_name: deliverable.counter_name,
+      counter_description: deliverable.counter_description,
+      counter_price: deliverable.counter_price,
+      counter_note: deliverable.counter_note,
+      action,
+      actor_id: user?.id || null,
+      actor_role: actorRole,
+      note,
+    })
+
+    if (insertError) {
+      console.error('[logDeliverableHistory] Failed to insert history:', insertError)
+    } else {
+      console.log('[logDeliverableHistory] Successfully inserted version', nextVersion)
+    }
+  } catch (err) {
+    // Don't let history logging crash the main operation
+    console.error('[logDeliverableHistory] Error:', err)
   }
 }
 
