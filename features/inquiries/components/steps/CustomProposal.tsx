@@ -36,6 +36,7 @@ function OptionCard({
   title,
   description,
   icon: Icon,
+  fieldName,
 }: {
   value: string
   currentValue: string
@@ -43,12 +44,14 @@ function OptionCard({
   title: string
   description?: string
   icon?: React.ComponentType<{ className?: string }>
+  fieldName?: string
 }) {
   const isSelected = currentValue === value
   return (
     <button
       type="button"
       onClick={() => onSelect(value)}
+      data-field={fieldName}
       className={cn(
         'flex items-start gap-3 p-4 rounded-lg border text-left transition-all w-full',
         isSelected
@@ -85,13 +88,15 @@ function InlineRadioGroup({
   value,
   onValueChange,
   options,
+  fieldName,
 }: {
   value: string
   onValueChange: (value: string) => void
   options: { value: string; label: string }[]
+  fieldName?: string
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2" data-field={fieldName}>
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -240,6 +245,7 @@ export function CustomProposal() {
             icon={Zap}
             title="Quick Win"
             description="Get something live fast — 24-48 hour proposal"
+            fieldName="build_preference"
           />
           <OptionCard
             value="full_build"
@@ -248,6 +254,7 @@ export function CustomProposal() {
             icon={Briefcase}
             title="Full Build"
             description="Comprehensive solution — 48-72 hour proposal"
+            fieldName="build_preference"
           />
         </div>
       </FormSection>
@@ -264,6 +271,7 @@ export function CustomProposal() {
               value={watch('relationship_type') || ''}
               onValueChange={(value) => setValue('relationship_type', value)}
               className="space-y-2"
+              data-field="relationship_type"
             >
               {[
                 { value: 'warm_referral', label: 'Warm referral or existing client' },
@@ -286,6 +294,7 @@ export function CustomProposal() {
               value={watch('contact_role') || ''}
               onValueChange={(value) => setValue('contact_role', value)}
               className="space-y-2"
+              data-field="contact_role"
             >
               {[
                 { value: 'founder', label: 'Founder / Decision-maker' },
@@ -309,6 +318,7 @@ export function CustomProposal() {
             <InlineRadioGroup
               value={watch('budget_indication') || ''}
               onValueChange={(v) => setValue('budget_indication', v)}
+              fieldName="budget_indication"
               options={[
                 { value: 'specific_number', label: 'Specific $' },
                 { value: 'general_range', label: 'Vague range' },
@@ -321,6 +331,7 @@ export function CustomProposal() {
             <InlineRadioGroup
               value={watch('urgency') || ''}
               onValueChange={(v) => setValue('urgency', v)}
+              fieldName="urgency"
               options={[
                 { value: 'asap', label: '< 7 days' },
                 { value: 'thirty_days', label: '< 30 days' },
@@ -333,6 +344,7 @@ export function CustomProposal() {
             <InlineRadioGroup
               value={watch('engagement_level') || ''}
               onValueChange={(v) => setValue('engagement_level', v)}
+              fieldName="engagement_level"
               options={[
                 { value: 'very_interested', label: 'Very interested' },
                 { value: 'passive', label: 'Passive' },
@@ -349,6 +361,7 @@ export function CustomProposal() {
               onSelect={(v) => setValue('problem_importance', v)}
               title="Business-critical"
               description="Blocking revenue or operations"
+              fieldName="problem_importance"
             />
             <OptionCard
               value="important"
@@ -356,6 +369,7 @@ export function CustomProposal() {
               onSelect={(v) => setValue('problem_importance', v)}
               title="Important"
               description="Minor inefficiency to improve"
+              fieldName="problem_importance"
             />
             <OptionCard
               value="nice_to_have"
@@ -363,6 +377,7 @@ export function CustomProposal() {
               onSelect={(v) => setValue('problem_importance', v)}
               title="Nice-to-have"
               description="Experimental or exploratory"
+              fieldName="problem_importance"
             />
           </div>
         </QuestionGroup>
@@ -375,7 +390,7 @@ export function CustomProposal() {
         description="Help us understand their current workflow"
       >
         <QuestionGroup label="Departments Involved" hint="Select all that apply" required>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" data-field="departments_involved">
             {DEPARTMENT_OPTIONS.map((dept) => (
               <button
                 key={dept}
@@ -472,6 +487,7 @@ export function CustomProposal() {
           <InlineRadioGroup
             value={watch('existing_automations') || ''}
             onValueChange={(v) => setValue('existing_automations', v)}
+            fieldName="existing_automations"
             options={[
               { value: 'yes', label: 'Yes' },
               { value: 'no', label: 'No' },
@@ -487,7 +503,7 @@ export function CustomProposal() {
         description="Financial and scheduling expectations"
       >
         <QuestionGroup label="Client Annual Revenue" required>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-field="client_annual_revenue">
             {REVENUE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -516,6 +532,7 @@ export function CustomProposal() {
                 onSelect={(v) => setValue('project_tier', v)}
                 title={opt.label.split(':')[0]}
                 description={opt.label.includes(':') ? opt.label.split(':')[1].trim() : undefined}
+                fieldName="project_tier"
               />
             ))}
           </div>
@@ -526,6 +543,7 @@ export function CustomProposal() {
             <InlineRadioGroup
               value={watch('project_duration') || ''}
               onValueChange={(v) => setValue('project_duration', v)}
+              fieldName="project_duration"
               options={[
                 { value: 'one_time', label: 'One-time project' },
                 { value: 'ongoing', label: 'Ongoing support needed' },
@@ -553,7 +571,7 @@ export function CustomProposal() {
         description="Post-implementation expectations and additional context"
       >
         <QuestionGroup label="Support Level" hint="What do they expect after go-live?" required>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" data-field="support_level">
             {SUPPORT_LEVEL_OPTIONS.map((opt) => (
               <button
                 key={opt}
