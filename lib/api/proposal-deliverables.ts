@@ -341,8 +341,8 @@ export async function updateProposalDeliverable(
     isEdit = true
   }
 
-  // If edited and was original, mark as edited
-  if (isEdit && current.change_status === 'original') {
+  // If edited and was original/approved/rejected, mark as edited (needs re-review)
+  if (isEdit && ['original', 'approved', 'rejected'].includes(current.change_status)) {
     updateData.change_status = 'edited'
   }
 
