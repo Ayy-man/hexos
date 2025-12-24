@@ -19,6 +19,137 @@ import {
   type DeliverableComment,
 } from '@/lib/api/proposal-deliverables'
 import { updateDeliverablesStatus, type DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
+import { extractDeliverablesSection } from '@/features/inquiries/utils/plateToText'
+
+// ============================================
+// AI Parsing - OpenRouter Integration
+// ============================================
+
+const DELIVERABLES_SYSTEM_PROMPT = `You are an AI assistant that extracts deliverables from automation project proposals.
+
+Your task is to analyze proposal text and extract each distinct deliverable, service, or feature being offered.
+
+## What to Extract
+
+For each deliverable found, provide:
+1. **name**: A short, descriptive title (e.g., "CRM Integration", "Email Automation", "Instagram DM Bot")
+2. **description**: A brief description of what's included (1-2 sentences)
+3. **price**: The price if mentioned, as a number. If no price, use null.
+4. **sourceText**: The exact text snippet from the proposal that describes this deliverable
+5. **confidence**: Your confidence score (0.0-1.0) based on how clearly the deliverable is defined
+
+## Rules
+
+1. Extract ALL distinct deliverables, even if bundled together
+2. If items are grouped under a tier (e.g., "Pro Package includes:"), extract each item separately
+3. For pricing:
+   - If a single price covers multiple items, put the price only on the first item
+   - If items have individual prices, capture each price
+   - Use setup price if both setup and monthly are mentioned
+4. Do NOT fabricate information - only extract what's explicitly stated
+5. Be comprehensive - capture everything that could be a deliverable
+6. Confidence scoring:
+   - 0.9-1.0: Clear deliverable with name and description
+   - 0.7-0.8: Implied deliverable, some interpretation needed
+   - 0.5-0.6: Vague or partial information`
+
+interface ParsedDeliverable {
+  name: string
+  description: string
+  price?: number
+  sourceText: string
+  confidence: number
+}
+
+async function parseDeliverablesWithAI(proposalContent: unknown): Promise<ParsedDeliverable[]> {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error('OpenRouter API key not configured')
+  }
+
+  const deliverablesText = extractDeliverablesSection(proposalContent)
+
+  if (!deliverablesText || deliverablesText.length < 10) {
+    throw new Error('Could not extract deliverables section from proposal')
+  }
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://hexos.app',
+      'X-Title': 'hexOS Deliverables Parser',
+    },
+    body: JSON.stringify({
+      model: 'anthropic/claude-3.5-haiku',
+      messages: [
+        { role: 'system', content: DELIVERABLES_SYSTEM_PROMPT },
+        {
+          role: 'user',
+          content: `Please extract all deliverables from the following proposal text:\n\n${deliverablesText}`,
+        },
+      ],
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'extracted_deliverables',
+            description: 'Report the extracted deliverables from the proposal',
+            parameters: {
+              type: 'object',
+              properties: {
+                deliverables: {
+                  type: 'array',
+                  description: 'Array of extracted deliverables',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      name: { type: 'string', description: 'Short descriptive title' },
+                      description: { type: 'string', description: 'Brief description of what is included' },
+                      price: { type: ['number', 'null'], description: 'Price if mentioned, otherwise null' },
+                      sourceText: { type: 'string', description: 'Original text snippet from the proposal' },
+                      confidence: { type: 'number', description: 'Confidence score 0.0-1.0' },
+                    },
+                    required: ['name', 'description', 'sourceText', 'confidence'],
+                  },
+                },
+              },
+              required: ['deliverables'],
+            },
+          },
+        },
+      ],
+      tool_choice: { type: 'function', function: { name: 'extracted_deliverables' } },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    console.error('OpenRouter error:', response.status, error)
+    throw new Error(`OpenRouter API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0]
+  if (!toolCall || toolCall.function.name !== 'extracted_deliverables') {
+    throw new Error('AI did not return structured deliverables')
+  }
+
+  const parsed = JSON.parse(toolCall.function.arguments)
+  const deliverables: ParsedDeliverable[] = parsed.deliverables || []
+
+  // Clean and validate
+  return deliverables
+    .filter((d) => d.name && d.name.trim().length > 0)
+    .map((d) => ({
+      name: d.name.trim(),
+      description: d.description?.trim() || '',
+      price: typeof d.price === 'number' ? d.price : undefined,
+      sourceText: d.sourceText?.trim() || '',
+      confidence: typeof d.confidence === 'number' ? d.confidence : 0.5,
+    }))
+}
 
 // ============================================
 // AI Parsing Actions
@@ -32,36 +163,17 @@ export async function triggerParseDeliverablesAction(
   await updateDeliverablesStatus(inquiryId, 'parsing')
 
   try {
-    // Build absolute URL - server-side fetch requires full URL
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    // Call OpenRouter directly (no internal API route needed)
+    const parsedDeliverables = await parseDeliverablesWithAI(proposalContent)
 
-    if (!baseUrl) {
-      throw new Error('App URL not configured - set NEXT_PUBLIC_APP_URL or VERCEL_URL')
-    }
-
-    // Call the parse API
-    const response = await fetch(`${baseUrl}/api/parse-deliverables`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ proposalContent }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to parse deliverables')
-    }
-
-    const data = await response.json()
-
-    if (!data.success || !data.deliverables?.length) {
+    if (!parsedDeliverables.length) {
       throw new Error('No deliverables extracted')
     }
 
     // Create the deliverables in the database
     const deliverables = await bulkCreateDeliverablesFromAI(
       inquiryId,
-      data.deliverables
+      parsedDeliverables
     )
 
     // Update status to dfy_editing
