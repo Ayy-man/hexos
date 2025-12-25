@@ -35,8 +35,36 @@ export interface ProjectWithRelations extends Project {
   deliverables?: Array<{
     id: string
     title: string
+    description: string | null
     status: string
+    estimated_hours: number | null
+    start_date: string | null
     due_date: string | null
+    completed_at: string | null
+    sort_order: number
+  }>
+  requirements?: Array<{
+    id: string
+    title: string
+    description: string | null
+    status: string
+    completed_at: string | null
+  }>
+  files?: Array<{
+    id: string
+    file_name: string
+    file_path: string
+    file_size: number | null
+    file_type: string | null
+    uploaded_by: string | null
+    uploaded_at: string
+  }>
+  activity?: Array<{
+    id: string
+    action: string
+    details: Record<string, unknown> | null
+    created_at: string
+    user?: { name: string } | null
   }>
 }
 
@@ -80,7 +108,7 @@ export async function getProjects() {
   return data as ProjectWithRelations[]
 }
 
-// Get single project by ID
+// Get single project by ID with all relations
 export async function getProject(id: string) {
   const supabase = await createClient()
 
@@ -91,9 +119,16 @@ export async function getProject(id: string) {
       dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
       assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
       client:profiles!projects_client_id_fkey(id, name, email),
-      deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order)
+      deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order),
+      requirements:project_requirements(id, title, description, status, completed_at),
+      files:project_files(id, file_name, file_path, file_size, file_type, uploaded_by, uploaded_at),
+      activity:activity_log(id, action, details, created_at, user:profiles(name))
     `)
     .eq('id', id)
+    .order('sort_order', { referencedTable: 'deliverables', ascending: true })
+    .order('sort_order', { referencedTable: 'project_requirements', ascending: true })
+    .order('uploaded_at', { referencedTable: 'project_files', ascending: false })
+    .order('created_at', { referencedTable: 'activity_log', ascending: false })
     .single()
 
   if (error) throw error
@@ -153,6 +188,20 @@ export async function getProjectsByStatus(status: string) {
 
   if (error) throw error
   return data as Project[]
+}
+
+// Get available developers for assignment
+export async function getAvailableDevs() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, email')
+    .eq('role', 'dev')
+    .order('name', { ascending: true })
+
+  if (error) throw error
+  return data
 }
 
 // Get project counts by status (for dashboard)
