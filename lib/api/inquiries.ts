@@ -678,7 +678,7 @@ export async function convertInquiryToProjectFull(
       dfy_partner_id: inquiry.submitted_by,
       matched_blueprint_id: inquiry.blueprint_id,
       source_inquiry_id: inquiryId,
-      status: 'collecting_access',
+      status: 'deliverables_pending', // Start with sign-off flow
     })
     .select()
     .single()
