@@ -546,6 +546,22 @@ export async function markInquiryAsClosed(
 
   if (!user) throw new Error('Not authenticated')
 
+  // Get current stage history
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history')
+    .eq('id', id)
+    .single()
+
+  const stageHistory = (inquiry?.stage_history as Array<unknown>) || []
+  const historyEntry = {
+    from: inquiry?.proposal_stage || 'sent',
+    to: 'closed',
+    changed_by: user.id,
+    changed_at: new Date().toISOString(),
+    notes: notes || 'Deal closed by DFY partner',
+  }
+
   const { error } = await supabase
     .from('inquiries')
     .update({
@@ -553,6 +569,9 @@ export async function markInquiryAsClosed(
       closed_by: user.id,
       closed_notes: notes || null,
       client_email: clientEmail || null,
+      proposal_stage: 'closed',
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
     })
     .eq('id', id)
 
@@ -562,6 +581,27 @@ export async function markInquiryAsClosed(
 // Undo mark as closed
 export async function unmarkInquiryAsClosed(id: string) {
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Get current stage history
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('proposal_stage, stage_history')
+    .eq('id', id)
+    .single()
+
+  const stageHistory = (inquiry?.stage_history as Array<unknown>) || []
+  const historyEntry = {
+    from: inquiry?.proposal_stage || 'closed',
+    to: 'sent',
+    changed_by: user.id,
+    changed_at: new Date().toISOString(),
+    notes: 'Closed status undone',
+  }
 
   const { error } = await supabase
     .from('inquiries')
@@ -570,6 +610,9 @@ export async function unmarkInquiryAsClosed(id: string) {
       closed_by: null,
       closed_notes: null,
       client_email: null,
+      proposal_stage: 'sent',
+      stage_entered_at: new Date().toISOString(),
+      stage_history: [...stageHistory, historyEntry],
     })
     .eq('id', id)
 
