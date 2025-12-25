@@ -409,3 +409,39 @@ CREATE INDEX idx_project_requirements_project ON project_requirements(project_id
 ```
 
 See `security.md` for RLS policies on these tables.
+
+## Utility Scripts
+
+### Clear All Projects and Inquiries (Dev/Testing)
+
+Use this to reset project and inquiry data during development. Disables triggers to avoid FK constraint issues.
+
+```sql
+-- Disable triggers temporarily
+ALTER TABLE projects DISABLE TRIGGER ALL;
+ALTER TABLE inquiries DISABLE TRIGGER ALL;
+ALTER TABLE deliverables DISABLE TRIGGER ALL;
+
+-- Delete in dependency order (child tables first)
+DELETE FROM activity_log;
+DELETE FROM scope_changes;
+DELETE FROM payment_milestones;
+DELETE FROM project_files;
+DELETE FROM project_requirements;
+DELETE FROM deliverables;
+
+DELETE FROM proposal_deliverable_history;
+DELETE FROM proposal_deliverable_comments;
+DELETE FROM proposal_deliverables;
+DELETE FROM inquiry_comments;
+
+DELETE FROM projects;
+DELETE FROM inquiries;
+
+-- Re-enable triggers
+ALTER TABLE projects ENABLE TRIGGER ALL;
+ALTER TABLE inquiries ENABLE TRIGGER ALL;
+ALTER TABLE deliverables ENABLE TRIGGER ALL;
+```
+
+**Note:** This preserves `profiles`, `blueprints`, and `case_studies` tables.

@@ -351,9 +351,18 @@ DFY edits → Submits → Admin reviews each item:
   - [x] Auto-transition to 'closed' on project conversion
   - [x] ReopenInquiryButton for admin (hold-to-confirm)
 
-### Phase 4.9: Post-Close Project Management (Next)
+### Phase 4.9: Post-Close Project Management (In Progress)
 
 After inquiry converts to project, manage it through to delivery.
+
+**Known Issue - Deliverables Not Auto-Importing:**
+The conversion wizard only imports deliverables if `proposal_deliverables` already exist (from DFY clicking "Suggest Changes" during negotiation). If DFY never initiated negotiation, the wizard shows an empty deliverables list.
+
+**Expected Behavior (TODO):**
+1. If `proposal_deliverables` exist → use those ✅
+2. If empty AND `proposal_content` exists → auto-trigger AI parsing before showing wizard ❌
+
+**Workaround:** DFY must click "Suggest Changes" in Deliverables tab before conversion to populate deliverables.
 
 **Flow:**
 ```
@@ -366,11 +375,24 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - Dev: Assigned projects only
 
 **Project Detail Page** (`/projects/[id]`) - ClickUp-style horizontal tabs:
-- [ ] Overview tab (status, info, assigned dev, key dates)
-- [ ] Deliverables tab (final list, status per item, source of truth)
-- [ ] Requirements tab (onboarding checklist, auto-track completion)
-- [ ] Files tab (project file storage - docs/PDFs/images)
-- [ ] Activity tab (timeline of all changes)
+- [x] Overview tab (status, info, assigned dev, key dates)
+- [x] Deliverables tab (final list, status per item, source of truth)
+- [x] Requirements tab (onboarding checklist with dependency tracking)
+- [x] Files tab (project file storage framework)
+- [x] Activity tab (timeline of all changes)
+
+**Conversion Wizard:**
+- [x] 3-step wizard (Deliverables → Requirements → Review)
+- [x] Payment structure selection (100%, 50/50, 40/30/30, custom)
+- [x] Requirements builder with suggestions
+- [ ] Auto-parse deliverables if none exist (see Known Issue above)
+
+**Requirements System:**
+- [x] Requirements table with dependencies (depends_on_id)
+- [x] Status tracking (pending, in_progress, completed, blocked)
+- [x] Completion tracking per item
+- [x] Dependency visualization (DependencyBadge)
+- [ ] Auto-advance when all items completed
 
 **Deliverables Sign-off Flow:**
 - [ ] Admin reviews deliverables one last time after conversion
@@ -378,26 +400,21 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - [ ] DFY receives notification, reviews
 - [ ] DFY clicks "Confirm on behalf of client"
 - [ ] Deliverables locked as source of truth
-- [ ] Copy `proposal_deliverables` → `deliverables` table
 
 **Dev Assignment:**
 - [ ] Admin can assign dev at any point
 - [ ] Dev sees project in `/dashboard/dev`
 - [ ] Assignment triggers stage change
 
-**Onboarding Automation:**
-- [ ] Requirements checklist (already created in wizard)
-- [ ] Track completion status per item
-- [ ] Auto-advance when all items completed
-
 **File Storage:**
-- [ ] Supabase Storage for project files
-- [ ] Organize by project: `project-files/{project_id}/`
+- [x] project_files table exists
+- [ ] Supabase Storage bucket setup
 - [ ] Upload UI in Files tab
-- [ ] Support docs, PDFs, images
+- [ ] Download functionality
 
 **Status Transitions (Manual for MVP):**
-- [ ] `created` → `deliverables_confirmed` → `awaiting_signoff` → `signed_off`
+- [x] Projects start with `deliverables_pending` status
+- [ ] `deliverables_pending` → `deliverables_confirmed` → `awaiting_signoff` → `signed_off`
 - [ ] `signed_off` → `onboarding` → `in_progress` → `delivered` → `completed`
 - [ ] Manual stage buttons with hold-to-confirm for critical transitions
 
