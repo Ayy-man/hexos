@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { ButtonHoldAndRelease } from '@/components/ui/hold-and-release-button'
 import {
   ArrowLeft,
@@ -25,6 +26,8 @@ import {
   Package,
   ClipboardList,
   Rocket,
+  Plus,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { RequirementsBuilder, type RequirementItem } from './RequirementsBuilder'
@@ -97,6 +100,15 @@ export function ConvertToProjectWizard({
   const [clientName, setClientName] = useState(inquiry.prospect_company_name || '')
   const [notes, setNotes] = useState('')
 
+  // Payment structure - default based on value
+  const estimatedValue = inquiry.estimated_value || 0
+  const defaultPaymentStructure = estimatedValue >= 1000 ? '50_50' : '100_upfront'
+  const [paymentStructure, setPaymentStructure] = useState<'100_upfront' | '50_50' | '40_30_30' | 'custom'>(defaultPaymentStructure)
+  const [customMilestones, setCustomMilestones] = useState<Array<{ label: string; percentage: number }>>([
+    { label: 'Deposit', percentage: 50 },
+    { label: 'Final', percentage: 50 },
+  ])
+
   const stepIndex = STEPS.findIndex((s) => s.key === step)
 
   const handleNext = () => {
@@ -121,6 +133,8 @@ export function ConvertToProjectWizard({
           client_name: clientName,
           quoted_price: inquiry.estimated_value || undefined,
           notes: notes || undefined,
+          payment_structure: paymentStructure,
+          custom_milestones: paymentStructure === 'custom' ? customMilestones : undefined,
         }
 
         const reqData = requirements
@@ -321,6 +335,122 @@ export function ConvertToProjectWizard({
 
               <Card>
                 <CardHeader>
+                  <CardTitle className="text-base">Payment Structure</CardTitle>
+                  <CardDescription>
+                    How should payments be split? {estimatedValue < 1000 && '(100% upfront recommended for projects under $1,000)'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <RadioGroup
+                    value={paymentStructure}
+                    onValueChange={(v) => setPaymentStructure(v as typeof paymentStructure)}
+                    className="grid grid-cols-2 gap-3"
+                  >
+                    <Label
+                      htmlFor="100_upfront"
+                      className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50 ${paymentStructure === '100_upfront' ? 'border-primary bg-primary/5' : ''}`}
+                    >
+                      <RadioGroupItem value="100_upfront" id="100_upfront" />
+                      <div>
+                        <p className="font-medium">100% Upfront</p>
+                        <p className="text-sm text-muted-foreground">Full payment before start</p>
+                      </div>
+                    </Label>
+                    <Label
+                      htmlFor="50_50"
+                      className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50 ${paymentStructure === '50_50' ? 'border-primary bg-primary/5' : ''}`}
+                    >
+                      <RadioGroupItem value="50_50" id="50_50" />
+                      <div>
+                        <p className="font-medium">50/50</p>
+                        <p className="text-sm text-muted-foreground">50% deposit, 50% on delivery</p>
+                      </div>
+                    </Label>
+                    <Label
+                      htmlFor="40_30_30"
+                      className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50 ${paymentStructure === '40_30_30' ? 'border-primary bg-primary/5' : ''}`}
+                    >
+                      <RadioGroupItem value="40_30_30" id="40_30_30" />
+                      <div>
+                        <p className="font-medium">40/30/30</p>
+                        <p className="text-sm text-muted-foreground">3-milestone split</p>
+                      </div>
+                    </Label>
+                    <Label
+                      htmlFor="custom"
+                      className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer hover:bg-muted/50 ${paymentStructure === 'custom' ? 'border-primary bg-primary/5' : ''}`}
+                    >
+                      <RadioGroupItem value="custom" id="custom" />
+                      <div>
+                        <p className="font-medium">Custom</p>
+                        <p className="text-sm text-muted-foreground">Define your own split</p>
+                      </div>
+                    </Label>
+                  </RadioGroup>
+
+                  {paymentStructure === 'custom' && (
+                    <div className="space-y-3 pt-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Custom Milestones</Label>
+                        <span className={`text-sm ${customMilestones.reduce((sum, m) => sum + m.percentage, 0) === 100 ? 'text-green-600' : 'text-destructive'}`}>
+                          Total: {customMilestones.reduce((sum, m) => sum + m.percentage, 0)}%
+                        </span>
+                      </div>
+                      {customMilestones.map((milestone, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <Input
+                            value={milestone.label}
+                            onChange={(e) => {
+                              const updated = [...customMilestones]
+                              updated[index].label = e.target.value
+                              setCustomMilestones(updated)
+                            }}
+                            placeholder="Milestone name"
+                            className="flex-1"
+                          />
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              value={milestone.percentage}
+                              onChange={(e) => {
+                                const updated = [...customMilestones]
+                                updated[index].percentage = parseInt(e.target.value) || 0
+                                setCustomMilestones(updated)
+                              }}
+                              className="w-20"
+                              min={0}
+                              max={100}
+                            />
+                            <span className="text-muted-foreground">%</span>
+                          </div>
+                          {customMilestones.length > 2 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setCustomMilestones(customMilestones.filter((_, i) => i !== index))}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCustomMilestones([...customMilestones, { label: '', percentage: 0 }])}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Milestone
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle className="text-base">Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -340,12 +470,22 @@ export function ConvertToProjectWizard({
                     <span className="text-muted-foreground">Total Value</span>
                     <span className="font-bold">${totalPrice.toLocaleString()}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Payment</span>
+                    <span className="font-medium">
+                      {paymentStructure === '100_upfront' && '100% Upfront'}
+                      {paymentStructure === '50_50' && '50/50 Split'}
+                      {paymentStructure === '40_30_30' && '40/30/30 Split'}
+                      {paymentStructure === 'custom' && `Custom (${customMilestones.length} milestones)`}
+                    </span>
+                  </div>
                   <Separator />
                   <div className="text-sm text-muted-foreground">
                     <p>On creation:</p>
                     <ul className="list-disc list-inside mt-1 space-y-1">
-                      <li>Project will be created in &quot;Collecting Access&quot; status</li>
-                      <li>Deliverables will become project milestones</li>
+                      <li>Project will be created in &quot;Deliverables Pending&quot; status</li>
+                      <li>Deliverables will need sign-off before work begins</li>
+                      <li>Payment milestones will be created based on structure</li>
                       <li>Requirements will be added as onboarding checklist</li>
                       <li>Inquiry will be marked as converted</li>
                     </ul>

@@ -637,6 +637,8 @@ export interface ConvertToProjectInput {
   target_delivery_date?: string
   quoted_price?: number
   notes?: string
+  payment_structure?: '100_upfront' | '50_50' | '40_30_30' | 'custom'
+  custom_milestones?: Array<{ label: string; percentage: number }>
 }
 
 // Convert inquiry to project with deliverables and requirements
@@ -675,6 +677,7 @@ export async function convertInquiryToProjectFull(
       target_delivery_date: projectData.target_delivery_date || null,
       quoted_price: projectData.quoted_price || null,
       notes: projectData.notes || null,
+      payment_structure: projectData.payment_structure || '50_50',
       dfy_partner_id: inquiry.submitted_by,
       matched_blueprint_id: inquiry.blueprint_id,
       source_inquiry_id: inquiryId,
@@ -684,6 +687,41 @@ export async function convertInquiryToProjectFull(
     .single()
 
   if (projectError) throw projectError
+
+  // 1b. Create payment milestones based on structure
+  const quotedPrice = projectData.quoted_price || 0
+  const paymentStructure = projectData.payment_structure || '50_50'
+
+  let milestones: Array<{ label: string; amount: number; sort_order: number }> = []
+
+  if (paymentStructure === '100_upfront') {
+    milestones = [{ label: 'Full Payment', amount: quotedPrice, sort_order: 0 }]
+  } else if (paymentStructure === '50_50') {
+    milestones = [
+      { label: 'Deposit (50%)', amount: quotedPrice * 0.5, sort_order: 0 },
+      { label: 'Final Payment (50%)', amount: quotedPrice * 0.5, sort_order: 1 },
+    ]
+  } else if (paymentStructure === '40_30_30') {
+    milestones = [
+      { label: 'Deposit (40%)', amount: quotedPrice * 0.4, sort_order: 0 },
+      { label: 'Midpoint (30%)', amount: quotedPrice * 0.3, sort_order: 1 },
+      { label: 'Final Payment (30%)', amount: quotedPrice * 0.3, sort_order: 2 },
+    ]
+  } else if (paymentStructure === 'custom' && projectData.custom_milestones) {
+    milestones = projectData.custom_milestones.map((m, i) => ({
+      label: m.label,
+      amount: quotedPrice * (m.percentage / 100),
+      sort_order: i,
+    }))
+  }
+
+  if (milestones.length > 0) {
+    const { error: milestoneError } = await supabase
+      .from('payment_milestones')
+      .insert(milestones.map(m => ({ ...m, project_id: project.id })))
+
+    if (milestoneError) console.error('Failed to create payment milestones:', milestoneError)
+  }
 
   // 2. Copy deliverables from proposal_deliverables to project deliverables
   if (deliverableIds.length > 0) {
