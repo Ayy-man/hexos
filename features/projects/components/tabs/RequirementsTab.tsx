@@ -250,13 +250,15 @@ export function RequirementsTab({
                       {/* Dependency link button (admin only) */}
                       {isAdmin && (
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
                           onClick={() => setSelectedRequirement(requirement)}
-                          title="Manage dependencies"
                         >
-                          <Link2 className="h-4 w-4" />
+                          <Link2 className="h-3 w-3 mr-1" />
+                          {requirement.dependencies && requirement.dependencies.length > 0
+                            ? `${requirement.dependencies.length} dep`
+                            : 'Add deps'}
                         </Button>
                       )}
                       <Badge
