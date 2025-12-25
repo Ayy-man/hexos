@@ -5,13 +5,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Trash2, GripVertical, ChevronDown, ChevronRight } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  ChevronDown,
+  ChevronRight,
+  Users,
+  User,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { RequirementRole } from '@/lib/api/project-requirements'
 
 export interface RequirementItem {
   id: string
   title: string
   description: string
+  assigned_role: RequirementRole
 }
 
 interface RequirementsBuilderProps {
@@ -41,14 +52,20 @@ export function RequirementsBuilder({
 
   const addRequirement = () => {
     const newId = `req-${Date.now()}`
-    onChange([...requirements, { id: newId, title: '', description: '' }])
+    onChange([
+      ...requirements,
+      { id: newId, title: '', description: '', assigned_role: 'admin' },
+    ])
     // Auto-expand new items
     setExpandedIds((prev) => new Set([...prev, newId]))
   }
 
   const addSuggestion = (suggestion: string) => {
     const newId = `req-${Date.now()}`
-    onChange([...requirements, { id: newId, title: suggestion, description: '' }])
+    onChange([
+      ...requirements,
+      { id: newId, title: suggestion, description: '', assigned_role: 'admin' },
+    ])
   }
 
   const addCustomSuggestion = () => {
@@ -59,11 +76,21 @@ export function RequirementsBuilder({
 
   const updateRequirement = (
     id: string,
-    field: 'title' | 'description',
+    field: 'title' | 'description' | 'assigned_role',
     value: string
   ) => {
     onChange(
       requirements.map((r) => (r.id === id ? { ...r, [field]: value } : r))
+    )
+  }
+
+  const toggleRole = (id: string) => {
+    onChange(
+      requirements.map((r) =>
+        r.id === id
+          ? { ...r, assigned_role: r.assigned_role === 'admin' ? 'client' : 'admin' }
+          : r
+      )
     )
   }
 
@@ -189,6 +216,38 @@ export function RequirementsBuilder({
                     }
                     className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-1 h-8"
                   />
+
+                  {/* Role toggle */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2"
+                    onClick={() => toggleRole(requirement.id)}
+                    title={`Assigned to: ${requirement.assigned_role === 'admin' ? 'Internal team' : 'Client'}`}
+                  >
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-xs',
+                        requirement.assigned_role === 'admin'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                          : 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
+                      )}
+                    >
+                      {requirement.assigned_role === 'admin' ? (
+                        <>
+                          <Users className="h-3 w-3 mr-1" />
+                          Internal
+                        </>
+                      ) : (
+                        <>
+                          <User className="h-3 w-3 mr-1" />
+                          Client
+                        </>
+                      )}
+                    </Badge>
+                  </Button>
 
                   <Button
                     variant="ghost"

@@ -2,6 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import {
+  canCompleteRequirement,
+  updateRequirementDependencies,
+} from '@/lib/api/project-requirements'
+import { checkAndNotifyUnblockedRequirements } from '@/lib/api/requirement-notifications'
 
 // ============================================
 // Deliverables Sign-off Flow
@@ -89,10 +94,23 @@ export async function signOffDeliverablesAction(projectId: string): Promise<void
 export async function updateRequirementStatusAction(
   requirementId: string,
   status: 'pending' | 'in_progress' | 'completed' | 'blocked'
-): Promise<void> {
+): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
+
+  // If trying to complete, check dependencies first
+  if (status === 'completed') {
+    const { canComplete, blockedBy } = await canCompleteRequirement(requirementId)
+    if (!canComplete) {
+      return {
+        success: false,
+        error: `Cannot complete: waiting on ${blockedBy.join(', ')}`,
+      }
+    }
+  }
 
   const updateData: Record<string, unknown> = { status }
   if (status === 'completed') {
@@ -117,6 +135,46 @@ export async function updateRequirementStatusAction(
       user_id: user.id,
       action: status === 'completed' ? 'requirement_completed' : 'requirement_updated',
       details: { requirement_id: requirementId, status },
+    })
+
+    revalidatePath(`/projects/${requirement.project_id}`)
+
+    // Check for newly unblocked requirements and send notifications
+    if (status === 'completed') {
+      await checkAndNotifyUnblockedRequirements(requirementId)
+    }
+  }
+
+  return { success: true }
+}
+
+// Update dependencies for a requirement
+export async function updateRequirementDependenciesAction(
+  requirementId: string,
+  dependsOnIds: string[]
+): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  await updateRequirementDependencies(requirementId, dependsOnIds)
+
+  // Get project ID for revalidation and activity log
+  const { data: requirement } = await supabase
+    .from('project_requirements')
+    .select('project_id')
+    .eq('id', requirementId)
+    .single()
+
+  if (requirement) {
+    // Log activity
+    await supabase.from('activity_log').insert({
+      project_id: requirement.project_id,
+      user_id: user.id,
+      action: 'requirement_dependencies_updated',
+      details: { requirement_id: requirementId, depends_on_ids: dependsOnIds },
     })
 
     revalidatePath(`/projects/${requirement.project_id}`)

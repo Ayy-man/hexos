@@ -142,6 +142,7 @@ export function ConvertToProjectWizard({
           .map((r) => ({
             title: r.title,
             description: r.description || undefined,
+            assigned_role: r.assigned_role,
           }))
 
         const result = await onConvert(
@@ -180,7 +181,7 @@ export function ConvertToProjectWizard({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="w-[95vw] max-w-[95vw] h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Convert to Project</DialogTitle>
           <DialogDescription>
