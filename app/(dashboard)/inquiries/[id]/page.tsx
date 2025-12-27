@@ -769,6 +769,8 @@ export default async function InquiryDetailPage({
                             blueprint: inquiry.blueprint,
                           }}
                           deliverables={deliverables}
+                          proposalContent={inquiry.proposal_content}
+                          parseDeliverables={boundParseDeliverables}
                           onConvert={boundConvertToProject}
                           variant="inline"
                         />
