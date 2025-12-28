@@ -202,7 +202,65 @@ Monthly retainer management.
 - Billing cycles
 - Auto-renewal
 
-### 10. API for External Integrations
+### 12. Hierarchical Deliverables with Sub-Deliverables
+
+**Problem:**
+The current AI deliverable parser (`/api/parse-deliverables`) extracts deliverables from proposal content, but it often extracts sub-deliverables and clarifications as separate top-level deliverables. This causes issues because:
+- Pricing is only meaningful at the parent deliverable level, not for sub-items
+- The deliverables list becomes cluttered with items that shouldn't be individually priced
+- When DFY partners negotiate or clients request changes, it's confusing to have flat lists
+
+**Solution:**
+Support hierarchical deliverables where parent deliverables can contain sub-deliverables.
+
+**Keep in Mind:**
+- Fine-tune the AI parser to distinguish parent deliverables from sub-items
+- Sub-deliverables are clarifications/breakdowns, not separately priced items
+- UI should show collapsible/dropdown sections for deliverables with children
+- Only parent deliverables should have pricing fields
+- Database schema already supports this via `parent_id` on deliverables table
+
+**Future UI Pattern:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ▼ Automation Flow Setup                           $2,500    │
+│   ├─ Trigger configuration                                  │
+│   ├─ Data mapping between systems                           │
+│   └─ Error handling setup                                   │
+│                                                             │
+│ ▼ CRM Integration                                 $1,800    │
+│   ├─ HubSpot connection                                     │
+│   ├─ Contact sync workflow                                  │
+│   └─ Deal stage automation                                  │
+│                                                             │
+│ ▶ Testing & Documentation                         $500      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**AI Parser Changes Needed:**
+```typescript
+// Current: flat array
+[
+  { title: 'Automation Flow Setup', price: 2500 },
+  { title: 'Trigger configuration', price: 0 },  // ❌ Wrong
+  { title: 'Data mapping', price: 0 },           // ❌ Wrong
+]
+
+// Future: hierarchical structure
+[
+  {
+    title: 'Automation Flow Setup',
+    price: 2500,
+    subDeliverables: [
+      { title: 'Trigger configuration' },
+      { title: 'Data mapping between systems' },
+      { title: 'Error handling setup' }
+    ]
+  },
+]
+```
+
+### 14. API for External Integrations
 
 Public API for partners to integrate.
 
