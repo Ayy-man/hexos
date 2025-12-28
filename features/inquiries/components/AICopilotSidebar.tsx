@@ -81,20 +81,20 @@ export function AICopilotSidebar({ currentPath, onSetField, onNext }: AICopilotS
       }
 
       let assistantContent = data.choices?.[0]?.message?.content || ''
-      if (filledFields.length > 0 || didNavigate) {
-        const parts: string[] = []
-        if (filledFields.length > 0) {
-          parts.push(`Filled ${filledFields.length} field(s):\n${filledFields.map(f => `• ${f}`).join('\n')}`)
-        }
-        if (didNavigate) {
-          parts.push('Moving to next step...')
-        }
+
+      // Build response - prioritize the AI's follow-up question, add context only if needed
+      if (filledFields.length > 0) {
+        // Fields were filled - show brief confirmation + AI's follow-up
+        const confirmation = `✓ Updated ${filledFields.length} field${filledFields.length > 1 ? 's' : ''}`
         if (assistantContent) {
-          parts.push(assistantContent)
+          assistantContent = `${confirmation}\n\n${assistantContent}`
+        } else {
+          assistantContent = confirmation
         }
-        assistantContent = parts.join('\n\n')
+      } else if (didNavigate) {
+        assistantContent = assistantContent || 'Moving to next step...'
       } else if (!assistantContent) {
-        assistantContent = 'I couldn\'t find any fields to fill. Make sure you\'ve selected your form type first.'
+        assistantContent = 'I couldn\'t extract any fields from that. Try pasting your discovery call notes or meeting transcript.'
       }
       setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }])
     } catch (error) {
