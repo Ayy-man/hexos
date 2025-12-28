@@ -12,6 +12,7 @@ import { BasicMarksKit } from '@/components/editor/plugins/basic-marks-kit'
 import { CommentKit } from '@/components/editor/plugins/comment-kit'
 import { SuggestionKit } from '@/components/editor/plugins/suggestion-kit'
 import { DiscussionKit, createDiscussionKit, type DiscussionUser, type TDiscussion } from '@/components/editor/plugins/discussion-kit'
+import { NormalizeWhitespacePlugin } from '@/components/editor/plugins/normalize-whitespace-plugin'
 import { ParagraphElement } from '@/components/ui/paragraph-node'
 import { H1Element, H2Element, H3Element } from '@/components/ui/heading-node'
 import { BlockquoteElement } from '@/components/ui/blockquote-node'
@@ -50,6 +51,7 @@ export const createInquiryDocumentPlugins = (
   ...CommentKit,
   ...SuggestionKit,
   ...createDiscussionKit(currentUser, initialDiscussions),
+  NormalizeWhitespacePlugin, // Collapse excessive line breaks (max 3)
 ]
 
 // Default plugins (backwards compatible, uses anonymous user)
@@ -59,4 +61,5 @@ export const InquiryDocumentPlugins = [
   ...CommentKit,
   ...SuggestionKit,
   ...DiscussionKit,
+  NormalizeWhitespacePlugin, // Collapse excessive line breaks (max 3)
 ]

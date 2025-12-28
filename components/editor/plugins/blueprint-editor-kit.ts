@@ -14,6 +14,7 @@ import { ImagePlugin } from '@platejs/media/react'
 import { ParagraphPlugin } from 'platejs/react'
 
 import { BasicMarksKit } from '@/components/editor/plugins/basic-marks-kit'
+import { NormalizeWhitespacePlugin } from '@/components/editor/plugins/normalize-whitespace-plugin'
 import { ParagraphElement } from '@/components/ui/paragraph-node'
 import { H1Element, H2Element, H3Element } from '@/components/ui/heading-node'
 import { BlockquoteElement } from '@/components/ui/blockquote-node'
@@ -92,4 +93,5 @@ export const BlueprintEditorPlugins = [
   ...CalloutPlugins,
   ...ImagePlugins,
   ...BasicMarksKit,
+  NormalizeWhitespacePlugin, // Collapse excessive line breaks (max 3)
 ]
