@@ -32,7 +32,11 @@ export function QuickPricingEditor({
 }: QuickPricingEditorProps) {
   const isAdmin = userRole === 'admin'
   const isInternal = userRole === 'internal'
-  const canEdit = isAdmin
+  const isDfy = userRole === 'dfy'
+
+  // DFY can edit client price + notes, Admin can edit everything
+  const canEditClientPrice = isAdmin || isDfy
+  const canEditInternalPrices = isAdmin
   const canViewInternal = isAdmin || isInternal
 
   const [priceDfyValue, setPriceDfyValue] = useState(initialPriceDfy?.toString() || '')
@@ -58,8 +62,13 @@ export function QuickPricingEditor({
     startTransition(async () => {
       try {
         const priceDfy = priceDfyValue ? parseFloat(priceDfyValue) : null
-        const priceHexona = priceHexonaValue ? parseFloat(priceHexonaValue) : null
-        const priceDev = priceDevValue ? parseFloat(priceDevValue) : null
+        // DFY can only update client price, pass existing values for internal prices
+        const priceHexona = canEditInternalPrices
+          ? (priceHexonaValue ? parseFloat(priceHexonaValue) : null)
+          : initialPriceHexona
+        const priceDev = canEditInternalPrices
+          ? (priceDevValue ? parseFloat(priceDevValue) : null)
+          : initialPriceDev
         await updatePricingAction(inquiryId, priceDfy, priceHexona, priceDev, notes || null)
         setHasChanges(false)
         toast.success('Pricing updated')
@@ -86,7 +95,8 @@ export function QuickPricingEditor({
     }).format(value)
   }
 
-  if (readOnly || !canEdit) {
+  // Fully read-only view (internal users who can view but not edit)
+  if (readOnly || (!canEditClientPrice && !canEditInternalPrices)) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -134,6 +144,7 @@ export function QuickPricingEditor({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Client Price - editable by DFY and Admin */}
         <div className="space-y-2">
           <Label htmlFor="price-dfy">Client Price (DFY)</Label>
           <div className="relative">
@@ -152,41 +163,46 @@ export function QuickPricingEditor({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="price-hexona">Our Price (Hexona)</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="price-hexona"
-              type="text"
-              inputMode="decimal"
-              placeholder="0"
-              value={formatDisplayValue(priceHexonaValue)}
-              onChange={(e) => handleValueChange(setPriceHexonaValue)(e.target.value)}
-              className="pl-7"
-            />
-          </div>
-        </div>
+        {/* Internal prices - only visible/editable by Admin */}
+        {canEditInternalPrices && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="price-hexona">Our Price (Hexona)</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="price-hexona"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={formatDisplayValue(priceHexonaValue)}
+                  onChange={(e) => handleValueChange(setPriceHexonaValue)(e.target.value)}
+                  className="pl-7"
+                />
+              </div>
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="price-dev">Dev Cost</Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              $
-            </span>
-            <Input
-              id="price-dev"
-              type="text"
-              inputMode="decimal"
-              placeholder="0"
-              value={formatDisplayValue(priceDevValue)}
-              onChange={(e) => handleValueChange(setPriceDevValue)(e.target.value)}
-              className="pl-7"
-            />
-          </div>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="price-dev">Dev Cost</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="price-dev"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={formatDisplayValue(priceDevValue)}
+                  onChange={(e) => handleValueChange(setPriceDevValue)(e.target.value)}
+                  className="pl-7"
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="pricing-notes">Notes (optional)</Label>
