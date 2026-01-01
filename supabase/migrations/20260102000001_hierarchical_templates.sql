@@ -15,79 +15,63 @@ ALTER TABLE requirement_templates
 CREATE INDEX IF NOT EXISTS idx_requirement_templates_parent ON requirement_templates(parent_id);
 
 -- ============================================================================
--- WAGHL SETUP HIERARCHY
+-- GHL SETUP HIERARCHY (WAGHL Flow)
 -- ============================================================================
 
--- Remove old flat WAGHL Setup template
-DELETE FROM requirement_templates WHERE name = 'WAGHL Setup';
+-- Remove old templates
+DELETE FROM requirement_templates WHERE name IN ('WAGHL Setup', 'GHL Setup');
 
--- Create hierarchical WAGHL Setup
+-- Create GHL Setup hierarchy
+-- Flow: GHL Setup (Hexona) -> Add Billing (DFY) -> Add WAGHL (Hexona) -> Add WAGHL Billing (Client)
 DO $$
 DECLARE
-  waghl_id UUID;
-  meta_id UUID;
   ghl_id UUID;
 BEGIN
-  -- Root: WAGHL Setup
+  -- Root: GHL Setup (Hexona)
   INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, position)
   VALUES (
-    'WAGHL Setup',
-    'Complete WhatsApp + GoHighLevel integration setup',
+    'GHL Setup',
+    'Complete GoHighLevel + WhatsApp integration setup',
     'hexona',
     'absolute',
     'setup',
     0
-  )
-  RETURNING id INTO waghl_id;
-
-  -- Child 1: Meta Business Access
-  INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position)
-  VALUES (
-    'Meta Business Access',
-    'Get admin access to client Meta Business Suite',
-    'client',
-    'absolute',
-    'setup',
-    waghl_id,
-    0
-  )
-  RETURNING id INTO meta_id;
-
-  -- Grandchildren under Meta Business Access
-  INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position) VALUES
-  ('Facebook Page Admin Access', 'Grant admin role on Facebook business page', 'client', 'absolute', 'setup', meta_id, 0),
-  ('WhatsApp Business Number', 'Provide verified WhatsApp Business phone number', 'client', 'absolute', 'setup', meta_id, 1),
-  ('Meta Business Verification', 'Complete Meta Business verification if not done', 'client', 'partial', 'setup', meta_id, 2);
-
-  -- Child 2: GoHighLevel Integration
-  INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position)
-  VALUES (
-    'GoHighLevel Integration',
-    'Configure GHL subaccount and integrations',
-    'hexona',
-    'absolute',
-    'setup',
-    waghl_id,
-    1
   )
   RETURNING id INTO ghl_id;
 
-  -- Grandchildren under GoHighLevel Integration
-  INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position) VALUES
-  ('GHL Subaccount Setup', 'Create and configure client subaccount in GHL', 'hexona', 'absolute', 'setup', ghl_id, 0),
-  ('Webhook Configuration', 'Set up webhooks for WhatsApp message routing', 'hexona', 'absolute', 'setup', ghl_id, 1),
-  ('Phone Number Assignment', 'Assign phone number to GHL for messaging', 'hexona', 'absolute', 'setup', ghl_id, 2),
-  ('Test Message Flow', 'Verify end-to-end message delivery', 'hexona', 'none', 'setup', ghl_id, 3);
-
-  -- Child 3: Testing & Handoff
+  -- Child 1: Add Billing to Hexona (DFY)
   INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position)
   VALUES (
-    'Testing & Handoff',
-    'Final testing and client training',
-    'hexona',
-    'none',
+    'Add Billing to Hexona',
+    'DFY partner adds billing/payment method to Hexona account',
+    'dfy',
+    'absolute',
     'setup',
-    waghl_id,
+    ghl_id,
+    0
+  );
+
+  -- Child 2: Add WAGHL (Hexona)
+  INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position)
+  VALUES (
+    'Add WAGHL',
+    'Hexona configures WhatsApp + GoHighLevel integration',
+    'hexona',
+    'absolute',
+    'setup',
+    ghl_id,
+    1
+  );
+
+  -- Child 3: Add WAGHL Billing (Client)
+  INSERT INTO requirement_templates (name, description, default_owner, default_blocker, category, parent_id, position)
+  VALUES (
+    'Add WAGHL Billing',
+    'Client sets up billing for WAGHL service',
+    'client',
+    'absolute',
+    'setup',
+    ghl_id,
     2
   );
 END $$;
