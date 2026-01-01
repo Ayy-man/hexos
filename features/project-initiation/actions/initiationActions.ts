@@ -157,7 +157,7 @@ export async function completeInitiationAction(
       .filter((d) => d.change_status !== 'removed' && d.change_status !== 'rejected')
       .map((d, index) => ({
         project_id: project.id,
-        name: d.name,
+        title: d.name,
         description: d.description,
         price: d.counter_price ?? d.price,
         status: 'pending',
