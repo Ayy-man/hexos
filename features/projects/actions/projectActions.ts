@@ -214,6 +214,41 @@ export async function assignDevAction(projectId: string, devId: string): Promise
 }
 
 // ============================================
+// Delete Project
+// ============================================
+
+export async function deleteProjectAction(projectId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // First, unlink the inquiry (if any) so it's not affected by deletion
+  await supabase
+    .from('inquiries')
+    .update({
+      converted_to_project_id: null,
+      status: 'closed', // Keep as closed, just unlink
+    })
+    .eq('converted_to_project_id', projectId)
+
+  // Delete activity_log entries first (to avoid FK constraint with trigger)
+  await supabase
+    .from('activity_log')
+    .delete()
+    .eq('project_id', projectId)
+
+  // Delete the project (cascades to deliverables, requirements, files, etc.)
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', projectId)
+
+  if (error) throw error
+
+  revalidatePath('/projects')
+}
+
+// ============================================
 // Onboarding Requirements (NEW)
 // ============================================
 
@@ -243,6 +278,92 @@ export async function markRequirementCompleteAction(
     action: 'onboarding_requirement_completed',
     details: { requirement_id: requirementId },
   })
+
+  revalidatePath(`/projects/${projectId}`)
+}
+
+export async function addRequirementAction(
+  projectId: string,
+  data: {
+    title: string
+    description?: string
+    owner_type?: 'hexona' | 'dfy' | 'client'
+    blocker_type?: 'none' | 'partial' | 'absolute'
+    parent_id?: string
+  }
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get max position
+  const { data: existing } = await supabase
+    .from('onboarding_requirements')
+    .select('position')
+    .eq('project_id', projectId)
+    .order('position', { ascending: false })
+    .limit(1)
+
+  const nextPosition = (existing?.[0]?.position ?? -1) + 1
+
+  const { error } = await supabase
+    .from('onboarding_requirements')
+    .insert({
+      project_id: projectId,
+      parent_id: data.parent_id || null,
+      title: data.title,
+      description: data.description || null,
+      owner_type: data.owner_type || 'hexona',
+      blocker_type: data.blocker_type || 'none',
+      position: nextPosition,
+    })
+
+  if (error) throw error
+
+  revalidatePath(`/projects/${projectId}`)
+}
+
+export async function updateRequirementAction(
+  requirementId: string,
+  projectId: string,
+  data: {
+    title?: string
+    description?: string
+    owner_type?: 'hexona' | 'dfy' | 'client'
+    blocker_type?: 'none' | 'partial' | 'absolute'
+    notes?: string
+    loom_url?: string
+    resource_url?: string
+  }
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('onboarding_requirements')
+    .update(data)
+    .eq('id', requirementId)
+
+  if (error) throw error
+
+  revalidatePath(`/projects/${projectId}`)
+}
+
+export async function deleteRequirementAction(
+  requirementId: string,
+  projectId: string
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('onboarding_requirements')
+    .delete()
+    .eq('id', requirementId)
+
+  if (error) throw error
 
   revalidatePath(`/projects/${projectId}`)
 }

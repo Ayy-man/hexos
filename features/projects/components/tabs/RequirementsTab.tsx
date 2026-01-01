@@ -6,6 +6,40 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   CheckCircle2,
   Circle,
@@ -15,12 +49,21 @@ import {
   ExternalLink,
   Video,
   Plus,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
-import { markRequirementCompleteAction } from '../../actions/projectActions'
+import {
+  markRequirementCompleteAction,
+  addRequirementAction,
+  updateRequirementAction,
+  deleteRequirementAction,
+} from '../../actions/projectActions'
 
 interface RequirementsTabProps {
   project: ProjectWithRelations
@@ -97,6 +140,9 @@ function RequirementItem({
   isAdmin,
   updating,
   onToggleComplete,
+  onEdit,
+  onDelete,
+  onAddChild,
   expandedIds,
   onToggleExpand,
 }: {
@@ -106,6 +152,9 @@ function RequirementItem({
   isAdmin: boolean
   updating: string | null
   onToggleComplete: (req: OnboardingRequirement) => void
+  onEdit: (req: OnboardingRequirement) => void
+  onDelete: (req: OnboardingRequirement) => void
+  onAddChild: (parentId: string) => void
   expandedIds: Set<string>
   onToggleExpand: (id: string) => void
 }) {
@@ -234,6 +283,34 @@ function RequirementItem({
         >
           {formatStatus(requirement.status)}
         </Badge>
+
+        {/* Actions dropdown (admin only) */}
+        {isAdmin && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(requirement)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onAddChild(requirement.id)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Sub-item
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onDelete(requirement)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Children */}
@@ -248,6 +325,9 @@ function RequirementItem({
               isAdmin={isAdmin}
               updating={updating}
               onToggleComplete={onToggleComplete}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onAddChild={onAddChild}
               expandedIds={expandedIds}
               onToggleExpand={onToggleExpand}
             />
@@ -258,6 +338,27 @@ function RequirementItem({
   )
 }
 
+// Form for adding/editing requirements
+interface RequirementFormData {
+  title: string
+  description: string
+  notes: string
+  owner_type: 'hexona' | 'dfy' | 'client'
+  blocker_type: 'none' | 'partial' | 'absolute'
+  loom_url: string
+  resource_url: string
+}
+
+const defaultFormData: RequirementFormData = {
+  title: '',
+  description: '',
+  notes: '',
+  owner_type: 'hexona',
+  blocker_type: 'none',
+  loom_url: '',
+  resource_url: '',
+}
+
 export function RequirementsTab({
   project,
   requirements,
@@ -266,6 +367,16 @@ export function RequirementsTab({
 }: RequirementsTabProps) {
   const [updating, setUpdating] = useState<string | null>(null)
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+
+  // Dialog states
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [editingRequirement, setEditingRequirement] = useState<OnboardingRequirement | null>(null)
+  const [deletingRequirement, setDeletingRequirement] = useState<OnboardingRequirement | null>(null)
+  const [parentIdForAdd, setParentIdForAdd] = useState<string | undefined>(undefined)
+  const [formData, setFormData] = useState<RequirementFormData>(defaultFormData)
+  const [isSaving, setIsSaving] = useState(false)
 
   // Build tree from flat requirements
   const tree = buildTree(requirements)
@@ -319,6 +430,104 @@ export function RequirementsTab({
     }
   }
 
+  // Add handlers
+  const openAddDialog = (parentId?: string) => {
+    setFormData(defaultFormData)
+    setParentIdForAdd(parentId)
+    setIsAddDialogOpen(true)
+  }
+
+  const handleAdd = async () => {
+    if (!formData.title.trim()) {
+      toast.error('Title is required')
+      return
+    }
+    setIsSaving(true)
+    try {
+      await addRequirementAction(project.id, {
+        title: formData.title,
+        description: formData.description || undefined,
+        owner_type: formData.owner_type,
+        blocker_type: formData.blocker_type,
+        parent_id: parentIdForAdd,
+      })
+      toast.success('Requirement added')
+      setIsAddDialogOpen(false)
+      setFormData(defaultFormData)
+    } catch (error) {
+      console.error('Failed to add requirement:', error)
+      toast.error('Failed to add requirement')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Edit handlers
+  const openEditDialog = (requirement: OnboardingRequirement) => {
+    setEditingRequirement(requirement)
+    setFormData({
+      title: requirement.title,
+      description: requirement.description || '',
+      notes: requirement.notes || '',
+      owner_type: requirement.owner_type || 'hexona',
+      blocker_type: requirement.blocker_type || 'none',
+      loom_url: requirement.loom_url || '',
+      resource_url: requirement.resource_url || '',
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleEdit = async () => {
+    if (!editingRequirement) return
+    if (!formData.title.trim()) {
+      toast.error('Title is required')
+      return
+    }
+    setIsSaving(true)
+    try {
+      await updateRequirementAction(editingRequirement.id, project.id, {
+        title: formData.title,
+        description: formData.description || undefined,
+        notes: formData.notes || undefined,
+        owner_type: formData.owner_type,
+        blocker_type: formData.blocker_type,
+        loom_url: formData.loom_url || undefined,
+        resource_url: formData.resource_url || undefined,
+      })
+      toast.success('Requirement updated')
+      setIsEditDialogOpen(false)
+      setEditingRequirement(null)
+      setFormData(defaultFormData)
+    } catch (error) {
+      console.error('Failed to update requirement:', error)
+      toast.error('Failed to update requirement')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Delete handlers
+  const openDeleteDialog = (requirement: OnboardingRequirement) => {
+    setDeletingRequirement(requirement)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!deletingRequirement) return
+    setIsSaving(true)
+    try {
+      await deleteRequirementAction(deletingRequirement.id, project.id)
+      toast.success('Requirement deleted')
+      setIsDeleteDialogOpen(false)
+      setDeletingRequirement(null)
+    } catch (error) {
+      console.error('Failed to delete requirement:', error)
+      toast.error('Failed to delete requirement')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Progress */}
@@ -353,6 +562,12 @@ export function RequirementsTab({
                 </Button>
               </>
             )}
+            {isAdmin && (
+              <Button size="sm" onClick={() => openAddDialog()}>
+                <Plus className="h-4 w-4 mr-1" />
+                Add Requirement
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -370,6 +585,9 @@ export function RequirementsTab({
                   isAdmin={isAdmin}
                   updating={updating}
                   onToggleComplete={handleToggleComplete}
+                  onEdit={openEditDialog}
+                  onDelete={openDeleteDialog}
+                  onAddChild={openAddDialog}
                   expandedIds={expandedIds}
                   onToggleExpand={toggleExpand}
                 />
@@ -378,6 +596,236 @@ export function RequirementsTab({
           )}
         </CardContent>
       </Card>
+
+      {/* Add Requirement Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {parentIdForAdd ? 'Add Sub-item' : 'Add Requirement'}
+            </DialogTitle>
+            <DialogDescription>
+              {parentIdForAdd
+                ? 'Add a new sub-item under this requirement.'
+                : 'Add a new requirement to the project onboarding checklist.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="add-title">Title *</Label>
+              <Input
+                id="add-title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g., Provide API credentials"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-description">Description</Label>
+              <Textarea
+                id="add-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Detailed instructions or context"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="add-owner">Owner</Label>
+                <Select
+                  value={formData.owner_type}
+                  onValueChange={(v) => setFormData({ ...formData, owner_type: v as typeof formData.owner_type })}
+                >
+                  <SelectTrigger id="add-owner">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hexona">Hexona</SelectItem>
+                    <SelectItem value="dfy">DFY Partner</SelectItem>
+                    <SelectItem value="client">Client</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="add-blocker">Blocker Type</Label>
+                <Select
+                  value={formData.blocker_type}
+                  onValueChange={(v) => setFormData({ ...formData, blocker_type: v as typeof formData.blocker_type })}
+                >
+                  <SelectTrigger id="add-blocker">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="partial">Partial Blocker</SelectItem>
+                    <SelectItem value="absolute">Absolute Blocker</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button onClick={handleAdd} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Requirement'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Requirement Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Requirement</DialogTitle>
+            <DialogDescription>
+              Update the requirement details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title *</Label>
+              <Input
+                id="edit-title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea
+                id="edit-notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Internal notes or follow-up items"
+                rows={2}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-owner">Owner</Label>
+                <Select
+                  value={formData.owner_type}
+                  onValueChange={(v) => setFormData({ ...formData, owner_type: v as typeof formData.owner_type })}
+                >
+                  <SelectTrigger id="edit-owner">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hexona">Hexona</SelectItem>
+                    <SelectItem value="dfy">DFY Partner</SelectItem>
+                    <SelectItem value="client">Client</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-blocker">Blocker Type</Label>
+                <Select
+                  value={formData.blocker_type}
+                  onValueChange={(v) => setFormData({ ...formData, blocker_type: v as typeof formData.blocker_type })}
+                >
+                  <SelectTrigger id="edit-blocker">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="partial">Partial Blocker</SelectItem>
+                    <SelectItem value="absolute">Absolute Blocker</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-loom">Loom URL</Label>
+              <Input
+                id="edit-loom"
+                type="url"
+                value={formData.loom_url}
+                onChange={(e) => setFormData({ ...formData, loom_url: e.target.value })}
+                placeholder="https://loom.com/..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-resource">Resource URL</Label>
+              <Input
+                id="edit-resource"
+                type="url"
+                value={formData.resource_url}
+                onChange={(e) => setFormData({ ...formData, resource_url: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} disabled={isSaving}>
+              Cancel
+            </Button>
+            <Button onClick={handleEdit} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Requirement</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{deletingRequirement?.title}&quot;?
+              {deletingRequirement && requirements.some(r => r.parent_id === deletingRequirement.id) && (
+                <span className="block mt-2 font-medium text-amber-600">
+                  This will also delete all sub-items.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isSaving}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

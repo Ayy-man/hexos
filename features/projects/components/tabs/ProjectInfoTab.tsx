@@ -17,12 +17,25 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { DollarSign, Calendar, Settings, ChevronDown, Loader2, Check } from 'lucide-react'
+import { DollarSign, Calendar, Settings, ChevronDown, Loader2, Check, Trash2, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import { computeProjectFinancials } from '@/lib/utils/projectFinancials'
 import type { UserRole } from '@/lib/auth/types'
 import { updateProjectFinancialsAction } from '../../actions/financialActions'
+import { deleteProjectAction } from '../../actions/projectActions'
 
 interface ProjectInfoTabProps {
   project: ProjectWithRelations
@@ -53,12 +66,14 @@ function formatDisplayDate(date: string | null) {
 }
 
 export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
+  const router = useRouter()
   const isAdmin = userRole === 'admin'
   const isInternal = userRole === 'internal'
   const canEdit = isAdmin
   const canViewInternal = isAdmin || isInternal
 
   const [isPending, startTransition] = useTransition()
+  const [isDeleting, setIsDeleting] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
 
   // Form state
@@ -107,6 +122,19 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
   }
 
   const markChanged = () => setHasChanges(true)
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      await deleteProjectAction(project.id)
+      toast.success('Project deleted successfully')
+      router.push('/projects')
+    } catch (error) {
+      console.error('Failed to delete project:', error)
+      toast.error('Failed to delete project')
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -415,6 +443,78 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
             )}
           </Button>
         </div>
+      )}
+
+      {/* Danger Zone */}
+      {canEdit && (
+        <Collapsible>
+          <Card className="border-red-200 dark:border-red-900">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors">
+                <CardTitle className="flex items-center justify-between text-base text-red-600 dark:text-red-400">
+                  <span className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5" />
+                    Danger Zone
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-900 rounded-lg bg-red-50/50 dark:bg-red-950/20">
+                  <div className="space-y-1">
+                    <p className="font-medium">Delete this project</p>
+                    <p className="text-sm text-muted-foreground">
+                      Permanently delete this project and all its data. The linked inquiry will be preserved.
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" disabled={isDeleting}>
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Project
+                          </>
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete &quot;{project.project_name}&quot;? This will permanently remove:
+                          <ul className="list-disc list-inside mt-2 space-y-1">
+                            <li>All deliverables</li>
+                            <li>All onboarding requirements</li>
+                            <li>All uploaded files</li>
+                            <li>All activity history</li>
+                          </ul>
+                          <p className="mt-3 font-medium">The linked inquiry will be preserved and can be converted again.</p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDelete}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete Project
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
       )}
     </div>
   )
