@@ -386,6 +386,26 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - [x] Requirements builder with suggestions
 - [x] Auto-parse deliverables if none exist
 
+**Project Initiation Wizard (NEW):**
+Full-page wizard at `/inquiries/[id]/initiate` replacing the modal-based conversion.
+- [x] Step 1: Select deliverables from proposal
+- [x] Step 2: Build hierarchical requirements tree with template library
+- [x] Step 3: Review project details and create project
+- [x] Tree-structured onboarding_requirements (parent_id for nested items)
+- [x] Requirement templates with categories (platform_access, credentials, assets, setup, payments)
+- [x] File attachments support for requirements
+- [x] RLS policies for admin/dfy/client access
+
+**TODO: Add Real Onboarding Templates**
+The current templates are placeholders. Add actual templates based on common DFY onboarding patterns:
+- Platform Access: GHL subaccounts, Meta Business Suite, Stripe Connect, etc.
+- Credentials: API keys, login credentials, OAuth connections
+- Assets: Brand kits, call scripts, email templates, product catalogs
+- Setup: WAGHL config, workflow setup, testing checklists
+- Payments: Invoice setup, payment links, billing configuration
+
+Templates can be managed via Supabase Dashboard → requirement_templates table.
+
 **Requirements System:**
 - [x] Requirements table with dependencies (depends_on_id)
 - [x] Status tracking (pending, in_progress, completed, blocked)
