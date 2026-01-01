@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-import type { Message } from '@/lib/api/conversations'
+import type { Message } from '@/lib/api/conversations.shared'
 import { MessageReactions, AddReactionButton } from './MessageReactions'
 
 interface MessageItemProps {

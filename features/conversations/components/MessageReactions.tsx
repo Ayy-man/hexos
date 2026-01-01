@@ -9,7 +9,7 @@ import {
   EmojiPickerContent,
 } from '@/components/ui/emoji-picker'
 import { cn } from '@/lib/utils'
-import type { MessageReaction } from '@/lib/api/conversations'
+import type { MessageReaction } from '@/lib/api/conversations.shared'
 
 interface MessageReactionsProps {
   reactions: MessageReaction[]

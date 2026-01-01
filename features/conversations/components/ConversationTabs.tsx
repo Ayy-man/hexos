@@ -2,8 +2,8 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
-import type { Conversation, Message, ConversationType } from '@/lib/api/conversations'
-import { CONVERSATION_TYPE_LABELS, CONVERSATION_TYPE_DESCRIPTIONS } from '@/lib/api/conversations'
+import type { Conversation, Message, ConversationType } from '@/lib/api/conversations.shared'
+import { CONVERSATION_TYPE_LABELS, CONVERSATION_TYPE_DESCRIPTIONS } from '@/lib/api/conversations.shared'
 import { ChatPanel } from './ChatPanel'
 import { UnreadBadge } from './UnreadBadge'
 

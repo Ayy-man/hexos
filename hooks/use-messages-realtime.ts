@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { Message } from '@/lib/api/conversations'
+import type { Message } from '@/lib/api/conversations.shared'
 
 interface UseMessagesRealtimeOptions {
   conversationId: string

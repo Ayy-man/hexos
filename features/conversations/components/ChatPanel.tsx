@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import type { Conversation, Message } from '@/lib/api/conversations'
+import type { Conversation, Message } from '@/lib/api/conversations.shared'
 import { useMessagesRealtime } from '@/hooks/use-messages-realtime'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'

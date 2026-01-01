@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ConversationTabs } from '@/features/conversations/components'
-import type { Conversation, Message } from '@/lib/api/conversations'
+import type { Conversation, Message } from '@/lib/api/conversations.shared'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface Participant {

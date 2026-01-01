@@ -2,8 +2,8 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
-import type { Conversation } from '@/lib/api/conversations'
-import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations'
+import type { Conversation } from '@/lib/api/conversations.shared'
+import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations.shared'
 import { UnreadBadge } from './UnreadBadge'
 
 interface ConversationItemProps {
