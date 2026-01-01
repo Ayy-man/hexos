@@ -159,7 +159,6 @@ export async function completeInitiationAction(
         project_id: project.id,
         title: d.name,
         description: d.description,
-        price: d.counter_price ?? d.price,
         status: 'pending',
         sort_order: index,
       }))
