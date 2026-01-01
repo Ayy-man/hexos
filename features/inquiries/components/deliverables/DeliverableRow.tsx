@@ -72,6 +72,10 @@ export function DeliverableRow({
   const [isCounterDialogOpen, setIsCounterDialogOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
 
+  // State for inline action expansion (approve/reject with optional note)
+  const [pendingAction, setPendingAction] = useState<'approve' | 'reject' | null>(null)
+  const [actionNote, setActionNote] = useState('')
+
   // Edit form state
   const [editName, setEditName] = useState(deliverable.name)
   const [editDescription, setEditDescription] = useState(
@@ -116,16 +120,33 @@ export function DeliverableRow({
 
   const handleApprove = () => {
     if (!onReview) return
-    startTransition(async () => {
-      await onReview(deliverable.id, 'approved')
-    })
+    setPendingAction('approve')
   }
 
   const handleReject = () => {
     if (!onReview) return
+    setPendingAction('reject')
+  }
+
+  const handleConfirmAction = () => {
+    if (!onReview || !pendingAction) return
     startTransition(async () => {
-      await onReview(deliverable.id, 'rejected')
+      await onReview(
+        deliverable.id,
+        pendingAction === 'approve' ? 'approved' : 'rejected',
+        undefined, // counterName
+        undefined, // counterDescription
+        undefined, // counterPrice
+        actionNote || undefined // note (only if provided)
+      )
+      setPendingAction(null)
+      setActionNote('')
     })
+  }
+
+  const handleCancelAction = () => {
+    setPendingAction(null)
+    setActionNote('')
   }
 
   const handleCounter = async (
@@ -172,7 +193,7 @@ export function DeliverableRow({
         className={cn(
           isRemoved && 'opacity-50 bg-muted/50',
           isPending && 'opacity-70',
-          needsDfyResponse && 'border-b-0'
+          (needsDfyResponse || pendingAction) && 'border-b-0'
         )}
       >
       {/* Name */}
@@ -381,6 +402,65 @@ export function DeliverableRow({
         </div>
       </TableCell>
     </TableRow>
+
+    {/* Inline action confirmation row (approve/reject with optional note) */}
+    {pendingAction && (
+      <TableRow className="hover:bg-transparent">
+        <TableCell colSpan={5} className="pt-0 pb-4">
+          <div className={cn(
+            "p-4 rounded-lg border",
+            pendingAction === 'approve'
+              ? "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20"
+              : "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20"
+          )}>
+            <div className="space-y-3">
+              <p className="font-medium text-sm">
+                {pendingAction === 'approve' ? 'Approve' : 'Reject'} this deliverable?
+              </p>
+              <Textarea
+                placeholder="Add a note (optional)..."
+                value={actionNote}
+                onChange={(e) => setActionNote(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault()
+                    handleConfirmAction()
+                  }
+                }}
+                rows={2}
+                className="text-sm"
+                autoFocus
+              />
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleConfirmAction}
+                  disabled={isPending}
+                  className={pendingAction === 'approve'
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                  }
+                >
+                  <Check className="h-4 w-4 mr-1" />
+                  Confirm {pendingAction === 'approve' ? 'Approval' : 'Rejection'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCancelAction}
+                  disabled={isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Press Ctrl+Enter to submit
+              </p>
+            </div>
+          </div>
+        </TableCell>
+      </TableRow>
+    )}
 
     {/* Counter response row for DFY */}
     {needsDfyResponse && (

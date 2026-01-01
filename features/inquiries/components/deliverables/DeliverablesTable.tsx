@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import {
   Table,
   TableBody,
@@ -9,8 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, CheckCheck } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { DeliverableRow } from './DeliverableRow'
 import { TotalsDiff } from './DeliverableDiff'
 import { needsReview } from './DeliverableStatusBadge'
@@ -39,7 +38,6 @@ interface DeliverablesTableProps {
   onAcceptCounter?: (id: string) => Promise<void>
   onRejectCounter?: (id: string, reason?: string) => Promise<void>
   onGetHistory?: (id: string) => Promise<DeliverableHistoryEntry[]>
-  onBulkApprove?: (ids: string[]) => Promise<void>
   onAddDeliverable?: () => void
   onOpenComments?: (id: string) => void
   commentCounts?: Record<string, number>
@@ -57,18 +55,14 @@ export function DeliverablesTable({
   onAcceptCounter,
   onRejectCounter,
   onGetHistory,
-  onBulkApprove,
   onAddDeliverable,
   onOpenComments,
   commentCounts = {},
 }: DeliverablesTableProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-
   // Calculate totals
-  const { originalTotal, currentTotal, pendingReviewCount } = useMemo(() => {
+  const { originalTotal, currentTotal } = useMemo(() => {
     let original = 0
     let current = 0
-    let pending = 0
 
     deliverables.forEach((d) => {
       // Skip removed items from current total
@@ -82,53 +76,13 @@ export function DeliverablesTable({
         const origPrice = d.original_price ?? d.price ?? 0
         original += origPrice
       }
-
-      // Count pending reviews
-      if (needsReview(d.change_status)) {
-        pending++
-      }
     })
 
     return {
       originalTotal: original,
       currentTotal: current,
-      pendingReviewCount: pending,
     }
   }, [deliverables])
-
-  // Items that can be selected for bulk actions
-  const selectableItems = useMemo(
-    () => deliverables.filter((d) => needsReview(d.change_status)),
-    [deliverables]
-  )
-
-  const allSelected =
-    selectableItems.length > 0 &&
-    selectableItems.every((d) => selectedIds.has(d.id))
-
-  const handleSelectAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(selectableItems.map((d) => d.id)))
-    }
-  }
-
-  const handleSelectOne = (id: string) => {
-    const newSet = new Set(selectedIds)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    setSelectedIds(newSet)
-  }
-
-  const handleBulkApprove = async () => {
-    if (!onBulkApprove || selectedIds.size === 0) return
-    await onBulkApprove(Array.from(selectedIds))
-    setSelectedIds(new Set())
-  }
 
   if (deliverables.length === 0) {
     return (
@@ -150,28 +104,6 @@ export function DeliverablesTable({
 
   return (
     <div className="space-y-4">
-      {/* Bulk actions bar */}
-      {isReviewer && selectableItems.length > 0 && (
-        <div className="flex items-center justify-between bg-muted/50 p-3 rounded-lg">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              checked={allSelected}
-              onCheckedChange={handleSelectAll}
-            />
-            <span className="text-sm text-muted-foreground">
-              {selectedIds.size} of {selectableItems.length} pending items
-              selected
-            </span>
-          </div>
-          {selectedIds.size > 0 && onBulkApprove && (
-            <Button size="sm" onClick={handleBulkApprove}>
-              <CheckCheck className="h-4 w-4 mr-2" />
-              Approve Selected
-            </Button>
-          )}
-        </div>
-      )}
-
       {/* Table */}
       <div className="border rounded-lg">
         <Table>
