@@ -396,14 +396,31 @@ Full-page wizard at `/inquiries/[id]/initiate` replacing the modal-based convers
 - [x] Requirement templates with categories (platform_access, credentials, assets, setup, payments)
 - [x] File attachments support for requirements
 - [x] RLS policies for admin/dfy/client access
+- [x] **Hierarchical Templates** - Templates with parent_id support for nested children
+  - Selecting a template adds entire tree of requirements (parent + all children)
+  - Templates have position for ordering, default_blocker for blocker type
+  - Example: GHL Setup → Add Billing to Hexona → Add WAGHL → Add WAGHL Billing
 
-**TODO: Add Real Onboarding Templates**
-The current templates are placeholders. Add actual templates based on common DFY onboarding patterns:
-- Platform Access: GHL subaccounts, Meta Business Suite, Stripe Connect, etc.
-- Credentials: API keys, login credentials, OAuth connections
-- Assets: Brand kits, call scripts, email templates, product catalogs
-- Setup: WAGHL config, workflow setup, testing checklists
-- Payments: Invoice setup, payment links, billing configuration
+**Hierarchical Requirement Templates:**
+Templates support nested children via `parent_id` column. When a template is selected, the entire tree is added:
+```
+📁 GHL Setup (Hexona, absolute blocker)
+  ├── Add Billing to Hexona (DFY)
+  ├── Add WAGHL (Hexona)
+  └── Add WAGHL Billing (Client)
+```
+Template columns: `parent_id`, `position`, `default_blocker`
+API: `lib/api/requirement-templates.shared.ts` (client-safe), `lib/api/requirement-templates.ts` (server)
+
+**Project Management (Admin):**
+- [x] **Delete Project** - Admin can delete projects from Danger Zone in Project Info tab
+  - Unlinks inquiry first (preserves inquiry, resets to 'closed' status)
+  - Deletes activity_log entries to avoid FK constraint issues
+  - Cascades to deliverables, requirements, files
+- [x] **Requirements CRUD** - Add/edit/delete requirements after project creation
+  - Add requirement dialog with title, description, owner, blocker, dependencies
+  - Edit inline via dropdown menu
+  - Delete with confirmation
 
 Templates can be managed via Supabase Dashboard → requirement_templates table.
 

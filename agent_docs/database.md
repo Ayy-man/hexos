@@ -103,6 +103,29 @@ CREATE TYPE requirement_status AS ENUM (
   'completed',   -- Done
   'blocked'      -- Blocked by something
 );
+
+-- Onboarding requirement owner (who is responsible)
+CREATE TYPE requirement_owner AS ENUM (
+  'hexona',  -- Hexona team
+  'dfy',     -- DFY partner
+  'client'   -- End client
+);
+
+-- Onboarding requirement blocker type
+CREATE TYPE requirement_blocker AS ENUM (
+  'none',      -- Not a blocker
+  'partial',   -- Partial blocker (work can proceed partially)
+  'absolute'   -- Absolute blocker (must complete before proceeding)
+);
+
+-- Onboarding requirement status
+CREATE TYPE onboarding_requirement_status AS ENUM (
+  'pending',
+  'in_progress',
+  'completed',
+  'blocked',
+  'not_applicable'
+);
 ```
 
 ### Core Tables
@@ -350,7 +373,7 @@ CREATE TABLE public.proposal_deliverable_comments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Project Requirements (onboarding checklist items)
+-- Project Requirements (onboarding checklist items - OLD, replaced by onboarding_requirements)
 CREATE TABLE public.project_requirements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -362,6 +385,53 @@ CREATE TABLE public.project_requirements (
   completed_by UUID REFERENCES profiles(id),
   sort_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Requirement Templates (library of reusable templates)
+CREATE TABLE public.requirement_templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  description TEXT,
+  loom_url TEXT,                                    -- Optional tutorial video
+  default_owner requirement_owner DEFAULT 'hexona',
+  default_blocker requirement_blocker DEFAULT 'none',
+  category TEXT NOT NULL,                           -- platform_access, credentials, assets, setup, payments
+  parent_id UUID REFERENCES requirement_templates(id) ON DELETE CASCADE,  -- For hierarchical templates
+  position INT DEFAULT 0,                           -- Sort order within siblings
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Onboarding Requirements (tree-structured requirements for projects)
+CREATE TABLE public.onboarding_requirements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  parent_id UUID REFERENCES onboarding_requirements(id) ON DELETE CASCADE, -- For nesting
+  title TEXT NOT NULL,
+  description TEXT,
+  notes TEXT,                                       -- Internal notes
+  owner_type requirement_owner DEFAULT 'hexona',
+  blocker_type requirement_blocker DEFAULT 'none',
+  status onboarding_requirement_status DEFAULT 'pending',
+  loom_url TEXT,
+  resource_url TEXT,
+  position INT DEFAULT 0,
+  completed_at TIMESTAMPTZ,
+  completed_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Requirement Attachments (files attached to onboarding requirements)
+CREATE TABLE public.requirement_attachments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requirement_id UUID NOT NULL REFERENCES onboarding_requirements(id) ON DELETE CASCADE,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,                          -- Supabase Storage path
+  file_size INT,
+  file_type TEXT,
+  uploaded_by UUID REFERENCES profiles(id),
+  uploaded_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -385,6 +455,10 @@ inquiries 1──1 projects (via converted_to_project_id)
 projects 1──1 inquiries (via source_inquiry_id)
 inquiry_comments 1──* inquiry_comments (threaded replies via parent_id)
 proposal_deliverables 1──* proposal_deliverable_comments
+requirement_templates 1──* requirement_templates (via parent_id for hierarchical templates)
+projects 1──* onboarding_requirements
+onboarding_requirements 1──* onboarding_requirements (via parent_id for nesting)
+onboarding_requirements 1──* requirement_attachments
 ```
 
 ## Indexes
@@ -406,6 +480,12 @@ CREATE INDEX idx_inquiry_comments_inquiry ON inquiry_comments(inquiry_id);
 CREATE INDEX idx_proposal_deliverables_inquiry ON proposal_deliverables(inquiry_id);
 CREATE INDEX idx_proposal_deliverable_comments_deliverable ON proposal_deliverable_comments(deliverable_id);
 CREATE INDEX idx_project_requirements_project ON project_requirements(project_id);
+CREATE INDEX idx_requirement_templates_parent ON requirement_templates(parent_id);
+CREATE INDEX idx_requirement_templates_category ON requirement_templates(category);
+CREATE INDEX idx_onboarding_requirements_project ON onboarding_requirements(project_id);
+CREATE INDEX idx_onboarding_requirements_parent ON onboarding_requirements(parent_id);
+CREATE INDEX idx_onboarding_requirements_status ON onboarding_requirements(status);
+CREATE INDEX idx_requirement_attachments_requirement ON requirement_attachments(requirement_id);
 ```
 
 See `security.md` for RLS policies on these tables.

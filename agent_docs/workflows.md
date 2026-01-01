@@ -276,9 +276,22 @@ DFY clicks "Mark as Closed" → Admin clicks "Convert to Project"
 - Blocker types (none, partial, absolute)
 - File attachments support
 
+**Hierarchical Templates:**
+Templates support nested children via `parent_id`. Selecting a template adds entire tree:
+```
+GHL Setup (Hexona) → Add Billing to Hexona (DFY) → Add WAGHL (Hexona) → Add WAGHL Billing (Client)
+```
+Template tree building handled by `lib/api/requirement-templates.shared.ts` (client-safe).
+
 **Tables Used:**
 - `proposal_deliverables` → copied to `project_deliverables`
 - `onboarding_requirements` → created with tree structure (parent_id for nesting)
-- `requirement_templates` → library of reusable templates
+- `requirement_templates` → library of reusable templates (with parent_id for hierarchy)
 
 **Project Link:** New project gets `source_inquiry_id` linking back to original inquiry.
+
+**Project Deletion:**
+Admin can delete projects from Danger Zone in Project Info tab:
+1. Unlinks inquiry first (preserves inquiry, resets status to 'closed')
+2. Deletes activity_log entries (avoids FK constraint from trigger)
+3. Cascades to deliverables, requirements, files

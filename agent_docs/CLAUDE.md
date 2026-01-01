@@ -73,10 +73,17 @@ Building MVP. See `agent_docs/features.md` for what's built vs planned.
 - Project initiation wizard (convert inquiry → select deliverables → build requirements tree → create project)
 - Blueprints & case studies catalog
 - Dashboards for all roles (admin, dev, dfy, client)
+- Hierarchical requirement templates (selecting template adds entire tree)
+- Delete project (admin, preserves linked inquiry)
+- Requirements CRUD after project creation
 
 ### Current Focus: Phase 4.9 (Project Lifecycle)
 - [x] Project detail page with tabs (Overview, Deliverables, Requirements, Files, Activity)
 - [x] Project Initiation Wizard with tree-based onboarding_requirements
+- [x] Hierarchical templates (parent_id, position, default_blocker)
+- [x] GHL Setup template tree (Hexona → DFY → Hexona → Client)
+- [x] Delete project with inquiry preservation
+- [x] Requirements CRUD after project creation
 - [ ] **NEXT: Migrate RequirementsTab to use onboarding_requirements** (currently uses old flat project_requirements)
 - [ ] Project status transitions (deliverables_pending → deliverables_confirmed → etc.)
 - [ ] Deliverables sign-off flow (Admin → DFY confirms for client)
@@ -88,5 +95,6 @@ Building MVP. See `agent_docs/features.md` for what's built vs planned.
 - `proposal_deliverables` - Negotiated deliverables pre-close
 - `projects` - Active projects post-conversion
 - `project_deliverables` - Final deliverables (source of truth)
-- `onboarding_requirements` - NEW: Tree-structured requirements with templates
-- `requirement_templates` - Reusable requirement templates by category
+- `onboarding_requirements` - Tree-structured requirements with parent_id
+- `requirement_templates` - Reusable templates with hierarchical support (parent_id, position, default_blocker)
+- `requirement_attachments` - Files attached to requirements
