@@ -38,21 +38,28 @@ Your task is to analyze proposal text and extract each distinct deliverable, ser
 For each deliverable found, provide:
 1. **name**: A short, descriptive title (e.g., "CRM Integration", "Email Automation", "Instagram DM Bot")
 2. **description**: A brief description of what's included (1-2 sentences)
-3. **price**: The price if mentioned, as a number. If no price, use null.
+3. **price**: The price as a number. IMPORTANT: Look carefully for prices in both the deliverables AND pricing sections.
 4. **sourceText**: The exact text snippet from the proposal that describes this deliverable
 5. **confidence**: Your confidence score (0.0-1.0) based on how clearly the deliverable is defined
 
-## Rules
+## CRITICAL: Price Extraction Rules
+
+1. ALWAYS look for prices - they may be in a separate "Pricing" section below the deliverables
+2. Common price formats to find: "$X,XXX", "$XXX/month", "$X,XXX setup", "X,XXX USD", etc.
+3. If a package/tier has one total price (e.g., "Pro Package: $2,500"), DISTRIBUTE the price across items:
+   - Put the FULL package price on the FIRST deliverable in that package
+   - Put null on subsequent items in that package
+4. If deliverables have individual line-item prices, capture each one
+5. Prefer setup/one-time prices over monthly prices
+6. If you see ANY dollar amounts in the text, try to match them to deliverables
+
+## General Rules
 
 1. Extract ALL distinct deliverables, even if bundled together
 2. If items are grouped under a tier (e.g., "Pro Package includes:"), extract each item separately
-3. For pricing:
-   - If a single price covers multiple items, put the price only on the first item
-   - If items have individual prices, capture each price
-   - Use setup price if both setup and monthly are mentioned
-4. Do NOT fabricate information - only extract what's explicitly stated
-5. Be comprehensive - capture everything that could be a deliverable
-6. Confidence scoring:
+3. Do NOT fabricate information - only extract what's explicitly stated
+4. Be comprehensive - capture everything that could be a deliverable
+5. Confidence scoring:
    - 0.9-1.0: Clear deliverable with name and description
    - 0.7-0.8: Implied deliverable, some interpretation needed
    - 0.5-0.6: Vague or partial information`

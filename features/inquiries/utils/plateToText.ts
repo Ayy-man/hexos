@@ -121,7 +121,7 @@ export function extractSection(
  * Tries multiple common section names
  */
 export function extractDeliverablesSection(content: unknown): string {
-  const sectionKeywords = [
+  const deliverableKeywords = [
     'deliverables',
     'scope',
     "what's included",
@@ -133,12 +133,29 @@ export function extractDeliverablesSection(content: unknown): string {
     'project scope',
   ]
 
-  const section = extractSection(content, sectionKeywords)
+  const pricingKeywords = [
+    'pricing',
+    'price',
+    'cost',
+    'investment',
+    'package',
+    'tier',
+    'plan',
+    'quote',
+  ]
 
-  // If no section found, return the full content for AI to parse
-  if (!section) {
+  const deliverablesSection = extractSection(content, deliverableKeywords)
+  const pricingSection = extractSection(content, pricingKeywords)
+
+  // Combine both sections so AI can match deliverables with prices
+  const combinedSections = [deliverablesSection, pricingSection]
+    .filter(Boolean)
+    .join('\n\n--- PRICING SECTION ---\n\n')
+
+  // If no sections found, return the full content for AI to parse
+  if (!combinedSections) {
     return plateToText(content)
   }
 
-  return section
+  return combinedSections
 }
