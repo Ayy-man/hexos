@@ -255,56 +255,8 @@ export async function getProjectStats() {
 // FINANCIAL FIELDS
 // ============================================================================
 
-export interface ProjectFinancials {
-  price_dfy: number | null
-  price_hexona: number | null
-  price_dev: number | null
-  profit_hexona: number | null
-  profit_dfy: number | null
-  cycle_sales: number | null
-  cycle_delivery: number | null
-}
-
-// Compute profit and cycle metrics from project data (API layer, not DB)
-export function computeProjectFinancials(project: Project): ProjectFinancials {
-  const profit_hexona =
-    project.price_hexona != null && project.price_dev != null
-      ? project.price_hexona - project.price_dev
-      : null
-
-  const profit_dfy =
-    project.price_dfy != null && project.price_hexona != null
-      ? project.price_dfy - project.price_hexona
-      : null
-
-  const cycle_sales =
-    project.date_inquiry && project.date_closed
-      ? Math.round(
-          (new Date(project.date_closed).getTime() -
-            new Date(project.date_inquiry).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      : null
-
-  const cycle_delivery =
-    project.date_closed && project.date_delivered
-      ? Math.round(
-          (new Date(project.date_delivered).getTime() -
-            new Date(project.date_closed).getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
-      : null
-
-  return {
-    price_dfy: project.price_dfy,
-    price_hexona: project.price_hexona,
-    price_dev: project.price_dev,
-    profit_hexona,
-    profit_dfy,
-    cycle_sales,
-    cycle_delivery,
-  }
-}
+// Re-export from utility file (safe for client components)
+export { computeProjectFinancials, type ProjectFinancials } from '@/lib/utils/projectFinancials'
 
 export interface UpdateProjectFinancialsInput {
   price_dfy?: number | null

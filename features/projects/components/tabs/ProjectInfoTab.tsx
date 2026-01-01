@@ -19,8 +19,8 @@ import {
 } from '@/components/ui/collapsible'
 import { DollarSign, Calendar, Settings, ChevronDown, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
-import type { ProjectWithRelations, ProjectFinancials } from '@/lib/api/projects'
-import { computeProjectFinancials } from '@/lib/api/projects'
+import type { ProjectWithRelations } from '@/lib/api/projects'
+import { computeProjectFinancials } from '@/lib/utils/projectFinancials'
 import type { UserRole } from '@/lib/auth/types'
 import { updateProjectFinancialsAction } from '../../actions/financialActions'
 
