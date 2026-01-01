@@ -9,6 +9,7 @@ export type {
   MessageReaction,
   MessageMention,
   ConversationReadStatus,
+  DirectConversationParticipant,
 } from './conversations.shared'
 
 export {
@@ -119,6 +120,240 @@ export async function getAllConversationsWithUnread(): Promise<Conversation[]> {
     const bDate = b.last_message?.created_at || b.created_at
     return new Date(bDate).getTime() - new Date(aDate).getTime()
   })
+}
+
+/**
+ * Get direct message conversations for current user
+ */
+export async function getDirectConversations(): Promise<Conversation[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Get conversations where user is a participant
+  const { data: participations, error: partError } = await supabase
+    .from('direct_conversation_participants')
+    .select('conversation_id')
+    .eq('user_id', user.id)
+
+  if (partError) throw partError
+  if (!participations || participations.length === 0) return []
+
+  const conversationIds = participations.map(p => p.conversation_id)
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .select(`
+      *,
+      participants:direct_conversation_participants(
+        *,
+        user:profiles!user_id(id, name, email)
+      )
+    `)
+    .in('id', conversationIds)
+    .eq('type', 'direct')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+
+  // Get unread counts and last messages
+  const conversationsWithData = await Promise.all(
+    (data || []).map(async (conv) => {
+      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
+      const lastMessage = await getLastMessage(conv.id)
+      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
+    })
+  )
+
+  return conversationsWithData.sort((a, b) => {
+    const aDate = a.last_message?.created_at || a.created_at
+    const bDate = b.last_message?.created_at || b.created_at
+    return new Date(bDate).getTime() - new Date(aDate).getTime()
+  })
+}
+
+/**
+ * Get inquiry conversations for current user
+ */
+export async function getInquiryConversations(): Promise<Conversation[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .select(`
+      *,
+      inquiry:inquiries!inquiry_id(id, project_type, client_name, status)
+    `)
+    .eq('type', 'inquiry')
+    .not('inquiry_id', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+
+  // Get unread counts and last messages
+  const conversationsWithData = await Promise.all(
+    (data || []).map(async (conv) => {
+      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
+      const lastMessage = await getLastMessage(conv.id)
+      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
+    })
+  )
+
+  return conversationsWithData.sort((a, b) => {
+    const aDate = a.last_message?.created_at || a.created_at
+    const bDate = b.last_message?.created_at || b.created_at
+    return new Date(bDate).getTime() - new Date(aDate).getTime()
+  })
+}
+
+/**
+ * Get project conversations only (excludes direct and inquiry)
+ */
+export async function getProjectConversationsOnly(): Promise<Conversation[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .select(`
+      *,
+      project:projects(id, project_name, client_name)
+    `)
+    .in('type', ['project', 'workspace', 'partner'])
+    .not('project_id', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+
+  // Get unread counts and last messages
+  const conversationsWithData = await Promise.all(
+    (data || []).map(async (conv) => {
+      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
+      const lastMessage = await getLastMessage(conv.id)
+      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
+    })
+  )
+
+  return conversationsWithData.sort((a, b) => {
+    const aDate = a.last_message?.created_at || a.created_at
+    const bDate = b.last_message?.created_at || b.created_at
+    return new Date(bDate).getTime() - new Date(aDate).getTime()
+  })
+}
+
+/**
+ * Create a direct conversation between users
+ */
+export async function createDirectConversation(
+  participantIds: string[],
+  title?: string
+): Promise<Conversation> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Include current user in participants
+  const allParticipants = [...new Set([user.id, ...participantIds])]
+
+  if (allParticipants.length < 2) {
+    throw new Error('Direct conversation requires at least 2 participants')
+  }
+
+  // Create the conversation
+  const { data: conv, error: convError } = await supabase
+    .from('conversations')
+    .insert({
+      type: 'direct',
+      title: title || null,
+    })
+    .select()
+    .single()
+
+  if (convError) throw convError
+
+  // Add participants
+  const participants = allParticipants.map(userId => ({
+    conversation_id: conv.id,
+    user_id: userId,
+  }))
+
+  const { error: partError } = await supabase
+    .from('direct_conversation_participants')
+    .insert(participants)
+
+  if (partError) {
+    // Cleanup conversation if participants fail
+    await supabase.from('conversations').delete().eq('id', conv.id)
+    throw partError
+  }
+
+  return conv
+}
+
+/**
+ * Find existing direct conversation with specific participants
+ */
+export async function findDirectConversation(participantIds: string[]): Promise<Conversation | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const allParticipants = [...new Set([user.id, ...participantIds])].sort()
+
+  // Get user's direct conversations
+  const { data: userConvs, error } = await supabase
+    .from('direct_conversation_participants')
+    .select('conversation_id')
+    .eq('user_id', user.id)
+
+  if (error) throw error
+  if (!userConvs || userConvs.length === 0) return null
+
+  // Check each conversation for matching participants
+  for (const { conversation_id } of userConvs) {
+    const { data: convParticipants } = await supabase
+      .from('direct_conversation_participants')
+      .select('user_id')
+      .eq('conversation_id', conversation_id)
+
+    if (!convParticipants) continue
+
+    const convUserIds = convParticipants.map(p => p.user_id).sort()
+
+    if (convUserIds.length === allParticipants.length &&
+        convUserIds.every((id, i) => id === allParticipants[i])) {
+      // Found matching conversation
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversation_id)
+        .single()
+
+      return conv
+    }
+  }
+
+  return null
+}
+
+/**
+ * Get or create a direct conversation with specific participants
+ */
+export async function getOrCreateDirectConversation(
+  participantIds: string[],
+  title?: string
+): Promise<Conversation> {
+  const existing = await findDirectConversation(participantIds)
+  if (existing) return existing
+  return createDirectConversation(participantIds, title)
 }
 
 /**
