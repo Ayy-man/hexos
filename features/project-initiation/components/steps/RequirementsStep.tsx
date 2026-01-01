@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/popover'
 import { ClipboardList, Plus, ChevronDown, ChevronRight, Trash2, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { RequirementTemplate } from '@/lib/api/requirement-templates'
+import type { RequirementTemplate, RequirementTemplateTree } from '@/lib/api/requirement-templates'
+import { buildTemplateTree } from '@/lib/api/requirement-templates'
 import type { RequirementNode, RequirementTreeNode } from '../../utils/treeHelpers'
 import {
   buildTree,
@@ -62,13 +63,14 @@ export function RequirementsStep({
   // Build tree for rendering
   const tree = buildTree(requirements)
 
-  // Group templates by category
-  const templatesByCategory = templates.reduce((acc, t) => {
+  // Build template tree and group by category (only root templates)
+  const templateTree = buildTemplateTree(templates)
+  const templatesByCategory = templateTree.reduce((acc, t) => {
     const category = t.category || 'Other'
     if (!acc[category]) acc[category] = []
     acc[category].push(t)
     return acc
-  }, {} as Record<string, RequirementTemplate[]>)
+  }, {} as Record<string, RequirementTemplateTree[]>)
 
   const handleAddCustom = () => {
     if (!customTitle.trim()) return
@@ -82,17 +84,50 @@ export function RequirementsStep({
     setEditingId(newNode.id)
   }
 
-  const handleAddFromTemplate = (template: RequirementTemplate) => {
-    const newNode = createDefaultNode({
-      title: template.name,
-      description: template.description || '',
-      loom_url: template.loom_url || '',
-      owner_type: template.default_owner || 'hexona',
-      position: requirements.filter(r => !r.parent_id).length,
-    })
-    onChange(addNode(requirements, newNode))
+  // Recursively add template and all its children
+  const handleAddFromTemplate = (template: RequirementTemplateTree) => {
+    const newNodes: RequirementNode[] = []
+    const newExpandedIds = new Set(expandedIds)
+
+    // Recursive function to add template and children
+    const addTemplateRecursive = (
+      t: RequirementTemplateTree,
+      parentId: string | null,
+      siblingCount: number
+    ): string => {
+      const node = createDefaultNode({
+        parent_id: parentId,
+        title: t.name,
+        description: t.description || '',
+        loom_url: t.loom_url || '',
+        owner_type: t.default_owner || 'hexona',
+        blocker_type: t.default_blocker || 'none',
+        position: siblingCount,
+      })
+      newNodes.push(node)
+      newExpandedIds.add(node.id)
+
+      // Recursively add children
+      t.children.forEach((child, index) => {
+        addTemplateRecursive(child, node.id, index)
+      })
+
+      return node.id
+    }
+
+    // Start from root
+    const rootSiblings = requirements.filter(r => !r.parent_id).length
+    addTemplateRecursive(template, null, rootSiblings)
+
+    // Add all nodes to requirements
+    let updatedRequirements = [...requirements]
+    for (const node of newNodes) {
+      updatedRequirements = addNode(updatedRequirements, node)
+    }
+
+    onChange(updatedRequirements)
     setTemplateOpen(false)
-    setExpandedIds(new Set([...expandedIds, newNode.id]))
+    setExpandedIds(newExpandedIds)
   }
 
   const handleAddChild = (parentId: string) => {
@@ -294,27 +329,42 @@ export function RequirementsStep({
                     <CommandEmpty>No templates found.</CommandEmpty>
                     {Object.entries(templatesByCategory).map(([category, items]) => (
                       <CommandGroup key={category} heading={category.replace('_', ' ')}>
-                        {items.map((template) => (
-                          <CommandItem
-                            key={template.id}
-                            onSelect={() => handleAddFromTemplate(template)}
-                          >
-                            <div className="flex flex-col">
-                              <span>{template.name}</span>
-                              {template.description && (
-                                <span className="text-xs text-muted-foreground line-clamp-1">
-                                  {template.description}
-                                </span>
-                              )}
-                            </div>
-                            <Badge
-                              variant="outline"
-                              className={cn('ml-auto text-xs', OWNER_COLORS[template.default_owner])}
+                        {items.map((template) => {
+                          // Count total descendants
+                          const countDescendants = (t: RequirementTemplateTree): number => {
+                            return t.children.reduce((sum, c) => sum + 1 + countDescendants(c), 0)
+                          }
+                          const childCount = countDescendants(template)
+
+                          return (
+                            <CommandItem
+                              key={template.id}
+                              onSelect={() => handleAddFromTemplate(template)}
                             >
-                              {OWNER_LABELS[template.default_owner]}
-                            </Badge>
-                          </CommandItem>
-                        ))}
+                              <div className="flex flex-col flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span>{template.name}</span>
+                                  {childCount > 0 && (
+                                    <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                                      +{childCount} items
+                                    </Badge>
+                                  )}
+                                </div>
+                                {template.description && (
+                                  <span className="text-xs text-muted-foreground line-clamp-1">
+                                    {template.description}
+                                  </span>
+                                )}
+                              </div>
+                              <Badge
+                                variant="outline"
+                                className={cn('ml-auto text-xs', OWNER_COLORS[template.default_owner])}
+                              >
+                                {OWNER_LABELS[template.default_owner]}
+                              </Badge>
+                            </CommandItem>
+                          )
+                        })}
                       </CommandGroup>
                     ))}
                   </CommandList>

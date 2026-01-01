@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { RequirementOwner } from './onboarding-requirements'
+import type { RequirementOwner, RequirementBlocker } from './onboarding-requirements'
 
 // ============================================
 // Types
@@ -11,9 +11,17 @@ export interface RequirementTemplate {
   description: string | null
   loom_url: string | null
   default_owner: RequirementOwner
+  default_blocker: RequirementBlocker | null
   category: string
+  parent_id: string | null
+  position: number
   is_active: boolean
   created_at: string
+}
+
+// Tree structure for recursive templates
+export interface RequirementTemplateTree extends RequirementTemplate {
+  children: RequirementTemplateTree[]
 }
 
 export interface CreateTemplateInput {
@@ -56,6 +64,7 @@ export async function getRequirementTemplates(): Promise<RequirementTemplate[]> 
     .select('*')
     .eq('is_active', true)
     .order('category', { ascending: true })
+    .order('position', { ascending: true })
     .order('name', { ascending: true })
 
   if (error) throw error
@@ -182,4 +191,86 @@ export async function deleteRequirementTemplate(id: string): Promise<void> {
 export function getCategoryLabel(category: string): string {
   const found = TEMPLATE_CATEGORIES.find(c => c.value === category)
   return found ? found.label : category
+}
+
+// ============================================
+// Tree Building Functions
+// ============================================
+
+/**
+ * Build a tree structure from flat templates array.
+ * Only returns root templates (parent_id = null).
+ * Children are nested under their parents.
+ */
+export function buildTemplateTree(templates: RequirementTemplate[]): RequirementTemplateTree[] {
+  const nodeMap = new Map<string, RequirementTemplateTree>()
+  const roots: RequirementTemplateTree[] = []
+
+  // First pass: create nodes with empty children arrays
+  templates.forEach((t) => {
+    nodeMap.set(t.id, { ...t, children: [] })
+  })
+
+  // Second pass: build tree by linking children to parents
+  templates.forEach((t) => {
+    const node = nodeMap.get(t.id)!
+    if (t.parent_id && nodeMap.has(t.parent_id)) {
+      nodeMap.get(t.parent_id)!.children.push(node)
+    } else if (!t.parent_id) {
+      roots.push(node)
+    }
+  })
+
+  // Sort children by position recursively
+  const sortChildren = (nodes: RequirementTemplateTree[]) => {
+    nodes.sort((a, b) => a.position - b.position)
+    nodes.forEach((n) => sortChildren(n.children))
+  }
+  sortChildren(roots)
+
+  return roots
+}
+
+/**
+ * Get templates as a tree structure grouped by category.
+ * Only root templates are included; children are nested.
+ */
+export async function getTemplatesAsTree(): Promise<Map<string, RequirementTemplateTree[]>> {
+  const templates = await getRequirementTemplates()
+  const tree = buildTemplateTree(templates)
+
+  const grouped = new Map<string, RequirementTemplateTree[]>()
+  for (const template of tree) {
+    const existing = grouped.get(template.category) || []
+    existing.push(template)
+    grouped.set(template.category, existing)
+  }
+
+  return grouped
+}
+
+/**
+ * Flatten a template tree into an array with parent references.
+ * Useful for batch creating requirements from a template.
+ */
+export function flattenTemplateTree(
+  template: RequirementTemplateTree,
+  parentTempId?: string
+): Array<{
+  tempId: string
+  parentTempId: string | undefined
+  template: RequirementTemplate
+}> {
+  const tempId = crypto.randomUUID()
+  const result: Array<{
+    tempId: string
+    parentTempId: string | undefined
+    template: RequirementTemplate
+  }> = [{ tempId, parentTempId, template }]
+
+  for (const child of template.children) {
+    result.push(...flattenTemplateTree(child, tempId))
+  }
+
+  return result
 }
