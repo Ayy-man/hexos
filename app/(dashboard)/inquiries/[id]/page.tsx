@@ -58,7 +58,6 @@ import {
   acceptCounterAction,
   rejectCounterAction,
   getDeliverableHistoryAction,
-  bulkApproveDeliverablesAction,
   finalApproveDeliverablesAction,
   sendBackForRevisionAction,
 } from '@/features/inquiries/actions/deliverableActions'
@@ -409,11 +408,6 @@ export default async function InquiryDetailPage({
     return getDeliverableHistoryAction(deliverableId)
   }
 
-  const boundBulkApprove = async (deliverableIds: string[]) => {
-    'use server'
-    await bulkApproveDeliverablesAction(deliverableIds, id)
-  }
-
   const boundFinalApprove = async () => {
     'use server'
     await finalApproveDeliverablesAction(id)
@@ -762,8 +756,8 @@ export default async function InquiryDetailPage({
                         />
                       )}
 
-                      {/* Admin: Convert to Project - available after proposal sent but not if already closed */}
-                      {isAdmin && proposalSubmitted && !isClosedOrLostStage && (
+                      {/* Admin: Convert to Project - available after proposal sent, especially when closed */}
+                      {isAdmin && proposalSubmitted && inquiry.proposal_stage !== 'lost' && (
                         <ConvertToProjectButton
                           inquiry={{
                             id: inquiry.id,
@@ -897,7 +891,6 @@ export default async function InquiryDetailPage({
               acceptCounter={boundAcceptCounter}
               rejectCounter={boundRejectCounter}
               getHistory={boundGetHistory}
-              bulkApprove={boundBulkApprove}
               finalApprove={boundFinalApprove}
               sendBackForRevision={boundSendBackForRevision}
             />
