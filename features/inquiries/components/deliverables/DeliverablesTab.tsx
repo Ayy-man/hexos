@@ -229,6 +229,11 @@ export function DeliverablesTab({
   }
 
   // Render based on status
+  // Hide from admin while DFY is still editing (not submitted yet)
+  if (!isDfyOwner && deliverablesStatus === 'dfy_editing') {
+    return null
+  }
+
   if (deliverablesStatus === 'none') {
     return (
       <Card>

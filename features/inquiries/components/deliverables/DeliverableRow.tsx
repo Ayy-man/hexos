@@ -342,8 +342,8 @@ export function DeliverableRow({
             </div>
           )}
 
-          {/* Dropdown menu for edit/remove/revert */}
-          {(isEditable || hasChanges) && !isEditing && !isReviewer && (
+          {/* Dropdown menu for edit/remove/revert (only for DFY during editing) */}
+          {isEditable && !isEditing && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -351,7 +351,7 @@ export function DeliverableRow({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {isEditable && !isRemoved && (
+                {!isRemoved && (
                   <>
                     <DropdownMenuItem onClick={() => setIsEditing(true)}>
                       <Pencil className="h-4 w-4 mr-2" />
@@ -368,7 +368,7 @@ export function DeliverableRow({
                 )}
                 {hasChanges && (
                   <>
-                    {isEditable && !isRemoved && <DropdownMenuSeparator />}
+                    {!isRemoved && <DropdownMenuSeparator />}
                     <DropdownMenuItem onClick={handleRevert}>
                       <RotateCcw className="h-4 w-4 mr-2" />
                       Revert to Original
