@@ -65,9 +65,13 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
   const [priceDfy, setPriceDfy] = useState(project.price_dfy?.toString() || '')
   const [priceHexona, setPriceHexona] = useState(project.price_hexona?.toString() || '')
   const [priceDev, setPriceDev] = useState(project.price_dev?.toString() || '')
-  const [retainerPlan, setRetainerPlan] = useState(project.retainer_plan || 'one_time')
+  const [retainerPlan, setRetainerPlan] = useState<'one_time' | 'monthly' | 'quarterly' | 'annual'>(
+    (project.retainer_plan as 'one_time' | 'monthly' | 'quarterly' | 'annual') || 'one_time'
+  )
   const [retainerDate, setRetainerDate] = useState(formatDate(project.retainer_date))
-  const [softwarePayer, setSoftwarePayer] = useState(project.software_payer || 'client')
+  const [softwarePayer, setSoftwarePayer] = useState<'hexona' | 'client'>(
+    (project.software_payer as 'hexona' | 'client') || 'client'
+  )
   const [dateInquiry, setDateInquiry] = useState(formatDate(project.date_inquiry))
   const [dateProposalSent, setDateProposalSent] = useState(formatDate(project.date_proposal_sent))
   const [dateClosed, setDateClosed] = useState(formatDate(project.date_closed))
@@ -336,7 +340,7 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
                 <div className="space-y-2">
                   <Label htmlFor="retainer_plan">Retainer Plan</Label>
                   {canEdit ? (
-                    <Select value={retainerPlan} onValueChange={(v) => { setRetainerPlan(v); markChanged() }}>
+                    <Select value={retainerPlan} onValueChange={(v) => { setRetainerPlan(v as typeof retainerPlan); markChanged() }}>
                       <SelectTrigger id="retainer_plan">
                         <SelectValue />
                       </SelectTrigger>
@@ -369,7 +373,7 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
                 <div className="space-y-2">
                   <Label htmlFor="software_payer">Software Payer</Label>
                   {canEdit ? (
-                    <Select value={softwarePayer} onValueChange={(v) => { setSoftwarePayer(v); markChanged() }}>
+                    <Select value={softwarePayer} onValueChange={(v) => { setSoftwarePayer(v as typeof softwarePayer); markChanged() }}>
                       <SelectTrigger id="software_payer">
                         <SelectValue />
                       </SelectTrigger>
