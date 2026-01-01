@@ -338,7 +338,7 @@ export function ConvertToProjectWizard({
                 <CardHeader>
                   <CardTitle className="text-base">Payment Structure</CardTitle>
                   <CardDescription>
-                    How should payments be split? {estimatedValue < 1000 && '(100% upfront recommended for projects under $1,000)'}
+                    How should payments be split? {priceDfy < 1000 && '(100% upfront recommended for projects under $1,000)'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
