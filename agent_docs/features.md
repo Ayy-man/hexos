@@ -44,6 +44,7 @@ See `components.md` for details.
 - [ ] Project detail view improvements
 - [ ] Deliverables list + Gantt view
 - [ ] Status transitions
+- [ ] **Project list stage progress bar** - Show visual progress bar in projects list based on project lifecycle stage (similar to onboarding progress bar)
 
 ### Phase 4: Inquiry Flow (Complete)
 
@@ -436,6 +437,14 @@ Templates can be managed via Supabase Dashboard → requirement_templates table.
 - [ ] `deliverables_pending` → `deliverables_confirmed` → `awaiting_signoff` → `signed_off`
 - [ ] `signed_off` → `onboarding` → `in_progress` → `delivered` → `completed`
 - [ ] Manual stage buttons with hold-to-confirm for critical transitions
+
+**Projects List Stage Progress Bar:**
+Add a visual progress bar to the projects list showing how far along each project is in its lifecycle:
+- Display as a horizontal progress bar in the projects table (similar to onboarding progress bar)
+- Progress calculated from project stage: `deliverables_pending` (12.5%) → `deliverables_confirmed` (25%) → `awaiting_signoff` (37.5%) → `signed_off` (50%) → `onboarding` (62.5%) → `in_progress` (75%) → `delivered` (87.5%) → `completed` (100%)
+- Show percentage and/or stage name on hover
+- Use the same cyan/teal color scheme as the onboarding progress bar
+- Replaces or supplements the "STATUS" text badge in the projects list
 
 **Slated for Later:**
 - Agreement/contract phase (see future-features.md)

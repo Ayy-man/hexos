@@ -64,10 +64,23 @@ export async function completeInitiationAction(
 
   if (!user) throw new Error('Not authenticated')
 
+  // Check if a project already exists for this inquiry (prevent duplicates)
+  const { data: existingProject } = await supabase
+    .from('projects')
+    .select('id, project_name')
+    .eq('source_inquiry_id', inquiryId)
+    .maybeSingle()
+
+  if (existingProject) {
+    console.log('[completeInitiation] Project already exists:', existingProject.id)
+    // Return existing project instead of creating duplicate
+    return { projectId: existingProject.id }
+  }
+
   // Get the inquiry to extract source info
   const { data: inquiry, error: inquiryError } = await supabase
     .from('inquiries')
-    .select('submitted_by, blueprint_id')
+    .select('submitted_by, blueprint_id, status')
     .eq('id', inquiryId)
     .single()
 

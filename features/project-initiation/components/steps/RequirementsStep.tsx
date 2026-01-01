@@ -20,8 +20,8 @@ import {
 } from '@/components/ui/popover'
 import { ClipboardList, Plus, ChevronDown, ChevronRight, Trash2, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { RequirementTemplate, RequirementTemplateTree } from '@/lib/api/requirement-templates'
-import { buildTemplateTree } from '@/lib/api/requirement-templates'
+import type { RequirementTemplate, RequirementTemplateTree } from '@/lib/api/requirement-templates.shared'
+import { buildTemplateTree } from '@/lib/api/requirement-templates.shared'
 import type { RequirementNode, RequirementTreeNode } from '../../utils/treeHelpers'
 import {
   buildTree,

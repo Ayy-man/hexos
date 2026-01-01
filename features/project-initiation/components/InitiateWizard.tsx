@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight, Check, Loader2, Package, ClipboardList, FileChec
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { ProposalDeliverable } from '@/lib/api/proposal-deliverables'
-import type { RequirementTemplate } from '@/lib/api/requirement-templates'
+import type { RequirementTemplate } from '@/lib/api/requirement-templates.shared'
 import { DeliverablesStep } from './steps/DeliverablesStep'
 import { RequirementsStep } from './steps/RequirementsStep'
 import { ReviewStep } from './steps/ReviewStep'

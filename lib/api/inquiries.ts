@@ -704,6 +704,18 @@ export async function convertInquiryToProjectFull(
 
   if (!user) throw new Error('Not authenticated')
 
+  // Check if a project already exists for this inquiry (prevent duplicates)
+  const { data: existingProject } = await supabase
+    .from('projects')
+    .select('id, project_name')
+    .eq('source_inquiry_id', inquiryId)
+    .maybeSingle()
+
+  if (existingProject) {
+    // Return existing project instead of creating duplicate
+    return existingProject
+  }
+
   // Get the inquiry to extract source info
   const { data: inquiry, error: inquiryError } = await supabase
     .from('inquiries')
