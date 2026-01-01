@@ -49,8 +49,8 @@ export default async function DfyDashboard() {
 
   // Calculate estimated commission (only for completed deals)
   const totalCommission = completedDeals.reduce((acc, p) => {
-    if (p.quoted_price && p.dfy_commission_pct) {
-      return acc + (p.quoted_price * p.dfy_commission_pct / 100)
+    if (p.price_dfy && p.dfy_commission_pct) {
+      return acc + (p.price_dfy * p.dfy_commission_pct / 100)
     }
     return acc
   }, 0)
@@ -233,9 +233,9 @@ export default async function DfyDashboard() {
                     <Badge variant="secondary" className="capitalize">
                       {formatStatus(project.status)}
                     </Badge>
-                    {project.quoted_price && (
+                    {project.price_dfy && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        ${project.quoted_price.toLocaleString()}
+                        ${project.price_dfy.toLocaleString()}
                       </p>
                     )}
                   </div>

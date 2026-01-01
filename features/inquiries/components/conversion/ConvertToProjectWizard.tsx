@@ -43,7 +43,7 @@ interface ConvertToProjectWizardProps {
     prospect_website: string | null
     industry: string | null
     partner_name: string | null
-    estimated_value: number | null
+    price_dfy: number | null
     blueprint?: { name: string } | null
   }
   deliverables: ProposalDeliverable[]
@@ -101,8 +101,8 @@ export function ConvertToProjectWizard({
   const [notes, setNotes] = useState('')
 
   // Payment structure - default based on value
-  const estimatedValue = inquiry.estimated_value || 0
-  const defaultPaymentStructure = estimatedValue >= 1000 ? '50_50' : '100_upfront'
+  const priceDfy = inquiry.price_dfy || 0
+  const defaultPaymentStructure = priceDfy >= 1000 ? '50_50' : '100_upfront'
   const [paymentStructure, setPaymentStructure] = useState<'100_upfront' | '50_50' | '40_30_30' | 'custom'>(defaultPaymentStructure)
   const [customMilestones, setCustomMilestones] = useState<Array<{ label: string; percentage: number }>>([
     { label: 'Deposit', percentage: 50 },
@@ -131,7 +131,7 @@ export function ConvertToProjectWizard({
         const projectData: ConvertToProjectInput = {
           project_name: projectName,
           client_name: clientName,
-          quoted_price: inquiry.estimated_value || undefined,
+          price_dfy: inquiry.price_dfy || undefined,
           notes: notes || undefined,
           payment_structure: paymentStructure,
           custom_milestones: paymentStructure === 'custom' ? customMilestones : undefined,

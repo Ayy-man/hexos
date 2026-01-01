@@ -12,7 +12,7 @@ import {
   updateInquiryPriority,
   updateInquiryDueDate,
   assignInquiry,
-  updateInquiryEstimatedValue,
+  updateInquiryPriceDfy,
   updateInquiryPricing,
   bulkUpdateInquiryStage,
   type ProposalStage,
@@ -90,11 +90,11 @@ export async function assignInquiryAction(
   revalidatePath(`/inquiries/${id}`)
 }
 
-export async function updateEstimatedValueAction(
+export async function updatePriceDfyAction(
   id: string,
   value: number | null
 ): Promise<void> {
-  await updateInquiryEstimatedValue(id, value)
+  await updateInquiryPriceDfy(id, value)
   revalidatePath('/inquiries')
   revalidatePath(`/inquiries/${id}`)
 }
@@ -109,10 +109,12 @@ export async function bulkUpdateStageAction(
 
 export async function updatePricingAction(
   id: string,
-  estimatedValue: number | null,
+  priceDfy: number | null,
+  priceHexona: number | null,
+  priceDev: number | null,
   pricingNotes: string | null
 ): Promise<void> {
-  await updateInquiryPricing(id, estimatedValue, pricingNotes)
+  await updateInquiryPricing(id, priceDfy, priceHexona, priceDev, pricingNotes)
   revalidatePath('/inquiries')
   revalidatePath(`/inquiries/${id}`)
 }

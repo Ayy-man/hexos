@@ -14,7 +14,7 @@ async function handleCreate(formData: FormData): Promise<void> {
     client_business: (formData.get('client_business') as string) || undefined,
     project_type: (formData.get('project_type') as 'blueprint' | 'blueprint_custom' | 'full_custom') || undefined,
     operational_mode: (formData.get('operational_mode') as 'internal' | 'hexona_devs' | 'hexona_devs_dfy') || undefined,
-    quoted_price: formData.get('quoted_price') ? Number(formData.get('quoted_price')) : undefined,
+    price_dfy: formData.get('price_dfy') ? Number(formData.get('price_dfy')) : undefined,
     target_delivery_date: (formData.get('target_delivery_date') as string) || undefined,
     notes: (formData.get('notes') as string) || undefined,
     assigned_dev_id: (formData.get('assigned_dev_id') as string) || undefined,
@@ -202,13 +202,13 @@ export default async function NewProjectPage() {
               />
             </div>
             <div>
-              <label htmlFor="quoted_price" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
-                Quoted Price ($)
+              <label htmlFor="price_dfy" className="block text-sm font-medium text-stone-700 dark:text-stone-300">
+                Client Price ($)
               </label>
               <input
                 type="number"
-                id="quoted_price"
-                name="quoted_price"
+                id="price_dfy"
+                name="price_dfy"
                 min="0"
                 step="0.01"
                 className="mt-1 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"

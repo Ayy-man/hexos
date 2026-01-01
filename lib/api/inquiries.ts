@@ -282,12 +282,12 @@ export async function assignInquiry(id: string, assignedTo: string | null) {
   if (error) throw error
 }
 
-export async function updateInquiryEstimatedValue(id: string, value: number | null) {
+export async function updateInquiryPriceDfy(id: string, value: number | null) {
   const supabase = await createClient()
 
   const { error } = await supabase
     .from('inquiries')
-    .update({ estimated_value: value })
+    .update({ price_dfy: value })
     .eq('id', id)
 
   if (error) throw error
@@ -318,7 +318,9 @@ export async function getInquiryByPublicToken(token: string) {
       submission_type,
       form_path,
       document_content,
-      estimated_value,
+      price_dfy,
+      price_hexona,
+      price_dev,
       pricing_notes,
       blueprint:blueprints(name, description, pricing_tiers),
       partner:profiles!submitted_by(logo_url),
@@ -344,10 +346,12 @@ export async function getInquiryByPublicToken(token: string) {
   return data
 }
 
-// Update pricing (estimated_value + pricing_notes)
+// Update pricing (all price fields + notes)
 export async function updateInquiryPricing(
   id: string,
-  estimatedValue: number | null,
+  priceDfy: number | null,
+  priceHexona: number | null,
+  priceDev: number | null,
   pricingNotes: string | null
 ) {
   const supabase = await createClient()
@@ -355,7 +359,9 @@ export async function updateInquiryPricing(
   const { error } = await supabase
     .from('inquiries')
     .update({
-      estimated_value: estimatedValue,
+      price_dfy: priceDfy,
+      price_hexona: priceHexona,
+      price_dev: priceDev,
       pricing_notes: pricingNotes,
     })
     .eq('id', id)
@@ -678,7 +684,7 @@ export interface ConvertToProjectInput {
   project_type?: string
   operational_mode?: string
   target_delivery_date?: string
-  quoted_price?: number
+  price_dfy?: number
   notes?: string
   payment_structure?: '100_upfront' | '50_50' | '40_30_30' | 'custom'
   custom_milestones?: Array<{ label: string; percentage: number }>
@@ -718,7 +724,7 @@ export async function convertInquiryToProjectFull(
       project_type: projectData.project_type || 'blueprint',
       operational_mode: projectData.operational_mode || 'hexona_devs_dfy',
       target_delivery_date: projectData.target_delivery_date || null,
-      quoted_price: projectData.quoted_price || null,
+      price_dfy: projectData.price_dfy || null,
       notes: projectData.notes || null,
       payment_structure: projectData.payment_structure || '50_50',
       dfy_partner_id: inquiry.submitted_by,
@@ -732,28 +738,28 @@ export async function convertInquiryToProjectFull(
   if (projectError) throw projectError
 
   // 1b. Create payment milestones based on structure
-  const quotedPrice = projectData.quoted_price || 0
+  const priceDfy = projectData.price_dfy || 0
   const paymentStructure = projectData.payment_structure || '50_50'
 
   let milestones: Array<{ label: string; amount: number; sort_order: number }> = []
 
   if (paymentStructure === '100_upfront') {
-    milestones = [{ label: 'Full Payment', amount: quotedPrice, sort_order: 0 }]
+    milestones = [{ label: 'Full Payment', amount: priceDfy, sort_order: 0 }]
   } else if (paymentStructure === '50_50') {
     milestones = [
-      { label: 'Deposit (50%)', amount: quotedPrice * 0.5, sort_order: 0 },
-      { label: 'Final Payment (50%)', amount: quotedPrice * 0.5, sort_order: 1 },
+      { label: 'Deposit (50%)', amount: priceDfy * 0.5, sort_order: 0 },
+      { label: 'Final Payment (50%)', amount: priceDfy * 0.5, sort_order: 1 },
     ]
   } else if (paymentStructure === '40_30_30') {
     milestones = [
-      { label: 'Deposit (40%)', amount: quotedPrice * 0.4, sort_order: 0 },
-      { label: 'Midpoint (30%)', amount: quotedPrice * 0.3, sort_order: 1 },
-      { label: 'Final Payment (30%)', amount: quotedPrice * 0.3, sort_order: 2 },
+      { label: 'Deposit (40%)', amount: priceDfy * 0.4, sort_order: 0 },
+      { label: 'Midpoint (30%)', amount: priceDfy * 0.3, sort_order: 1 },
+      { label: 'Final Payment (30%)', amount: priceDfy * 0.3, sort_order: 2 },
     ]
   } else if (paymentStructure === 'custom' && projectData.custom_milestones) {
     milestones = projectData.custom_milestones.map((m, i) => ({
       label: m.label,
-      amount: quotedPrice * (m.percentage / 100),
+      amount: priceDfy * (m.percentage / 100),
       sort_order: i,
     }))
   }

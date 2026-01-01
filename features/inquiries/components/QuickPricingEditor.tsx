@@ -9,29 +9,43 @@ import { Label } from '@/components/ui/label'
 import { DollarSign, Loader2, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { updatePricingAction } from '../actions/inquiryActions'
+import type { UserRole } from '@/lib/auth/types'
 
 interface QuickPricingEditorProps {
   inquiryId: string
-  initialValue: number | null
-  initialNotes: string | null
+  priceDfy: number | null
+  priceHexona: number | null
+  priceDev: number | null
+  pricingNotes: string | null
+  userRole: UserRole
   readOnly?: boolean
 }
 
 export function QuickPricingEditor({
   inquiryId,
-  initialValue,
-  initialNotes,
+  priceDfy: initialPriceDfy,
+  priceHexona: initialPriceHexona,
+  priceDev: initialPriceDev,
+  pricingNotes: initialNotes,
+  userRole,
   readOnly = false,
 }: QuickPricingEditorProps) {
-  const [value, setValue] = useState(initialValue?.toString() || '')
+  const isAdmin = userRole === 'admin'
+  const isInternal = userRole === 'internal'
+  const canEdit = isAdmin
+  const canViewInternal = isAdmin || isInternal
+
+  const [priceDfyValue, setPriceDfyValue] = useState(initialPriceDfy?.toString() || '')
+  const [priceHexonaValue, setPriceHexonaValue] = useState(initialPriceHexona?.toString() || '')
+  const [priceDevValue, setPriceDevValue] = useState(initialPriceDev?.toString() || '')
   const [notes, setNotes] = useState(initialNotes || '')
   const [isPending, startTransition] = useTransition()
   const [hasChanges, setHasChanges] = useState(false)
 
-  const handleValueChange = (newValue: string) => {
+  const handleValueChange = (setter: (v: string) => void) => (newValue: string) => {
     // Only allow numbers and decimal point
     const sanitized = newValue.replace(/[^0-9.]/g, '')
-    setValue(sanitized)
+    setter(sanitized)
     setHasChanges(true)
   }
 
@@ -43,8 +57,10 @@ export function QuickPricingEditor({
   const handleSave = () => {
     startTransition(async () => {
       try {
-        const numericValue = value ? parseFloat(value) : null
-        await updatePricingAction(inquiryId, numericValue, notes || null)
+        const priceDfy = priceDfyValue ? parseFloat(priceDfyValue) : null
+        const priceHexona = priceHexonaValue ? parseFloat(priceHexonaValue) : null
+        const priceDev = priceDevValue ? parseFloat(priceDevValue) : null
+        await updatePricingAction(inquiryId, priceDfy, priceHexona, priceDev, notes || null)
         setHasChanges(false)
         toast.success('Pricing updated')
       } catch (error) {
@@ -54,14 +70,23 @@ export function QuickPricingEditor({
     })
   }
 
-  const formatDisplayValue = () => {
+  const formatDisplayValue = (value: string) => {
     if (!value) return ''
     const num = parseFloat(value)
     if (isNaN(num)) return value
     return new Intl.NumberFormat('en-US').format(num)
   }
 
-  if (readOnly) {
+  const formatCurrency = (value: number | null) => {
+    if (value == null) return '—'
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  if (readOnly || !canEdit) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -71,15 +96,23 @@ export function QuickPricingEditor({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {initialValue ? (
-            <div>
-              <p className="text-sm text-muted-foreground">Estimated Value</p>
-              <p className="text-2xl font-bold text-green-600">
-                ${new Intl.NumberFormat('en-US').format(initialValue)}
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No pricing set</p>
+          <div>
+            <p className="text-sm text-muted-foreground">Client Price (DFY)</p>
+            <p className="text-2xl font-bold text-green-600">
+              {formatCurrency(initialPriceDfy)}
+            </p>
+          </div>
+          {canViewInternal && (
+            <>
+              <div>
+                <p className="text-sm text-muted-foreground">Our Price (Hexona)</p>
+                <p className="text-lg font-semibold">{formatCurrency(initialPriceHexona)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Dev Cost</p>
+                <p className="text-lg font-semibold">{formatCurrency(initialPriceDev)}</p>
+              </div>
+            </>
           )}
           {initialNotes && (
             <div>
@@ -102,18 +135,54 @@ export function QuickPricingEditor({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="estimated-value">Estimated Value</Label>
+          <Label htmlFor="price-dfy">Client Price (DFY)</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               $
             </span>
             <Input
-              id="estimated-value"
+              id="price-dfy"
               type="text"
               inputMode="decimal"
               placeholder="0"
-              value={formatDisplayValue()}
-              onChange={(e) => handleValueChange(e.target.value)}
+              value={formatDisplayValue(priceDfyValue)}
+              onChange={(e) => handleValueChange(setPriceDfyValue)(e.target.value)}
+              className="pl-7"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="price-hexona">Our Price (Hexona)</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              $
+            </span>
+            <Input
+              id="price-hexona"
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={formatDisplayValue(priceHexonaValue)}
+              onChange={(e) => handleValueChange(setPriceHexonaValue)(e.target.value)}
+              className="pl-7"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="price-dev">Dev Cost</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              $
+            </span>
+            <Input
+              id="price-dev"
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={formatDisplayValue(priceDevValue)}
+              onChange={(e) => handleValueChange(setPriceDevValue)(e.target.value)}
               className="pl-7"
             />
           </div>

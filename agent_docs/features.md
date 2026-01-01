@@ -226,7 +226,9 @@ Admin-to-DFY proposal workflow with private DFY workspace.
 - [x] Proposal Tab
   - [x] Admin: Full edit access, Plate.js editor with auto-save
   - [x] DFY: Read-only view after proposal submitted
-  - [x] "Submit to Partner" button (hold 2 seconds to confirm)
+  - [x] "Submit for Review" button → moves to `final_review` stage (hold 2 seconds)
+  - [x] "Approve" button → moves from `final_review` to `ready` stage (hold 2 seconds)
+  - [x] "Submit to Partner" button → moves to `sent` stage (only in `ready` stage, hold 2 seconds)
   - [x] "Undo Send" button for admins (hold 2 seconds)
   - [x] Two-way comments (admin + DFY can comment after submission)
   - [x] Comments sidebar with threads, resolve/unresolve
@@ -423,6 +425,18 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - Claude artifact-style proposal pages (see future-features.md)
 - Stripe payment integration
 - Email notifications on stage change
+
+**Slated: Pipeline Stage Notifications (P1):**
+- Email/in-app notifications when proposals move between stages
+- Notify ADM when proposal is submitted for review (→ final_review)
+- Notify INT/DFY when proposal is approved (→ ready)
+- Notify DFY when proposal is sent (→ sent)
+
+**Slated: INT vs ADM Role Distinction:**
+- Currently both admin and internal roles are treated identically for proposal workflow
+- Future enhancement: INT creates proposals, submits for ADM review
+- ADM has final approval authority before sending to partners
+- Role-based notification routing based on this distinction
 
 ### Phase 5: External Access
 

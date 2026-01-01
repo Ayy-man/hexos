@@ -130,7 +130,7 @@ interface ProposalPDFProps {
     prospect_company_name: string | null
     partner_name: string
     created_at: string
-    estimated_value: number | null
+    price_dfy: number | null
     pricing_notes: string | null
     blueprint: { name: string; description: string | null } | null
     partnerLogo?: string | null
@@ -194,12 +194,12 @@ export function ProposalPDF({ proposal, documentContent }: ProposalPDFProps) {
         </View>
 
         {/* Pricing Section */}
-        {(proposal.estimated_value || proposal.pricing_notes) && (
+        {(proposal.price_dfy || proposal.pricing_notes) && (
           <View style={styles.pricingSection}>
             <Text style={styles.pricingTitle}>Investment</Text>
-            {proposal.estimated_value && (
+            {proposal.price_dfy && (
               <Text style={styles.pricingValue}>
-                {formatCurrency(proposal.estimated_value)}
+                {formatCurrency(proposal.price_dfy)}
               </Text>
             )}
             {proposal.pricing_notes && (

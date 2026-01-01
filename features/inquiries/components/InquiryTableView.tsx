@@ -36,7 +36,7 @@ interface Inquiry {
   proposal_stage: ProposalStage | null
   priority: Priority | null
   due_date: string | null
-  estimated_value: number | null
+  price_dfy: number | null
   blueprint: { name: string } | null
   submitter: { name: string; email: string } | null
   assignee: { id: string; name: string; email: string } | null
@@ -244,7 +244,7 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
                         <PriorityBadge priority={inquiry.priority} />
                       </TableCell>
                       <TableCell className="font-medium">
-                        {formatValue(inquiry.estimated_value)}
+                        {formatValue(inquiry.price_dfy)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {formatDistanceToNow(new Date(inquiry.created_at), { addSuffix: true })}

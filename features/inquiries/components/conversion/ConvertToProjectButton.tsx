@@ -15,7 +15,7 @@ interface ConvertToProjectButtonProps {
     prospect_website: string | null
     industry: string | null
     partner_name: string | null
-    estimated_value: number | null
+    price_dfy: number | null
     blueprint?: { name: string } | null
   }
   deliverables: ProposalDeliverable[]

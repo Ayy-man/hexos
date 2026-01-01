@@ -32,7 +32,7 @@ interface Inquiry {
   proposal_stage: ProposalStage | null
   priority: Priority | null
   due_date: string | null
-  estimated_value: number | null
+  price_dfy: number | null
   blueprint: { name: string } | null
   submitter: { name: string; email: string } | null
   assignee: { id: string; name: string; email: string } | null
@@ -240,9 +240,9 @@ function InquiryCard({
         {/* Priority & Value */}
         <div className="flex items-center justify-between">
           <PriorityBadge priority={inquiry.priority} showLabel={false} />
-          {formatValue(inquiry.estimated_value) && (
+          {formatValue(inquiry.price_dfy) && (
             <span className="text-sm font-medium text-green-600 dark:text-green-400">
-              {formatValue(inquiry.estimated_value)}
+              {formatValue(inquiry.price_dfy)}
             </span>
           )}
         </div>

@@ -12,7 +12,7 @@ interface ExportPDFButtonProps {
     prospect_company_name: string | null
     partner_name: string
     created_at: string
-    estimated_value: number | null
+    price_dfy: number | null
     pricing_notes: string | null
     blueprint: { name: string; description: string | null } | null
     partnerLogo?: string | null

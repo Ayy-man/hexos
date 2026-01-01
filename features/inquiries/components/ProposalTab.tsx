@@ -16,6 +16,7 @@ import {
   FileText,
   Save,
   CheckCircle,
+  CheckCircle2,
   Circle,
   Send,
   MessageSquare,
@@ -25,6 +26,7 @@ import {
   Trash2,
   SendHorizontal,
   Undo2,
+  Eye,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -36,7 +38,7 @@ import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } f
 import { BlueprintEditorPlugins } from '@/components/editor/plugins/blueprint-editor-kit'
 import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
 import type { InquiryComment } from '@/lib/api/inquiry-comments'
-import type { DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
+import type { DeliverablesNegotiationStatus, ProposalStage } from '@/lib/api/inquiries'
 import { SuggestChangesButton } from './SuggestChangesButton'
 import { toast } from 'sonner'
 
@@ -45,6 +47,7 @@ interface ProposalTabProps {
   initialContent: unknown
   initialDiscussions?: TDiscussion[]
   proposalSubmittedAt: string | null
+  proposalStage: ProposalStage
   isAdmin: boolean // admin/internal
   isDfyOwner: boolean // DFY who submitted the inquiry
   proposalComments: InquiryComment[]
@@ -53,6 +56,8 @@ interface ProposalTabProps {
   saveProposal: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   submitProposal: () => Promise<void>
   unsubmitProposal?: () => Promise<void> // Undo send - admin only
+  submitForReview?: () => Promise<void> // Submit for internal review
+  approveProposal?: () => Promise<void> // Approve proposal (final_review -> ready)
   addComment: (content: string, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
   deleteComment: (commentId: string) => Promise<void>
@@ -64,6 +69,7 @@ export function ProposalTab({
   initialContent,
   initialDiscussions,
   proposalSubmittedAt,
+  proposalStage,
   isAdmin,
   isDfyOwner,
   proposalComments: initialComments = [],
@@ -72,6 +78,8 @@ export function ProposalTab({
   saveProposal,
   submitProposal,
   unsubmitProposal,
+  submitForReview,
+  approveProposal,
   addComment,
   resolveComment,
   deleteComment,
@@ -172,6 +180,28 @@ export function ProposalTab({
     }
   }, [unsubmitProposal])
 
+  const handleSubmitForReview = useCallback(async () => {
+    if (!submitForReview) return
+    try {
+      await submitForReview()
+      toast.success('Proposal submitted for review')
+    } catch (error) {
+      console.error('Failed to submit for review:', error)
+      toast.error('Failed to submit for review')
+    }
+  }, [submitForReview])
+
+  const handleApproveProposal = useCallback(async () => {
+    if (!approveProposal) return
+    try {
+      await approveProposal()
+      toast.success('Proposal approved')
+    } catch (error) {
+      console.error('Failed to approve proposal:', error)
+      toast.error('Failed to approve proposal')
+    }
+  }, [approveProposal])
+
   return (
     <div className="grid gap-6 md:grid-cols-3">
       {/* Proposal Editor */}
@@ -182,9 +212,12 @@ export function ProposalTab({
           readOnly={!isAdmin}
           currentUser={currentUser}
           isSubmitted={isSubmitted}
+          proposalStage={proposalStage}
           onSave={isAdmin ? saveProposal : undefined}
-          onSubmit={isAdmin && !isSubmitted ? handleSubmitProposal : undefined}
+          onSubmit={isAdmin && proposalStage === 'ready' && !isSubmitted ? handleSubmitProposal : undefined}
           onUnsubmit={isAdmin && isSubmitted && unsubmitProposal ? handleUnsubmitProposal : undefined}
+          onSubmitForReview={isAdmin && !['final_review', 'ready', 'sent', 'closed', 'lost'].includes(proposalStage) ? handleSubmitForReview : undefined}
+          onApprove={isAdmin && proposalStage === 'final_review' ? handleApproveProposal : undefined}
         />
       </div>
 
@@ -230,9 +263,12 @@ interface ProposalEditorProps {
   readOnly: boolean
   currentUser?: DiscussionUser
   isSubmitted: boolean
+  proposalStage: ProposalStage
   onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
   onSubmit?: () => Promise<void>
   onUnsubmit?: () => Promise<void>
+  onSubmitForReview?: () => Promise<void>
+  onApprove?: () => Promise<void>
 }
 
 function ProposalEditor({
@@ -241,9 +277,12 @@ function ProposalEditor({
   readOnly,
   currentUser,
   isSubmitted,
+  proposalStage,
   onSave,
   onSubmit,
   onUnsubmit,
+  onSubmitForReview,
+  onApprove,
 }: ProposalEditorProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
@@ -418,7 +457,35 @@ function ProposalEditor({
           </CardTitle>
           <div className="flex items-center gap-2">
             {!readOnly && <SaveStatus />}
-            {onSubmit && !isSubmitted && (
+
+            {/* Submit for Review - yellow, shows when NOT in final_review/ready/sent/closed/lost */}
+            {onSubmitForReview && (
+              <ButtonHoldAndRelease
+                holdDuration={2000}
+                onHoldComplete={onSubmitForReview}
+                icon={<Eye className="h-4 w-4" />}
+                defaultText="Submit for Review"
+                holdingText="Submitting..."
+                variant="default"
+                className="bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-700"
+              />
+            )}
+
+            {/* Approve - green, shows when in final_review */}
+            {onApprove && (
+              <ButtonHoldAndRelease
+                holdDuration={2000}
+                onHoldComplete={onApprove}
+                icon={<CheckCircle2 className="h-4 w-4" />}
+                defaultText="Approve"
+                holdingText="Approving..."
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white border-green-700"
+              />
+            )}
+
+            {/* Submit to Partner - cyan, shows when in ready and not submitted */}
+            {onSubmit && (
               <ButtonHoldAndRelease
                 holdDuration={2000}
                 onHoldComplete={onSubmit}
@@ -429,6 +496,8 @@ function ProposalEditor({
                 className="bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-700"
               />
             )}
+
+            {/* Undo Send - shows when submitted */}
             {onUnsubmit && isSubmitted && (
               <ButtonHoldAndRelease
                 holdDuration={2000}

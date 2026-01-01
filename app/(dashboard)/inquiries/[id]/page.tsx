@@ -36,6 +36,8 @@ import {
   saveProposalContentAction,
   submitProposalAction,
   unsubmitProposalAction,
+  submitForReviewAction,
+  approveProposalAction,
   saveDfyVersionAction,
   copyProposalToDfyVersionAction,
   addProposalComment,
@@ -290,6 +292,16 @@ export default async function InquiryDetailPage({
     await unsubmitProposalAction(id)
   }
 
+  const boundSubmitForReview = async () => {
+    'use server'
+    await submitForReviewAction(id)
+  }
+
+  const boundApproveProposal = async () => {
+    'use server'
+    await approveProposalAction(id)
+  }
+
   const boundAddProposalComment = async (content: string, parentId?: string) => {
     'use server'
     return addProposalComment(id, content, parentId)
@@ -424,7 +436,7 @@ export default async function InquiryDetailPage({
   }
 
   const boundConvertToProject = async (
-    projectData: { project_name: string; client_name: string; quoted_price?: number; notes?: string },
+    projectData: { project_name: string; client_name: string; price_dfy?: number; notes?: string },
     deliverableIds: string[],
     requirements: Array<{ title: string; description?: string }>
   ) => {
@@ -479,7 +491,7 @@ export default async function InquiryDetailPage({
               prospect_company_name: inquiry.prospect_company_name,
               partner_name: inquiry.partner_name,
               created_at: inquiry.created_at,
-              estimated_value: inquiry.estimated_value as number | null,
+              price_dfy: inquiry.price_dfy as number | null,
               pricing_notes: inquiry.pricing_notes as string | null,
               blueprint: inquiry.blueprint,
             }}
@@ -704,21 +716,15 @@ export default async function InquiryDetailPage({
               />
 
               {/* Quick Pricing Editor */}
-              {canEditDocument && (
-                <QuickPricingEditor
-                  inquiryId={id}
-                  initialValue={inquiry.estimated_value as number | null}
-                  initialNotes={inquiry.pricing_notes as string | null}
-                />
-              )}
-              {!canEditDocument && (inquiry.estimated_value || inquiry.pricing_notes) && (
-                <QuickPricingEditor
-                  inquiryId={id}
-                  initialValue={inquiry.estimated_value as number | null}
-                  initialNotes={inquiry.pricing_notes as string | null}
-                  readOnly
-                />
-              )}
+              <QuickPricingEditor
+                inquiryId={id}
+                priceDfy={inquiry.price_dfy as number | null}
+                priceHexona={inquiry.price_hexona as number | null}
+                priceDev={inquiry.price_dev as number | null}
+                pricingNotes={inquiry.pricing_notes as string | null}
+                userRole={profile.role}
+                readOnly={!canEditDocument}
+              />
 
               {/* Actions */}
               <Card>
@@ -765,7 +771,7 @@ export default async function InquiryDetailPage({
                             prospect_website: inquiry.prospect_website,
                             industry: inquiry.industry,
                             partner_name: inquiry.partner_name,
-                            estimated_value: inquiry.estimated_value as number | null,
+                            price_dfy: inquiry.price_dfy as number | null,
                             blueprint: inquiry.blueprint,
                           }}
                           deliverables={deliverables}
@@ -831,6 +837,7 @@ export default async function InquiryDetailPage({
               initialContent={inquiry.proposal_content}
               initialDiscussions={(inquiry.proposal_discussions as TDiscussion[]) || []}
               proposalSubmittedAt={inquiry.proposal_submitted_at as string | null}
+              proposalStage={inquiry.proposal_stage as ProposalStage}
               isAdmin={isAdmin}
               isDfyOwner={isDfyOwner}
               proposalComments={proposalComments}
@@ -842,6 +849,8 @@ export default async function InquiryDetailPage({
               saveProposal={boundSaveProposal}
               submitProposal={boundSubmitProposal}
               unsubmitProposal={isAdmin ? boundUnsubmitProposal : undefined}
+              submitForReview={isAdmin ? boundSubmitForReview : undefined}
+              approveProposal={isAdmin ? boundApproveProposal : undefined}
               addComment={boundAddProposalComment}
               resolveComment={boundResolveProposalComment}
               deleteComment={boundDeleteProposalComment}

@@ -22,7 +22,7 @@ CREATE TYPE project_status AS ENUM (
   'in_progress', 'blocked_client', 'blocked_internal', 'review_checkpoint', 'revisions', 'final_qa',
   -- Delivery
   'delivered', 'acceptance_pending', 'accepted',
-  -- Closed
+  -- Closed2
   'completed', 'cancelled', 'on_hold'
 );
 

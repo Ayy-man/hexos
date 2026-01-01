@@ -13,8 +13,17 @@ export interface Project {
   operational_mode: string
   blueprint_match_score: number | null
   matched_blueprint_id: string | null
-  quoted_price: number | null
-  dev_cost: number | null
+  price_dfy: number | null
+  price_hexona: number | null
+  price_dev: number | null
+  retainer_plan: 'one_time' | 'monthly' | 'quarterly' | 'annual'
+  retainer_date: string | null
+  software_payer: 'hexona' | 'client'
+  date_inquiry: string | null
+  date_proposal_sent: string | null
+  date_closed: string | null
+  date_onboarding: string | null
+  date_delivered: string | null
   dfy_commission_pct: number | null
   payment_structure: string
   created_at: string
@@ -71,7 +80,7 @@ export interface CreateProjectInput {
   project_type?: 'blueprint' | 'blueprint_custom' | 'full_custom'
   operational_mode?: 'internal' | 'hexona_devs' | 'hexona_devs_dfy'
   matched_blueprint_id?: string
-  quoted_price?: number
+  price_dfy?: number
   target_delivery_date?: string
   notes?: string
   dfy_partner_id?: string
@@ -80,7 +89,17 @@ export interface CreateProjectInput {
 
 export interface UpdateProjectInput extends Partial<CreateProjectInput> {
   status?: string
-  dev_cost?: number
+  price_dfy?: number
+  price_hexona?: number
+  price_dev?: number
+  retainer_plan?: 'one_time' | 'monthly' | 'quarterly' | 'annual'
+  retainer_date?: string
+  software_payer?: 'hexona' | 'client'
+  date_inquiry?: string
+  date_proposal_sent?: string
+  date_closed?: string
+  date_onboarding?: string
+  date_delivered?: string
   dfy_commission_pct?: number
   payment_structure?: '100_upfront' | '50_50' | '40_30_30' | 'custom'
 }
@@ -230,4 +249,91 @@ export async function getProjectStats() {
   })
 
   return stats
+}
+
+// ============================================================================
+// FINANCIAL FIELDS
+// ============================================================================
+
+export interface ProjectFinancials {
+  price_dfy: number | null
+  price_hexona: number | null
+  price_dev: number | null
+  profit_hexona: number | null
+  profit_dfy: number | null
+  cycle_sales: number | null
+  cycle_delivery: number | null
+}
+
+// Compute profit and cycle metrics from project data (API layer, not DB)
+export function computeProjectFinancials(project: Project): ProjectFinancials {
+  const profit_hexona =
+    project.price_hexona != null && project.price_dev != null
+      ? project.price_hexona - project.price_dev
+      : null
+
+  const profit_dfy =
+    project.price_dfy != null && project.price_hexona != null
+      ? project.price_dfy - project.price_hexona
+      : null
+
+  const cycle_sales =
+    project.date_inquiry && project.date_closed
+      ? Math.round(
+          (new Date(project.date_closed).getTime() -
+            new Date(project.date_inquiry).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : null
+
+  const cycle_delivery =
+    project.date_closed && project.date_delivered
+      ? Math.round(
+          (new Date(project.date_delivered).getTime() -
+            new Date(project.date_closed).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : null
+
+  return {
+    price_dfy: project.price_dfy,
+    price_hexona: project.price_hexona,
+    price_dev: project.price_dev,
+    profit_hexona,
+    profit_dfy,
+    cycle_sales,
+    cycle_delivery,
+  }
+}
+
+export interface UpdateProjectFinancialsInput {
+  price_dfy?: number | null
+  price_hexona?: number | null
+  price_dev?: number | null
+  retainer_plan?: 'one_time' | 'monthly' | 'quarterly' | 'annual'
+  retainer_date?: string | null
+  software_payer?: 'hexona' | 'client'
+  date_inquiry?: string | null
+  date_proposal_sent?: string | null
+  date_closed?: string | null
+  date_onboarding?: string | null
+  date_delivered?: string | null
+}
+
+// Update project financial fields (admin only)
+export async function updateProjectFinancials(
+  id: string,
+  input: UpdateProjectFinancialsInput
+) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .update(input)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Project
 }

@@ -18,7 +18,7 @@ interface PublicProposal {
   submission_type: string
   form_path: string
   document_content: unknown
-  estimated_value: number | null
+  price_dfy: number | null
   pricing_notes: string | null
   blueprint: BlueprintData | BlueprintData[] | null
   partner: { logo_url: string | null } | { logo_url: string | null }[] | null
@@ -77,7 +77,7 @@ export function PublicProposalView({ proposal }: PublicProposalViewProps) {
                 prospect_company_name: proposal.prospect_company_name,
                 partner_name: proposal.partner_name,
                 created_at: proposal.created_at,
-                estimated_value: proposal.estimated_value,
+                price_dfy: proposal.price_dfy,
                 pricing_notes: proposal.pricing_notes,
                 blueprint: blueprint,
                 partnerLogo: partnerLogo,
@@ -140,13 +140,13 @@ export function PublicProposalView({ proposal }: PublicProposalViewProps) {
         </Card>
 
         {/* Pricing Section */}
-        {(proposal.estimated_value || proposal.pricing_notes) && (
+        {(proposal.price_dfy || proposal.pricing_notes) && (
           <Card className="mb-6 border-primary/20 bg-primary/5">
             <CardContent className="pt-6">
               <h2 className="text-lg font-semibold mb-4">Investment</h2>
-              {proposal.estimated_value && (
+              {proposal.price_dfy && (
                 <div className="text-3xl font-bold text-primary mb-2">
-                  {formatCurrency(proposal.estimated_value)}
+                  {formatCurrency(proposal.price_dfy)}
                 </div>
               )}
               {proposal.pricing_notes && (

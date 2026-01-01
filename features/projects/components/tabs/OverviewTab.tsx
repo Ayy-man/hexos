@@ -256,7 +256,7 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="font-semibold">{formatCurrency(project.quoted_price)}</p>
+              <p className="font-semibold">{formatCurrency(project.price_dfy)}</p>
             </CardContent>
           </Card>
         )}

@@ -7,6 +7,7 @@ import {
   unsubmitProposalFromDfy,
   updateDfyVersion,
   copyProposalToDfyVersion,
+  updateInquiryStage,
 } from '@/lib/api/inquiries'
 import {
   createInquiryComment,
@@ -40,6 +41,20 @@ export async function submitProposalAction(inquiryId: string): Promise<void> {
 export async function unsubmitProposalAction(inquiryId: string): Promise<void> {
   await unsubmitProposalFromDfy(inquiryId)
   revalidatePath(`/inquiries/${inquiryId}`)
+}
+
+// Submit proposal for internal review (moves to final_review stage)
+export async function submitForReviewAction(inquiryId: string): Promise<void> {
+  await updateInquiryStage(inquiryId, 'final_review', 'Submitted for internal review')
+  revalidatePath(`/inquiries/${inquiryId}`)
+  revalidatePath('/inquiries')
+}
+
+// Approve proposal (moves from final_review to ready stage)
+export async function approveProposalAction(inquiryId: string): Promise<void> {
+  await updateInquiryStage(inquiryId, 'ready', 'Proposal approved and ready for partner')
+  revalidatePath(`/inquiries/${inquiryId}`)
+  revalidatePath('/inquiries')
 }
 
 // Save DFY's private version (auto-save, no revalidate)
