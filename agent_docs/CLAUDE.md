@@ -6,12 +6,12 @@ Project management portal for Hexona's DFY automation business. Replaces Tally/W
 
 ## Stack
 
-- Next.js 14 (App Router) + TypeScript (strict)
+- Next.js 16 (App Router) + TypeScript (strict)
 - Supabase (Postgres + Auth + Storage + **Realtime**)
 - shadcn/ui (Vega style, Stone+Cyan theme)
 - pnpm
 - Vercel (deployment)
-- Stripe (payments)
+- Stripe (payments - not yet integrated)
 
 ## Commands
 
@@ -67,3 +67,26 @@ Read relevant files in `agent_docs/` based on your task:
 ## Current Phase
 
 Building MVP. See `agent_docs/features.md` for what's built vs planned.
+
+### What's Complete
+- Inquiry flow (form → AI copilot → proposal → negotiation → close)
+- Project initiation wizard (convert inquiry → select deliverables → build requirements tree → create project)
+- Blueprints & case studies catalog
+- Dashboards for all roles (admin, dev, dfy, client)
+
+### Current Focus: Phase 4.9 (Project Lifecycle)
+- [x] Project detail page with tabs (Overview, Deliverables, Requirements, Files, Activity)
+- [x] Project Initiation Wizard with tree-based onboarding_requirements
+- [ ] **NEXT: Migrate RequirementsTab to use onboarding_requirements** (currently uses old flat project_requirements)
+- [ ] Project status transitions (deliverables_pending → deliverables_confirmed → etc.)
+- [ ] Deliverables sign-off flow (Admin → DFY confirms for client)
+- [ ] Dev assignment UI
+- [ ] File uploads UI
+
+### Database Tables (Key)
+- `inquiries` - Leads from DFY partners
+- `proposal_deliverables` - Negotiated deliverables pre-close
+- `projects` - Active projects post-conversion
+- `project_deliverables` - Final deliverables (source of truth)
+- `onboarding_requirements` - NEW: Tree-structured requirements with templates
+- `requirement_templates` - Reusable requirement templates by category

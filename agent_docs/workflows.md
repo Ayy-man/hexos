@@ -261,13 +261,24 @@ none → parsing → dfy_editing → dfy_submitted → int_reviewing → approve
 ### Entry B: Post-Close (Convert to Project)
 
 ```
-DFY clicks "Mark as Closed" → INT clicks "Convert to Project"
-→ Confirm deliverables → Add onboarding requirements → Project created
+DFY clicks "Mark as Closed" → Admin clicks "Convert to Project"
+→ Opens full-page Project Initiation Wizard at /inquiries/[id]/initiate
+→ Step 1: Select deliverables from proposal
+→ Step 2: Build hierarchical requirements tree (with template library)
+→ Step 3: Review project details + pricing → Create project
 ```
 
-**Conversion Wizard Steps:**
-1. **Deliverables** — Confirm which deliverables to include
-2. **Requirements** — Add onboarding checklist items
-3. **Review** — Summary and create project
+**Project Initiation Wizard Features:**
+- Full-page wizard (replaces old modal-based conversion)
+- Tree-structured requirements via `onboarding_requirements` table
+- Requirement templates organized by category (platform_access, credentials, assets, setup, payments)
+- Owner assignment per requirement (Hexona, DFY, Client)
+- Blocker types (none, partial, absolute)
+- File attachments support
+
+**Tables Used:**
+- `proposal_deliverables` → copied to `project_deliverables`
+- `onboarding_requirements` → created with tree structure (parent_id for nesting)
+- `requirement_templates` → library of reusable templates
 
 **Project Link:** New project gets `source_inquiry_id` linking back to original inquiry.
