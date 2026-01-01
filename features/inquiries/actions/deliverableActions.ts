@@ -204,7 +204,11 @@ export async function triggerParseDeliverablesAction(
     const parsedDeliverables = await parseDeliverablesWithAI(proposalContent)
 
     if (!parsedDeliverables.length) {
-      throw new Error('No deliverables extracted from proposal')
+      // No deliverables found - return empty array, let user add manually
+      console.log('[triggerParse] No deliverables found in proposal')
+      await updateDeliverablesStatus(inquiryId, 'none')
+      revalidatePath(`/inquiries/${inquiryId}`)
+      return []
     }
 
     console.log('[triggerParse] Creating', parsedDeliverables.length, 'deliverables in DB')

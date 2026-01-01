@@ -357,14 +357,11 @@ DFY edits → Submits → Admin reviews each item:
 
 After inquiry converts to project, manage it through to delivery.
 
-**Known Issue - Deliverables Not Auto-Importing:**
-The conversion wizard only imports deliverables if `proposal_deliverables` already exist (from DFY clicking "Suggest Changes" during negotiation). If DFY never initiated negotiation, the wizard shows an empty deliverables list.
-
-**Expected Behavior (TODO):**
+**Auto-Import Deliverables on Conversion:**
+When admin clicks "Convert to Project", the system automatically:
 1. If `proposal_deliverables` exist → use those ✅
-2. If empty AND `proposal_content` exists → auto-trigger AI parsing before showing wizard ❌
-
-**Workaround:** DFY must click "Suggest Changes" in Deliverables tab before conversion to populate deliverables.
+2. If empty AND `proposal_content` exists → auto-trigger AI parsing before showing wizard ✅
+3. If AI finds no deliverables → open wizard with empty list, user can add manually ✅
 
 **Flow:**
 ```
@@ -387,7 +384,7 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - [x] 3-step wizard (Deliverables → Requirements → Review)
 - [x] Payment structure selection (100%, 50/50, 40/30/30, custom)
 - [x] Requirements builder with suggestions
-- [ ] Auto-parse deliverables if none exist (see Known Issue above)
+- [x] Auto-parse deliverables if none exist
 
 **Requirements System:**
 - [x] Requirements table with dependencies (depends_on_id)
