@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -56,7 +57,6 @@ interface DeliverablesTabProps {
   acceptCounter: (id: string) => Promise<void>
   rejectCounter: (id: string, reason?: string) => Promise<void>
   getHistory: (id: string) => Promise<DeliverableHistoryEntry[]>
-  bulkApprove: (ids: string[]) => Promise<void>
   finalApprove: () => Promise<void>
   sendBackForRevision: () => Promise<void>
 }
@@ -82,10 +82,10 @@ export function DeliverablesTab({
   acceptCounter,
   rejectCounter,
   getHistory,
-  bulkApprove,
   finalApprove,
   sendBackForRevision,
 }: DeliverablesTabProps) {
+  const router = useRouter()
   const [isParsing, setIsParsing] = useState(false)
   const [isSubmitting, startSubmitTransition] = useTransition()
   const [showAddModal, setShowAddModal] = useState(false)
@@ -141,6 +141,7 @@ export function DeliverablesTab({
     startSubmitTransition(async () => {
       try {
         await submitForReview()
+        router.refresh()
         toast.success('Changes submitted for review')
       } catch (error) {
         console.error('Submit error:', error)
@@ -154,6 +155,7 @@ export function DeliverablesTab({
     startSubmitTransition(async () => {
       try {
         await withdrawSubmission()
+        router.refresh()
         toast.success('Submission withdrawn')
       } catch (error) {
         console.error('Withdraw error:', error)
@@ -167,6 +169,7 @@ export function DeliverablesTab({
     startSubmitTransition(async () => {
       try {
         await startReview()
+        router.refresh()
         toast.success('Review started - you can now approve/reject changes')
       } catch (error) {
         console.error('Start review error:', error)
@@ -180,6 +183,7 @@ export function DeliverablesTab({
     startSubmitTransition(async () => {
       try {
         await finalApprove()
+        router.refresh()
         toast.success('Deliverables approved and locked')
       } catch (error) {
         console.error('Approve error:', error)
@@ -193,6 +197,7 @@ export function DeliverablesTab({
     startSubmitTransition(async () => {
       try {
         await sendBackForRevision()
+        router.refresh()
         toast.success('Sent back for revision')
       } catch (error) {
         console.error('Send back error:', error)
@@ -314,7 +319,6 @@ export function DeliverablesTab({
             onAcceptCounter={acceptCounter}
             onRejectCounter={rejectCounter}
             onGetHistory={getHistory}
-            onBulkApprove={bulkApprove}
             onAddDeliverable={isEditable ? () => setShowAddModal(true) : undefined}
           />
         </CardContent>
