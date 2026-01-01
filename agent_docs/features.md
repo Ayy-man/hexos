@@ -421,6 +421,10 @@ API: `lib/api/requirement-templates.shared.ts` (client-safe), `lib/api/requireme
   - Add requirement dialog with title, description, owner, blocker, dependencies
   - Edit inline via dropdown menu
   - Delete with confirmation
+- [x] **Duplicate Project Prevention** - Prevents creating multiple projects from same inquiry
+  - Database: UNIQUE constraint on `projects.source_inquiry_id`
+  - Application: Both conversion functions check for existing project before creating
+  - Migration: `20260102000002_unique_source_inquiry.sql`
 
 Templates can be managed via Supabase Dashboard → requirement_templates table.
 
