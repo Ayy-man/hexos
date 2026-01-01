@@ -758,22 +758,11 @@ export default async function InquiryDetailPage({
 
                       {/* Admin: Convert to Project - available after proposal sent, especially when closed */}
                       {isAdmin && proposalSubmitted && inquiry.proposal_stage !== 'lost' && (
-                        <ConvertToProjectButton
-                          inquiry={{
-                            id: inquiry.id,
-                            prospect_company_name: inquiry.prospect_company_name,
-                            prospect_website: inquiry.prospect_website,
-                            industry: inquiry.industry,
-                            partner_name: inquiry.partner_name,
-                            price_dfy: inquiry.price_dfy as number | null,
-                            blueprint: inquiry.blueprint,
-                          }}
-                          deliverables={deliverables}
-                          proposalContent={inquiry.proposal_content}
-                          parseDeliverables={boundParseDeliverables}
-                          onConvert={boundConvertToProject}
-                          variant="inline"
-                        />
+                        <Button className="w-full" asChild>
+                          <Link href={`/inquiries/${id}/initiate`}>
+                            Convert to Project
+                          </Link>
+                        </Button>
                       )}
 
                       {/* Waiting state */}
