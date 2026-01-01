@@ -1,7 +1,9 @@
 // Shared types and utilities for requirement templates
 // This file can be imported by both server and client components
 
-import type { RequirementOwner, RequirementBlocker } from './onboarding-requirements'
+// Inline types to avoid importing from server-only files
+export type RequirementOwner = 'hexona' | 'dfy' | 'client'
+export type RequirementBlocker = 'none' | 'partial' | 'absolute'
 
 // ============================================
 // Types
