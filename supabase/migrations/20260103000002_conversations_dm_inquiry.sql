@@ -25,13 +25,25 @@ ALTER TABLE conversations ADD COLUMN IF NOT EXISTS inquiry_id UUID REFERENCES in
 ALTER TABLE conversations ADD COLUMN IF NOT EXISTS title TEXT;
 
 -- Update unique constraint to handle new types
--- First drop the constraint (not the index)
-ALTER TABLE conversations DROP CONSTRAINT IF EXISTS conversations_project_id_type_key;
-CREATE UNIQUE INDEX conversations_project_type_unique
+-- Drop the original unique constraint (this was created as UNIQUE(project_id, type))
+DO $$
+BEGIN
+  -- Try to drop as constraint first
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'conversations_project_id_type_key'
+    AND table_name = 'conversations'
+  ) THEN
+    ALTER TABLE conversations DROP CONSTRAINT conversations_project_id_type_key;
+  END IF;
+END $$;
+
+-- Create new partial unique index for project conversations only
+CREATE UNIQUE INDEX IF NOT EXISTS conversations_project_type_unique
   ON conversations(project_id, type)
   WHERE project_id IS NOT NULL AND type IN ('project', 'workspace', 'partner');
 
-CREATE UNIQUE INDEX conversations_inquiry_unique
+CREATE UNIQUE INDEX IF NOT EXISTS conversations_inquiry_unique
   ON conversations(inquiry_id)
   WHERE inquiry_id IS NOT NULL;
 
