@@ -11,7 +11,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Calendar, User, Building2, DollarSign, Clock, UserPlus } from 'lucide-react'
+import {
+  Calendar,
+  User,
+  Building2,
+  DollarSign,
+  Clock,
+  UserPlus,
+  Circle,
+  AlertTriangle,
+  Activity,
+  Check,
+  ListTodo,
+  Package,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { UserRole } from '@/lib/auth/types'
 import { assignDevAction } from '../../actions/projectActions'
@@ -23,18 +37,62 @@ interface OverviewTabProps {
   availableDevs: Array<{ id: string; name: string; email: string }>
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  deliverables_pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  awaiting_signoff: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  signed_off: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  collecting_access: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  in_progress: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  delivered: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+// ============================================
+// Phase Configuration (shared with ProjectStatusControl)
+// ============================================
+
+const STATUS_PHASES = {
+  inquiry: ['inquiry_new', 'ai_matching', 'qualified'],
+  proposal: ['proposal_drafting', 'internal_review', 'proposal_sent', 'negotiating', 'committed'],
+  signoff: ['deliverables_pending', 'awaiting_signoff', 'signed_off'],
+  agreement: ['agreement_sent', 'agreement_signed'],
+  payment: ['payment_pending', 'payment_partial', 'payment_paid'],
+  onboarding: ['collecting_access', 'access_complete', 'dev_assigned'],
+  development: ['in_progress', 'blocked_client', 'blocked_internal', 'review_checkpoint', 'revisions', 'final_qa'],
+  delivery: ['delivered', 'acceptance_pending', 'accepted'],
+  closed: ['completed', 'cancelled', 'on_hold'],
+} as const
+
+const PHASE_LABELS: Record<string, string> = {
+  inquiry: 'Inquiry',
+  proposal: 'Proposal',
+  signoff: 'Sign-off',
+  agreement: 'Agreement',
+  payment: 'Payment',
+  onboarding: 'Onboarding',
+  development: 'Development',
+  delivery: 'Delivery',
+  closed: 'Closed',
 }
 
-function formatStatus(status: string) {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+const PHASE_ORDER = ['inquiry', 'proposal', 'signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery', 'closed'] as const
+
+function getPhaseForStatus(status: string): string {
+  for (const [phase, statuses] of Object.entries(STATUS_PHASES)) {
+    if (statuses.includes(status as never)) return phase
+  }
+  return 'unknown'
+}
+
+function getPhaseIndex(phase: string): number {
+  return PHASE_ORDER.indexOf(phase as (typeof PHASE_ORDER)[number])
+}
+
+const ACTIVITY_LABELS: Record<string, string> = {
+  status_changed: 'Status changed',
+  deliverables_confirmed: 'Deliverables confirmed',
+  signoff_sent: 'Sent for sign-off',
+  signed_off: 'Signed off',
+  dev_assigned: 'Developer assigned',
+  deliverable_added: 'Deliverable added',
+  deliverable_edited: 'Deliverable edited',
+  deliverable_deleted: 'Deliverable deleted',
+  deliverable_status_changed: 'Deliverable status changed',
+  requirement_completed: 'Requirement completed',
+  requirement_updated: 'Requirement updated',
+  onboarding_requirement_completed: 'Requirement approved',
+  file_uploaded: 'File uploaded',
+  note_added: 'Note added',
 }
 
 function formatDate(date: string | null) {
@@ -44,6 +102,21 @@ function formatDate(date: string | null) {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+function formatRelativeTime(date: string) {
+  const now = new Date()
+  const then = new Date(date)
+  const diffMs = now.getTime() - then.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return formatDate(date)
 }
 
 function formatCurrency(value: number | null) {
@@ -71,18 +144,190 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
     }
   }
 
+  // Calculate progress stats
+  const currentPhase = getPhaseForStatus(project.status)
+  const currentPhaseIndex = getPhaseIndex(currentPhase)
+
+  const deliverables = project.deliverables || []
+  const deliverablesTotal = deliverables.length
+  const deliverablesDone = deliverables.filter(d => d.status === 'done').length
+
+  const requirements = project.requirements || []
+  const requirementsTotal = requirements.length
+  const requirementsApproved = requirements.filter(r => r.status === 'approved').length
+
+  // Collect blockers
+  const blockers: Array<{ type: string; message: string }> = []
+  if (project.status === 'blocked_client') {
+    blockers.push({ type: 'project', message: 'Blocked waiting on client' })
+  }
+  if (project.status === 'blocked_internal') {
+    blockers.push({ type: 'project', message: 'Blocked on internal issue' })
+  }
+  const blockedRequirements = requirements.filter(r => r.status === 'blocked')
+  blockedRequirements.forEach(r => {
+    blockers.push({ type: 'requirement', message: r.title })
+  })
+
+  // Recent activity (last 5)
+  const recentActivity = (project.activity || []).slice(0, 5)
+
   return (
     <div className="space-y-6">
-      {/* Status Badge */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-muted-foreground">Status:</span>
-        <Badge
-          variant="secondary"
-          className={STATUS_COLORS[project.status] || 'bg-stone-100 text-stone-700'}
-        >
-          {formatStatus(project.status)}
-        </Badge>
+      {/* Phase Progress Stepper */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium">Project Phase</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            {PHASE_ORDER.filter(p => p !== 'closed').map((phase, index) => {
+              const isCompleted = index < currentPhaseIndex
+              const isCurrent = phase === currentPhase
+              const isUpcoming = index > currentPhaseIndex
+
+              return (
+                <div key={phase} className="flex items-center">
+                  {index > 0 && (
+                    <div
+                      className={cn(
+                        'w-6 h-0.5 mx-0.5 sm:w-8',
+                        isCompleted ? 'bg-primary' : 'bg-muted'
+                      )}
+                    />
+                  )}
+                  <div
+                    className={cn(
+                      'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap',
+                      isCompleted && 'bg-primary/20 text-primary',
+                      isCurrent && 'bg-primary text-primary-foreground',
+                      isUpcoming && 'bg-muted text-muted-foreground'
+                    )}
+                  >
+                    {isCompleted && <Check className="h-3 w-3" />}
+                    <span className="hidden sm:inline">{PHASE_LABELS[phase]}</span>
+                    <span className="sm:hidden">{PHASE_LABELS[phase].slice(0, 3)}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Progress Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Requirements Progress */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <ListTodo className="h-4 w-4" />
+              Requirements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold">{requirementsApproved}</span>
+              <span className="text-muted-foreground">/ {requirementsTotal}</span>
+            </div>
+            {requirementsTotal > 0 && (
+              <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${(requirementsApproved / requirementsTotal) * 100}%` }}
+                />
+              </div>
+            )}
+            {requirementsTotal === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">No requirements added</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Deliverables Progress */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Deliverables
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold">{deliverablesDone}</span>
+              <span className="text-muted-foreground">/ {deliverablesTotal}</span>
+            </div>
+            {deliverablesTotal > 0 && (
+              <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${(deliverablesDone / deliverablesTotal) * 100}%` }}
+                />
+              </div>
+            )}
+            {deliverablesTotal === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">No deliverables added</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Target Delivery */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Target Delivery
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-semibold">{formatDate(project.target_delivery_date)}</p>
+          </CardContent>
+        </Card>
+
+        {/* Created */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Created
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg font-semibold">{formatDate(project.created_at)}</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Blockers (if any) */}
+      {blockers.length > 0 && (
+        <Card className="border-red-200 dark:border-red-900">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Active Blockers ({blockers.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {blockers.map((blocker, idx) => (
+                <li key={idx} className="flex items-start gap-2 text-sm">
+                  <Circle className="h-2 w-2 mt-1.5 fill-red-500 text-red-500" />
+                  <span>
+                    {blocker.type === 'project' ? (
+                      <span className="font-medium">{blocker.message}</span>
+                    ) : (
+                      <>
+                        <Badge variant="outline" className="mr-2 text-xs">Requirement</Badge>
+                        {blocker.message}
+                      </>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Info Cards Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -220,32 +465,6 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
           </CardContent>
         </Card>
 
-        {/* Target Delivery */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Target Delivery
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-semibold">{formatDate(project.target_delivery_date)}</p>
-          </CardContent>
-        </Card>
-
-        {/* Created */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Created
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-semibold">{formatDate(project.created_at)}</p>
-          </CardContent>
-        </Card>
-
         {/* Quoted Price - Admin Only */}
         {isAdmin && (
           <Card>
@@ -261,6 +480,40 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
           </Card>
         )}
       </div>
+
+      {/* Recent Activity */}
+      {recentActivity.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {recentActivity.map((activity) => (
+                <li key={activity.id} className="flex items-start justify-between gap-4 text-sm">
+                  <div className="flex items-start gap-2">
+                    <Circle className="h-2 w-2 mt-1.5 fill-primary text-primary" />
+                    <div>
+                      <span className="font-medium">
+                        {ACTIVITY_LABELS[activity.action] || activity.action.replace(/_/g, ' ')}
+                      </span>
+                      {activity.user?.name && (
+                        <span className="text-muted-foreground"> by {activity.user.name}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatRelativeTime(activity.created_at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Notes */}
       {project.notes && (

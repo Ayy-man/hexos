@@ -7,6 +7,59 @@ import {
   updateRequirementDependencies,
 } from '@/lib/api/project-requirements'
 import { checkAndNotifyUnblockedRequirements } from '@/lib/api/requirement-notifications'
+import type { ProjectStatus } from '@/lib/api/projects'
+
+// ============================================
+// Project Status Transitions
+// ============================================
+
+/**
+ * Generic action to update project status.
+ * Logs the transition to activity_log with old and new status.
+ */
+export async function updateProjectStatusAction(
+  projectId: string,
+  newStatus: ProjectStatus,
+  notes?: string
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get current status for logging
+  const { data: project } = await supabase
+    .from('projects')
+    .select('status')
+    .eq('id', projectId)
+    .single()
+
+  if (!project) throw new Error('Project not found')
+
+  const oldStatus = project.status
+
+  // Update the status
+  const { error } = await supabase
+    .from('projects')
+    .update({ status: newStatus })
+    .eq('id', projectId)
+
+  if (error) throw error
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: projectId,
+    user_id: user.id,
+    action: 'status_changed',
+    details: {
+      old_status: oldStatus,
+      new_status: newStatus,
+      notes: notes || null,
+    },
+  })
+
+  revalidatePath(`/projects/${projectId}`)
+  revalidatePath('/projects')
+}
 
 // ============================================
 // Deliverables Sign-off Flow

@@ -30,9 +30,9 @@ See `components.md` for details.
 ### Phase 2: Core Data
 
 - [x] Projects CRUD
-- [ ] Deliverables CRUD
-- [ ] Status management
-- [ ] Activity logging
+- [x] Deliverables CRUD (add/edit/delete/status change)
+- [x] Status management (30 statuses, 9 phases)
+- [x] Activity logging
 
 ### Phase 3: Dashboards
 
@@ -41,10 +41,12 @@ See `components.md` for details.
 - [x] DFY dashboard (deals, commissions)
 - [x] Client dashboard (project progress)
 - [x] Sidebar layout with role-based navigation
-- [ ] Project detail view improvements
+- [x] Project detail view with tabs (Overview, Deliverables, Requirements, Files, Activity)
+- [x] Deliverables CRUD in project detail
+- [x] Status transitions (30 statuses via ProjectStatusControl)
+- [x] Phase stepper showing project progress (9 phases)
 - [ ] Deliverables list + Gantt view
-- [ ] Status transitions
-- [ ] **Project list stage progress bar** - Show visual progress bar in projects list based on project lifecycle stage (similar to onboarding progress bar)
+- [ ] **Project list stage progress bar** - Show visual progress bar in projects list based on project lifecycle stage
 
 ### Phase 4: Inquiry Flow (Complete)
 
@@ -354,7 +356,7 @@ DFY edits → Submits → Admin reviews each item:
   - [x] Auto-transition to 'closed' on project conversion
   - [x] ReopenInquiryButton for admin (hold-to-confirm)
 
-### Phase 4.9: Post-Close Project Management (In Progress)
+### Phase 4.9: Post-Close Project Management (Complete)
 
 After inquiry converts to project, manage it through to delivery.
 
@@ -364,10 +366,12 @@ When admin clicks "Convert to Project", the system automatically:
 2. If empty AND `proposal_content` exists → auto-trigger AI parsing before showing wizard ✅
 3. If AI finds no deliverables → open wizard with empty list, user can add manually ✅
 
-**Flow:**
+**Full Project Lifecycle (30 Statuses, 9 Phases):**
 ```
-Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → Dev Assigned → In Progress → Delivered
+INQUIRY → PROPOSAL → SIGN-OFF → AGREEMENT → PAYMENT → ONBOARDING → DEVELOPMENT → DELIVERY → CLOSED
 ```
+
+All transitions managed via `ProjectStatusControl` component with phase stepper UI.
 
 **Who Sees Projects:**
 - Admin: Full access, all projects
@@ -375,8 +379,8 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - Dev: Assigned projects only
 
 **Project Detail Page** (`/projects/[id]`) - ClickUp-style horizontal tabs:
-- [x] Overview tab (status, info, assigned dev, key dates)
-- [x] Deliverables tab (final list, status per item, source of truth)
+- [x] Overview tab (phase stepper, progress cards, blockers list, recent activity)
+- [x] Deliverables tab (CRUD: add/edit/delete/status change with activity logging)
 - [x] Requirements tab (onboarding checklist with dependency tracking)
 - [x] Files tab (project file storage framework)
 - [x] Activity tab (timeline of all changes)
@@ -387,7 +391,7 @@ Project Created → Deliverables Confirmed → DFY Sign-off → Onboarding → D
 - [x] Requirements builder with suggestions
 - [x] Auto-parse deliverables if none exist
 
-**Project Initiation Wizard (NEW):**
+**Project Initiation Wizard:**
 Full-page wizard at `/inquiries/[id]/initiate` replacing the modal-based conversion.
 - [x] Step 1: Select deliverables from proposal
 - [x] Step 2: Build hierarchical requirements tree with template library
@@ -397,9 +401,6 @@ Full-page wizard at `/inquiries/[id]/initiate` replacing the modal-based convers
 - [x] File attachments support for requirements
 - [x] RLS policies for admin/dfy/client access
 - [x] **Hierarchical Templates** - Templates with parent_id support for nested children
-  - Selecting a template adds entire tree of requirements (parent + all children)
-  - Templates have position for ordering, default_blocker for blocker type
-  - Example: GHL Setup → Add Billing to Hexona → Add WAGHL → Add WAGHL Billing
 
 **Hierarchical Requirement Templates:**
 Templates support nested children via `parent_id` column. When a template is selected, the entire tree is added:
@@ -412,21 +413,32 @@ Templates support nested children via `parent_id` column. When a template is sel
 Template columns: `parent_id`, `position`, `default_blocker`
 API: `lib/api/requirement-templates.shared.ts` (client-safe), `lib/api/requirement-templates.ts` (server)
 
-**Project Management (Admin):**
-- [x] **Delete Project** - Admin can delete projects from Danger Zone in Project Info tab
-  - Unlinks inquiry first (preserves inquiry, resets to 'closed' status)
-  - Deletes activity_log entries to avoid FK constraint issues
-  - Cascades to deliverables, requirements, files
-- [x] **Requirements CRUD** - Add/edit/delete requirements after project creation
-  - Add requirement dialog with title, description, owner, blocker, dependencies
-  - Edit inline via dropdown menu
-  - Delete with confirmation
-- [x] **Duplicate Project Prevention** - Prevents creating multiple projects from same inquiry
-  - Database: UNIQUE constraint on `projects.source_inquiry_id`
-  - Application: Both conversion functions check for existing project before creating
-  - Migration: `20260102000002_unique_source_inquiry.sql`
+**Project Status Management:**
+- [x] `ProjectStatusControl` component with full 30-status transition map
+- [x] Phase stepper (9 phases displayed in both StatusControl and OverviewTab)
+- [x] Primary action button for main forward transition
+- [x] Secondary actions dropdown for alternatives
+- [x] "Put On Hold" and "Cancel Project" always available
+- [x] Activity log entry on every transition
 
-Templates can be managed via Supabase Dashboard → requirement_templates table.
+**Deliverables CRUD:**
+- [x] `deliverableActions.ts` - add/update/delete/status change with activity logging
+- [x] Add deliverable button + dialog
+- [x] Status dropdown per deliverable (pending → in_progress → blocked → done)
+- [x] Edit/Delete via dropdown menu (admin only)
+- [x] Role-based permissions (admin full, dev can change status only)
+
+**Overview Tab Enhancements:**
+- [x] Phase progress stepper (8 phases, excluding closed)
+- [x] Progress cards (Requirements X/Y, Deliverables X/Y, Target Delivery, Created)
+- [x] Active blockers list (project blocked + blocked requirements)
+- [x] Recent activity (last 5 entries)
+- [x] Dev assignment UI
+
+**Project Management (Admin):**
+- [x] **Delete Project** - Admin can delete projects from Danger Zone
+- [x] **Requirements CRUD** - Add/edit/delete requirements after project creation
+- [x] **Duplicate Project Prevention** - UNIQUE constraint on `projects.source_inquiry_id`
 
 **Requirements System:**
 - [x] Requirements table with dependencies (depends_on_id)
@@ -435,37 +447,11 @@ Templates can be managed via Supabase Dashboard → requirement_templates table.
 - [x] Dependency visualization (DependencyBadge)
 - [ ] Auto-advance when all items completed
 
-**Deliverables Sign-off Flow:**
-- [ ] Admin reviews deliverables one last time after conversion
-- [ ] Admin clicks "Send for Sign-off"
-- [ ] DFY receives notification, reviews
-- [ ] DFY clicks "Confirm on behalf of client"
-- [ ] Deliverables locked as source of truth
-
-**Dev Assignment:**
-- [ ] Admin can assign dev at any point
-- [ ] Dev sees project in `/dashboard/dev`
-- [ ] Assignment triggers stage change
-
-**File Storage:**
-- [x] project_files table exists
-- [ ] Supabase Storage bucket setup
-- [ ] Upload UI in Files tab
-- [ ] Download functionality
-
-**Status Transitions (Manual for MVP):**
-- [x] Projects start with `deliverables_pending` status
-- [ ] `deliverables_pending` → `deliverables_confirmed` → `awaiting_signoff` → `signed_off`
-- [ ] `signed_off` → `onboarding` → `in_progress` → `delivered` → `completed`
-- [ ] Manual stage buttons with hold-to-confirm for critical transitions
-
-**Projects List Stage Progress Bar:**
-Add a visual progress bar to the projects list showing how far along each project is in its lifecycle:
-- Display as a horizontal progress bar in the projects table (similar to onboarding progress bar)
-- Progress calculated from project stage: `deliverables_pending` (12.5%) → `deliverables_confirmed` (25%) → `awaiting_signoff` (37.5%) → `signed_off` (50%) → `onboarding` (62.5%) → `in_progress` (75%) → `delivered` (87.5%) → `completed` (100%)
-- Show percentage and/or stage name on hover
-- Use the same cyan/teal color scheme as the onboarding progress bar
-- Replaces or supplements the "STATUS" text badge in the projects list
+**Remaining Items:**
+- [ ] Deliverables sign-off flow (Admin → DFY confirms for client)
+- [ ] File uploads UI improvements
+- [ ] Migrate RequirementsTab to use onboarding_requirements (currently uses old flat project_requirements)
+- [ ] Projects list stage progress bar
 
 **Slated for Later:**
 - Agreement/contract phase (see future-features.md)

@@ -2,13 +2,34 @@ import { createClient } from '@/lib/supabase/server'
 import type { UserRole } from '@/lib/auth/types'
 import type { OnboardingRequirement } from './onboarding-requirements'
 
+// All 30 project statuses
+export type ProjectStatus =
+  // Inquiry
+  | 'inquiry_new' | 'ai_matching' | 'qualified'
+  // Proposal
+  | 'proposal_drafting' | 'internal_review' | 'proposal_sent' | 'negotiating' | 'committed'
+  // Sign-off
+  | 'deliverables_pending' | 'awaiting_signoff' | 'signed_off'
+  // Agreement
+  | 'agreement_sent' | 'agreement_signed'
+  // Payment
+  | 'payment_pending' | 'payment_partial' | 'payment_paid'
+  // Onboarding
+  | 'collecting_access' | 'access_complete' | 'dev_assigned'
+  // Development
+  | 'in_progress' | 'blocked_client' | 'blocked_internal' | 'review_checkpoint' | 'revisions' | 'final_qa'
+  // Delivery
+  | 'delivered' | 'acceptance_pending' | 'accepted'
+  // Closed
+  | 'completed' | 'cancelled' | 'on_hold'
+
 export interface Project {
   id: string
   project_name: string
   client_name: string
   client_email: string | null
   client_business: string | null
-  status: string
+  status: ProjectStatus
   project_type: string | null
   operational_mode: string
   blueprint_match_score: number | null
@@ -36,6 +57,17 @@ export interface Project {
   dfy_partner_id: string | null
   assigned_dev_id: string | null
   client_id: string | null
+
+  // Inquiry link
+  source_inquiry_id: string | null
+
+  // Sign-off tracking
+  deliverables_confirmed_at: string | null
+  deliverables_confirmed_by: string | null
+  signoff_sent_at: string | null
+  signoff_sent_by: string | null
+  signed_off_at: string | null
+  signed_off_by: string | null
 }
 
 export interface ProjectWithRelations extends Project {
