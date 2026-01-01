@@ -9,7 +9,7 @@ import {
   markConversationRead,
   getConversation,
 } from '@/lib/api/conversations'
-import { uploadMessageAttachments } from '@/lib/api/message-attachments'
+import { uploadMessageAttachments, getAttachmentSignedUrl } from '@/lib/api/message-attachments'
 
 // ============================================
 // Send Message
@@ -127,4 +127,14 @@ export async function uploadAttachmentAction(
   const attachments = await uploadMessageAttachments(messageId, conversationId, files)
 
   return { attachmentIds: attachments.map((a) => a.id) }
+}
+
+// ============================================
+// Get Attachment Signed URL
+// ============================================
+
+export async function getAttachmentSignedUrlAction(
+  filePath: string
+): Promise<string> {
+  return await getAttachmentSignedUrl(filePath)
 }

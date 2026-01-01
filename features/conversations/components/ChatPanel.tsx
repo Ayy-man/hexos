@@ -12,8 +12,8 @@ import {
   deleteMessageAction,
   toggleReactionAction,
   markReadAction,
+  getAttachmentSignedUrlAction,
 } from '../actions/conversationActions'
-import { getAttachmentSignedUrl } from '@/lib/api/message-attachments'
 
 interface Participant {
   id: string
@@ -93,7 +93,7 @@ export function ChatPanel({
 
   const handleDownloadAttachment = async (filePath: string, fileName: string) => {
     try {
-      const url = await getAttachmentSignedUrl(filePath)
+      const url = await getAttachmentSignedUrlAction(filePath)
       // Open in new tab or trigger download
       const link = document.createElement('a')
       link.href = url
