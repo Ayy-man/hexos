@@ -158,6 +158,11 @@ export async function bulkCreateOnboardingRequirements(
     position?: number
   }>
 ): Promise<OnboardingRequirement[]> {
+  // Handle empty array - return early
+  if (!requirements || requirements.length === 0) {
+    return []
+  }
+
   const supabase = await createClient()
 
   const records = requirements.map((r, index) => ({

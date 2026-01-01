@@ -51,6 +51,12 @@ export async function completeInitiationAction(
   deliverableIds: string[],
   requirements: InitiateRequirementInput[]
 ): Promise<{ projectId: string }> {
+  console.log('[completeInitiation] Starting with:', {
+    inquiryId,
+    deliverableCount: deliverableIds.length,
+    requirementCount: requirements.length,
+  })
+
   const supabase = await createClient()
   const {
     data: { user },
@@ -65,7 +71,11 @@ export async function completeInitiationAction(
     .eq('id', inquiryId)
     .single()
 
-  if (inquiryError) throw inquiryError
+  if (inquiryError) {
+    console.error('[completeInitiation] Failed to fetch inquiry:', inquiryError)
+    throw inquiryError
+  }
+  console.log('[completeInitiation] Fetched inquiry, creating project...')
 
   // 1. Create the project
   const { data: project, error: projectError } = await supabase
@@ -91,7 +101,11 @@ export async function completeInitiationAction(
     .select()
     .single()
 
-  if (projectError) throw projectError
+  if (projectError) {
+    console.error('[completeInitiation] Failed to create project:', projectError)
+    throw projectError
+  }
+  console.log('[completeInitiation] Project created:', project.id)
 
   // 2. Create payment milestones based on structure
   const priceDfy = projectData.price_dfy || 0
@@ -128,6 +142,8 @@ export async function completeInitiationAction(
     if (milestoneError) console.error('Failed to create payment milestones:', milestoneError)
   }
 
+  console.log('[completeInitiation] Payment milestones created, copying deliverables...')
+
   // 3. Copy deliverables from proposal_deliverables to project deliverables
   if (deliverableIds.length > 0) {
     const { data: proposalDeliverables, error: delError } = await supabase
@@ -156,6 +172,8 @@ export async function completeInitiationAction(
       if (insertDelError) throw insertDelError
     }
   }
+
+  console.log('[completeInitiation] Deliverables copied, creating requirements...')
 
   // 4. Create onboarding requirements with tree structure
   if (requirements.length > 0) {
