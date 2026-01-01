@@ -9,12 +9,12 @@ import { FilesTab } from './tabs/FilesTab'
 import { ActivityTab } from './tabs/ActivityTab'
 import { ProjectInfoTab } from './tabs/ProjectInfoTab'
 import type { ProjectWithRelations } from '@/lib/api/projects'
-import type { ProjectRequirement } from '@/lib/api/project-requirements'
+import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
 
 interface ProjectTabsProps {
   project: ProjectWithRelations & {
-    requirements?: ProjectRequirement[]
+    requirements?: OnboardingRequirement[]
     files?: Array<{
       id: string
       file_name: string

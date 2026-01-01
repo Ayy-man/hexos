@@ -212,3 +212,37 @@ export async function assignDevAction(projectId: string, devId: string): Promise
 
   revalidatePath(`/projects/${projectId}`)
 }
+
+// ============================================
+// Onboarding Requirements (NEW)
+// ============================================
+
+export async function markRequirementCompleteAction(
+  requirementId: string,
+  projectId: string
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('onboarding_requirements')
+    .update({
+      status: 'approved',
+      completed_at: new Date().toISOString(),
+      completed_by: user.id,
+    })
+    .eq('id', requirementId)
+
+  if (error) throw error
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: projectId,
+    user_id: user.id,
+    action: 'onboarding_requirement_completed',
+    details: { requirement_id: requirementId },
+  })
+
+  revalidatePath(`/projects/${projectId}`)
+}

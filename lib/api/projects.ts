@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import type { UserRole } from '@/lib/auth/types'
-import type { ProjectRequirement } from './project-requirements'
+import type { OnboardingRequirement } from './onboarding-requirements'
 
 export interface Project {
   id: string
@@ -53,7 +53,7 @@ export interface ProjectWithRelations extends Project {
     completed_at: string | null
     sort_order: number
   }>
-  requirements?: ProjectRequirement[]
+  requirements?: OnboardingRequirement[]
   files?: Array<{
     id: string
     file_name: string
@@ -134,13 +134,13 @@ export async function getProject(id: string) {
       assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
       client:profiles!projects_client_id_fkey(id, name, email),
       deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order),
-      requirements:project_requirements(id, project_id, title, description, status, file_id, response, completed_at, completed_by, sort_order, created_at, assigned_role, assigned_to),
+      requirements:onboarding_requirements(id, project_id, parent_id, title, description, notes, owner_type, blocker_type, status, loom_url, resource_url, position, created_at, updated_at, completed_at, completed_by),
       files:project_files(id, file_name, file_path, file_size, file_type, uploaded_by, uploaded_at),
       activity:activity_log(id, action, details, created_at, user:profiles(name))
     `)
     .eq('id', id)
     .order('sort_order', { referencedTable: 'deliverables', ascending: true })
-    .order('sort_order', { referencedTable: 'project_requirements', ascending: true })
+    .order('position', { referencedTable: 'onboarding_requirements', ascending: true })
     .order('uploaded_at', { referencedTable: 'project_files', ascending: false })
     .order('created_at', { referencedTable: 'activity_log', ascending: false })
     .single()
