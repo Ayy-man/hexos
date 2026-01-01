@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ChevronDown, Loader2, Check, Pause, X } from 'lucide-react'
+import { ChevronDown, Loader2, Pause, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/lib/api/projects'
 import { updateProjectStatusAction } from '../actions/projectActions'
@@ -251,8 +251,6 @@ export function ProjectStatusControl({
     label: string
   }>({ open: false, status: null, label: '' })
 
-  const currentPhase = getPhaseForStatus(currentStatus)
-  const currentPhaseIndex = getPhaseIndex(currentPhase)
   const transitions = TRANSITIONS[currentStatus] || []
   const primaryTransition = transitions.find(t => t.primary)
   const secondaryTransitions = transitions.filter(t => !t.primary)
@@ -288,42 +286,7 @@ export function ProjectStatusControl({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Phase Stepper */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-2">
-        {PHASE_ORDER.filter(p => p !== 'closed').map((phase, index) => {
-          const isCompleted = index < currentPhaseIndex
-          const isCurrent = phase === currentPhase
-          const isUpcoming = index > currentPhaseIndex
-
-          return (
-            <div key={phase} className="flex items-center">
-              {index > 0 && (
-                <div
-                  className={cn(
-                    'w-8 h-0.5 mx-0.5',
-                    isCompleted ? 'bg-primary' : 'bg-muted'
-                  )}
-                />
-              )}
-              <div
-                className={cn(
-                  'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap',
-                  isCompleted && 'bg-primary/20 text-primary',
-                  isCurrent && 'bg-primary text-primary-foreground',
-                  isUpcoming && 'bg-muted text-muted-foreground'
-                )}
-              >
-                {isCompleted && <Check className="h-3 w-3" />}
-                {PHASE_LABELS[phase]}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Current Status + Actions */}
-      <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Status:</span>
           <Badge className={cn('text-sm', STATUS_COLORS[currentStatus])}>
@@ -391,7 +354,6 @@ export function ProjectStatusControl({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-      </div>
 
       {/* Confirmation Dialog */}
       <AlertDialog

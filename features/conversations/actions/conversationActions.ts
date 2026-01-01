@@ -1,0 +1,130 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import {
+  sendMessage,
+  editMessage,
+  deleteMessage,
+  toggleReaction,
+  markConversationRead,
+  getConversation,
+} from '@/lib/api/conversations'
+import { uploadMessageAttachments } from '@/lib/api/message-attachments'
+
+// ============================================
+// Send Message
+// ============================================
+
+export async function sendMessageAction(
+  conversationId: string,
+  content: string,
+  mentionedUserIds?: string[]
+): Promise<{ messageId: string }> {
+  const message = await sendMessage(conversationId, content, mentionedUserIds)
+
+  // Get conversation to find project for revalidation
+  const conv = await getConversation(conversationId)
+  if (conv?.project_id) {
+    revalidatePath(`/projects/${conv.project_id}`)
+  }
+  revalidatePath('/conversations')
+
+  return { messageId: message.id }
+}
+
+// ============================================
+// Send Message with Attachments
+// ============================================
+
+export async function sendMessageWithAttachmentsAction(
+  conversationId: string,
+  content: string,
+  formData: FormData,
+  mentionedUserIds?: string[]
+): Promise<{ messageId: string }> {
+  // First send the message
+  const message = await sendMessage(conversationId, content, mentionedUserIds)
+
+  // Then upload attachments if any
+  const files = formData.getAll('files') as File[]
+  if (files.length > 0) {
+    await uploadMessageAttachments(message.id, conversationId, files)
+  }
+
+  // Revalidate
+  const conv = await getConversation(conversationId)
+  if (conv?.project_id) {
+    revalidatePath(`/projects/${conv.project_id}`)
+  }
+  revalidatePath('/conversations')
+
+  return { messageId: message.id }
+}
+
+// ============================================
+// Edit Message
+// ============================================
+
+export async function editMessageAction(
+  messageId: string,
+  content: string
+): Promise<void> {
+  await editMessage(messageId, content)
+}
+
+// ============================================
+// Delete Message
+// ============================================
+
+export async function deleteMessageAction(messageId: string): Promise<void> {
+  await deleteMessage(messageId)
+}
+
+// ============================================
+// Toggle Reaction
+// ============================================
+
+export async function toggleReactionAction(
+  messageId: string,
+  emoji: string
+): Promise<{ added: boolean }> {
+  return await toggleReaction(messageId, emoji)
+}
+
+// ============================================
+// Mark as Read
+// ============================================
+
+export async function markReadAction(
+  conversationId: string,
+  lastMessageId: string
+): Promise<void> {
+  await markConversationRead(conversationId, lastMessageId)
+
+  // Revalidate to update unread counts
+  const conv = await getConversation(conversationId)
+  if (conv?.project_id) {
+    revalidatePath(`/projects/${conv.project_id}`)
+  }
+  revalidatePath('/conversations')
+}
+
+// ============================================
+// Upload Attachment to Existing Message
+// ============================================
+
+export async function uploadAttachmentAction(
+  messageId: string,
+  conversationId: string,
+  formData: FormData
+): Promise<{ attachmentIds: string[] }> {
+  const files = formData.getAll('files') as File[]
+
+  if (files.length === 0) {
+    throw new Error('No files provided')
+  }
+
+  const attachments = await uploadMessageAttachments(messageId, conversationId, files)
+
+  return { attachmentIds: attachments.map((a) => a.id) }
+}

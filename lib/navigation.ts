@@ -24,6 +24,7 @@ const adminNav: NavGroup[] = [
     label: 'Management',
     items: [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
+      { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
@@ -50,6 +51,7 @@ const internalNav: NavGroup[] = [
     label: 'Management',
     items: [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
+      { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
@@ -75,6 +77,7 @@ const devNav: NavGroup[] = [
     label: 'Work',
     items: [
       { title: 'My Projects', url: '/projects', icon: 'FolderKanban' },
+      { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
     ],
   },
   {
@@ -98,6 +101,7 @@ const dfyNav: NavGroup[] = [
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
       { title: 'My Deals', url: '/projects', icon: 'Briefcase' },
+      { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
       { title: 'Submit Inquiry', url: '/inquiries/new', icon: 'Send' },
     ],
   },

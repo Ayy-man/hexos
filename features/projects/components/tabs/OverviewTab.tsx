@@ -21,61 +21,19 @@ import {
   Circle,
   AlertTriangle,
   Activity,
-  Check,
   ListTodo,
   Package,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { UserRole } from '@/lib/auth/types'
 import { assignDevAction } from '../../actions/projectActions'
+import { ProjectTimeline } from '../ProjectTimeline'
 
 interface OverviewTabProps {
   project: ProjectWithRelations
   userRole: UserRole
   isAdmin: boolean
   availableDevs: Array<{ id: string; name: string; email: string }>
-}
-
-// ============================================
-// Phase Configuration (shared with ProjectStatusControl)
-// ============================================
-
-const STATUS_PHASES = {
-  inquiry: ['inquiry_new', 'ai_matching', 'qualified'],
-  proposal: ['proposal_drafting', 'internal_review', 'proposal_sent', 'negotiating', 'committed'],
-  signoff: ['deliverables_pending', 'awaiting_signoff', 'signed_off'],
-  agreement: ['agreement_sent', 'agreement_signed'],
-  payment: ['payment_pending', 'payment_partial', 'payment_paid'],
-  onboarding: ['collecting_access', 'access_complete', 'dev_assigned'],
-  development: ['in_progress', 'blocked_client', 'blocked_internal', 'review_checkpoint', 'revisions', 'final_qa'],
-  delivery: ['delivered', 'acceptance_pending', 'accepted'],
-  closed: ['completed', 'cancelled', 'on_hold'],
-} as const
-
-const PHASE_LABELS: Record<string, string> = {
-  inquiry: 'Inquiry',
-  proposal: 'Proposal',
-  signoff: 'Sign-off',
-  agreement: 'Agreement',
-  payment: 'Payment',
-  onboarding: 'Onboarding',
-  development: 'Development',
-  delivery: 'Delivery',
-  closed: 'Closed',
-}
-
-const PHASE_ORDER = ['inquiry', 'proposal', 'signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery', 'closed'] as const
-
-function getPhaseForStatus(status: string): string {
-  for (const [phase, statuses] of Object.entries(STATUS_PHASES)) {
-    if (statuses.includes(status as never)) return phase
-  }
-  return 'unknown'
-}
-
-function getPhaseIndex(phase: string): number {
-  return PHASE_ORDER.indexOf(phase as (typeof PHASE_ORDER)[number])
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -145,9 +103,6 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
   }
 
   // Calculate progress stats
-  const currentPhase = getPhaseForStatus(project.status)
-  const currentPhaseIndex = getPhaseIndex(currentPhase)
-
   const deliverables = project.deliverables || []
   const deliverablesTotal = deliverables.length
   const deliverablesDone = deliverables.filter(d => d.status === 'done').length
@@ -174,44 +129,17 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
 
   return (
     <div className="space-y-6">
-      {/* Phase Progress Stepper */}
+      {/* Project Timeline */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-0">
           <CardTitle className="text-sm font-medium">Project Phase</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-1 overflow-x-auto pb-1">
-            {PHASE_ORDER.filter(p => p !== 'closed').map((phase, index) => {
-              const isCompleted = index < currentPhaseIndex
-              const isCurrent = phase === currentPhase
-              const isUpcoming = index > currentPhaseIndex
-
-              return (
-                <div key={phase} className="flex items-center">
-                  {index > 0 && (
-                    <div
-                      className={cn(
-                        'w-6 h-0.5 mx-0.5 sm:w-8',
-                        isCompleted ? 'bg-primary' : 'bg-muted'
-                      )}
-                    />
-                  )}
-                  <div
-                    className={cn(
-                      'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap',
-                      isCompleted && 'bg-primary/20 text-primary',
-                      isCurrent && 'bg-primary text-primary-foreground',
-                      isUpcoming && 'bg-muted text-muted-foreground'
-                    )}
-                  >
-                    {isCompleted && <Check className="h-3 w-3" />}
-                    <span className="hidden sm:inline">{PHASE_LABELS[phase]}</span>
-                    <span className="sm:hidden">{PHASE_LABELS[phase].slice(0, 3)}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+        <CardContent className="pt-0">
+          <ProjectTimeline
+            currentStatus={project.status}
+            phaseStartDate={project.updated_at}
+            createdAt={project.created_at}
+          />
         </CardContent>
       </Card>
 

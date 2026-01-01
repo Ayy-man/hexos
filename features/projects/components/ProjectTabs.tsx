@@ -1,13 +1,14 @@
 'use client'
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LayoutDashboard, CheckSquare, FileText, FolderOpen, Activity, Info } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, FileText, FolderOpen, Activity, Info, MessageSquare } from 'lucide-react'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DeliverablesTab } from './tabs/DeliverablesTab'
 import { RequirementsTab } from './tabs/RequirementsTab'
 import { FilesTab } from './tabs/FilesTab'
 import { ActivityTab } from './tabs/ActivityTab'
 import { ProjectInfoTab } from './tabs/ProjectInfoTab'
+import { ChatTab } from './tabs/ChatTab'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
@@ -65,6 +66,10 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
           <Activity className="h-4 w-4" />
           Activity
         </TabsTrigger>
+        <TabsTrigger value="chat" className="gap-2">
+          <MessageSquare className="h-4 w-4" />
+          Chat
+        </TabsTrigger>
         {isAdmin && (
           <TabsTrigger value="info" className="gap-2">
             <Info className="h-4 w-4" />
@@ -111,6 +116,14 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
       <TabsContent value="activity" className="mt-6">
         <ActivityTab
           activity={project.activity || []}
+        />
+      </TabsContent>
+
+      <TabsContent value="chat" className="mt-6">
+        <ChatTab
+          projectId={project.id}
+          currentUserId={userId}
+          userRole={userRole}
         />
       </TabsContent>
 
