@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Timeout wrapper to prevent middleware from hanging
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), ms))
+  return Promise.race([promise, timeout])
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -30,8 +36,8 @@ export async function updateSession(request: NextRequest) {
       }
     )
 
-    // Refresh session if expired - ignore errors
-    await supabase.auth.getUser()
+    // Refresh session if expired - with 3s timeout to prevent hanging
+    await withTimeout(supabase.auth.getUser(), 3000)
   } catch {
     // Ignore middleware errors - let the page handle auth
   }
