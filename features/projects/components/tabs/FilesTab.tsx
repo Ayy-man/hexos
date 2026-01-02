@@ -58,6 +58,7 @@ import {
 import { NewItemDropdown } from '../files/NewItemDropdown'
 import { DocumentEditor } from '../files/DocumentEditor'
 import { WhiteboardEditor } from '../files/WhiteboardEditor'
+import { FileViewerModal } from '../files/FileViewerModal'
 
 // ============================================
 // Types
@@ -136,6 +137,7 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
   const [renameValue, setRenameValue] = useState('')
   const [editingDocument, setEditingDocument] = useState<ProjectFileItem | null>(null)
   const [editingWhiteboard, setEditingWhiteboard] = useState<ProjectFileItem | null>(null)
+  const [viewingFile, setViewingFile] = useState<ProjectFileItem | null>(null)
 
   // Role-based visibility: DFY/Client only see portal files
   const canSeeInternalFiles = userRole === 'admin' || userRole === 'internal' || userRole === 'dev'
@@ -205,9 +207,9 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
         setEditingWhiteboard(item)
         break
       case 'file':
-        // Open file in new tab
+        // Open file in viewer modal
         if (item.file_path) {
-          window.open(item.file_path, '_blank')
+          setViewingFile(item)
         }
         break
       // Folders are handled by the tree expansion
@@ -456,6 +458,14 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
           initialTitle={editingWhiteboard.file_name}
           initialContent={editingWhiteboard.content}
           onClose={() => setEditingWhiteboard(null)}
+        />
+      )}
+
+      {/* File Viewer Modal */}
+      {viewingFile && (
+        <FileViewerModal
+          file={viewingFile}
+          onClose={() => setViewingFile(null)}
         />
       )}
     </div>

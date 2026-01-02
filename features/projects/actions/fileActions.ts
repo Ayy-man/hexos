@@ -12,6 +12,7 @@ import {
   reorderItems,
   deleteItem,
   updateFileContent,
+  getDownloadUrl,
 } from '@/lib/api/project-files'
 
 export async function uploadProjectFileAction(formData: FormData): Promise<void> {
@@ -410,4 +411,16 @@ export async function deleteItemAction(
   })
 
   revalidatePath(`/projects/${file.project_id}`)
+}
+
+// ============================================
+// File Viewer Actions
+// ============================================
+
+export async function getFileSignedUrlAction(filePath: string): Promise<string> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  return getDownloadUrl(filePath)
 }
