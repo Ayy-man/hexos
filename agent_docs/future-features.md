@@ -269,6 +269,52 @@ Public API for partners to integrate.
 - Can expose as REST or GraphQL
 - Rate limiting, API keys
 
+### 15. Phase-Aware Navigation Tabs
+
+**Problem:**
+As hexOS grows, the project detail page accumulates more tabs: Overview, Deliverables, Requirements, Files, Activity, Chat, Project Info — and potentially more (Invoices, Time Tracking, Scope Changes, etc.). Showing all tabs at all times creates:
+1. Cognitive overload — Users scan 8+ tabs to find what they need
+2. Irrelevant options — "Requirements" doesn't matter during Delivery; "Invoices" doesn't exist during Onboarding
+3. Wasted space — Horizontal tab bars don't scale gracefully
+
+**Proposed Solution:**
+Tabs dynamically show/hide (or emphasize/de-emphasize) based on the project's current phase.
+
+**Phase-Tab Mapping (Draft):**
+
+| Phase | Primary Tabs | Secondary/Collapsed |
+|-------|--------------|---------------------|
+| Inquiry → Proposal | Overview, Chat, Project Info | — |
+| Sign-off → Agreement | Overview, Deliverables, Chat, Project Info | Files |
+| Payment | Overview, Invoices, Chat, Project Info | Deliverables, Files |
+| Onboarding | Overview, Requirements, Files, Chat | Deliverables |
+| Development | Overview, Deliverables, Files, Activity, Chat | Requirements |
+| Delivery | Overview, Deliverables, Files, Activity, Chat | Requirements |
+| Closed | Overview, Files, Activity, Project Info | Everything else archived |
+
+**UI Options:**
+
+- **Option A: Show/Hide** — Tabs literally appear or disappear based on phase. Clean but potentially confusing if users expect a tab to exist.
+- **Option B: Primary + Overflow (Recommended)** — Show 4-5 primary tabs for current phase. Others collapse into a "More" dropdown. All tabs always accessible, just prioritized differently.
+- **Option C: Visual Hierarchy** — All tabs visible, but current-phase-relevant tabs are full opacity, others are muted/smaller. Subtle but keeps everything discoverable.
+
+**Keep in Mind:**
+- Tab config as simple mapping: `phaseToTabs: Record<Phase, { primary: Tab[], secondary: Tab[] }>`
+- Override capability: Admin can pin/unpin tabs per project if needed
+- Transition animations when tabs shift during phase change
+- Persist user's last-visited tab per project (don't reset on every visit)
+
+**Edge Cases:**
+- What if user is mid-task in a tab that becomes secondary? Don't force-navigate them.
+- What about tabs with notifications/unread? Maybe always show if there's activity.
+- Role-based + phase-based overlap: Client doesn't see internal tabs regardless of phase.
+
+**Dependencies:**
+- Finalize the full tab list first (what are all possible tabs?)
+- Understand actual usage patterns (which tabs do users access at each phase?)
+
+**Status:** Documented, not scheduled. Revisit once tab count exceeds 7-8 and clutter becomes a real pain point.
+
 ## Architectural Decisions That Enable Future
 
 | Decision | Why | Enables |
