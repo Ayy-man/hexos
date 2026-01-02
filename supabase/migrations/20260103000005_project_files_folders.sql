@@ -236,7 +236,7 @@ BEGIN
     1
   ) RETURNING id INTO v_shared_folder_id;
 
-  -- Create "Project Whiteboard" inside Shared folder
+  -- Create project whiteboard inside Shared folder (named after project)
   INSERT INTO project_files (
     project_id,
     parent_id,
@@ -249,7 +249,7 @@ BEGIN
   ) VALUES (
     NEW.id,
     v_shared_folder_id,
-    'Project Whiteboard',
+    NEW.name || ' Whiteboard',
     '',
     'whiteboard',
     'portal',
@@ -279,7 +279,7 @@ DECLARE
   v_shared_folder_id UUID;
 BEGIN
   FOR v_project IN
-    SELECT p.id
+    SELECT p.id, p.name
     FROM projects p
     WHERE NOT EXISTS (
       SELECT 1 FROM project_files pf
@@ -321,7 +321,7 @@ BEGIN
       1
     ) RETURNING id INTO v_shared_folder_id;
 
-    -- Create "Project Whiteboard" inside Shared folder
+    -- Create project whiteboard inside Shared folder (named after project)
     INSERT INTO project_files (
       project_id,
       parent_id,
@@ -334,7 +334,7 @@ BEGIN
     ) VALUES (
       v_project.id,
       v_shared_folder_id,
-      'Project Whiteboard',
+      v_project.name || ' Whiteboard',
       '',
       'whiteboard',
       'portal',
