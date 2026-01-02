@@ -114,7 +114,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         />
       </TabsContent>
 
-      <TabsContent value="whiteboard" className="mt-6" forceMount>
+      <TabsContent value="whiteboard" className="mt-6">
         <MainWhiteboardTab
           projectId={project.id}
           projectName={project.project_name}
