@@ -41,10 +41,19 @@ export function MainWhiteboardTab({
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   // Parse initial content
-  const parsedContent = (initialContent as ExcalidrawContent) || {
+  const rawContent = (initialContent as ExcalidrawContent) || {
     elements: [],
     appState: {},
     files: {},
+  }
+
+  // Remove collaborators from appState - it's a Map internally and can't deserialize from JSON
+  // See: https://github.com/excalidraw/excalidraw/issues/8637
+  const parsedContent = {
+    ...rawContent,
+    appState: rawContent.appState
+      ? { ...rawContent.appState, collaborators: undefined }
+      : {},
   }
 
   // Debounced auto-save

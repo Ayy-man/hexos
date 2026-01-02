@@ -52,10 +52,19 @@ export function WhiteboardEditor({
   const [titleInput, setTitleInput] = useState(initialTitle)
 
   // Parse initial content
-  const parsedContent = (initialContent as ExcalidrawContent) || {
+  const rawContent = (initialContent as ExcalidrawContent) || {
     elements: [],
     appState: {},
     files: {},
+  }
+
+  // Remove collaborators from appState - it's a Map internally and can't deserialize from JSON
+  // See: https://github.com/excalidraw/excalidraw/issues/8637
+  const parsedContent = {
+    ...rawContent,
+    appState: rawContent.appState
+      ? { ...rawContent.appState, collaborators: undefined }
+      : {},
   }
 
   // Debounced auto-save
@@ -153,6 +162,7 @@ export function WhiteboardEditor({
       {/* Excalidraw Canvas */}
       <div className="flex-1">
         <ExcalidrawWrapper
+          initialData={parsedContent}
           onChange={handleChange}
         />
       </div>
