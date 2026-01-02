@@ -554,5 +554,7 @@ export async function updateMainWhiteboardAction(
 
   await updateMainWhiteboard(projectId, content)
 
-  revalidatePath(`/projects/${projectId}`)
+  // Note: No revalidatePath here - whiteboard state is managed client-side
+  // and revalidating would cause Excalidraw to re-render with "new" initialData,
+  // triggering onChange and creating an infinite save loop
 }
