@@ -99,9 +99,9 @@ export function ProjectTimeline({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="w-full py-6">
+      <div className="w-full py-6 overflow-x-auto">
         {/* Timeline Container */}
-        <div className="relative flex items-start justify-between">
+        <div className="relative flex items-start justify-between min-w-[600px] max-w-4xl mx-auto">
           {/* Background connector line */}
           <div className="absolute top-4 left-0 right-0 h-[2px] bg-gradient-to-r from-muted via-muted to-muted/30" />
 
@@ -124,7 +124,7 @@ export function ProjectTimeline({
             return (
               <Tooltip key={phase}>
                 <TooltipTrigger asChild>
-                  <div className="relative flex flex-col items-center z-10 cursor-default group">
+                  <div className="relative flex flex-col items-center cursor-default group">
                     {/* Node */}
                     <div
                       className={cn(

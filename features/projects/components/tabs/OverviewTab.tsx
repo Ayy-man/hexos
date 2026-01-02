@@ -130,11 +130,11 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs }: Overv
   return (
     <div className="space-y-6">
       {/* Project Timeline */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader className="pb-0">
           <CardTitle className="text-sm font-medium">Project Phase</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 overflow-hidden">
           <ProjectTimeline
             currentStatus={project.status}
             phaseStartDate={project.updated_at}
