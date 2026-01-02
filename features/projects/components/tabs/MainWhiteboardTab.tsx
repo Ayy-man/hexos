@@ -5,6 +5,11 @@ import dynamic from 'next/dynamic'
 import { Loader2, Check, Circle } from 'lucide-react'
 import { updateMainWhiteboardAction } from '../../actions/fileActions'
 import { useDebouncedCallback } from '@/hooks/use-debounce'
+import { useWhiteboardRealtime } from '@/hooks/use-whiteboard-realtime'
+import { WhiteboardPresenceBar } from '@/components/whiteboard/WhiteboardPresenceBar'
+import { ConflictBanner } from '@/components/whiteboard/ConflictBanner'
+import { getMainWhiteboard } from '@/lib/api/project-files'
+import type { UserRole } from '@/lib/auth/types'
 
 // Dynamic import for Excalidraw (no SSR)
 const ExcalidrawWrapper = dynamic(
@@ -23,6 +28,8 @@ interface MainWhiteboardTabProps {
   projectId: string
   projectName: string
   initialContent: unknown
+  userId: string
+  userRole: UserRole
 }
 
 interface ExcalidrawContent {
@@ -35,16 +42,37 @@ export function MainWhiteboardTab({
   projectId,
   projectName,
   initialContent,
+  userId,
+  userRole,
 }: MainWhiteboardTabProps) {
   const [isPending, startTransition] = useTransition()
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [isPulling, setIsPulling] = useState(false)
+  const [content, setContent] = useState<ExcalidrawContent | null>(null)
+  const [contentKey, setContentKey] = useState(0) // Force re-render on pull
 
   // Scene version tracking refs (no re-renders)
   const sceneVersionRef = useRef<number>(0)
   const lastSavedVersionRef = useRef<number>(0)
   const pendingContentRef = useRef<unknown>(null)
   const isSavingRef = useRef<boolean>(false)
+
+  // Create a profile-like object for the realtime hook
+  const profile = {
+    id: userId,
+    name: 'User', // We don't have the name here, but presence will still work
+    email: '',
+    role: userRole,
+    created_at: '',
+  }
+
+  // Realtime presence and conflict detection
+  const { viewers, isConflicted, remoteSave, clearConflict } = useWhiteboardRealtime({
+    projectId,
+    profile,
+    hasUnsavedChanges,
+  })
 
   // Parse initial content
   const rawContent = (initialContent as ExcalidrawContent) || {
@@ -55,12 +83,49 @@ export function MainWhiteboardTab({
 
   // Remove collaborators from appState - it's a Map internally and can't deserialize from JSON
   // See: https://github.com/excalidraw/excalidraw/issues/8637
-  const parsedContent = {
+  const parsedContent = content || {
     ...rawContent,
     appState: rawContent.appState
       ? { ...rawContent.appState, collaborators: undefined }
       : {},
   }
+
+  // Pull latest content from server
+  const handlePullLatest = useCallback(async () => {
+    setIsPulling(true)
+    try {
+      const latest = await getMainWhiteboard(projectId)
+      const latestContent = (latest as ExcalidrawContent) || {
+        elements: [],
+        appState: {},
+        files: {},
+      }
+
+      // Remove collaborators from pulled content
+      setContent({
+        ...latestContent,
+        appState: latestContent.appState
+          ? { ...latestContent.appState, collaborators: undefined }
+          : {},
+      })
+
+      // Reset version tracking
+      sceneVersionRef.current = 0
+      lastSavedVersionRef.current = 0
+      pendingContentRef.current = null
+
+      // Clear conflict and dirty state
+      clearConflict()
+      setHasUnsavedChanges(false)
+
+      // Force Excalidraw to re-render with new content
+      setContentKey((k) => k + 1)
+    } catch (error) {
+      console.error('Failed to pull latest:', error)
+    } finally {
+      setIsPulling(false)
+    }
+  }, [projectId, clearConflict])
 
   // Optimized debounced save - only saves if version changed
   const debouncedSave = useDebouncedCallback(
@@ -92,7 +157,7 @@ export function MainWhiteboardTab({
         }
       })
     },
-    2000 // 2 second debounce (was 1s)
+    2000 // 2 second debounce
   )
 
   // Smart onChange handler - skips if scene version unchanged
@@ -129,10 +194,23 @@ export function MainWhiteboardTab({
   }, [projectId])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Conflict Banner */}
+      {isConflicted && remoteSave && (
+        <ConflictBanner
+          remoteSave={remoteSave}
+          onPullLatest={handlePullLatest}
+          onDismiss={clearConflict}
+          isPulling={isPulling}
+        />
+      )}
+
       {/* Status bar */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">{projectName} Whiteboard</h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-medium">{projectName} Whiteboard</h3>
+          <WhiteboardPresenceBar viewers={viewers} />
+        </div>
         <div className="text-sm text-muted-foreground">
           {isPending ? (
             <span className="flex items-center gap-1.5">
@@ -159,8 +237,9 @@ export function MainWhiteboardTab({
       </div>
 
       {/* Excalidraw Canvas */}
-      <div className="h-[calc(100vh-280px)] min-h-[500px] border rounded-lg overflow-hidden">
+      <div className="h-[calc(100vh-300px)] min-h-[500px] border rounded-lg overflow-hidden">
         <ExcalidrawWrapper
+          key={contentKey}
           initialData={parsedContent}
           onChange={handleChange}
         />

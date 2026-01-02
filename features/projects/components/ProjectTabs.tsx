@@ -119,6 +119,8 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
           projectId={project.id}
           projectName={project.project_name}
           initialContent={project.main_whiteboard}
+          userId={userId}
+          userRole={userRole}
         />
       </TabsContent>
 
