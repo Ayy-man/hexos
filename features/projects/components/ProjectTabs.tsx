@@ -82,7 +82,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         )}
       </TabsList>
 
-      <TabsContent value="overview" className="mt-6">
+      <TabsContent value="overview" className="mt-6" forceMount>
         <OverviewTab
           project={project}
           userRole={userRole}
@@ -91,7 +91,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         />
       </TabsContent>
 
-      <TabsContent value="deliverables" className="mt-6">
+      <TabsContent value="deliverables" className="mt-6" forceMount>
         <DeliverablesTab
           project={project}
           userRole={userRole}
@@ -100,7 +100,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         />
       </TabsContent>
 
-      <TabsContent value="requirements" className="mt-6">
+      <TabsContent value="requirements" className="mt-6" forceMount>
         <RequirementsTab
           project={project}
           requirements={project.requirements || []}
@@ -109,7 +109,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         />
       </TabsContent>
 
-      <TabsContent value="files" className="mt-6">
+      <TabsContent value="files" className="mt-6" forceMount>
         <FilesTab
           projectId={project.id}
           files={project.files || []}
@@ -118,13 +118,13 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         />
       </TabsContent>
 
-      <TabsContent value="activity" className="mt-6">
+      <TabsContent value="activity" className="mt-6" forceMount>
         <ActivityTab
           activity={project.activity || []}
         />
       </TabsContent>
 
-      <TabsContent value="chat" className="mt-6">
+      <TabsContent value="chat" className="mt-6" forceMount>
         <ChatTab
           projectId={project.id}
           currentUserId={userId}
@@ -133,7 +133,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
       </TabsContent>
 
       {isAdmin && (
-        <TabsContent value="info" className="mt-6">
+        <TabsContent value="info" className="mt-6" forceMount>
           <ProjectInfoTab
             project={project}
             userRole={userRole}

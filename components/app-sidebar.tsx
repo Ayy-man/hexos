@@ -100,7 +100,7 @@ export function AppSidebar({
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
-                        <Link href={item.url}>
+                        <Link href={item.url} prefetch={true}>
                           <Icon />
                           <span>{item.title}</span>
                           {item.badge && (

@@ -454,43 +454,43 @@ export default async function InquiryDetailPage({
       {/* Header - Sticky */}
       <div className="flex-shrink-0 pb-4">
         <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/inquiries">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {inquiry.prospect_company_name || 'Unnamed Prospect'}
-            </h1>
-            <StageBadge stage={inquiry.proposal_stage as ProposalStage} />
-            {inquiry.archived_at && (
-              <Badge variant="outline" className="gap-1">
-                <Archive className="h-3 w-3" />
-                Archived
-              </Badge>
-            )}
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/inquiries">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {inquiry.prospect_company_name || 'Unnamed Prospect'}
+              </h1>
+              <StageBadge stage={inquiry.proposal_stage as ProposalStage} />
+              {inquiry.archived_at && (
+                <Badge variant="outline" className="gap-1">
+                  <Archive className="h-3 w-3" />
+                  Archived
+                </Badge>
+              )}
+            </div>
+            <p className="text-muted-foreground">
+              {PATH_LABELS[inquiry.form_path] || inquiry.form_path} &bull;{' '}
+              {inquiry.submission_type === 'closed' ? 'Closed Deal' : 'Proposal Request'}
+            </p>
           </div>
-          <p className="text-muted-foreground">
-            {PATH_LABELS[inquiry.form_path] || inquiry.form_path} &bull;{' '}
-            {inquiry.submission_type === 'closed' ? 'Closed Deal' : 'Proposal Request'}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ShareLinkButton publicToken={inquiry.public_token} />
-          <ExportPDFButton
-            proposal={{
-              id: inquiry.id,
-              prospect_company_name: inquiry.prospect_company_name,
-              partner_name: inquiry.partner_name,
-              created_at: inquiry.created_at,
-              price_dfy: inquiry.price_dfy as number | null,
-              pricing_notes: inquiry.pricing_notes as string | null,
-              blueprint: inquiry.blueprint,
-            }}
-            documentContent={inquiry.document_content || generatedDocumentContent}
-          />
+          <div className="flex items-center gap-2">
+            <ShareLinkButton publicToken={inquiry.public_token} />
+            <ExportPDFButton
+              proposal={{
+                id: inquiry.id,
+                prospect_company_name: inquiry.prospect_company_name,
+                partner_name: inquiry.partner_name,
+                created_at: inquiry.created_at,
+                price_dfy: inquiry.price_dfy as number | null,
+                pricing_notes: inquiry.pricing_notes as string | null,
+                blueprint: inquiry.blueprint,
+              }}
+              documentContent={inquiry.document_content || generatedDocumentContent}
+            />
           </div>
         </div>
       </div>
@@ -499,33 +499,15 @@ export default async function InquiryDetailPage({
       <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0">
         <div className="flex-shrink-0">
           <TabsList>
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="document" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Document
-            {(() => {
-              const unresolvedCount = [...internalComments, ...dfyComments].filter(c => !c.resolved && !c.parent_id).length
-              return unresolvedCount > 0 ? (
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {unresolvedCount}
-                </Badge>
-              ) : null
-            })()}
-          </TabsTrigger>
-          {showProposalTab && (
-            <TabsTrigger value="proposal" className="flex items-center gap-2">
-              <Send className="h-4 w-4" />
-              Proposal
-              {proposalSubmitted && (
-                <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
-                  Sent
-                </Badge>
-              )}
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="document" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Document
               {(() => {
-                const unresolvedCount = proposalComments.filter(c => !c.resolved && !c.parent_id).length
+                const unresolvedCount = [...internalComments, ...dfyComments].filter(c => !c.resolved && !c.parent_id).length
                 return unresolvedCount > 0 ? (
                   <Badge variant="secondary" className="ml-1 text-xs">
                     {unresolvedCount}
@@ -533,34 +515,52 @@ export default async function InquiryDetailPage({
                 ) : null
               })()}
             </TabsTrigger>
-          )}
-          {showMyVersionTab && (
-            <TabsTrigger value="my-version" className="flex items-center gap-2">
-              <Lock className="h-4 w-4" />
-              My Version
-            </TabsTrigger>
-          )}
-          {showDeliverablesTab && (
-            <TabsTrigger value="deliverables" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Deliverables
-              {deliverablesStatus === 'approved' && (
-                <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
-                  Approved
-                </Badge>
-              )}
-              {deliverablesStatus === 'dfy_submitted' && (
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  Pending
-                </Badge>
-              )}
-            </TabsTrigger>
-          )}
+            {showProposalTab && (
+              <TabsTrigger value="proposal" className="flex items-center gap-2">
+                <Send className="h-4 w-4" />
+                Proposal
+                {proposalSubmitted && (
+                  <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
+                    Sent
+                  </Badge>
+                )}
+                {(() => {
+                  const unresolvedCount = proposalComments.filter(c => !c.resolved && !c.parent_id).length
+                  return unresolvedCount > 0 ? (
+                    <Badge variant="secondary" className="ml-1 text-xs">
+                      {unresolvedCount}
+                    </Badge>
+                  ) : null
+                })()}
+              </TabsTrigger>
+            )}
+            {showMyVersionTab && (
+              <TabsTrigger value="my-version" className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                My Version
+              </TabsTrigger>
+            )}
+            {showDeliverablesTab && (
+              <TabsTrigger value="deliverables" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Deliverables
+                {deliverablesStatus === 'approved' && (
+                  <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
+                    Approved
+                  </Badge>
+                )}
+                {deliverablesStatus === 'dfy_submitted' && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    Pending
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="flex-1 overflow-y-auto mt-4">
+        <TabsContent value="overview" className="flex-1 overflow-y-auto mt-4" forceMount>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Main Content */}
             <div className="md:col-span-2 space-y-6">
@@ -789,7 +789,7 @@ export default async function InquiryDetailPage({
         </TabsContent>
 
         {/* Document Tab */}
-        <TabsContent value="document" className="flex-1 overflow-y-auto mt-4">
+        <TabsContent value="document" className="flex-1 overflow-y-auto mt-4" forceMount>
           <InquiryDocumentTab
             inquiryId={id}
             initialDocumentContent={inquiry.document_content}
@@ -814,7 +814,7 @@ export default async function InquiryDetailPage({
 
         {/* Proposal Tab */}
         {showProposalTab && (
-          <TabsContent value="proposal" className="flex-1 overflow-y-auto mt-4">
+          <TabsContent value="proposal" className="flex-1 overflow-y-auto mt-4" forceMount>
             <ProposalTab
               inquiryId={id}
               initialContent={inquiry.proposal_content}
@@ -844,7 +844,7 @@ export default async function InquiryDetailPage({
 
         {/* My Version Tab (DFY only) */}
         {showMyVersionTab && (
-          <TabsContent value="my-version" className="flex-1 overflow-y-auto mt-4">
+          <TabsContent value="my-version" className="flex-1 overflow-y-auto mt-4" forceMount>
             <MyVersionTab
               inquiryId={id}
               initialContent={inquiry.dfy_version_content}
@@ -858,7 +858,7 @@ export default async function InquiryDetailPage({
 
         {/* Deliverables Tab */}
         {showDeliverablesTab && (
-          <TabsContent value="deliverables" className="flex-1 overflow-y-auto mt-4">
+          <TabsContent value="deliverables" className="flex-1 overflow-y-auto mt-4" forceMount>
             <DeliverablesTab
               inquiryId={id}
               deliverables={deliverables}

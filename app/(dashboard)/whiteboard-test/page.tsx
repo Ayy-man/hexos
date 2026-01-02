@@ -19,11 +19,11 @@ export default function WhiteboardTestPage() {
     <div className="h-[calc(100vh-4rem)] w-full">
       <ExcalidrawWrapper
         onChange={(elements, appState, files) => {
-          console.log('Whiteboard changed:', {
-            elementCount: elements.length,
-            appState: appState.theme,
-            fileCount: Object.keys(files).length
-          })
+          // console.log('Whiteboard changed:', {
+          //   elementCount: elements.length,
+          //   appState: appState.theme,
+          //   fileCount: Object.keys(files).length
+          // })
         }}
       />
     </div>
