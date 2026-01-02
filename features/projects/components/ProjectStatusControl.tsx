@@ -8,6 +8,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -20,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { ChevronDown, Loader2, Pause, X } from 'lucide-react'
+import { ChevronDown, Loader2, Pause, X, Undo2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ProjectStatus } from '@/lib/api/projects'
 import { updateProjectStatusAction } from '../actions/projectActions'
@@ -229,6 +232,29 @@ function getPhaseIndex(phase: string): number {
   return PHASE_ORDER.indexOf(phase as (typeof PHASE_ORDER)[number])
 }
 
+// Get all phases before the current one (for "Move Back" feature)
+function getPreviousPhases(currentStatus: string): Array<{ phase: string; label: string; firstStatus: ProjectStatus }> {
+  const currentPhase = getPhaseForStatus(currentStatus)
+  const currentPhaseIndex = getPhaseIndex(currentPhase)
+
+  const previousPhases: Array<{ phase: string; label: string; firstStatus: ProjectStatus }> = []
+
+  for (let i = 0; i < currentPhaseIndex; i++) {
+    const phase = PHASE_ORDER[i]
+    if (phase === 'closed') continue // Don't allow moving back to closed
+    const statuses = STATUS_PHASES[phase as keyof typeof STATUS_PHASES]
+    if (statuses && statuses.length > 0) {
+      previousPhases.push({
+        phase,
+        label: PHASE_LABELS[phase],
+        firstStatus: statuses[0] as ProjectStatus,
+      })
+    }
+  }
+
+  return previousPhases
+}
+
 // ============================================
 // Component
 // ============================================
@@ -254,6 +280,7 @@ export function ProjectStatusControl({
   const transitions = TRANSITIONS[currentStatus] || []
   const primaryTransition = transitions.find(t => t.primary)
   const secondaryTransitions = transitions.filter(t => !t.primary)
+  const previousPhases = getPreviousPhases(currentStatus)
 
   const handleTransition = async (newStatus: ProjectStatus) => {
     setIsUpdating(true)
@@ -331,7 +358,30 @@ export function ProjectStatusControl({
                 </DropdownMenuItem>
               ))}
 
-              {secondaryTransitions.length > 0 && <DropdownMenuSeparator />}
+              {/* Move Back submenu - only show if there are previous phases */}
+              {previousPhases.length > 0 && (
+                <>
+                  {secondaryTransitions.length > 0 && <DropdownMenuSeparator />}
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Undo2 className="h-4 w-4 mr-2" />
+                      Move Back To...
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      {previousPhases.map(({ phase, label, firstStatus }) => (
+                        <DropdownMenuItem
+                          key={phase}
+                          onClick={() => handleSpecialAction(firstStatus, `Move back to ${label}`)}
+                        >
+                          {label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                </>
+              )}
+
+              {(secondaryTransitions.length > 0 || previousPhases.length > 0) && <DropdownMenuSeparator />}
 
               {currentStatus !== 'on_hold' && currentStatus !== 'completed' && currentStatus !== 'cancelled' && (
                 <DropdownMenuItem
@@ -366,7 +416,11 @@ export function ProjectStatusControl({
             <AlertDialogDescription>
               {confirmDialog.status === 'cancelled'
                 ? 'Are you sure you want to cancel this project? This action should only be used for projects that will not continue.'
-                : 'Are you sure you want to put this project on hold? You can resume it later.'}
+                : confirmDialog.status === 'on_hold'
+                ? 'Are you sure you want to put this project on hold? You can resume it later.'
+                : confirmDialog.label.startsWith('Move back')
+                ? 'Are you sure you want to move this project back? This will reset progress to the selected phase.'
+                : 'Are you sure you want to make this change?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
