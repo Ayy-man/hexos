@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/sidebar'
 import { NavUser } from '@/components/nav-user'
 import { SuggestionBox } from '@/components/suggestion-box'
+import { TeamPresence } from '@/components/team-presence'
 import { Badge } from '@/components/ui/badge'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
@@ -122,6 +123,7 @@ export function AppSidebar({
       <SidebarFooter>
         <SuggestionBox />
         <SidebarSeparator />
+        {['admin', 'internal'].includes(profile.role) && <TeamPresence />}
         <NavUser profile={profile} />
       </SidebarFooter>
 

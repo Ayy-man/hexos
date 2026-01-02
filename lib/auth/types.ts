@@ -7,6 +7,7 @@ export interface Profile {
   role: UserRole
   logo_url?: string | null
   created_at: string
+  last_seen_at?: string | null
 }
 
 export interface AuthUser {

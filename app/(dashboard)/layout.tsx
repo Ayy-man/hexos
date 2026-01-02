@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Toaster } from 'sonner'
+import { PresenceProvider } from '@/components/presence-provider'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -69,7 +70,11 @@ export default async function DashboardLayout({
             <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">
+          <PresenceProvider profile={profile as Profile}>
+            {children}
+          </PresenceProvider>
+        </main>
       </SidebarInset>
       <Toaster richColors position="bottom-right" />
     </SidebarProvider>
