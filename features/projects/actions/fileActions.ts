@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import type { FileVisibility } from '@/lib/api/project-files'
 
 export async function uploadProjectFileAction(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -10,13 +11,19 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
 
   const file = formData.get('file') as File
   const projectId = formData.get('projectId') as string
+  const visibility = (formData.get('visibility') as FileVisibility) || 'workspace'
 
   if (!file || !projectId) {
     throw new Error('Missing file or project ID')
   }
 
+  // Validate file size (50MB max)
+  const MAX_FILE_SIZE = 50 * 1024 * 1024
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error('File size exceeds 50MB limit')
+  }
+
   // Upload to storage
-  const fileExt = file.name.split('.').pop()?.toLowerCase()
   const fileName = `${Date.now()}-${file.name}`
   const filePath = `project-files/${projectId}/${fileName}`
 
@@ -31,7 +38,7 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
     .from('general-purpose')
     .getPublicUrl(filePath)
 
-  // Create file record
+  // Create file record with visibility
   await supabase.from('project_files').insert({
     project_id: projectId,
     file_name: file.name,
@@ -39,6 +46,7 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
     file_size: file.size,
     file_type: file.type,
     uploaded_by: user.id,
+    visibility,
   })
 
   // Log activity
@@ -46,10 +54,48 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
     project_id: projectId,
     user_id: user.id,
     action: 'file_uploaded',
-    details: { file_name: file.name },
+    details: { file_name: file.name, visibility },
   })
 
   revalidatePath(`/projects/${projectId}`)
+}
+
+export async function updateProjectFileAction(
+  fileId: string,
+  updates: { visibility?: FileVisibility; description?: string }
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get file info first to get project ID
+  const { data: file } = await supabase
+    .from('project_files')
+    .select('project_id, file_name')
+    .eq('id', fileId)
+    .single()
+
+  if (!file) throw new Error('File not found')
+
+  // Update file
+  const { error } = await supabase
+    .from('project_files')
+    .update(updates)
+    .eq('id', fileId)
+
+  if (error) throw new Error('Failed to update file')
+
+  // Log activity if visibility changed
+  if (updates.visibility) {
+    await supabase.from('activity_log').insert({
+      project_id: file.project_id,
+      user_id: user.id,
+      action: 'file_visibility_changed',
+      details: { file_name: file.file_name, visibility: updates.visibility },
+    })
+  }
+
+  revalidatePath(`/projects/${file.project_id}`)
 }
 
 export async function deleteProjectFileAction(fileId: string): Promise<void> {

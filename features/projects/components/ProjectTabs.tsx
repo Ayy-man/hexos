@@ -18,12 +18,16 @@ interface ProjectTabsProps {
     requirements?: OnboardingRequirement[]
     files?: Array<{
       id: string
+      project_id: string
       file_name: string
       file_path: string
       file_size: number | null
       file_type: string | null
+      visibility: 'workspace' | 'portal'
+      description: string | null
       uploaded_by: string | null
       uploaded_at: string
+      uploader?: { id: string; name: string } | null
     }>
     activity?: Array<{
       id: string
@@ -110,6 +114,7 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
           projectId={project.id}
           files={project.files || []}
           userRole={userRole}
+          currentUserId={userId}
         />
       </TabsContent>
 

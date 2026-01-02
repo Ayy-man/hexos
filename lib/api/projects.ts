@@ -88,12 +88,16 @@ export interface ProjectWithRelations extends Project {
   requirements?: OnboardingRequirement[]
   files?: Array<{
     id: string
+    project_id: string
     file_name: string
     file_path: string
     file_size: number | null
     file_type: string | null
+    visibility: 'workspace' | 'portal'
+    description: string | null
     uploaded_by: string | null
     uploaded_at: string
+    uploader?: { id: string; name: string } | null
   }>
   activity?: Array<{
     id: string
@@ -167,7 +171,7 @@ export async function getProject(id: string) {
       client:profiles!projects_client_id_fkey(id, name, email),
       deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order),
       requirements:onboarding_requirements(id, project_id, parent_id, title, description, notes, owner_type, blocker_type, status, loom_url, resource_url, position, created_at, updated_at, completed_at, completed_by),
-      files:project_files(id, file_name, file_path, file_size, file_type, uploaded_by, uploaded_at),
+      files:project_files(id, project_id, file_name, file_path, file_size, file_type, visibility, description, uploaded_by, uploaded_at, uploader:profiles!uploaded_by(id, name)),
       activity:activity_log(id, action, details, created_at, user:profiles(name))
     `)
     .eq('id', id)
