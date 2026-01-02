@@ -146,8 +146,8 @@ export function ProjectTimeline({
                       <div
                         className={cn(
                           'relative rounded-full flex items-center justify-center transition-all duration-300',
-                          // Completed: filled cyan, subtle
-                          isCompleted && 'w-6 h-6 bg-cyan-500/20 border-2 border-cyan-500/50',
+                          // Completed: solid background with cyan tint (covers the line)
+                          isCompleted && 'w-6 h-6 bg-background border-2 border-cyan-500/50',
                           // Current: larger, glowing border
                           isCurrent && 'w-8 h-8 bg-cyan-500 border-2 border-cyan-400 shadow-lg shadow-cyan-500/30',
                           // Upcoming: hollow, dashed border
