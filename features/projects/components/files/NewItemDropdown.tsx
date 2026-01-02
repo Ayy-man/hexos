@@ -10,6 +10,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -183,6 +184,9 @@ export function NewItemDropdown({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{getDialogTitle()}</DialogTitle>
+            <DialogDescription>
+              Enter a name for your new {dialogType}.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">

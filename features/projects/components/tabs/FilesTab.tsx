@@ -23,6 +23,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -375,14 +376,9 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
     )
   }
 
-  // Determine default parent for new items based on active view
-  const getDefaultParent = () => {
-    const folderName = activeView === 'internal' ? 'Internal Files' : 'Client Files'
-    const folder = treeItems.find(
-      (f) => f.content_type === 'folder' && f.file_name === folderName
-    )
-    return folder?.id
-  }
+  // New items are created at root level with visibility from active view
+  // No mandatory root folder requirement anymore since tabs separate views
+  const getDefaultParent = () => null
 
   // Get visibility based on active view
   const getDefaultVisibility = (): FileView => {
@@ -433,20 +429,22 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
 
       {/* Files Tree */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="p-4 min-h-[400px]">
           {fileTreeItems.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+            <p className="text-center text-muted-foreground py-12">
               No files yet. Click "New" to get started.
             </p>
           ) : (
-            <DraggableFileTree
-              items={fileTreeItems}
-              onFileClick={(item) => handleItemClick(item.data as ProjectFileItem)}
-              onMove={handleMove}
-              renderFileActions={renderFileActions}
-              renderFolderActions={renderFileActions}
-              defaultExpanded
-            />
+            <div className="min-h-[350px]">
+              <DraggableFileTree
+                items={fileTreeItems}
+                onFileClick={(item) => handleItemClick(item.data as ProjectFileItem)}
+                onMove={handleMove}
+                renderFileActions={renderFileActions}
+                renderFolderActions={renderFileActions}
+                defaultExpanded
+              />
+            </div>
           )}
         </CardContent>
       </Card>
@@ -487,6 +485,9 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Rename</DialogTitle>
+            <DialogDescription>
+              Enter a new name for this item.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
