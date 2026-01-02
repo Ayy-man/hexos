@@ -2,7 +2,13 @@
 // Types (Client-safe, no server imports)
 // ============================================
 
-export type FileVisibility = 'workspace' | 'portal'
+// New: internal/client view system
+export type FileView = 'internal' | 'client'
+export type SharedTo = 'internal' | 'client' | null
+
+// Legacy alias for backward compatibility (deprecated)
+export type FileVisibility = FileView
+
 export type ContentType = 'file' | 'folder' | 'document' | 'whiteboard'
 
 export interface ProjectFile {
@@ -12,7 +18,8 @@ export interface ProjectFile {
   file_path: string
   file_size: number | null
   file_type: string | null
-  visibility: FileVisibility
+  visibility: FileView
+  shared_to: SharedTo
   description: string | null
   uploaded_by: string | null
   uploaded_at: string
@@ -27,18 +34,37 @@ export interface ProjectFileItem extends ProjectFile {
   children?: ProjectFileItem[]
 }
 
+// Helper to check if item is shared to another view
+export function isSharedItem(item: ProjectFileItem): boolean {
+  return item.shared_to !== null
+}
+
+// Helper to get all views an item appears in
+export function getItemViews(item: ProjectFileItem): FileView[] {
+  const views: FileView[] = [item.visibility]
+  if (item.shared_to && item.shared_to !== item.visibility) {
+    views.push(item.shared_to)
+  }
+  return views
+}
+
+// Helper to check if item is visible in a specific view
+export function isVisibleInView(item: ProjectFileItem, view: FileView): boolean {
+  return item.visibility === view || item.shared_to === view
+}
+
 export interface CreateFolderInput {
   project_id: string
   name: string
   parent_id?: string | null
-  visibility?: FileVisibility
+  visibility?: FileView
 }
 
 export interface CreateDocumentInput {
   project_id: string
   name: string
   parent_id?: string | null
-  visibility?: FileVisibility
+  visibility?: FileView
   content?: unknown
 }
 
@@ -46,7 +72,7 @@ export interface CreateWhiteboardInput {
   project_id: string
   name: string
   parent_id?: string | null
-  visibility?: FileVisibility
+  visibility?: FileView
 }
 
 // ============================================

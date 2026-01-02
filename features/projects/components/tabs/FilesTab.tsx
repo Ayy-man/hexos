@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   File,
   FileText,
@@ -37,23 +38,28 @@ import {
   Trash2,
   Loader2,
   Lock,
-  Globe,
+  Users,
   MoreHorizontal,
   Copy,
   FolderLock,
   FolderOpen,
   PenTool,
   Pencil,
+  Link2,
+  ArrowRightLeft,
+  Unlink,
 } from 'lucide-react'
 import type { UserRole } from '@/lib/auth/types'
-import type { ProjectFileItem, FileVisibility } from '@/lib/api/project-files.shared'
-import { buildFileTree } from '@/lib/api/project-files.shared'
+import type { ProjectFileItem, FileView } from '@/lib/api/project-files.shared'
+import { buildFileTree, isSharedItem, isVisibleInView } from '@/lib/api/project-files.shared'
 import { DraggableFileTree, type DraggableFileTreeItem } from '@/components/ui/draggable-file-tree'
 import {
   deleteItemAction,
-  updateProjectFileAction,
   renameItemAction,
   moveItemAction,
+  shareItemAction,
+  unshareItemAction,
+  moveItemToViewAction,
 } from '../../actions/fileActions'
 import { NewItemDropdown } from '../files/NewItemDropdown'
 import { DocumentEditor } from '../files/DocumentEditor'
@@ -86,7 +92,7 @@ function formatFileSize(bytes: number | null) {
 function getFileIcon(item: ProjectFileItem) {
   switch (item.content_type) {
     case 'folder':
-      return item.visibility === 'portal' ? (
+      return item.visibility === 'client' ? (
         <FolderOpen className="h-4 w-4 text-green-500" />
       ) : (
         <FolderLock className="h-4 w-4 text-amber-500" />
@@ -121,8 +127,18 @@ function isRootFolder(item: ProjectFileItem): boolean {
   return (
     item.content_type === 'folder' &&
     !item.parent_id &&
-    (item.file_name === 'Internal Files' || item.file_name === 'Shared with Client')
+    (item.file_name === 'Internal Files' || item.file_name === 'Client Files')
   )
+}
+
+function getDefaultViewForRole(role: UserRole): FileView {
+  // Dev sees internal, DFY/Client see client, Admin/Internal can toggle (default internal)
+  if (role === 'dfy' || role === 'client') return 'client'
+  return 'internal'
+}
+
+function canToggleView(role: UserRole): boolean {
+  return role === 'admin' || role === 'internal'
 }
 
 // ============================================
@@ -130,8 +146,9 @@ function isRootFolder(item: ProjectFileItem): boolean {
 // ============================================
 
 export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTabProps) {
+  const [activeView, setActiveView] = useState<FileView>(getDefaultViewForRole(userRole))
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [actionInProgressId, setActionInProgressId] = useState<string | null>(null)
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<ProjectFileItem | null>(null)
   const [renameItem, setRenameItem] = useState<ProjectFileItem | null>(null)
   const [renameValue, setRenameValue] = useState('')
@@ -139,14 +156,13 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
   const [editingWhiteboard, setEditingWhiteboard] = useState<ProjectFileItem | null>(null)
   const [viewingFile, setViewingFile] = useState<ProjectFileItem | null>(null)
 
-  // Role-based visibility: DFY/Client only see portal files
-  const canSeeInternalFiles = userRole === 'admin' || userRole === 'internal' || userRole === 'dev'
+  const showViewToggle = canToggleView(userRole)
+  const canManageSharing = canChangeVisibility(userRole)
 
-  // Filter files based on role
+  // Filter files based on active view (visibility or shared_to matches view)
   const visibleFiles = useMemo(() => {
-    if (canSeeInternalFiles) return files
-    return files.filter((f) => f.visibility === 'portal')
-  }, [files, canSeeInternalFiles])
+    return files.filter((f: ProjectFileItem) => isVisibleInView(f, activeView))
+  }, [files, activeView])
 
   // Build tree structure
   const treeItems = useMemo(() => {
@@ -166,15 +182,38 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
     }
   }
 
-  const handleToggleVisibility = async (item: ProjectFileItem) => {
-    setTogglingId(item.id)
-    const newVisibility: FileVisibility = item.visibility === 'workspace' ? 'portal' : 'workspace'
+  const handleShare = async (item: ProjectFileItem) => {
+    setActionInProgressId(item.id)
+    const targetView: FileView = item.visibility === 'internal' ? 'client' : 'internal'
     try {
-      await updateProjectFileAction(item.id, { visibility: newVisibility })
+      await shareItemAction(item.id, targetView)
     } catch (error) {
-      console.error('Failed to update visibility:', error)
+      console.error('Failed to share item:', error)
     } finally {
-      setTogglingId(null)
+      setActionInProgressId(null)
+    }
+  }
+
+  const handleUnshare = async (item: ProjectFileItem) => {
+    setActionInProgressId(item.id)
+    try {
+      await unshareItemAction(item.id)
+    } catch (error) {
+      console.error('Failed to unshare item:', error)
+    } finally {
+      setActionInProgressId(null)
+    }
+  }
+
+  const handleMoveToView = async (item: ProjectFileItem) => {
+    setActionInProgressId(item.id)
+    const targetView: FileView = item.visibility === 'internal' ? 'client' : 'internal'
+    try {
+      await moveItemToViewAction(item.id, targetView)
+    } catch (error) {
+      console.error('Failed to move item to view:', error)
+    } finally {
+      setActionInProgressId(null)
     }
   }
 
@@ -241,10 +280,11 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
     if (!item) return null
 
     const isDeleting = deletingId === item.id
-    const isToggling = togglingId === item.id
-    const showVisibilityToggle = canChangeVisibility(userRole) && !isRootFolder(item)
+    const isActionInProgress = actionInProgressId === item.id
     const showDelete = canDeleteItem(userRole, item.uploaded_by, currentUserId) && !isRootFolder(item)
     const isFile = item.content_type === 'file'
+    const itemIsShared = isSharedItem(item)
+    const otherView: FileView = item.visibility === 'internal' ? 'client' : 'internal'
 
     return (
       <DropdownMenu>
@@ -253,7 +293,7 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="w-52">
           {isFile && item.file_path && (
             <>
               <DropdownMenuItem asChild>
@@ -282,23 +322,35 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
             </DropdownMenuItem>
           )}
 
-          {showVisibilityToggle && (
-            <DropdownMenuItem
-              onClick={() => handleToggleVisibility(item)}
-              disabled={isToggling}
-            >
-              {item.visibility === 'workspace' ? (
-                <>
-                  <Globe className="h-4 w-4 mr-2" />
-                  Share with Client
-                </>
+          {/* Share/Unshare/Move options - only for admin/internal */}
+          {canManageSharing && !isRootFolder(item) && (
+            <>
+              <DropdownMenuSeparator />
+              {itemIsShared ? (
+                <DropdownMenuItem
+                  onClick={() => handleUnshare(item)}
+                  disabled={isActionInProgress}
+                >
+                  <Unlink className="h-4 w-4 mr-2" />
+                  Unshare
+                </DropdownMenuItem>
               ) : (
-                <>
-                  <Lock className="h-4 w-4 mr-2" />
-                  Make Internal Only
-                </>
+                <DropdownMenuItem
+                  onClick={() => handleShare(item)}
+                  disabled={isActionInProgress}
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Share to {otherView === 'client' ? 'Client' : 'Internal'}
+                </DropdownMenuItem>
               )}
-            </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleMoveToView(item)}
+                disabled={isActionInProgress}
+              >
+                <ArrowRightLeft className="h-4 w-4 mr-2" />
+                Move to {otherView === 'client' ? 'Client' : 'Internal'}
+              </DropdownMenuItem>
+            </>
           )}
 
           {showDelete && (
@@ -323,25 +375,45 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
     )
   }
 
-  // Determine default parent for new items
+  // Determine default parent for new items based on active view
   const getDefaultParent = () => {
-    // Find the Internal Files folder for new items
-    const internalFolder = treeItems.find(
-      (f) => f.content_type === 'folder' && f.file_name === 'Internal Files'
+    const folderName = activeView === 'internal' ? 'Internal Files' : 'Client Files'
+    const folder = treeItems.find(
+      (f) => f.content_type === 'folder' && f.file_name === folderName
     )
-    return internalFolder?.id
+    return folder?.id
   }
 
-  // Get current visibility context
-  const getDefaultVisibility = (): FileVisibility => {
-    return canSeeInternalFiles ? 'workspace' : 'portal'
+  // Get visibility based on active view
+  const getDefaultVisibility = (): FileView => {
+    return activeView
   }
 
   return (
     <div className="space-y-6">
-      {/* Header with New button */}
+      {/* Header with View Toggle and New button */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Files</h3>
+        <div className="flex items-center gap-4">
+          <h3 className="text-lg font-medium">Files</h3>
+          {showViewToggle ? (
+            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as FileView)}>
+              <TabsList className="h-8">
+                <TabsTrigger value="internal" className="h-6 text-xs gap-1.5 px-3">
+                  <Lock className="h-3 w-3" />
+                  Internal
+                </TabsTrigger>
+                <TabsTrigger value="client" className="h-6 text-xs gap-1.5 px-3">
+                  <Users className="h-3 w-3" />
+                  Client
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              {activeView === 'internal' ? 'Internal Files' : 'Client Files'}
+            </span>
+          )}
+        </div>
         <NewItemDropdown
           projectId={projectId}
           parentId={getDefaultParent()}
@@ -349,10 +421,10 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
           onItemCreated={(id, type) => {
             if (type === 'document') {
               // Find the created document and open it
-              const doc = files.find((f) => f.id === id)
+              const doc = files.find((f: ProjectFileItem) => f.id === id)
               if (doc) setEditingDocument(doc)
             } else if (type === 'whiteboard') {
-              const wb = files.find((f) => f.id === id)
+              const wb = files.find((f: ProjectFileItem) => f.id === id)
               if (wb) setEditingWhiteboard(wb)
             }
           }}

@@ -89,16 +89,23 @@ export interface ProjectWithRelations extends Project {
   files?: Array<{
     id: string
     project_id: string
+    parent_id: string | null
     file_name: string
     file_path: string
     file_size: number | null
     file_type: string | null
-    visibility: 'workspace' | 'portal'
+    content_type: 'file' | 'folder' | 'document' | 'whiteboard'
+    content: unknown | null
+    visibility: 'internal' | 'client'
+    shared_to: 'internal' | 'client' | null
     description: string | null
+    position: number
     uploaded_by: string | null
     uploaded_at: string
     uploader?: { id: string; name: string } | null
   }>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  main_whiteboard?: any
   activity?: Array<{
     id: string
     action: string
@@ -166,12 +173,13 @@ export async function getProject(id: string) {
     .from('projects')
     .select(`
       *,
+      main_whiteboard,
       dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
       assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
       client:profiles!projects_client_id_fkey(id, name, email),
       deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order),
       requirements:onboarding_requirements(id, project_id, parent_id, title, description, notes, owner_type, blocker_type, status, loom_url, resource_url, position, created_at, updated_at, completed_at, completed_by),
-      files:project_files(id, project_id, parent_id, file_name, file_path, file_size, file_type, content_type, content, visibility, description, position, uploaded_by, uploaded_at, uploader:profiles!uploaded_by(id, name)),
+      files:project_files(id, project_id, parent_id, file_name, file_path, file_size, file_type, content_type, content, visibility, shared_to, description, position, uploaded_by, uploaded_at, uploader:profiles!uploaded_by(id, name)),
       activity:activity_log(id, action, details, created_at, user:profiles(name))
     `)
     .eq('id', id)

@@ -2,7 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 
 // Re-export types and utilities from shared module
 export type {
+  FileView,
   FileVisibility,
+  SharedTo,
   ContentType,
   ProjectFile,
   ProjectFileItem,
@@ -11,10 +13,15 @@ export type {
   CreateWhiteboardInput,
 } from './project-files.shared'
 
-export { buildFileTree } from './project-files.shared'
+export {
+  buildFileTree,
+  isSharedItem,
+  getItemViews,
+  isVisibleInView,
+} from './project-files.shared'
 
 import type {
-  FileVisibility,
+  FileView,
   ProjectFile,
   ProjectFileItem,
   CreateFolderInput,
@@ -39,6 +46,7 @@ export async function getProjectFiles(projectId: string): Promise<ProjectFile[]>
       file_size,
       file_type,
       visibility,
+      shared_to,
       description,
       uploaded_by,
       uploaded_at,
@@ -97,6 +105,7 @@ export async function getProjectFileTree(projectId: string): Promise<ProjectFile
       content_type,
       content,
       visibility,
+      shared_to,
       description,
       position,
       uploaded_by,
@@ -133,7 +142,7 @@ export async function createFolder(input: CreateFolderInput): Promise<ProjectFil
   const nextPosition = (siblings?.[0]?.position ?? -1) + 1
 
   // If parent_id is provided, inherit visibility from parent
-  let visibility = input.visibility ?? 'workspace'
+  let visibility: FileView = input.visibility ?? 'internal'
   if (input.parent_id && !input.visibility) {
     const { data: parent } = await supabase
       .from('project_files')
@@ -141,7 +150,7 @@ export async function createFolder(input: CreateFolderInput): Promise<ProjectFil
       .eq('id', input.parent_id)
       .single()
     if (parent?.visibility) {
-      visibility = parent.visibility as FileVisibility
+      visibility = parent.visibility as FileView
     }
   }
 
@@ -201,7 +210,7 @@ export async function createDocument(input: CreateDocumentInput): Promise<Projec
   const nextPosition = (siblings?.[0]?.position ?? -1) + 1
 
   // Inherit visibility from parent if not specified
-  let visibility = input.visibility ?? 'workspace'
+  let visibility: FileView = input.visibility ?? 'internal'
   if (input.parent_id && !input.visibility) {
     const { data: parent } = await supabase
       .from('project_files')
@@ -209,7 +218,7 @@ export async function createDocument(input: CreateDocumentInput): Promise<Projec
       .eq('id', input.parent_id)
       .single()
     if (parent?.visibility) {
-      visibility = parent.visibility as FileVisibility
+      visibility = parent.visibility as FileView
     }
   }
 
@@ -306,7 +315,7 @@ export async function createWhiteboard(input: CreateWhiteboardInput): Promise<Pr
   const nextPosition = (siblings?.[0]?.position ?? -1) + 1
 
   // Inherit visibility from parent if not specified
-  let visibility = input.visibility ?? 'workspace'
+  let visibility: FileView = input.visibility ?? 'internal'
   if (input.parent_id && !input.visibility) {
     const { data: parent } = await supabase
       .from('project_files')
@@ -314,7 +323,7 @@ export async function createWhiteboard(input: CreateWhiteboardInput): Promise<Pr
       .eq('id', input.parent_id)
       .single()
     if (parent?.visibility) {
-      visibility = parent.visibility as FileVisibility
+      visibility = parent.visibility as FileView
     }
   }
 
@@ -395,8 +404,8 @@ export async function moveItem(itemId: string, newParentId: string | null): Prom
     throw new Error('Item not found')
   }
 
-  // Get the new parent's visibility (or default to workspace if moving to root)
-  let newVisibility: FileVisibility = 'workspace'
+  // Get the new parent's visibility (or default to internal if moving to root)
+  let newVisibility: FileView = 'internal'
   if (newParentId) {
     const { data: parent } = await supabase
       .from('project_files')
@@ -404,7 +413,7 @@ export async function moveItem(itemId: string, newParentId: string | null): Prom
       .eq('id', newParentId)
       .single()
     if (parent?.visibility) {
-      newVisibility = parent.visibility as FileVisibility
+      newVisibility = parent.visibility as FileView
     }
   }
 
@@ -438,7 +447,7 @@ export async function moveItem(itemId: string, newParentId: string | null): Prom
   await updateChildrenVisibility(itemId, newVisibility)
 }
 
-async function updateChildrenVisibility(parentId: string, visibility: FileVisibility): Promise<void> {
+async function updateChildrenVisibility(parentId: string, visibility: FileView): Promise<void> {
   const supabase = await createClient()
 
   // Get all direct children
@@ -557,5 +566,215 @@ export async function updateProposalWhiteboard(inquiryId: string, content: unkno
   if (error) {
     console.error('Failed to update proposal whiteboard:', error)
     throw new Error('Failed to update proposal whiteboard')
+  }
+}
+
+// ============================================
+// Two Workspaces: View-Based Functions
+// ============================================
+
+/**
+ * Get files filtered by view (visibility or shared_to)
+ */
+export async function getProjectFilesForView(
+  projectId: string,
+  view: FileView
+): Promise<ProjectFileItem[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('project_files')
+    .select(`
+      id,
+      project_id,
+      parent_id,
+      file_name,
+      file_path,
+      file_size,
+      file_type,
+      content_type,
+      content,
+      visibility,
+      shared_to,
+      description,
+      position,
+      uploaded_by,
+      uploaded_at,
+      uploader:profiles!uploaded_by(id, name)
+    `)
+    .eq('project_id', projectId)
+    .or(`visibility.eq.${view},shared_to.eq.${view}`)
+    .order('position', { ascending: true })
+
+  if (error) {
+    console.error('Failed to fetch project files for view:', error)
+    throw new Error('Failed to fetch project files for view')
+  }
+
+  return (data || []) as unknown as ProjectFileItem[]
+}
+
+/**
+ * Share an item to another view (makes it visible in both views)
+ */
+export async function shareItem(itemId: string, targetView: FileView): Promise<void> {
+  const supabase = await createClient()
+
+  // Update the item's shared_to
+  const { error } = await supabase
+    .from('project_files')
+    .update({ shared_to: targetView })
+    .eq('id', itemId)
+
+  if (error) {
+    console.error('Failed to share item:', error)
+    throw new Error('Failed to share item')
+  }
+
+  // Recursively share children if it's a folder
+  await shareChildrenRecursively(itemId, targetView)
+}
+
+async function shareChildrenRecursively(parentId: string, targetView: FileView): Promise<void> {
+  const supabase = await createClient()
+
+  const { data: children } = await supabase
+    .from('project_files')
+    .select('id, content_type')
+    .eq('parent_id', parentId)
+
+  if (!children || children.length === 0) return
+
+  const childIds = children.map(c => c.id)
+  await supabase
+    .from('project_files')
+    .update({ shared_to: targetView })
+    .in('id', childIds)
+
+  for (const child of children) {
+    if (child.content_type === 'folder') {
+      await shareChildrenRecursively(child.id, targetView)
+    }
+  }
+}
+
+/**
+ * Unshare an item (removes from secondary view)
+ */
+export async function unshareItem(itemId: string): Promise<void> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('project_files')
+    .update({ shared_to: null })
+    .eq('id', itemId)
+
+  if (error) {
+    console.error('Failed to unshare item:', error)
+    throw new Error('Failed to unshare item')
+  }
+
+  // Recursively unshare children
+  await unshareChildrenRecursively(itemId)
+}
+
+async function unshareChildrenRecursively(parentId: string): Promise<void> {
+  const supabase = await createClient()
+
+  const { data: children } = await supabase
+    .from('project_files')
+    .select('id, content_type')
+    .eq('parent_id', parentId)
+
+  if (!children || children.length === 0) return
+
+  const childIds = children.map(c => c.id)
+  await supabase
+    .from('project_files')
+    .update({ shared_to: null })
+    .in('id', childIds)
+
+  for (const child of children) {
+    if (child.content_type === 'folder') {
+      await unshareChildrenRecursively(child.id)
+    }
+  }
+}
+
+/**
+ * Move an item to a different view (relocates exclusively, not shared)
+ */
+export async function moveItemToView(itemId: string, targetView: FileView): Promise<void> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('project_files')
+    .update({ visibility: targetView, shared_to: null })
+    .eq('id', itemId)
+
+  if (error) {
+    console.error('Failed to move item to view:', error)
+    throw new Error('Failed to move item to view')
+  }
+
+  // Recursively update children
+  await moveChildrenToViewRecursively(itemId, targetView)
+}
+
+async function moveChildrenToViewRecursively(parentId: string, targetView: FileView): Promise<void> {
+  const supabase = await createClient()
+
+  const { data: children } = await supabase
+    .from('project_files')
+    .select('id, content_type')
+    .eq('parent_id', parentId)
+
+  if (!children || children.length === 0) return
+
+  const childIds = children.map(c => c.id)
+  await supabase
+    .from('project_files')
+    .update({ visibility: targetView, shared_to: null })
+    .in('id', childIds)
+
+  for (const child of children) {
+    if (child.content_type === 'folder') {
+      await moveChildrenToViewRecursively(child.id, targetView)
+    }
+  }
+}
+
+// ============================================
+// Main Project Whiteboard Functions
+// ============================================
+
+export async function getMainWhiteboard(projectId: string): Promise<unknown> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('main_whiteboard')
+    .eq('id', projectId)
+    .single()
+
+  if (error) {
+    console.error('Failed to get main whiteboard:', error)
+    throw new Error('Failed to get main whiteboard')
+  }
+
+  return data?.main_whiteboard ?? { elements: [], appState: {}, files: {} }
+}
+
+export async function updateMainWhiteboard(projectId: string, content: unknown): Promise<void> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('projects')
+    .update({ main_whiteboard: content })
+    .eq('id', projectId)
+
+  if (error) {
+    console.error('Failed to update main whiteboard:', error)
+    throw new Error('Failed to update main whiteboard')
   }
 }

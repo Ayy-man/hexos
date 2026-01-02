@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { FileVisibility } from '@/lib/api/project-files.shared'
+import type { FileView } from '@/lib/api/project-files.shared'
 import {
   createFolder,
   createDocument,
@@ -13,6 +13,10 @@ import {
   deleteItem,
   updateFileContent,
   getDownloadUrl,
+  shareItem,
+  unshareItem,
+  moveItemToView,
+  updateMainWhiteboard,
 } from '@/lib/api/project-files'
 
 export async function uploadProjectFileAction(formData: FormData): Promise<void> {
@@ -22,7 +26,7 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
 
   const file = formData.get('file') as File
   const projectId = formData.get('projectId') as string
-  const visibility = (formData.get('visibility') as FileVisibility) || 'workspace'
+  const visibility = (formData.get('visibility') as FileView) || 'internal'
   const parentId = formData.get('parentId') as string | null
 
   if (!file || !projectId) {
@@ -88,7 +92,7 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
 
 export async function updateProjectFileAction(
   fileId: string,
-  updates: { visibility?: FileVisibility; description?: string }
+  updates: { visibility?: FileView; description?: string }
 ): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -171,7 +175,7 @@ export async function createFolderAction(
   projectId: string,
   name: string,
   parentId?: string | null,
-  visibility?: FileVisibility
+  visibility?: FileView
 ): Promise<{ id: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -204,7 +208,7 @@ export async function createDocumentAction(
   projectId: string,
   name: string,
   parentId?: string | null,
-  visibility?: FileVisibility
+  visibility?: FileView
 ): Promise<{ id: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -259,7 +263,7 @@ export async function createWhiteboardAction(
   projectId: string,
   name: string,
   parentId?: string | null,
-  visibility?: FileVisibility
+  visibility?: FileView
 ): Promise<{ id: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -423,4 +427,132 @@ export async function getFileSignedUrlAction(filePath: string): Promise<string> 
   if (!user) throw new Error('Not authenticated')
 
   return getDownloadUrl(filePath)
+}
+
+// ============================================
+// Two Workspaces: Share/Move Actions
+// ============================================
+
+/**
+ * Share an item to another view (visible in both Internal and Client)
+ */
+export async function shareItemAction(
+  itemId: string,
+  targetView: FileView
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get item info for logging
+  const { data: file } = await supabase
+    .from('project_files')
+    .select('project_id, file_name, visibility')
+    .eq('id', itemId)
+    .single()
+
+  if (!file) throw new Error('Item not found')
+
+  await shareItem(itemId, targetView)
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: file.project_id,
+    user_id: user.id,
+    action: 'item_shared',
+    details: {
+      item_name: file.file_name,
+      from_view: file.visibility,
+      to_view: targetView,
+    },
+  })
+
+  revalidatePath(`/projects/${file.project_id}`)
+}
+
+/**
+ * Unshare an item (remove from secondary view)
+ */
+export async function unshareItemAction(itemId: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get item info for logging
+  const { data: file } = await supabase
+    .from('project_files')
+    .select('project_id, file_name, shared_to')
+    .eq('id', itemId)
+    .single()
+
+  if (!file) throw new Error('Item not found')
+
+  await unshareItem(itemId)
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: file.project_id,
+    user_id: user.id,
+    action: 'item_unshared',
+    details: {
+      item_name: file.file_name,
+      was_shared_to: file.shared_to,
+    },
+  })
+
+  revalidatePath(`/projects/${file.project_id}`)
+}
+
+/**
+ * Move an item to a different view (relocates exclusively)
+ */
+export async function moveItemToViewAction(
+  itemId: string,
+  targetView: FileView
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  // Get item info for logging
+  const { data: file } = await supabase
+    .from('project_files')
+    .select('project_id, file_name, visibility')
+    .eq('id', itemId)
+    .single()
+
+  if (!file) throw new Error('Item not found')
+
+  await moveItemToView(itemId, targetView)
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: file.project_id,
+    user_id: user.id,
+    action: 'item_moved_to_view',
+    details: {
+      item_name: file.file_name,
+      from_view: file.visibility,
+      to_view: targetView,
+    },
+  })
+
+  revalidatePath(`/projects/${file.project_id}`)
+}
+
+// ============================================
+// Main Project Whiteboard Actions
+// ============================================
+
+export async function updateMainWhiteboardAction(
+  projectId: string,
+  content: unknown
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  await updateMainWhiteboard(projectId, content)
+
+  revalidatePath(`/projects/${projectId}`)
 }
