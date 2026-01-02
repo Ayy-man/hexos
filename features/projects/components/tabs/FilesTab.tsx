@@ -46,13 +46,14 @@ import {
   Pencil,
 } from 'lucide-react'
 import type { UserRole } from '@/lib/auth/types'
-import type { ProjectFileItem, FileVisibility } from '@/lib/api/project-files'
-import { buildFileTree } from '@/lib/api/project-files'
-import { FileTree, type FileTreeItem } from '@/components/ui/file-tree'
+import type { ProjectFileItem, FileVisibility } from '@/lib/api/project-files.shared'
+import { buildFileTree } from '@/lib/api/project-files.shared'
+import { DraggableFileTree, type DraggableFileTreeItem } from '@/components/ui/draggable-file-tree'
 import {
   deleteItemAction,
   updateProjectFileAction,
   renameItemAction,
+  moveItemAction,
 } from '../../actions/fileActions'
 import { NewItemDropdown } from '../files/NewItemDropdown'
 import { DocumentEditor } from '../files/DocumentEditor'
@@ -213,8 +214,16 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
     }
   }
 
-  // Convert ProjectFileItem to FileTreeItem
-  const convertToTreeItem = (item: ProjectFileItem): FileTreeItem => ({
+  const handleMove = async (itemId: string, newParentId: string | null, _newIndex: number) => {
+    try {
+      await moveItemAction(itemId, newParentId)
+    } catch (error) {
+      console.error('Failed to move item:', error)
+    }
+  }
+
+  // Convert ProjectFileItem to DraggableFileTreeItem
+  const convertToTreeItem = (item: ProjectFileItem): DraggableFileTreeItem => ({
     id: item.id,
     name: item.file_name,
     type: item.content_type === 'folder' ? 'folder' : 'file',
@@ -225,7 +234,7 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
 
   const fileTreeItems = treeItems.map(convertToTreeItem)
 
-  const renderFileActions = (treeItem: FileTreeItem) => {
+  const renderFileActions = (treeItem: DraggableFileTreeItem) => {
     const item = treeItem.data as ProjectFileItem
     if (!item) return null
 
@@ -356,10 +365,12 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
               No files yet. Click "New" to get started.
             </p>
           ) : (
-            <FileTree
+            <DraggableFileTree
               items={fileTreeItems}
               onFileClick={(item) => handleItemClick(item.data as ProjectFileItem)}
+              onMove={handleMove}
               renderFileActions={renderFileActions}
+              renderFolderActions={renderFileActions}
               defaultExpanded
             />
           )}

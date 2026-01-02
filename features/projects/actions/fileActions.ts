@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { FileVisibility } from '@/lib/api/project-files'
+import type { FileVisibility } from '@/lib/api/project-files.shared'
 import {
   createFolder,
   createDocument,
