@@ -20,6 +20,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { useImageUpload } from '@/components/hooks/use-image-upload'
 import { createSuggestionAction, uploadSuggestionImageAction } from '@/lib/actions/suggestions'
@@ -31,6 +32,8 @@ export function SuggestionBox() {
   const [description, setDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const { state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
 
   const {
     previewUrl,
@@ -134,6 +137,9 @@ export function SuggestionBox() {
       }
     }
   }
+
+  // Hide when sidebar is collapsed
+  if (isCollapsed) return null
 
   return (
     <SidebarMenu>
