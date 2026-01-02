@@ -382,7 +382,8 @@ All transitions managed via `ProjectStatusControl` component with phase stepper 
 - [x] Overview tab (phase stepper, progress cards, blockers list, recent activity)
 - [x] Deliverables tab (CRUD: add/edit/delete/status change with activity logging)
 - [x] Requirements tab (onboarding checklist with dependency tracking)
-- [x] Files tab (project file storage framework)
+- [x] Files tab (two-workspace system: internal/client with sharing)
+- [x] Whiteboard tab (main project whiteboard stored on projects table)
 - [x] Activity tab (timeline of all changes)
 
 **Conversion Wizard:**
@@ -446,6 +447,13 @@ API: `lib/api/requirement-templates.shared.ts` (client-safe), `lib/api/requireme
 - [x] Completion tracking per item
 - [x] Dependency visualization (DependencyBadge)
 - [ ] Auto-advance when all items completed
+
+**Two-Workspace File System:**
+- [x] Visibility: `internal` (team workspace) / `client` (client-visible)
+- [x] `shared_to` column for cross-workspace sharing
+- [x] Main whiteboard stored on `projects.main_whiteboard` (not in files table)
+- [x] MainWhiteboardTab with auto-save (1s debounce)
+- [x] RLS: Dev sees internal + shared_to internal; DFY/Client sees client + shared_to client
 
 **Remaining Items:**
 - [ ] Deliverables sign-off flow (Admin → DFY confirms for client)

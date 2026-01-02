@@ -269,6 +269,102 @@ CREATE POLICY "access_via_project" ON project_requirements
   FOR ALL USING (can_access_project(project_id));
 ```
 
+### Project Files (Two-Workspace RLS)
+
+```sql
+ALTER TABLE project_files ENABLE ROW LEVEL SECURITY;
+
+-- Helper function for file access
+CREATE OR REPLACE FUNCTION public.can_access_file(p_file_id UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_user_role user_role;
+  v_project_id UUID;
+  v_visibility TEXT;
+  v_shared_to TEXT;
+BEGIN
+  v_user_role := public.get_user_role();
+
+  SELECT project_id, visibility, shared_to
+  INTO v_project_id, v_visibility, v_shared_to
+  FROM project_files WHERE id = p_file_id;
+
+  IF v_project_id IS NULL THEN RETURN FALSE; END IF;
+  IF NOT public.can_access_project(v_project_id) THEN RETURN FALSE; END IF;
+
+  -- Admin and Internal see everything
+  IF v_user_role IN ('admin', 'internal') THEN RETURN TRUE; END IF;
+
+  -- Dev sees internal view and items shared_to internal
+  IF v_user_role = 'dev' THEN
+    RETURN v_visibility = 'internal' OR v_shared_to = 'internal';
+  END IF;
+
+  -- DFY and Client see client view and items shared_to client
+  IF v_user_role IN ('dfy', 'client') THEN
+    RETURN v_visibility = 'client' OR v_shared_to = 'client';
+  END IF;
+
+  RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+-- SELECT: Use can_access_file helper
+CREATE POLICY "project_files_select" ON project_files
+  FOR SELECT USING (can_access_file(id));
+
+-- INSERT: Anyone who can access project can create files
+CREATE POLICY "project_files_insert" ON project_files
+  FOR INSERT WITH CHECK (
+    auth.uid() IS NOT NULL
+    AND can_access_project(project_id)
+  );
+
+-- UPDATE: Admin/Internal can update all; Dev can update assigned; Owner can update own
+CREATE POLICY "project_files_admin_internal_update" ON project_files
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL
+    AND get_user_role() IN ('admin', 'internal')
+    AND can_access_project(project_id)
+  );
+
+CREATE POLICY "project_files_dev_update" ON project_files
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL
+    AND get_user_role() = 'dev'
+    AND can_access_project(project_id)
+  );
+
+CREATE POLICY "project_files_own_update" ON project_files
+  FOR UPDATE USING (
+    auth.uid() IS NOT NULL
+    AND uploaded_by = auth.uid()
+    AND can_access_file(id)
+  );
+
+-- DELETE: Similar pattern to UPDATE
+CREATE POLICY "project_files_admin_internal_delete" ON project_files
+  FOR DELETE USING (
+    auth.uid() IS NOT NULL
+    AND get_user_role() IN ('admin', 'internal')
+    AND can_access_project(project_id)
+  );
+
+CREATE POLICY "project_files_dev_delete" ON project_files
+  FOR DELETE USING (
+    auth.uid() IS NOT NULL
+    AND get_user_role() = 'dev'
+    AND can_access_project(project_id)
+  );
+
+CREATE POLICY "project_files_own_delete" ON project_files
+  FOR DELETE USING (
+    auth.uid() IS NOT NULL
+    AND uploaded_by = auth.uid()
+    AND can_access_file(id)
+  );
+```
+
 ## Dev Workflow
 
 1. Develop logged in as admin — full access, no friction

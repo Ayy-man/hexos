@@ -175,7 +175,10 @@ CREATE TABLE public.projects (
   started_at TIMESTAMPTZ,
   target_delivery_date DATE,
   delivered_at TIMESTAMPTZ,
-  
+
+  -- Main whiteboard (not in files table)
+  main_whiteboard JSONB DEFAULT '{"elements": [], "appState": {}, "files": {}}'::jsonb,
+
   notes TEXT
 );
 
@@ -197,17 +200,27 @@ CREATE TABLE public.deliverables (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Project Files
+-- Project Files (Two-Workspace System)
 CREATE TABLE public.project_files (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+  parent_id UUID REFERENCES project_files(id) ON DELETE CASCADE, -- For nested folders
   deliverable_id UUID REFERENCES deliverables(id),
-  
+
   file_name TEXT NOT NULL,
   file_path TEXT NOT NULL,
   file_size INT,
-  file_type TEXT,
-  
+  content_type TEXT NOT NULL,           -- 'folder', 'document', 'whiteboard', or MIME type
+
+  -- Two-Workspace Visibility
+  visibility TEXT NOT NULL CHECK (visibility IN ('internal', 'client')),
+  shared_to TEXT CHECK (shared_to IN ('internal', 'client') OR shared_to IS NULL),
+
+  -- Content storage
+  content JSONB,                         -- For documents/whiteboards
+  storage_path TEXT,                     -- For uploaded files (Supabase Storage)
+
+  position INT DEFAULT 0,                -- Sort order within parent
   uploaded_by UUID REFERENCES profiles(id),
   uploaded_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -442,6 +455,7 @@ profiles 1──* projects (as dfy_partner, assigned_dev, client)
 profiles 1──* inquiries (as submitted_by)
 projects 1──* deliverables
 projects 1──* project_files
+project_files 1──* project_files (via parent_id for nested folders)
 projects 1──* payment_milestones
 projects 1──* scope_changes
 projects 1──* activity_log
@@ -486,6 +500,8 @@ CREATE INDEX idx_onboarding_requirements_project ON onboarding_requirements(proj
 CREATE INDEX idx_onboarding_requirements_parent ON onboarding_requirements(parent_id);
 CREATE INDEX idx_onboarding_requirements_status ON onboarding_requirements(status);
 CREATE INDEX idx_requirement_attachments_requirement ON requirement_attachments(requirement_id);
+CREATE INDEX idx_project_files_parent ON project_files(parent_id);
+CREATE INDEX idx_project_files_shared_to ON project_files(shared_to) WHERE shared_to IS NOT NULL;
 ```
 
 See `security.md` for RLS policies on these tables.
