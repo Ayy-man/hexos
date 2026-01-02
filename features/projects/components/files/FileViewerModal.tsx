@@ -33,11 +33,13 @@ export function FileViewerModal({ file, onClose }: FileViewerModalProps) {
       return
     }
 
+    const filePath = file.file_path
+
     async function fetchSignedUrl() {
       try {
         setIsLoading(true)
         setError(null)
-        const url = await getFileSignedUrlAction(file.file_path)
+        const url = await getFileSignedUrlAction(filePath)
         setSignedUrl(url)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load file')
