@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import '@excalidraw/excalidraw/index.css'
 
 interface ExcalidrawWrapperProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onChange?: (elements: any, appState: any, files: any) => void
+  onChange?: (elements: any, appState: any, files: any, sceneVersion: number) => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialData?: any
 }
@@ -17,7 +17,12 @@ export default function ExcalidrawWrapper({ onChange, initialData }: ExcalidrawW
     Excalidraw: React.ComponentType<any>
     MainMenu: any
     WelcomeScreen: any
+    getSceneVersion: (elements: any[]) => number
   } | null>(null)
+
+  // Store onChange in ref to avoid recreating handleChange
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
     import('@excalidraw/excalidraw').then((mod) => {
@@ -25,9 +30,20 @@ export default function ExcalidrawWrapper({ onChange, initialData }: ExcalidrawW
         Excalidraw: mod.Excalidraw,
         MainMenu: mod.MainMenu,
         WelcomeScreen: mod.WelcomeScreen,
+        getSceneVersion: mod.getSceneVersion,
       })
     })
   }, [])
+
+  // Memoized onChange handler that calculates scene version
+  const handleChange = useCallback(
+    (elements: any, appState: any, files: any) => {
+      if (!onChangeRef.current || !Comp?.getSceneVersion) return
+      const sceneVersion = Comp.getSceneVersion(elements)
+      onChangeRef.current(elements, appState, files, sceneVersion)
+    },
+    [Comp]
+  )
 
   if (!Comp) {
     return (
@@ -43,7 +59,7 @@ export default function ExcalidrawWrapper({ onChange, initialData }: ExcalidrawW
     <div className="h-full w-full">
       <Excalidraw
         initialData={initialData}
-        onChange={onChange}
+        onChange={handleChange}
         theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
       >
         <MainMenu>

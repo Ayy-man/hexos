@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback, useTransition } from 'react'
+import { useState, useCallback, useTransition, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2, Circle } from 'lucide-react'
 import { updateWhiteboardContentAction, renameItemAction } from '../../actions/fileActions'
 import { useDebouncedCallback } from '@/hooks/use-debounce'
 
@@ -51,6 +51,12 @@ export function WhiteboardEditor({
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleInput, setTitleInput] = useState(initialTitle)
 
+  // Scene version tracking refs (no re-renders)
+  const sceneVersionRef = useRef<number>(0)
+  const lastSavedVersionRef = useRef<number>(0)
+  const pendingContentRef = useRef<unknown>(null)
+  const isSavingRef = useRef<boolean>(false)
+
   // Parse initial content
   const rawContent = (initialContent as ExcalidrawContent) || {
     elements: [],
@@ -67,26 +73,71 @@ export function WhiteboardEditor({
       : {},
   }
 
-  // Debounced auto-save
+  // Optimized debounced save - only saves if version changed
   const debouncedSave = useDebouncedCallback(
-    (content: unknown) => {
+    async (versionToSave: number) => {
+      // Skip if already saving or nothing pending
+      if (isSavingRef.current || !pendingContentRef.current) return
+
+      // Skip if this version was already saved
+      if (versionToSave <= lastSavedVersionRef.current) return
+
+      isSavingRef.current = true
+      const contentToSave = pendingContentRef.current
+
       startTransition(async () => {
-        await updateWhiteboardContentAction(whiteboardId, content)
-        setHasUnsavedChanges(false)
-        setLastSaved(new Date())
+        try {
+          await updateWhiteboardContentAction(whiteboardId, contentToSave)
+          lastSavedVersionRef.current = versionToSave
+          setLastSaved(new Date())
+
+          // Only clear dirty flag if no newer changes pending
+          if (sceneVersionRef.current === versionToSave) {
+            setHasUnsavedChanges(false)
+          }
+        } catch (error) {
+          console.error('Whiteboard save failed:', error)
+          // Keep dirty flag on error so user knows save failed
+        } finally {
+          isSavingRef.current = false
+        }
       })
     },
-    2000 // 2 second debounce for whiteboard (more frequent changes)
+    2000 // 2 second debounce
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // Smart onChange handler - skips if scene version unchanged
   const handleChange = useCallback(
-    (elements: unknown[], appState: unknown, files: unknown) => {
-      setHasUnsavedChanges(true)
-      debouncedSave({ elements, appState, files })
+    (elements: unknown[], appState: unknown, files: unknown, sceneVersion: number) => {
+      // CRITICAL: Skip if version unchanged (mouse moves, pans, selections)
+      if (sceneVersion === sceneVersionRef.current) return
+
+      sceneVersionRef.current = sceneVersion
+
+      // Only mark dirty and save if differs from last saved
+      if (sceneVersion !== lastSavedVersionRef.current) {
+        setHasUnsavedChanges(true)
+        pendingContentRef.current = { elements, appState, files }
+        debouncedSave(sceneVersion)
+      }
     },
     [debouncedSave]
   )
+
+  // Save pending changes on unmount
+  useEffect(() => {
+    return () => {
+      if (
+        pendingContentRef.current &&
+        sceneVersionRef.current > lastSavedVersionRef.current
+      ) {
+        // Fire-and-forget save on unmount
+        updateWhiteboardContentAction(whiteboardId, pendingContentRef.current).catch(
+          console.error
+        )
+      }
+    }
+  }, [whiteboardId])
 
   const handleTitleSave = () => {
     if (titleInput.trim() && titleInput !== title) {
@@ -145,16 +196,25 @@ export function WhiteboardEditor({
 
         <div className="text-sm text-muted-foreground">
           {isPending ? (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Loader2 className="h-3 w-3 animate-spin" />
               Saving...
             </span>
           ) : hasUnsavedChanges ? (
-            'Unsaved changes'
+            <span className="flex items-center gap-1.5">
+              <Circle className="h-2 w-2 fill-yellow-500 text-yellow-500" />
+              Unsaved changes
+            </span>
           ) : lastSaved ? (
-            `Saved ${lastSaved.toLocaleTimeString()}`
+            <span className="flex items-center gap-1.5">
+              <Check className="h-3 w-3 text-green-500" />
+              Saved {lastSaved.toLocaleTimeString()}
+            </span>
           ) : (
-            'Auto-save enabled'
+            <span className="flex items-center gap-1.5">
+              <Check className="h-3 w-3 text-muted-foreground" />
+              Auto-save enabled
+            </span>
           )}
         </div>
       </div>
