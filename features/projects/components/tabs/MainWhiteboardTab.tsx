@@ -3,12 +3,11 @@
 import { useState, useCallback, useTransition, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Loader2, Check, Circle } from 'lucide-react'
-import { updateMainWhiteboardAction } from '../../actions/fileActions'
+import { updateMainWhiteboardAction, getMainWhiteboardAction } from '../../actions/fileActions'
 import { useDebouncedCallback } from '@/hooks/use-debounce'
 import { useWhiteboardRealtime } from '@/hooks/use-whiteboard-realtime'
 import { WhiteboardPresenceBar } from '@/components/whiteboard/WhiteboardPresenceBar'
 import { ConflictBanner } from '@/components/whiteboard/ConflictBanner'
-import { getMainWhiteboard } from '@/lib/api/project-files'
 import type { UserRole } from '@/lib/auth/types'
 
 // Dynamic import for Excalidraw (no SSR)
@@ -94,7 +93,7 @@ export function MainWhiteboardTab({
   const handlePullLatest = useCallback(async () => {
     setIsPulling(true)
     try {
-      const latest = await getMainWhiteboard(projectId)
+      const latest = await getMainWhiteboardAction(projectId)
       const latestContent = (latest as ExcalidrawContent) || {
         elements: [],
         appState: {},
