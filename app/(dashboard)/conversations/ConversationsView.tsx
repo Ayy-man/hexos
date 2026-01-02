@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/client'
 import { ConversationList, ChatPanel } from '@/features/conversations/components'
@@ -9,6 +9,7 @@ import type { Conversation, Message } from '@/lib/api/conversations.shared'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MessageSquare, FolderKanban, FileText, Inbox, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useSidebar } from '@/components/ui/sidebar'
 
 interface Participant {
   id: string
@@ -39,6 +40,29 @@ export function ConversationsView({
   const [messages, setMessages] = useState<Message[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+
+  // Auto-collapse sidebar for conversations view (more space for chat)
+  const { open, setOpen } = useSidebar()
+  const wasOpenRef = useRef<boolean | null>(null)
+
+  useEffect(() => {
+    // Store the previous state only once on mount
+    if (wasOpenRef.current === null) {
+      wasOpenRef.current = open
+    }
+    // Collapse sidebar when entering conversations
+    if (open) {
+      setOpen(false)
+    }
+
+    // Restore sidebar state when leaving
+    return () => {
+      if (wasOpenRef.current === true) {
+        setOpen(true)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Calculate unread counts for each tab
   const directUnread = directConversations.reduce((sum, c) => sum + (c.unread_count || 0), 0)
