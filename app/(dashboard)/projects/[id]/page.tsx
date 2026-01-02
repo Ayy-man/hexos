@@ -20,7 +20,13 @@ export default async function ProjectDetailPage({
   let project
   try {
     project = await getProject(id)
-  } catch {
+  } catch (error) {
+    // Log the actual error for debugging
+    console.error('[Project Page Error]', {
+      projectId: id,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     notFound()
   }
 
