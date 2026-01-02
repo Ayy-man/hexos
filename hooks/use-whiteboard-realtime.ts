@@ -165,13 +165,17 @@ export function useWhiteboardRealtime({
     // Subscribe and track presence
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        await channel.track({
-          odId: profile.id,
-          userName: profile.name,
-          userEmail: profile.email,
-          color: getUserColor(profile.id),
-          joinedAt: new Date().toISOString(),
-        })
+        try {
+          await channel.track({
+            odId: profile.id,
+            userName: profile.name,
+            userEmail: profile.email,
+            color: getUserColor(profile.id),
+            joinedAt: new Date().toISOString(),
+          })
+        } catch (err) {
+          console.error('Failed to track whiteboard presence:', err)
+        }
       }
     })
 

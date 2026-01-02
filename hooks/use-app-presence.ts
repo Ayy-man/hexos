@@ -50,21 +50,29 @@ export function useAppPresence(profile: Profile) {
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track(presencePayload)
+          try {
+            await channel.track(presencePayload)
+          } catch (err) {
+            console.error('Failed to track presence:', err)
+          }
         }
       })
 
     channelRef.current = channel
 
-    // Update last_seen_at in database periodically
+    // Update last_seen_at in database periodically (fire-and-forget, non-blocking)
     const updateLastSeen = async () => {
-      await supabase
-        .from('profiles')
-        .update({ last_seen_at: new Date().toISOString() })
-        .eq('id', profile.id)
+      try {
+        await supabase
+          .from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', profile.id)
+      } catch (err) {
+        console.error('Failed to update last_seen:', err)
+      }
     }
 
-    // Initial update
+    // Initial update (non-blocking)
     updateLastSeen()
 
     // Set up heartbeat
