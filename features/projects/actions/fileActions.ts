@@ -22,6 +22,7 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
   const file = formData.get('file') as File
   const projectId = formData.get('projectId') as string
   const visibility = (formData.get('visibility') as FileVisibility) || 'workspace'
+  const parentId = formData.get('parentId') as string | null
 
   if (!file || !projectId) {
     throw new Error('Missing file or project ID')
@@ -48,15 +49,29 @@ export async function uploadProjectFileAction(formData: FormData): Promise<void>
     .from('general-purpose')
     .getPublicUrl(filePath)
 
-  // Create file record with visibility
+  // Get max position for siblings
+  const { data: siblings } = await supabase
+    .from('project_files')
+    .select('position')
+    .eq('project_id', projectId)
+    .is('parent_id', parentId || null)
+    .order('position', { ascending: false })
+    .limit(1)
+
+  const nextPosition = (siblings?.[0]?.position ?? -1) + 1
+
+  // Create file record with visibility and parent
   await supabase.from('project_files').insert({
     project_id: projectId,
+    parent_id: parentId || null,
     file_name: file.name,
     file_path: urlData.publicUrl,
     file_size: file.size,
     file_type: file.type,
+    content_type: 'file',
     uploaded_by: user.id,
     visibility,
+    position: nextPosition,
   })
 
   // Log activity

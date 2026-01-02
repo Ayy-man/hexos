@@ -171,13 +171,13 @@ export async function getProject(id: string) {
       client:profiles!projects_client_id_fkey(id, name, email),
       deliverables(id, title, description, status, estimated_hours, start_date, due_date, completed_at, sort_order),
       requirements:onboarding_requirements(id, project_id, parent_id, title, description, notes, owner_type, blocker_type, status, loom_url, resource_url, position, created_at, updated_at, completed_at, completed_by),
-      files:project_files(id, project_id, file_name, file_path, file_size, file_type, visibility, description, uploaded_by, uploaded_at, uploader:profiles!uploaded_by(id, name)),
+      files:project_files(id, project_id, parent_id, file_name, file_path, file_size, file_type, content_type, content, visibility, description, position, uploaded_by, uploaded_at, uploader:profiles!uploaded_by(id, name)),
       activity:activity_log(id, action, details, created_at, user:profiles(name))
     `)
     .eq('id', id)
     .order('sort_order', { referencedTable: 'deliverables', ascending: true })
     .order('position', { referencedTable: 'onboarding_requirements', ascending: true })
-    .order('uploaded_at', { referencedTable: 'project_files', ascending: false })
+    .order('position', { referencedTable: 'project_files', ascending: true })
     .order('created_at', { referencedTable: 'activity_log', ascending: false })
     .single()
 

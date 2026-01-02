@@ -16,19 +16,8 @@ import type { UserRole } from '@/lib/auth/types'
 interface ProjectTabsProps {
   project: ProjectWithRelations & {
     requirements?: OnboardingRequirement[]
-    files?: Array<{
-      id: string
-      project_id: string
-      file_name: string
-      file_path: string
-      file_size: number | null
-      file_type: string | null
-      visibility: 'workspace' | 'portal'
-      description: string | null
-      uploaded_by: string | null
-      uploaded_at: string
-      uploader?: { id: string; name: string } | null
-    }>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    files?: any[]
     activity?: Array<{
       id: string
       action: string
