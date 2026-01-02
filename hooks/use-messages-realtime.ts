@@ -20,9 +20,13 @@ export function useMessagesRealtime({
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [isRefetching, setIsRefetching] = useState(false)
   const lastMessageCountRef = useRef(initialMessages.length)
+  const refetchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isRefetchingRef = useRef(false)
 
   const refetch = useCallback(async () => {
-    if (isRefetching) return
+    // Use ref for immediate check to prevent race conditions
+    if (isRefetchingRef.current) return
+    isRefetchingRef.current = true
     setIsRefetching(true)
 
     try {
@@ -54,9 +58,20 @@ export function useMessagesRealtime({
     } catch (error) {
       console.error('Failed to refetch messages:', error)
     } finally {
+      isRefetchingRef.current = false
       setIsRefetching(false)
     }
-  }, [conversationId, isRefetching])
+  }, [conversationId])
+
+  // Debounced refetch to prevent multiple rapid calls
+  const debouncedRefetch = useCallback(() => {
+    if (refetchTimeoutRef.current) {
+      clearTimeout(refetchTimeoutRef.current)
+    }
+    refetchTimeoutRef.current = setTimeout(() => {
+      refetch()
+    }, 100)
+  }, [refetch])
 
   // Append a new message optimistically (for local send)
   const appendMessage = useCallback((message: Message) => {
@@ -90,8 +105,8 @@ export function useMessagesRealtime({
           filter: `conversation_id=eq.${conversationId}`,
         },
         () => {
-          // New message - refetch to get full data with joins
-          refetch()
+          // New message - debounced refetch to get full data with joins
+          debouncedRefetch()
         }
       )
       .on(
@@ -103,8 +118,8 @@ export function useMessagesRealtime({
           filter: `conversation_id=eq.${conversationId}`,
         },
         () => {
-          // Message edited or deleted - refetch
-          refetch()
+          // Message edited or deleted - debounced refetch
+          debouncedRefetch()
         }
       )
       .on(
@@ -115,8 +130,8 @@ export function useMessagesRealtime({
           table: 'message_reactions',
         },
         () => {
-          // Reaction changed - refetch to update reactions
-          refetch()
+          // Reaction changed - debounced refetch to update reactions
+          debouncedRefetch()
         }
       )
       .on(
@@ -127,16 +142,20 @@ export function useMessagesRealtime({
           table: 'message_attachments',
         },
         () => {
-          // Attachment added/removed - refetch
-          refetch()
+          // Attachment added/removed - debounced refetch
+          debouncedRefetch()
         }
       )
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
+      // Clean up debounce timeout
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current)
+      }
     }
-  }, [conversationId, refetch])
+  }, [conversationId, debouncedRefetch])
 
   // Update when initial messages change (e.g., pagination load)
   useEffect(() => {

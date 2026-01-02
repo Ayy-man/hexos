@@ -69,8 +69,7 @@ export function ChatPanel({
         mentionedUserIds.length > 0 ? mentionedUserIds : undefined
       )
 
-      // Refetch to get the new message
-      await refetch()
+      // Real-time subscription will handle the refetch
     } finally {
       setIsSending(false)
     }
