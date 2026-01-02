@@ -1,6 +1,8 @@
 -- hexOS: Emergency RLS Fix
 -- Date: 2026-01-03
 --
+-- FULL INCIDENT REPORT: docs/INCIDENT_2026-01-03_RLS_CRASH.md
+--
 -- INCIDENT SUMMARY:
 -- The recursive get_effective_file_visibility function caused infinite loops
 -- that crashed the Supabase database repeatedly. This migration documents
