@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useOnlineUsers } from '@/hooks/use-online-users'
+import { useSidebar } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar'
 import type { Profile } from '@/lib/auth/types'
 
@@ -38,6 +39,8 @@ export function TeamPresence() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { onlineUsers } = useOnlineUsers()
+  const { state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
 
   useEffect(() => {
     async function fetchTeam() {
@@ -59,6 +62,9 @@ export function TeamPresence() {
   const offline = teamMembers.filter(m => !onlineIds.has(m.id))
 
   if (isLoading) return null
+
+  // Hide when sidebar is collapsed to prevent text overflow
+  if (isCollapsed) return null
 
   return (
     <div className="rounded-lg border bg-card p-3 space-y-3">
