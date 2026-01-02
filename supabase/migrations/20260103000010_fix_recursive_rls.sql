@@ -1,3 +1,8 @@
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-- OBSOLETE: This migration is superseded by 20260103000011_emergency_rls_fix.sql
+-- DO NOT RUN - kept for historical reference only
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--
 -- hexOS: Fix recursive RLS function with depth limit
 -- Prevents infinite loops if parent_id has cycles
 

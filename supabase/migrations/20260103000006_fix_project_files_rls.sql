@@ -1,3 +1,9 @@
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-- OBSOLETE: This migration is superseded by 20260103000011_emergency_rls_fix.sql
+-- DO NOT RUN - This file contains the RECURSIVE get_effective_file_visibility
+-- function that caused database crashes!
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--
 -- hexOS: Fix project_files RLS policies
 -- Run this in Supabase SQL Editor if you get "row violates row-level security policy" errors
 

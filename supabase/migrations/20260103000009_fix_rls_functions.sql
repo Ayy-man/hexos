@@ -1,3 +1,8 @@
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-- OBSOLETE: This migration is superseded by 20260103000011_emergency_rls_fix.sql
+-- DO NOT RUN - kept for historical reference only
+-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+--
 -- hexOS: Fix RLS helper functions
 -- Ensures get_user_role and can_access_project handle edge cases properly
 
