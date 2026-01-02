@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from 'next-themes'
-import '@excalidraw/excalidraw/index.css'
 
 interface ExcalidrawWrapperProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,6 +24,9 @@ export default function ExcalidrawWrapper({ onChange, initialData }: ExcalidrawW
   onChangeRef.current = onChange
 
   useEffect(() => {
+    // Import CSS dynamically to avoid SSR issues with DOMMatrix
+    // @ts-expect-error - CSS import is valid at runtime
+    import('@excalidraw/excalidraw/index.css')
     import('@excalidraw/excalidraw').then((mod) => {
       setComp({
         Excalidraw: mod.Excalidraw,
