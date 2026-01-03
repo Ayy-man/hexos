@@ -21,10 +21,10 @@ export default async function ProjectDetailPage({
   try {
     project = await getProject(id)
   } catch (error) {
-    // Log the actual error for debugging
+    // Log the actual error for debugging (Supabase errors are objects, not Error instances)
     console.error('[Project Page Error]', {
       projectId: id,
-      error: error instanceof Error ? error.message : String(error),
+      error: error instanceof Error ? error.message : JSON.stringify(error, null, 2),
       stack: error instanceof Error ? error.stack : undefined,
     })
     notFound()
