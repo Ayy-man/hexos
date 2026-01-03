@@ -10,7 +10,6 @@ export type {
   ProjectFileItem,
   CreateFolderInput,
   CreateDocumentInput,
-  CreateWhiteboardInput,
 } from './project-files.shared'
 
 export {
@@ -26,7 +25,6 @@ import type {
   ProjectFileItem,
   CreateFolderInput,
   CreateDocumentInput,
-  CreateWhiteboardInput,
 } from './project-files.shared'
 
 // ============================================
@@ -297,82 +295,6 @@ export async function updateFileContent(itemId: string, content: unknown): Promi
 }
 
 // ============================================
-// Whiteboard Functions
-// ============================================
-
-export async function createWhiteboard(input: CreateWhiteboardInput): Promise<ProjectFileItem> {
-  const supabase = await createClient()
-
-  // Get max position for siblings
-  const { data: siblings } = await supabase
-    .from('project_files')
-    .select('position')
-    .eq('project_id', input.project_id)
-    .is('parent_id', input.parent_id ?? null)
-    .order('position', { ascending: false })
-    .limit(1)
-
-  const nextPosition = (siblings?.[0]?.position ?? -1) + 1
-
-  // Inherit visibility from parent if not specified
-  let visibility: FileView = input.visibility ?? 'internal'
-  if (input.parent_id && !input.visibility) {
-    const { data: parent } = await supabase
-      .from('project_files')
-      .select('visibility')
-      .eq('id', input.parent_id)
-      .single()
-    if (parent?.visibility) {
-      visibility = parent.visibility as FileView
-    }
-  }
-
-  // Default Excalidraw empty state
-  const defaultContent = {
-    elements: [],
-    appState: {},
-    files: {}
-  }
-
-  const { data, error } = await supabase
-    .from('project_files')
-    .insert({
-      project_id: input.project_id,
-      parent_id: input.parent_id ?? null,
-      file_name: input.name,
-      file_path: '',
-      content_type: 'whiteboard',
-      content: defaultContent,
-      visibility,
-      position: nextPosition,
-    })
-    .select(`
-      id,
-      project_id,
-      parent_id,
-      file_name,
-      file_path,
-      file_size,
-      file_type,
-      content_type,
-      content,
-      visibility,
-      description,
-      position,
-      uploaded_by,
-      uploaded_at
-    `)
-    .single()
-
-  if (error) {
-    console.error('Failed to create whiteboard:', error)
-    throw new Error('Failed to create whiteboard')
-  }
-
-  return data as unknown as ProjectFileItem
-}
-
-// ============================================
 // Common Item Functions
 // ============================================
 
@@ -531,41 +453,6 @@ export async function deleteItem(itemId: string): Promise<void> {
   if (error) {
     console.error('Failed to delete item:', error)
     throw new Error('Failed to delete item')
-  }
-}
-
-// ============================================
-// Proposal Whiteboard Functions
-// ============================================
-
-export async function getProposalWhiteboard(inquiryId: string): Promise<unknown> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('inquiries')
-    .select('proposal_whiteboard')
-    .eq('id', inquiryId)
-    .single()
-
-  if (error) {
-    console.error('Failed to get proposal whiteboard:', error)
-    throw new Error('Failed to get proposal whiteboard')
-  }
-
-  return data?.proposal_whiteboard
-}
-
-export async function updateProposalWhiteboard(inquiryId: string, content: unknown): Promise<void> {
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('inquiries')
-    .update({ proposal_whiteboard: content })
-    .eq('id', inquiryId)
-
-  if (error) {
-    console.error('Failed to update proposal whiteboard:', error)
-    throw new Error('Failed to update proposal whiteboard')
   }
 }
 
@@ -744,37 +631,3 @@ async function moveChildrenToViewRecursively(parentId: string, targetView: FileV
   }
 }
 
-// ============================================
-// Main Project Whiteboard Functions
-// ============================================
-
-export async function getMainWhiteboard(projectId: string): Promise<unknown> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('projects')
-    .select('main_whiteboard')
-    .eq('id', projectId)
-    .single()
-
-  if (error) {
-    console.error('Failed to get main whiteboard:', error)
-    throw new Error('Failed to get main whiteboard')
-  }
-
-  return data?.main_whiteboard ?? { elements: [], appState: {}, files: {} }
-}
-
-export async function updateMainWhiteboard(projectId: string, content: unknown): Promise<void> {
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('projects')
-    .update({ main_whiteboard: content })
-    .eq('id', projectId)
-
-  if (error) {
-    console.error('Failed to update main whiteboard:', error)
-    throw new Error('Failed to update main whiteboard')
-  }
-}

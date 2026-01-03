@@ -94,7 +94,7 @@ export interface ProjectWithRelations extends Project {
     file_path: string
     file_size: number | null
     file_type: string | null
-    content_type: 'file' | 'folder' | 'document' | 'whiteboard'
+    content_type: 'file' | 'folder' | 'document'
     content: unknown | null
     visibility: 'internal' | 'client'
     shared_to: 'internal' | 'client' | null
@@ -104,8 +104,6 @@ export interface ProjectWithRelations extends Project {
     uploaded_at: string
     uploader?: { id: string; name: string } | null
   }>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  main_whiteboard?: any
   activity?: Array<{
     id: string
     action: string
@@ -173,7 +171,6 @@ export async function getProject(id: string) {
     .from('projects')
     .select(`
       *,
-      main_whiteboard,
       dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
       assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
       client:profiles!projects_client_id_fkey(id, name, email),

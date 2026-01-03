@@ -9,7 +9,7 @@ export type SharedTo = 'internal' | 'client' | null
 // Legacy alias for backward compatibility (deprecated)
 export type FileVisibility = FileView
 
-export type ContentType = 'file' | 'folder' | 'document' | 'whiteboard'
+export type ContentType = 'file' | 'folder' | 'document'
 
 export interface ProjectFile {
   id: string
@@ -66,13 +66,6 @@ export interface CreateDocumentInput {
   parent_id?: string | null
   visibility?: FileView
   content?: unknown
-}
-
-export interface CreateWhiteboardInput {
-  project_id: string
-  name: string
-  parent_id?: string | null
-  visibility?: FileView
 }
 
 // ============================================

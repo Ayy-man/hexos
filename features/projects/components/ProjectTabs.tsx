@@ -1,7 +1,7 @@
 'use client'
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LayoutDashboard, CheckSquare, FileText, FolderOpen, Activity, Info, MessageSquare, PenTool } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, FileText, FolderOpen, Activity, Info, MessageSquare } from 'lucide-react'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DeliverablesTab } from './tabs/DeliverablesTab'
 import { RequirementsTab } from './tabs/RequirementsTab'
@@ -9,7 +9,6 @@ import { FilesTab } from './tabs/FilesTab'
 import { ActivityTab } from './tabs/ActivityTab'
 import { ProjectInfoTab } from './tabs/ProjectInfoTab'
 import { ChatTab } from './tabs/ChatTab'
-import { MainWhiteboardTab } from './tabs/MainWhiteboardTab'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
@@ -19,8 +18,6 @@ interface ProjectTabsProps {
     requirements?: OnboardingRequirement[]
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     files?: any[]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    main_whiteboard?: any
     activity?: Array<{
       id: string
       action: string
@@ -57,10 +54,6 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
         <TabsTrigger value="files" className="gap-2">
           <FolderOpen className="h-4 w-4" />
           Files
-        </TabsTrigger>
-        <TabsTrigger value="whiteboard" className="gap-2">
-          <PenTool className="h-4 w-4" />
-          Whiteboard
         </TabsTrigger>
         <TabsTrigger value="activity" className="gap-2">
           <Activity className="h-4 w-4" />
@@ -111,16 +104,6 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
           files={project.files || []}
           userRole={userRole}
           currentUserId={userId}
-        />
-      </TabsContent>
-
-      <TabsContent value="whiteboard" className="mt-6">
-        <MainWhiteboardTab
-          projectId={project.id}
-          projectName={project.project_name}
-          initialContent={project.main_whiteboard}
-          userId={userId}
-          userRole={userRole}
         />
       </TabsContent>
 

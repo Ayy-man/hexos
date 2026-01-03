@@ -176,9 +176,6 @@ CREATE TABLE public.projects (
   target_delivery_date DATE,
   delivered_at TIMESTAMPTZ,
 
-  -- Main whiteboard (not in files table)
-  main_whiteboard JSONB DEFAULT '{"elements": [], "appState": {}, "files": {}}'::jsonb,
-
   notes TEXT
 );
 
@@ -210,14 +207,14 @@ CREATE TABLE public.project_files (
   file_name TEXT NOT NULL,
   file_path TEXT NOT NULL,
   file_size INT,
-  content_type TEXT NOT NULL,           -- 'folder', 'document', 'whiteboard', or MIME type
+  content_type TEXT NOT NULL,           -- 'folder', 'document', or MIME type
 
   -- Two-Workspace Visibility
   visibility TEXT NOT NULL CHECK (visibility IN ('internal', 'client')),
   shared_to TEXT CHECK (shared_to IN ('internal', 'client') OR shared_to IS NULL),
 
   -- Content storage
-  content JSONB,                         -- For documents/whiteboards
+  content JSONB,                         -- For documents (Plate.js format)
   storage_path TEXT,                     -- For uploaded files (Supabase Storage)
 
   position INT DEFAULT 0,                -- Sort order within parent

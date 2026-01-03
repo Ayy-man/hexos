@@ -44,7 +44,6 @@ import {
   Copy,
   FolderLock,
   FolderOpen,
-  PenTool,
   Pencil,
   Link2,
   ArrowRightLeft,
@@ -64,7 +63,6 @@ import {
 } from '../../actions/fileActions'
 import { NewItemDropdown } from '../files/NewItemDropdown'
 import { DocumentEditor } from '../files/DocumentEditor'
-import { WhiteboardEditor } from '../files/WhiteboardEditor'
 import { FileViewerModal } from '../files/FileViewerModal'
 
 // ============================================
@@ -100,8 +98,6 @@ function getFileIcon(item: ProjectFileItem) {
       )
     case 'document':
       return <FileText className="h-4 w-4 text-blue-500" />
-    case 'whiteboard':
-      return <PenTool className="h-4 w-4 text-purple-500" />
     case 'file':
     default:
       if (!item.file_type) return <File className="h-4 w-4 text-muted-foreground" />
@@ -154,7 +150,6 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
   const [renameItem, setRenameItem] = useState<ProjectFileItem | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [editingDocument, setEditingDocument] = useState<ProjectFileItem | null>(null)
-  const [editingWhiteboard, setEditingWhiteboard] = useState<ProjectFileItem | null>(null)
   const [viewingFile, setViewingFile] = useState<ProjectFileItem | null>(null)
 
   const showViewToggle = canToggleView(userRole)
@@ -242,9 +237,6 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
     switch (item.content_type) {
       case 'document':
         setEditingDocument(item)
-        break
-      case 'whiteboard':
-        setEditingWhiteboard(item)
         break
       case 'file':
         // Open file in viewer modal
@@ -419,9 +411,6 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
               // Find the created document and open it
               const doc = files.find((f: ProjectFileItem) => f.id === id)
               if (doc) setEditingDocument(doc)
-            } else if (type === 'whiteboard') {
-              const wb = files.find((f: ProjectFileItem) => f.id === id)
-              if (wb) setEditingWhiteboard(wb)
             }
           }}
         />
@@ -520,17 +509,6 @@ export function FilesTab({ projectId, files, userRole, currentUserId }: FilesTab
           initialTitle={editingDocument.file_name}
           initialContent={editingDocument.content}
           onClose={() => setEditingDocument(null)}
-        />
-      )}
-
-      {/* Whiteboard Editor Modal */}
-      {editingWhiteboard && (
-        <WhiteboardEditor
-          whiteboardId={editingWhiteboard.id}
-          projectId={projectId}
-          initialTitle={editingWhiteboard.file_name}
-          initialContent={editingWhiteboard.content}
-          onClose={() => setEditingWhiteboard(null)}
         />
       )}
 

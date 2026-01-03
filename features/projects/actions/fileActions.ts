@@ -6,7 +6,6 @@ import type { FileView } from '@/lib/api/project-files.shared'
 import {
   createFolder,
   createDocument,
-  createWhiteboard,
   renameItem,
   moveItem,
   reorderItems,
@@ -16,8 +15,6 @@ import {
   shareItem,
   unshareItem,
   moveItemToView,
-  updateMainWhiteboard,
-  getMainWhiteboard,
 } from '@/lib/api/project-files'
 
 export async function uploadProjectFileAction(formData: FormData): Promise<void> {
@@ -235,61 +232,6 @@ export async function createDocumentAction(
 }
 
 export async function updateDocumentContentAction(
-  itemId: string,
-  content: unknown
-): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  // Get project ID for revalidation
-  const { data: file } = await supabase
-    .from('project_files')
-    .select('project_id')
-    .eq('id', itemId)
-    .single()
-
-  await updateFileContent(itemId, content)
-
-  if (file) {
-    revalidatePath(`/projects/${file.project_id}`)
-  }
-}
-
-// ============================================
-// Whiteboard Actions
-// ============================================
-
-export async function createWhiteboardAction(
-  projectId: string,
-  name: string,
-  parentId?: string | null,
-  visibility?: FileView
-): Promise<{ id: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  const whiteboard = await createWhiteboard({
-    project_id: projectId,
-    name,
-    parent_id: parentId,
-    visibility,
-  })
-
-  // Log activity
-  await supabase.from('activity_log').insert({
-    project_id: projectId,
-    user_id: user.id,
-    action: 'whiteboard_created',
-    details: { whiteboard_name: name },
-  })
-
-  revalidatePath(`/projects/${projectId}`)
-  return { id: whiteboard.id }
-}
-
-export async function updateWhiteboardContentAction(
   itemId: string,
   content: unknown
 ): Promise<void> {
@@ -541,31 +483,3 @@ export async function moveItemToViewAction(
   revalidatePath(`/projects/${file.project_id}`)
 }
 
-// ============================================
-// Main Project Whiteboard Actions
-// ============================================
-
-export async function updateMainWhiteboardAction(
-  projectId: string,
-  content: unknown
-): Promise<void> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  await updateMainWhiteboard(projectId, content)
-
-  // Note: No revalidatePath here - whiteboard state is managed client-side
-  // and revalidating would cause Excalidraw to re-render with "new" initialData,
-  // triggering onChange and creating an infinite save loop
-}
-
-export async function getMainWhiteboardAction(
-  projectId: string
-): Promise<unknown> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
-
-  return getMainWhiteboard(projectId)
-}

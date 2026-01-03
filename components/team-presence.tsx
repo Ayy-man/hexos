@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useOnlineUsers } from '@/hooks/use-online-users'
+import { useOnlineUsers } from '@/hooks/use-presence'
 import { useSidebar } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar'
 import type { Profile } from '@/lib/auth/types'

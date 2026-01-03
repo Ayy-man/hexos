@@ -18,12 +18,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus, Folder, Upload, FileText, PenTool, Loader2 } from 'lucide-react'
+import { Plus, Folder, Upload, FileText, Loader2 } from 'lucide-react'
 import type { FileView } from '@/lib/api/project-files.shared'
 import {
   createFolderAction,
   createDocumentAction,
-  createWhiteboardAction,
   uploadProjectFileAction,
 } from '../../actions/fileActions'
 
@@ -31,11 +30,11 @@ interface NewItemDropdownProps {
   projectId: string
   parentId?: string | null
   visibility: FileView
-  onItemCreated?: (id: string, type: 'folder' | 'document' | 'whiteboard') => void
+  onItemCreated?: (id: string, type: 'folder' | 'document') => void
   disabled?: boolean
 }
 
-type DialogType = 'folder' | 'document' | 'whiteboard' | null
+type DialogType = 'folder' | 'document' | null
 
 export function NewItemDropdown({
   projectId,
@@ -63,9 +62,6 @@ export function NewItemDropdown({
           break
         case 'document':
           result = await createDocumentAction(projectId, name.trim(), parentId, visibility)
-          break
-        case 'whiteboard':
-          result = await createWhiteboardAction(projectId, name.trim(), parentId, visibility)
           break
       }
 
@@ -119,8 +115,6 @@ export function NewItemDropdown({
         return 'New Folder'
       case 'document':
         return 'New Document'
-      case 'whiteboard':
-        return 'New Whiteboard'
       default:
         return ''
     }
@@ -132,8 +126,6 @@ export function NewItemDropdown({
         return 'Folder name'
       case 'document':
         return 'Document title'
-      case 'whiteboard':
-        return 'Whiteboard title'
       default:
         return ''
     }
@@ -172,10 +164,6 @@ export function NewItemDropdown({
           <DropdownMenuItem onClick={() => setDialogType('document')}>
             <FileText className="h-4 w-4 mr-2 text-blue-500" />
             New Document
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDialogType('whiteboard')}>
-            <PenTool className="h-4 w-4 mr-2 text-purple-500" />
-            New Whiteboard
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

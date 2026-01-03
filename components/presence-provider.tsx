@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppPresence } from '@/hooks/use-app-presence'
+import { usePresence } from '@/hooks/use-presence'
 import type { Profile } from '@/lib/auth/types'
 
 interface PresenceProviderProps {
@@ -13,6 +13,6 @@ interface PresenceProviderProps {
  * Should be placed in the dashboard layout to track all authenticated users.
  */
 export function PresenceProvider({ profile, children }: PresenceProviderProps) {
-  useAppPresence(profile)
+  usePresence(profile)
   return <>{children}</>
 }
