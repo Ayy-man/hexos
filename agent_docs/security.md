@@ -1,5 +1,9 @@
 # Security
 
+> **⚠️ CRITICAL: Read "RLS Crisis Lessons" section before modifying any RLS policies or functions!**
+>
+> See `docs/DATABASE_RECOVERY_2026-01-05.md` for emergency recovery procedures.
+
 ## RLS Strategy
 
 RLS is ON from day one. To avoid development friction:
@@ -271,98 +275,42 @@ CREATE POLICY "access_via_project" ON project_requirements
 
 ### Project Files (Two-Workspace RLS)
 
+> **⚠️ WARNING: The old `can_access_file(UUID)` function was REMOVED after causing database crashes.**
+> **Always use `can_access_file_v2(project_id, visibility)` which takes column values directly.**
+
 ```sql
 ALTER TABLE project_files ENABLE ROW LEVEL SECURITY;
 
--- Helper function for file access
-CREATE OR REPLACE FUNCTION public.can_access_file(p_file_id UUID)
+-- SAFE file access function (v2 - takes values directly, NO self-reference)
+CREATE OR REPLACE FUNCTION public.can_access_file_v2(p_project_id UUID, p_visibility TEXT)
 RETURNS BOOLEAN AS $$
 DECLARE
   v_user_role user_role;
-  v_project_id UUID;
-  v_visibility TEXT;
-  v_shared_to TEXT;
+  v_uid UUID := auth.uid();
 BEGIN
-  v_user_role := public.get_user_role();
-
-  SELECT project_id, visibility, shared_to
-  INTO v_project_id, v_visibility, v_shared_to
-  FROM project_files WHERE id = p_file_id;
-
-  IF v_project_id IS NULL THEN RETURN FALSE; END IF;
-  IF NOT public.can_access_project(v_project_id) THEN RETURN FALSE; END IF;
-
-  -- Admin and Internal see everything
-  IF v_user_role IN ('admin', 'internal') THEN RETURN TRUE; END IF;
-
-  -- Dev sees internal view and items shared_to internal
-  IF v_user_role = 'dev' THEN
-    RETURN v_visibility = 'internal' OR v_shared_to = 'internal';
-  END IF;
-
-  -- DFY and Client see client view and items shared_to client
-  IF v_user_role IN ('dfy', 'client') THEN
-    RETURN v_visibility = 'client' OR v_shared_to = 'client';
-  END IF;
-
-  RETURN FALSE;
+  IF v_uid IS NULL THEN RETURN FALSE; END IF;
+  SELECT role INTO v_user_role FROM public.profiles WHERE id = v_uid;
+  IF NOT public.can_access_project(p_project_id) THEN RETURN FALSE; END IF;
+  IF v_user_role IN ('admin', 'internal', 'dev') THEN RETURN TRUE; END IF;
+  RETURN p_visibility = 'portal' OR p_visibility = 'client';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = public;
 
--- SELECT: Use can_access_file helper
+-- SELECT: Pass columns directly to avoid self-reference
 CREATE POLICY "project_files_select" ON project_files
-  FOR SELECT USING (can_access_file(id));
+  FOR SELECT USING (can_access_file_v2(project_id, visibility));
 
 -- INSERT: Anyone who can access project can create files
 CREATE POLICY "project_files_insert" ON project_files
-  FOR INSERT WITH CHECK (
-    auth.uid() IS NOT NULL
-    AND can_access_project(project_id)
-  );
+  FOR INSERT WITH CHECK (can_access_project(project_id));
 
--- UPDATE: Admin/Internal can update all; Dev can update assigned; Owner can update own
-CREATE POLICY "project_files_admin_internal_update" ON project_files
-  FOR UPDATE USING (
-    auth.uid() IS NOT NULL
-    AND get_user_role() IN ('admin', 'internal')
-    AND can_access_project(project_id)
-  );
+-- UPDATE: Anyone who can access project can update files
+CREATE POLICY "project_files_update" ON project_files
+  FOR UPDATE USING (can_access_project(project_id));
 
-CREATE POLICY "project_files_dev_update" ON project_files
-  FOR UPDATE USING (
-    auth.uid() IS NOT NULL
-    AND get_user_role() = 'dev'
-    AND can_access_project(project_id)
-  );
-
-CREATE POLICY "project_files_own_update" ON project_files
-  FOR UPDATE USING (
-    auth.uid() IS NOT NULL
-    AND uploaded_by = auth.uid()
-    AND can_access_file(id)
-  );
-
--- DELETE: Similar pattern to UPDATE
-CREATE POLICY "project_files_admin_internal_delete" ON project_files
-  FOR DELETE USING (
-    auth.uid() IS NOT NULL
-    AND get_user_role() IN ('admin', 'internal')
-    AND can_access_project(project_id)
-  );
-
-CREATE POLICY "project_files_dev_delete" ON project_files
-  FOR DELETE USING (
-    auth.uid() IS NOT NULL
-    AND get_user_role() = 'dev'
-    AND can_access_project(project_id)
-  );
-
-CREATE POLICY "project_files_own_delete" ON project_files
-  FOR DELETE USING (
-    auth.uid() IS NOT NULL
-    AND uploaded_by = auth.uid()
-    AND can_access_file(id)
-  );
+-- DELETE: Anyone who can access project can delete files
+CREATE POLICY "project_files_delete" ON project_files
+  FOR DELETE USING (can_access_project(project_id));
 ```
 
 ## Dev Workflow
@@ -371,3 +319,98 @@ CREATE POLICY "project_files_own_delete" ON project_files
 2. Test role views — switch to test accounts to verify RLS works
 3. Use Role Switcher component (dev only) for quick switching
 4. All RLS policies active in both dev and prod — no surprises at launch
+
+---
+
+## RLS Crisis Lessons (2026-01-03 Incident)
+
+On 2026-01-03, the database became completely unresponsive due to recursive RLS functions. This section documents what went wrong and how to prevent it.
+
+### What Went Wrong
+
+A function called `get_effective_file_visibility(file_id UUID)` was created to support folder visibility inheritance. This function:
+
+1. Looked up the file's parent folder
+2. Recursively called itself to get the parent's visibility
+3. Was used in an RLS policy on `project_files`
+
+**Result:** Every file access triggered unlimited recursive calls, crashing Supabase.
+
+### The Dangerous Pattern
+
+```sql
+-- ⛔ NEVER DO THIS - Self-referencing RLS function
+CREATE FUNCTION get_effective_file_visibility(p_file_id UUID)
+RETURNS TEXT AS $$
+  SELECT CASE
+    WHEN visibility IS NOT NULL THEN visibility
+    ELSE get_effective_file_visibility(parent_id)  -- ⛔ RECURSIVE CALL
+  END
+  FROM project_files WHERE id = p_file_id  -- ⛔ QUERIES SAME TABLE
+$$ LANGUAGE SQL;
+
+-- ⛔ Using it in RLS causes infinite recursion
+CREATE POLICY "bad_policy" ON project_files
+  FOR SELECT USING (get_effective_file_visibility(id) = 'client');
+```
+
+### The Safe Pattern
+
+```sql
+-- ✅ SAFE - Pass column values directly, no table self-reference
+CREATE FUNCTION can_access_file_v2(p_project_id UUID, p_visibility TEXT)
+RETURNS BOOLEAN AS $$
+  -- Uses passed values, never queries project_files
+$$ LANGUAGE plpgsql;
+
+-- ✅ Pass columns directly in policy
+CREATE POLICY "safe_policy" ON project_files
+  FOR SELECT USING (can_access_file_v2(project_id, visibility));
+```
+
+### Golden Rules for RLS Functions
+
+1. **NEVER query the same table** the policy protects
+2. **NEVER use recursive calls** in RLS functions
+3. **Pass column values** to helper functions, don't look them up
+4. **Test with 100+ rows** before deploying — recursion may not show on small data
+5. **Use EXPLAIN ANALYZE** to check for nested loops
+
+### Emergency Recovery
+
+If the database becomes unresponsive:
+
+```sql
+-- 1. Disable RLS on affected table
+ALTER TABLE project_files DISABLE ROW LEVEL SECURITY;
+
+-- 2. Drop the dangerous function
+DROP FUNCTION IF EXISTS get_effective_file_visibility CASCADE;
+
+-- 3. Recreate safe policies
+-- (see docs/DATABASE_RECOVERY_2026-01-05.md)
+
+-- 4. Re-enable RLS
+ALTER TABLE project_files ENABLE ROW LEVEL SECURITY;
+```
+
+### Functions That Were Removed
+
+| Function | Why Removed |
+|----------|-------------|
+| `get_effective_file_visibility(UUID)` | Recursive, crashed DB |
+| `can_access_file(UUID)` | Called recursive function |
+
+### Current Safe Functions
+
+| Function | Purpose |
+|----------|---------|
+| `get_user_role()` | Returns user's role from profiles |
+| `can_access_project(UUID)` | Non-recursive project access check |
+| `can_access_file_v2(UUID, TEXT)` | Safe file access, takes values directly |
+| `can_access_conversation_v2(...)` | Safe conversation access |
+
+### Reference Documentation
+
+- **Recovery procedures:** `docs/DATABASE_RECOVERY_2026-01-05.md`
+- **Incident report:** `docs/INCIDENT_2026-01-03_RLS_CRASH.md`

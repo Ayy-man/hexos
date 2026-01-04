@@ -1,5 +1,7 @@
 # Database
 
+> **Note:** After the RLS crisis of 2026-01-03, some functions were removed. See `security.md` for safe patterns.
+
 ## Migration Workflow
 
 ```bash
@@ -305,12 +307,21 @@ CREATE TABLE public.inquiries (
   priority TEXT DEFAULT 'normal',      -- low, normal, high, urgent
   due_date DATE,
   assigned_to UUID REFERENCES profiles(id),
-  estimated_value DECIMAL(10,2),
+
+  -- Pricing fields (renamed 2026-01-05)
+  price_dfy DECIMAL(10,2),              -- What client pays (was estimated_value)
+  price_hexona DECIMAL(10,2),           -- What Hexona charges DFY partner
+  price_dev DECIMAL(10,2),              -- What Hexona pays developer
   pricing_notes TEXT,
+
+  -- Lifecycle dates (added 2026-01-05)
+  date_inquiry TIMESTAMPTZ,             -- When inquiry was submitted
+  date_proposal_sent TIMESTAMPTZ,       -- When proposal was sent
 
   -- Proposal content (Phase 4.7)
   proposal_content JSONB,              -- Rich text proposal (Plate.js format)
   proposal_discussions JSONB DEFAULT '[]', -- Inline discussions
+  proposal_whiteboard JSONB,           -- Whiteboard for proposal (added 2026-01-05)
   proposal_submitted_at TIMESTAMPTZ,
   proposal_submitted_by UUID REFERENCES profiles(id),
   dfy_version_content JSONB,           -- DFY private copy of proposal
@@ -502,6 +513,8 @@ CREATE INDEX idx_project_files_shared_to ON project_files(shared_to) WHERE share
 ```
 
 See `security.md` for RLS policies on these tables.
+
+**Important:** When writing RLS helper functions, NEVER create functions that query the same table they protect. This caused a major outage on 2026-01-03. See `security.md` → "RLS Crisis Lessons" for details.
 
 ## Utility Scripts
 

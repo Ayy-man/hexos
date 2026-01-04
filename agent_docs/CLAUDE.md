@@ -47,6 +47,7 @@ supabase/
 5. **Never manually write DB types** — Run `pnpm supabase:types` to regenerate.
 6. **All DB calls through lib/api/** — Never call Supabase from components directly.
 7. **RLS is ON** — Security at database level. Dev as admin role to see all data.
+8. **No recursive RLS functions** — NEVER create functions that query the same table they protect. See `security.md` for details.
 
 ## Before Starting Work
 
@@ -63,6 +64,20 @@ Read relevant files in `agent_docs/` based on your task:
 | Real-time/notifications | `realtime.md` |
 | Deployment | `deployment.md` |
 | Custom components | `components.md` (request code from user) |
+| **RLS/Security issues** | `security.md` (includes crisis lessons) |
+| **Database recovery** | `docs/DATABASE_RECOVERY_2026-01-05.md` |
+
+## Database Status
+
+**Status: STABLE** (as of 2026-01-05)
+
+The database was recovered from an RLS crisis on 2026-01-03. Key points:
+
+- **Safe functions:** `can_access_file_v2`, `can_access_project`, `get_user_role`
+- **Removed (dangerous):** `get_effective_file_visibility`, `can_access_file`
+- **Recovery docs:** `docs/DATABASE_RECOVERY_2026-01-05.md`
+
+If the database becomes unresponsive, see `security.md` → "RLS Crisis Lessons" section.
 
 ## Current Phase
 
