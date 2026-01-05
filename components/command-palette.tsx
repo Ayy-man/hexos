@@ -12,7 +12,8 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Button } from '@/components/ui/button'
 import {
   Search,
@@ -366,6 +367,12 @@ export function CommandPalette({ role }: CommandPaletteProps) {
         <CommandPaletteTrigger onClick={() => setOpen(true)} modifierKey={modifierKey} isMobile />
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side="top" className="h-[100dvh] p-0">
+            <VisuallyHidden>
+              <SheetTitle>Search</SheetTitle>
+              <SheetDescription>
+                Search for projects, inquiries, blueprints, and more
+              </SheetDescription>
+            </VisuallyHidden>
             <Command className="h-full flex flex-col">{commandContent}</Command>
           </SheetContent>
         </Sheet>
