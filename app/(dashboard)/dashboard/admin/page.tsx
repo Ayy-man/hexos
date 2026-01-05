@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { FolderKanban, FileText, TrendingUp, DollarSign, Plus } from 'lucide-react'
 import { requireRole } from '@/lib/auth/guards'
 import { getProjectStats, getProjects } from '@/lib/api/projects'
+import { getAllSentProposals, bundleProposalsByDfy } from '@/lib/api/proposal-reminders'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { AdminProposalUpdatePanel } from '@/features/inquiries/components/AdminProposalUpdatePanel'
 
 const STATUS_COLORS: Record<string, string> = {
   inquiry_new: 'bg-blue-500',
@@ -29,6 +31,15 @@ export default async function AdminDashboard() {
   } catch {
     // RLS or no data
   }
+
+  // Fetch sent proposals for the update request panel
+  let sentProposals: Awaited<ReturnType<typeof getAllSentProposals>> = []
+  try {
+    sentProposals = await getAllSentProposals()
+  } catch {
+    // Non-critical
+  }
+  const proposalBundles = bundleProposalsByDfy(sentProposals)
 
   return (
     <div className="space-y-6">
@@ -94,6 +105,12 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Proposal Update Requests */}
+      <AdminProposalUpdatePanel
+        proposals={sentProposals}
+        bundles={proposalBundles}
+      />
 
       {/* Recent Projects */}
       <Card>

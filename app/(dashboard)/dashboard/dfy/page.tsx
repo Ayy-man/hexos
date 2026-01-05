@@ -3,10 +3,12 @@ import { Briefcase, DollarSign, Send, TrendingUp, FileText } from 'lucide-react'
 import { requireRole, getProfile } from '@/lib/auth/guards'
 import { getProjects } from '@/lib/api/projects'
 import { getInquiries } from '@/lib/api/inquiries'
+import { getStaleProposalsForDfy } from '@/lib/api/proposal-reminders'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PATH_LABELS } from '@/features/inquiries/constants/fieldMappings'
+import { StaleProposalsBanner } from '@/features/inquiries/components/StaleProposalsBanner'
 
 const STATUS_COLORS: Record<string, string> = {
   inquiry_new: 'bg-blue-500',
@@ -36,6 +38,16 @@ export default async function DfyDashboard() {
     inquiries = await getInquiries()
   } catch {
     // RLS filters to DFY's own inquiries
+  }
+
+  // Fetch stale proposals for reminder banner
+  let staleProposals: Awaited<ReturnType<typeof getStaleProposalsForDfy>> = []
+  if (profile?.id) {
+    try {
+      staleProposals = await getStaleProposalsForDfy(profile.id)
+    } catch {
+      // Non-critical, ignore errors
+    }
   }
 
   // Calculate stats
@@ -74,6 +86,11 @@ export default async function DfyDashboard() {
           </Link>
         </Button>
       </div>
+
+      {/* Stale Proposals Banner */}
+      {staleProposals.length > 0 && (
+        <StaleProposalsBanner proposals={staleProposals} />
+      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
