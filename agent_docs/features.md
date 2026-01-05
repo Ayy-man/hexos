@@ -498,15 +498,34 @@ API: `lib/api/requirement-templates.shared.ts` (client-safe), `lib/api/requireme
 - [ ] Change request flow
 - [ ] Approval/denial workflow
 
-## Planned Features (Nuggets)
+### Phase 4.95: DFY Proposal Reminder System (Complete)
 
-### DFY Proposal Reminders
-Implement automated reminders to DFY partners asking about proposal status:
-- Periodic check-ins on proposals in 'sent' stage
-- Ask DFY: "Any updates on [Company Name] proposal?"
-- Trigger based on time since proposal sent (e.g., 3 days, 1 week)
-- Could use email/in-app notifications
-- Help track pipeline and nudge DFY to close deals or mark as lost
+Automated follow-up system for stale proposals in 'sent' stage.
+
+- [x] Database: Reminder tracking columns on inquiries
+  - [x] reminder_snoozed_until, reminder_snooze_count (max 3)
+  - [x] reminder_escalated_at (admin attention flag)
+  - [x] admin_update_requested_at (manual admin trigger)
+  - [x] dfy_first_viewed_at, lost_reason
+- [x] API Layer (`/lib/api/proposal-reminders.ts`)
+  - [x] getStaleProposalsForDfy() - Proposals >21 days old, not snoozed
+  - [x] getAllStaleProposals() - Admin view
+  - [x] snoozeReminder() - 2 week snooze, max 3 times
+  - [x] markProposalLost() - Mark lost with optional reason
+  - [x] escalateToAdmin() - Flag for admin attention
+  - [x] requestProposalUpdates() - Bulk admin request
+  - [x] bundleProposalsByDfy() - Group by DFY partner
+- [x] Server Actions (`/features/inquiries/actions/reminderActions.ts`)
+- [x] UI Components
+  - [x] ProposalStatusDialog - 4 options: Won/Lost/Snooze/Escalate
+  - [x] StaleProposalsBanner - DFY dashboard warning banner
+  - [x] AdminProposalUpdatePanel - Bulk selection + request updates
+- [x] Integration
+  - [x] DFY Dashboard banner for stale proposals
+  - [x] Admin Dashboard panel with bundled requests
+- [ ] Email notifications (Phase 2 - requires Resend + Vercel Cron)
+
+## Planned Features (Nuggets)
 
 ---
 

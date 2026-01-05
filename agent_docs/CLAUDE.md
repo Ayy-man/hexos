@@ -132,14 +132,17 @@ All 22 statuses supported with manual transitions via `ProjectStatusControl` com
 - [x] Toast notifications on form errors
 - [x] Conversation type badges + quick filters
 
+**DFY Proposal Reminders - ✅ COMPLETE:**
+- [x] Stale proposal detection (>21 days in 'sent' stage)
+- [x] DFY banner with 4-option dialog (Won/Lost/Snooze/Escalate)
+- [x] Snooze system (2 weeks, max 3 times, auto-escalate)
+- [x] Admin bulk update request panel (grouped by DFY partner)
+
 **Next Up - Features (P2):**
-- [ ] Projects search & filter (search input + status tabs)
-- [ ] Project detail loading skeleton
-- [ ] Keyboard shortcuts help modal (?)
 - [ ] Migrate RequirementsTab to onboarding_requirements
 - [ ] Deliverables sign-off flow
 - [ ] Notification center
-- [ ] Email notifications
+- [ ] Email notifications (proposal reminders Phase 2)
 
 ### Database Tables (Key)
 - `inquiries` - Leads from DFY partners

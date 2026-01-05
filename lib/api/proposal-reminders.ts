@@ -90,10 +90,12 @@ export async function getStaleProposalsForDfy(dfyId: string): Promise<StalePropo
       price_dfy: proposal.price_dfy,
       dfy_partner: dfyPartner,
       blueprint: blueprint,
-      days_since_sent: Math.floor(
-        (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
-          (24 * 60 * 60 * 1000)
-      ),
+      days_since_sent: proposal.proposal_submitted_at
+        ? Math.floor(
+            (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
+              (24 * 60 * 60 * 1000)
+          )
+        : 0,
     }
   }) as StaleProposal[]
 }
@@ -149,10 +151,12 @@ export async function getAllStaleProposals(): Promise<StaleProposal[]> {
       price_dfy: proposal.price_dfy,
       dfy_partner: dfyPartner,
       blueprint: blueprint,
-      days_since_sent: Math.floor(
-        (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
-          (24 * 60 * 60 * 1000)
-      ),
+      days_since_sent: proposal.proposal_submitted_at
+        ? Math.floor(
+            (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
+              (24 * 60 * 60 * 1000)
+          )
+        : 0,
     }
   }) as StaleProposal[]
 }
@@ -206,10 +210,12 @@ export async function getEscalatedProposals(): Promise<StaleProposal[]> {
       price_dfy: proposal.price_dfy,
       dfy_partner: dfyPartner,
       blueprint: blueprint,
-      days_since_sent: Math.floor(
-        (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
-          (24 * 60 * 60 * 1000)
-      ),
+      days_since_sent: proposal.proposal_submitted_at
+        ? Math.floor(
+            (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
+              (24 * 60 * 60 * 1000)
+          )
+        : 0,
     }
   }) as StaleProposal[]
 }
@@ -468,10 +474,12 @@ export async function getAllSentProposals(): Promise<StaleProposal[]> {
       price_dfy: proposal.price_dfy,
       dfy_partner: dfyPartner,
       blueprint: blueprint,
-      days_since_sent: Math.floor(
-        (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
-          (24 * 60 * 60 * 1000)
-      ),
+      days_since_sent: proposal.proposal_submitted_at
+        ? Math.floor(
+            (now.getTime() - new Date(proposal.proposal_submitted_at).getTime()) /
+              (24 * 60 * 60 * 1000)
+          )
+        : 0,
     }
   }) as StaleProposal[]
 }
