@@ -105,6 +105,8 @@ Inquiry/proposal phases are handled at inquiry level via `proposal_stage`.
 All 22 statuses supported with manual transitions via `ProjectStatusControl` component.
 
 ### Current Focus: Phase 5 (External Access & Polish)
+
+**Completed:**
 - [x] Project detail page with tabs (Overview, Deliverables, Requirements, Files, Activity)
 - [x] Project Initiation Wizard with tree-based onboarding_requirements
 - [x] Hierarchical templates (parent_id, position, default_blocker)
@@ -114,9 +116,28 @@ All 22 statuses supported with manual transitions via `ProjectStatusControl` com
 - [x] Deliverables CRUD (add/edit/delete/status)
 - [x] Dev assignment UI (in OverviewTab)
 - [x] Phase stepper + progress cards in Overview
-- [ ] **NEXT: Migrate RequirementsTab to use onboarding_requirements** (currently uses old flat project_requirements)
-- [ ] Deliverables sign-off flow (Admin → DFY confirms for client)
-- [ ] File uploads UI improvements
+- [x] Mobile responsive layouts (2x2 grids, Instagram DM pattern for conversations)
+
+**Next Up - UX Polish (P0):**
+- [ ] Skeleton loaders for list pages
+- [ ] Loading states on action buttons
+- [ ] Confirmation dialogs for destructive actions
+- [ ] Breadcrumb with current page name
+- [ ] Result counts on list pages
+
+**Then - Interactivity (P1):**
+- [ ] Cmd+K command palette + keyboard shortcuts
+- [ ] Inline form validation
+- [ ] Project progress bars in list view
+- [ ] Error boundaries
+
+**Later - Features (P2+):**
+- [ ] Migrate RequirementsTab to onboarding_requirements
+- [ ] Deliverables sign-off flow
+- [ ] Global search
+- [ ] Activity feed
+- [ ] Notification center
+- [ ] Email notifications
 
 ### Database Tables (Key)
 - `inquiries` - Leads from DFY partners
