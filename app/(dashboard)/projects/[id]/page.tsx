@@ -5,6 +5,7 @@ import type { ProjectStatus } from '@/lib/api/projects'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
 import { ProjectTabs } from '@/features/projects/components/ProjectTabs'
 import { ProjectStatusControl } from '@/features/projects/components/ProjectStatusControl'
+import { ProjectProgressBar } from '@/features/projects/components/ProjectProgressBar'
 
 export default async function ProjectDetailPage({
   params,
@@ -55,6 +56,11 @@ export default async function ProjectDetailPage({
           {project.client_name}
           {project.client_business && ` · ${project.client_business}`}
         </p>
+      </div>
+
+      {/* Progress Summary */}
+      <div className="rounded-lg border bg-card p-4">
+        <ProjectProgressBar project={project} variant="detailed" />
       </div>
 
       {/* Status Control */}

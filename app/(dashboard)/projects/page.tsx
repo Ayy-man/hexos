@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getProjects } from '@/lib/api/projects'
 import { requireAuth } from '@/lib/auth/guards'
+import { ProjectProgressBar, ProjectProgressInline } from '@/features/projects/components/ProjectProgressBar'
 
 const STATUS_COLORS: Record<string, string> = {
   inquiry_new: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -83,7 +84,9 @@ export default async function ProjectsPage() {
                     {formatStatus(project.status)}
                   </span>
                 </div>
-                <div className="mt-3 flex items-center gap-4 text-xs text-stone-500 dark:text-stone-400">
+                {/* Progress bar */}
+                <ProjectProgressInline project={project} className="mt-3" />
+                <div className="mt-2 flex items-center gap-4 text-xs text-stone-500 dark:text-stone-400">
                   {project.assigned_dev?.name && (
                     <span>Dev: {project.assigned_dev.name}</span>
                   )}
@@ -110,6 +113,9 @@ export default async function ProjectsPage() {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                     Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Progress
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
                     Assigned Dev
@@ -139,6 +145,9 @@ export default async function ProjectsPage() {
                       >
                         {formatStatus(project.status)}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ProjectProgressBar project={project} variant="compact" />
                     </td>
                     <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
                       {project.assigned_dev?.name || '—'}

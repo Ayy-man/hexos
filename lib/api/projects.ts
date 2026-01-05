@@ -152,7 +152,8 @@ export async function getProjects() {
       *,
       dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
       assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
-      client:profiles!projects_client_id_fkey(id, name, email)
+      client:profiles!projects_client_id_fkey(id, name, email),
+      deliverables(id, status)
     `)
     .order('created_at', { ascending: false })
 
