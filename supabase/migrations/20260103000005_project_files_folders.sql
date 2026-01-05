@@ -71,7 +71,7 @@ DECLARE
 BEGIN
   INSERT INTO project_files (project_id, file_name, file_path, content_type, visibility, position) VALUES (NEW.id, 'Internal Files', '', 'folder', 'workspace', 0) RETURNING id INTO v_internal_folder_id;
   INSERT INTO project_files (project_id, file_name, file_path, content_type, visibility, position) VALUES (NEW.id, 'Shared with Client', '', 'folder', 'portal', 1) RETURNING id INTO v_shared_folder_id;
-  INSERT INTO project_files (project_id, parent_id, file_name, file_path, content_type, visibility, content, position) VALUES (NEW.id, v_shared_folder_id, NEW.name || ' Whiteboard', '', 'whiteboard', 'portal', '{"elements": [], "appState": {}, "files": {}}'::jsonb, 0);
+  INSERT INTO project_files (project_id, parent_id, file_name, file_path, content_type, visibility, content, position) VALUES (NEW.id, v_shared_folder_id, NEW.project_name || ' Whiteboard', '', 'whiteboard', 'portal', '{"elements": [], "appState": {}, "files": {}}'::jsonb, 0);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -86,10 +86,10 @@ DECLARE
   v_internal_folder_id UUID;
   v_shared_folder_id UUID;
 BEGIN
-  FOR v_project IN SELECT p.id, p.name FROM projects p WHERE NOT EXISTS (SELECT 1 FROM project_files pf WHERE pf.project_id = p.id AND pf.content_type = 'folder') LOOP
+  FOR v_project IN SELECT p.id, p.project_name FROM projects p WHERE NOT EXISTS (SELECT 1 FROM project_files pf WHERE pf.project_id = p.id AND pf.content_type = 'folder') LOOP
     INSERT INTO project_files (project_id, file_name, file_path, content_type, visibility, position) VALUES (v_project.id, 'Internal Files', '', 'folder', 'workspace', 0) RETURNING id INTO v_internal_folder_id;
     INSERT INTO project_files (project_id, file_name, file_path, content_type, visibility, position) VALUES (v_project.id, 'Shared with Client', '', 'folder', 'portal', 1) RETURNING id INTO v_shared_folder_id;
-    INSERT INTO project_files (project_id, parent_id, file_name, file_path, content_type, visibility, content, position) VALUES (v_project.id, v_shared_folder_id, v_project.name || ' Whiteboard', '', 'whiteboard', 'portal', '{"elements": [], "appState": {}, "files": {}}'::jsonb, 0);
+    INSERT INTO project_files (project_id, parent_id, file_name, file_path, content_type, visibility, content, position) VALUES (v_project.id, v_shared_folder_id, v_project.project_name || ' Whiteboard', '', 'whiteboard', 'portal', '{"elements": [], "appState": {}, "files": {}}'::jsonb, 0);
     UPDATE project_files SET parent_id = CASE WHEN visibility = 'portal' THEN v_shared_folder_id ELSE v_internal_folder_id END WHERE project_id = v_project.id AND content_type = 'file' AND parent_id IS NULL;
   END LOOP;
 END;
