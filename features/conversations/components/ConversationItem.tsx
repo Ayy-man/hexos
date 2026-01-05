@@ -2,9 +2,43 @@
 
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
-import type { Conversation } from '@/lib/api/conversations.shared'
+import type { Conversation, ConversationType } from '@/lib/api/conversations.shared'
 import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations.shared'
 import { UnreadBadge } from './UnreadBadge'
+import { Users, Briefcase, Handshake, MessageCircle, FileQuestion } from 'lucide-react'
+
+// Type badge configuration with colors and icons
+export const CONVERSATION_TYPE_CONFIG: Record<ConversationType, {
+  icon: typeof Users
+  color: string
+  bgColor: string
+}> = {
+  project: {
+    icon: Users,
+    color: 'text-cyan-600 dark:text-cyan-400',
+    bgColor: 'bg-cyan-100 dark:bg-cyan-900/50',
+  },
+  workspace: {
+    icon: Briefcase,
+    color: 'text-purple-600 dark:text-purple-400',
+    bgColor: 'bg-purple-100 dark:bg-purple-900/50',
+  },
+  partner: {
+    icon: Handshake,
+    color: 'text-orange-600 dark:text-orange-400',
+    bgColor: 'bg-orange-100 dark:bg-orange-900/50',
+  },
+  direct: {
+    icon: MessageCircle,
+    color: 'text-blue-600 dark:text-blue-400',
+    bgColor: 'bg-blue-100 dark:bg-blue-900/50',
+  },
+  inquiry: {
+    icon: FileQuestion,
+    color: 'text-green-600 dark:text-green-400',
+    bgColor: 'bg-green-100 dark:bg-green-900/50',
+  },
+}
 
 interface ConversationItemProps {
   conversation: Conversation
@@ -51,17 +85,20 @@ export function ConversationItem({ conversation, isSelected, onClick }: Conversa
   // Get subtitle based on conversation type
   const getSubtitle = () => {
     if (conversation.type === 'direct') {
-      return 'Direct Message'
+      return null // Badge handles this
     }
 
     if (conversation.type === 'inquiry') {
       const status = conversation.inquiry?.status || 'unknown'
-      return `Inquiry • ${status.charAt(0).toUpperCase() + status.slice(1)}`
+      return status.charAt(0).toUpperCase() + status.slice(1)
     }
 
-    // For project conversations
-    return `${CONVERSATION_TYPE_LABELS[conversation.type]} • ${conversation.project?.client_name || ''}`
+    // For project conversations, just show client name
+    return conversation.project?.client_name || ''
   }
+
+  const typeConfig = CONVERSATION_TYPE_CONFIG[conversation.type]
+  const TypeIcon = typeConfig.icon
 
   return (
     <button
@@ -71,13 +108,31 @@ export function ConversationItem({ conversation, isSelected, onClick }: Conversa
         isSelected && 'bg-muted'
       )}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-3">
+        {/* Type icon badge */}
+        <div className={cn(
+          'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5',
+          typeConfig.bgColor
+        )}>
+          <TypeIcon className={cn('h-4 w-4', typeConfig.color)} />
+        </div>
+
         <div className="min-w-0 flex-1">
           {/* Display name */}
           <div className="font-medium text-sm truncate">{getDisplayName()}</div>
 
-          {/* Subtitle */}
-          <div className="text-xs text-muted-foreground mt-0.5">{getSubtitle()}</div>
+          {/* Type label and subtitle */}
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className={cn('text-xs font-medium', typeConfig.color)}>
+              {CONVERSATION_TYPE_LABELS[conversation.type]}
+            </span>
+            {getSubtitle() && (
+              <>
+                <span className="text-xs text-muted-foreground">•</span>
+                <span className="text-xs text-muted-foreground truncate">{getSubtitle()}</span>
+              </>
+            )}
+          </div>
 
           {/* Last message preview */}
           <p className="text-sm text-muted-foreground mt-1 truncate">
