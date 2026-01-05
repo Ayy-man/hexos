@@ -33,9 +33,8 @@ import { toast } from 'sonner'
 // Status Configuration
 // ============================================
 
+// Project phases (inquiry/proposal phases handled at inquiry level, not here)
 const STATUS_PHASES = {
-  inquiry: ['inquiry_new', 'ai_matching', 'qualified'],
-  proposal: ['proposal_drafting', 'internal_review', 'proposal_sent', 'negotiating', 'committed'],
   signoff: ['deliverables_pending', 'awaiting_signoff', 'signed_off'],
   agreement: ['agreement_sent', 'agreement_signed'],
   payment: ['payment_pending', 'payment_partial', 'payment_paid'],
@@ -46,8 +45,6 @@ const STATUS_PHASES = {
 } as const
 
 const PHASE_LABELS: Record<string, string> = {
-  inquiry: 'Inquiry',
-  proposal: 'Proposal',
   signoff: 'Sign-off',
   agreement: 'Agreement',
   payment: 'Payment',
@@ -57,19 +54,9 @@ const PHASE_LABELS: Record<string, string> = {
   closed: 'Closed',
 }
 
-const PHASE_ORDER = ['inquiry', 'proposal', 'signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery', 'closed'] as const
+const PHASE_ORDER = ['signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery', 'closed'] as const
 
 const STATUS_LABELS: Record<string, string> = {
-  // Inquiry
-  inquiry_new: 'New Inquiry',
-  ai_matching: 'AI Matching',
-  qualified: 'Qualified',
-  // Proposal
-  proposal_drafting: 'Drafting Proposal',
-  internal_review: 'Internal Review',
-  proposal_sent: 'Proposal Sent',
-  negotiating: 'Negotiating',
-  committed: 'Committed',
   // Sign-off
   deliverables_pending: 'Deliverables Pending',
   awaiting_signoff: 'Awaiting Sign-off',
@@ -103,16 +90,6 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  // Inquiry - Stone
-  inquiry_new: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-  ai_matching: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-  qualified: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-  // Proposal - Blue
-  proposal_drafting: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  internal_review: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  proposal_sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  negotiating: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  committed: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
   // Sign-off - Indigo
   deliverables_pending: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
   awaiting_signoff: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
@@ -146,25 +123,8 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 // Transition map: what statuses can transition to what
+// Projects start at deliverables_pending after conversion from inquiry
 const TRANSITIONS: Record<string, { next: ProjectStatus; label: string; primary?: boolean }[]> = {
-  // Inquiry
-  inquiry_new: [{ next: 'ai_matching', label: 'Start Matching', primary: true }],
-  ai_matching: [{ next: 'qualified', label: 'Mark Qualified', primary: true }],
-  qualified: [{ next: 'proposal_drafting', label: 'Start Proposal', primary: true }],
-
-  // Proposal
-  proposal_drafting: [{ next: 'internal_review', label: 'Submit for Review', primary: true }],
-  internal_review: [
-    { next: 'proposal_sent', label: 'Send to Client', primary: true },
-    { next: 'proposal_drafting', label: 'Back to Draft' }
-  ],
-  proposal_sent: [
-    { next: 'negotiating', label: 'Start Negotiation' },
-    { next: 'committed', label: 'Mark Committed', primary: true }
-  ],
-  negotiating: [{ next: 'committed', label: 'Mark Committed', primary: true }],
-  committed: [{ next: 'deliverables_pending', label: 'Confirm Deliverables', primary: true }],
-
   // Sign-off
   deliverables_pending: [{ next: 'awaiting_signoff', label: 'Send for Sign-off', primary: true }],
   awaiting_signoff: [{ next: 'signed_off', label: 'Mark Signed Off', primary: true }],

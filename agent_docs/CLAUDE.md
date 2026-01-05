@@ -91,16 +91,18 @@ Building MVP. See `agent_docs/features.md` for what's built vs planned.
 - Hierarchical requirement templates (selecting template adds entire tree)
 - Delete project (admin, preserves linked inquiry)
 - Requirements CRUD after project creation
-- **Full project lifecycle (30 statuses, 9 phases)** — Status transitions, phase stepper
+- **Full project lifecycle (22 statuses, 7 phases)** — Status transitions, phase stepper
 - **Deliverables CRUD** — Add/edit/delete/status change with activity logging
 - **Overview tab enhancements** — Progress cards, blockers list, recent activity
 
 ### Project Status Lifecycle
 ```
-INQUIRY → PROPOSAL → SIGN-OFF → AGREEMENT → PAYMENT → ONBOARDING → DEVELOPMENT → DELIVERY → CLOSED
+SIGN-OFF → AGREEMENT → PAYMENT → ONBOARDING → DEVELOPMENT → DELIVERY → CLOSED
 ```
 
-All 30 statuses supported with manual transitions via `ProjectStatusControl` component.
+Projects start at `deliverables_pending` after conversion from inquiry.
+Inquiry/proposal phases are handled at inquiry level via `proposal_stage`.
+All 22 statuses supported with manual transitions via `ProjectStatusControl` component.
 
 ### Current Focus: Phase 5 (External Access & Polish)
 - [x] Project detail page with tabs (Overview, Deliverables, Requirements, Files, Activity)
@@ -108,7 +110,7 @@ All 30 statuses supported with manual transitions via `ProjectStatusControl` com
 - [x] Hierarchical templates (parent_id, position, default_blocker)
 - [x] Delete project with inquiry preservation
 - [x] Requirements CRUD after project creation
-- [x] Project status transitions (all 30 statuses, 9 phases)
+- [x] Project status transitions (22 statuses, 7 phases - inquiry/proposal handled at inquiry level)
 - [x] Deliverables CRUD (add/edit/delete/status)
 - [x] Dev assignment UI (in OverviewTab)
 - [x] Phase stepper + progress cards in Overview

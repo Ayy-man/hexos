@@ -23,9 +23,8 @@ interface ProjectTimelineProps {
 // Phase Configuration
 // ============================================
 
+// Project phases - inquiry/proposal handled at inquiry level, projects start at signoff
 const STATUS_PHASES = {
-  inquiry: ['inquiry_new', 'ai_matching', 'qualified'],
-  proposal: ['proposal_drafting', 'internal_review', 'proposal_sent', 'negotiating', 'committed'],
   signoff: ['deliverables_pending', 'awaiting_signoff', 'signed_off'],
   agreement: ['agreement_sent', 'agreement_signed'],
   payment: ['payment_pending', 'payment_partial', 'payment_paid'],
@@ -36,8 +35,6 @@ const STATUS_PHASES = {
 } as const
 
 const PHASE_LABELS: Record<string, string> = {
-  inquiry: 'Inquiry',
-  proposal: 'Proposal',
   signoff: 'Sign-off',
   agreement: 'Agreement',
   payment: 'Payment',
@@ -47,7 +44,7 @@ const PHASE_LABELS: Record<string, string> = {
   closed: 'Closed',
 }
 
-const PHASE_ORDER = ['inquiry', 'proposal', 'signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery'] as const
+const PHASE_ORDER = ['signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery'] as const
 
 // ============================================
 // Helper Functions

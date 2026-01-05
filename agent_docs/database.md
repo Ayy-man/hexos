@@ -31,11 +31,11 @@ pnpm supabase db push
 ```sql
 CREATE TYPE user_role AS ENUM ('admin', 'internal', 'dev', 'dfy', 'client');
 
+-- Projects start at sign-off phase after conversion from inquiry
+-- Inquiry/proposal phases handled at inquiry level via proposal_stage
 CREATE TYPE project_status AS ENUM (
-  -- Inquiry
-  'inquiry_new', 'ai_matching', 'qualified',
-  -- Proposal
-  'proposal_drafting', 'internal_review', 'proposal_sent', 'negotiating', 'committed',
+  -- Sign-off
+  'deliverables_pending', 'awaiting_signoff', 'signed_off',
   -- Agreement
   'agreement_sent', 'agreement_signed',
   -- Payment

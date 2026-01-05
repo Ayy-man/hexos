@@ -2,12 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import type { UserRole } from '@/lib/auth/types'
 import type { OnboardingRequirement } from './onboarding-requirements'
 
-// All 30 project statuses
+// Project statuses (22 total) - starts at sign-off phase after conversion from inquiry
+// Inquiry/proposal phases are handled at the inquiry level (proposal_stage)
 export type ProjectStatus =
-  // Inquiry
-  | 'inquiry_new' | 'ai_matching' | 'qualified'
-  // Proposal
-  | 'proposal_drafting' | 'internal_review' | 'proposal_sent' | 'negotiating' | 'committed'
   // Sign-off
   | 'deliverables_pending' | 'awaiting_signoff' | 'signed_off'
   // Agreement
