@@ -118,24 +118,26 @@ All 22 statuses supported with manual transitions via `ProjectStatusControl` com
 - [x] Phase stepper + progress cards in Overview
 - [x] Mobile responsive layouts (2x2 grids, Instagram DM pattern for conversations)
 
-**Next Up - UX Polish (P0):**
-- [ ] Skeleton loaders for list pages
-- [ ] Loading states on action buttons
-- [ ] Confirmation dialogs for destructive actions
-- [ ] Breadcrumb with current page name
-- [ ] Result counts on list pages
+**UX Polish (P0) - ✅ COMPLETE:**
+- [x] Skeleton loaders for list pages
+- [x] Loading states on action buttons
+- [x] Confirmation dialogs for destructive actions
+- [x] Breadcrumb with current page name
+- [x] Result counts on list pages
 
-**Then - Interactivity (P1):**
-- [ ] Cmd+K command palette + keyboard shortcuts
-- [ ] Inline form validation
-- [ ] Project progress bars in list view
-- [ ] Error boundaries
+**Interactivity (P1) - ✅ COMPLETE:**
+- [x] Cmd+K command palette (global search across projects, inquiries, blueprints, conversations)
+- [x] Project progress bars in list view (phase-based + deliverable-based)
+- [x] Error boundaries (dashboard + route-specific)
+- [x] Toast notifications on form errors
+- [x] Conversation type badges + quick filters
 
-**Later - Features (P2+):**
+**Next Up - Features (P2):**
+- [ ] Projects search & filter (search input + status tabs)
+- [ ] Project detail loading skeleton
+- [ ] Keyboard shortcuts help modal (?)
 - [ ] Migrate RequirementsTab to onboarding_requirements
 - [ ] Deliverables sign-off flow
-- [ ] Global search
-- [ ] Activity feed
 - [ ] Notification center
 - [ ] Email notifications
 

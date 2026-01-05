@@ -46,7 +46,7 @@ See `components.md` for details.
 - [x] Status transitions (30 statuses via ProjectStatusControl)
 - [x] Phase stepper showing project progress (9 phases)
 - [ ] Deliverables list + Gantt view
-- [ ] **Project list stage progress bar** - Show visual progress bar in projects list based on project lifecycle stage
+- [x] **Project list stage progress bar** - Visual progress bar based on phase (14-100%) + deliverables when in development
 
 ### Phase 4: Inquiry Flow (Complete)
 
@@ -540,6 +540,43 @@ Implement automated reminders to DFY partners asking about proposal status:
 - Dynamic onboarding wizards
 - Smart proposal UIs
 - Scope change handlers
+
+### UX Improvements (Complete - Jan 2026)
+
+Comprehensive UX polish across the application.
+
+**P0: Core UX ✅**
+- [x] Skeleton loaders on list pages (projects, inquiries, blueprints)
+- [x] Delete confirmation dialogs (AlertDialog with destructive action)
+- [x] Breadcrumbs on detail pages
+- [x] Result counts on lists ("Showing X results")
+
+**P1: Command Palette ✅**
+- [x] Global search via ⌘K (`/components/command-palette.tsx`)
+- [x] Parallel queries (projects, inquiries, blueprints, conversations)
+- [x] Recent searches persistence (localStorage)
+- [x] Mobile responsive drawer (Sheet on mobile, Dialog on desktop)
+- [x] Keyboard navigation (↑↓ arrows, Enter to select, Esc to close)
+
+**P1.1: Project Progress Bars ✅**
+- [x] Phase-based progress (signoff 14% → closed 100%)
+- [x] Deliverable-based progress when in development/delivery
+- [x] Progress column in desktop table + mobile cards
+- [x] Progress summary card on project detail page
+- [x] Tooltip with deliverable counts (`/lib/utils/projectProgress.ts`)
+
+**P1.2: Error Handling UI ✅**
+- [x] Error types in `/lib/errors.ts` (parseError, isNotFoundError)
+- [x] Dashboard error boundary (`/app/(dashboard)/error.tsx`)
+- [x] Route-specific boundaries (projects, inquiries)
+- [x] Toast notifications on form errors (sonner)
+- [x] Proper 404 vs error boundary routing
+
+**Bonus: Conversation Badges ✅**
+- [x] Colored type badges (cyan=project, purple=workspace, orange=partner)
+- [x] Quick filter buttons by type (`/features/conversations/components/`)
+
+---
 
 ## Feature Flags
 
