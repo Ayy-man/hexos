@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Bot, ChevronLeft, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { InitialStep } from './steps/InitialStep'
 import { ClosedDealType } from './steps/ClosedDealType'
@@ -136,6 +137,7 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
       setStep('confirmation')
     } catch (error) {
       console.error('Failed to submit inquiry:', error)
+      toast.error('Failed to submit inquiry. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
