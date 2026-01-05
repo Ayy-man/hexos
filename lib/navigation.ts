@@ -77,6 +77,7 @@ const devNav: NavGroup[] = [
     label: 'Work',
     items: [
       { title: 'My Projects', url: '/projects', icon: 'FolderKanban' },
+      { title: 'Opportunities', url: '/opportunities', icon: 'Briefcase' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
     ],
   },
