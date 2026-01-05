@@ -92,23 +92,24 @@ function getPhaseForStatus(status: string): string {
 export function calculatePhaseProgress(status: string): PhaseProgress {
   const currentPhase = getPhaseForStatus(status)
   const phaseIndex = PHASE_ORDER.indexOf(currentPhase as (typeof PHASE_ORDER)[number])
-  const totalPhases = PHASE_ORDER.length - 1 // Exclude 'closed' from progress calculation
+  const totalPhases = PHASE_ORDER.length
 
   // Calculate percentage based on phase position
-  // closed = 100%, otherwise based on position
+  // closed = 100%, otherwise based on position (early phases show ~15%+)
   let percentage: number
   if (currentPhase === 'closed') {
     percentage = 100
   } else {
-    // Map phase index to percentage (0-100)
-    percentage = Math.round((phaseIndex / (totalPhases - 1)) * 100)
+    // Use (index + 1) / total so first phase shows ~15% instead of 0%
+    // signoff: 14%, agreement: 29%, payment: 43%, onboarding: 57%, development: 71%, delivery: 86%
+    percentage = Math.round(((phaseIndex + 1) / totalPhases) * 100)
   }
 
   return {
     currentPhase,
     phaseLabel: PHASE_LABELS[currentPhase] || currentPhase,
     phaseIndex,
-    totalPhases: PHASE_ORDER.length,
+    totalPhases,
     percentage,
   }
 }

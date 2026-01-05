@@ -25,6 +25,7 @@ import { MarkAsClosedButton } from '@/features/inquiries/components/MarkAsClosed
 import { ConvertToProjectButton } from '@/features/inquiries/components/conversion'
 import { ReopenInquiryButton } from '@/features/inquiries/components/ReopenInquiryButton'
 import type { ProposalStage } from '@/lib/api/inquiries'
+import { isNotFoundError } from '@/lib/errors'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
   saveInquiryDocumentWithDiscussions,
@@ -143,8 +144,18 @@ export default async function InquiryDetailPage({
   let dfyComments: InquiryComment[] = []
   try {
     inquiry = await getInquiry(id)
-  } catch {
-    notFound()
+  } catch (error) {
+    // Log the actual error for debugging
+    console.error('[Inquiry Page Error]', {
+      inquiryId: id,
+      error: error instanceof Error ? error.message : JSON.stringify(error, null, 2),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    // Only show 404 for actual not-found errors, let error boundary handle others
+    if (isNotFoundError(error)) {
+      notFound()
+    }
+    throw error
   }
 
   if (!inquiry) {
