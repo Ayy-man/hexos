@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { getProjects } from '@/lib/api/projects'
 import { requireAuth } from '@/lib/auth/guards'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 const STATUS_COLORS: Record<string, string> = {
   inquiry_new: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -33,81 +35,114 @@ export default async function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+        <h1 className="text-xl md:text-2xl font-semibold text-stone-900 dark:text-stone-100">
           Projects
         </h1>
         <Link
           href="/projects/new"
-          className="rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-700"
+          className="rounded-md bg-cyan-600 px-3 py-2 md:px-4 text-sm font-medium text-white hover:bg-cyan-700"
         >
-          New Project
+          <span className="hidden sm:inline">New Project</span>
+          <span className="sm:hidden">New</span>
         </Link>
       </div>
 
       {projects.length === 0 ? (
-        <div className="rounded-lg border border-stone-200 bg-white p-12 text-center dark:border-stone-800 dark:bg-stone-900">
-          <p className="text-stone-500 dark:text-stone-400">
+        <div className="rounded-lg border border-stone-200 bg-white p-8 md:p-12 text-center dark:border-stone-800 dark:bg-stone-900">
+          <p className="text-stone-500 dark:text-stone-400 text-sm md:text-base">
             No projects yet. Create your first project to get started.
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
-          <table className="min-w-full divide-y divide-stone-200 dark:divide-stone-800">
-            <thead className="bg-stone-50 dark:bg-stone-800/50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                  Project
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                  Client
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                  Assigned Dev
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                  Target Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
-              {projects.map((project) => (
-                <tr key={project.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/projects/${project.id}`}
-                      className="font-medium text-stone-900 hover:text-cyan-600 dark:text-stone-100 dark:hover:text-cyan-400"
-                    >
-                      {project.project_name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
-                    {project.client_name}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
-                    >
-                      {formatStatus(project.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
-                    {project.assigned_dev?.name || '—'}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
-                    {project.target_delivery_date
-                      ? new Date(project.target_delivery_date).toLocaleDateString()
-                      : '—'}
-                  </td>
+        <>
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+            <table className="min-w-full divide-y divide-stone-200 dark:divide-stone-800">
+              <thead className="bg-stone-50 dark:bg-stone-800/50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Project
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Client
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Assigned Dev
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                    Target Date
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
+                {projects.map((project) => (
+                  <tr key={project.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/projects/${project.id}`}
+                        className="font-medium text-stone-900 hover:text-cyan-600 dark:text-stone-100 dark:hover:text-cyan-400"
+                      >
+                        {project.project_name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+                      {project.client_name}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
+                      >
+                        {formatStatus(project.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+                      {project.assigned_dev?.name || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+                      {project.target_delivery_date
+                        ? new Date(project.target_delivery_date).toLocaleDateString()
+                        : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile card view */}
+          <div className="md:hidden space-y-3">
+            {projects.map((project) => (
+              <Link key={project.id} href={`/projects/${project.id}`}>
+                <Card className="p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-medium text-stone-900 dark:text-stone-100 line-clamp-1">
+                        {project.project_name}
+                      </h3>
+                      <Badge className={getStatusColor(project.status)}>
+                        {formatStatus(project.status)}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-stone-600 dark:text-stone-400 space-y-1">
+                      <p><span className="font-medium">Client:</span> {project.client_name}</p>
+                      {project.assigned_dev && (
+                        <p><span className="font-medium">Dev:</span> {project.assigned_dev.name}</p>
+                      )}
+                      {project.target_delivery_date && (
+                        <p><span className="font-medium">Target:</span> {new Date(project.target_delivery_date).toLocaleDateString()}</p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

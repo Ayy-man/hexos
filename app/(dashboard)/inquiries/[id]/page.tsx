@@ -497,13 +497,13 @@ export default async function InquiryDetailPage({
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0">
-        <div className="flex-shrink-0">
-          <TabsList>
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+        <div className="flex-shrink-0 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="w-max min-w-full md:w-auto">
+            <TabsTrigger value="overview" className="flex items-center gap-2 min-w-[100px]">
               <FileText className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="document" className="flex items-center gap-2">
+            <TabsTrigger value="document" className="flex items-center gap-2 min-w-[100px]">
               <MessageSquare className="h-4 w-4" />
               Document
               {(() => {
@@ -516,7 +516,7 @@ export default async function InquiryDetailPage({
               })()}
             </TabsTrigger>
             {showProposalTab && (
-              <TabsTrigger value="proposal" className="flex items-center gap-2">
+              <TabsTrigger value="proposal" className="flex items-center gap-2 min-w-[100px]">
                 <Send className="h-4 w-4" />
                 Proposal
                 {proposalSubmitted && (
@@ -535,13 +535,13 @@ export default async function InquiryDetailPage({
               </TabsTrigger>
             )}
             {showMyVersionTab && (
-              <TabsTrigger value="my-version" className="flex items-center gap-2">
+              <TabsTrigger value="my-version" className="flex items-center gap-2 min-w-[100px]">
                 <Lock className="h-4 w-4" />
                 My Version
               </TabsTrigger>
             )}
             {showDeliverablesTab && (
-              <TabsTrigger value="deliverables" className="flex items-center gap-2">
+              <TabsTrigger value="deliverables" className="flex items-center gap-2 min-w-[100px]">
                 <Package className="h-4 w-4" />
                 Deliverables
                 {deliverablesStatus === 'approved' && (
