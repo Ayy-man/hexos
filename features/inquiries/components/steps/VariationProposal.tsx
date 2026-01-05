@@ -39,6 +39,8 @@ export function VariationProposal({ blueprints }: VariationProposalProps) {
             <Label htmlFor="prospect_website">Prospect Website *</Label>
             <Input
               id="prospect_website"
+              type="url"
+              inputMode="url"
               placeholder="https://example.com"
               {...register('prospect_website')}
             />

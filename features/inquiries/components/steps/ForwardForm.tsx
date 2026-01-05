@@ -22,6 +22,8 @@ export function ForwardForm() {
           <Input
             id="forward_email_1"
             type="email"
+            inputMode="email"
+            autoComplete="email"
             placeholder="email@example.com"
             {...register('forward_email_1')}
           />
@@ -32,6 +34,8 @@ export function ForwardForm() {
           <Input
             id="forward_email_2"
             type="email"
+            inputMode="email"
+            autoComplete="email"
             placeholder="email@example.com"
             {...register('forward_email_2')}
           />

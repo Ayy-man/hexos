@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import { getProjects } from '@/lib/api/projects'
 import { requireAuth } from '@/lib/auth/guards'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 
 const STATUS_COLORS: Record<string, string> = {
   inquiry_new: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
@@ -57,8 +55,45 @@ export default async function ProjectsPage() {
         </div>
       ) : (
         <>
+          {/* Mobile card view */}
+          <div className="space-y-3 md:hidden">
+            {projects.map((project) => (
+              <Link
+                key={project.id}
+                href={`/projects/${project.id}`}
+                className="block rounded-lg border border-stone-200 bg-white p-4 active:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:active:bg-stone-800/50"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-medium text-stone-900 dark:text-stone-100">
+                      {project.project_name}
+                    </h3>
+                    <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">
+                      {project.client_name}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
+                  >
+                    {formatStatus(project.status)}
+                  </span>
+                </div>
+                <div className="mt-3 flex items-center gap-4 text-xs text-stone-500 dark:text-stone-400">
+                  {project.assigned_dev?.name && (
+                    <span>Dev: {project.assigned_dev.name}</span>
+                  )}
+                  {project.target_delivery_date && (
+                    <span>
+                      Due: {new Date(project.target_delivery_date).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+
           {/* Desktop table view */}
-          <div className="hidden md:block overflow-hidden rounded-lg border border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900">
+          <div className="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block dark:border-stone-800 dark:bg-stone-900">
             <table className="min-w-full divide-y divide-stone-200 dark:divide-stone-800">
               <thead className="bg-stone-50 dark:bg-stone-800/50">
                 <tr>
@@ -112,35 +147,6 @@ export default async function ProjectsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
-
-          {/* Mobile card view */}
-          <div className="md:hidden space-y-3">
-            {projects.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`}>
-                <Card className="p-4 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors">
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-medium text-stone-900 dark:text-stone-100 line-clamp-1">
-                        {project.project_name}
-                      </h3>
-                      <Badge className={getStatusColor(project.status)}>
-                        {formatStatus(project.status)}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-stone-600 dark:text-stone-400 space-y-1">
-                      <p><span className="font-medium">Client:</span> {project.client_name}</p>
-                      {project.assigned_dev && (
-                        <p><span className="font-medium">Dev:</span> {project.assigned_dev.name}</p>
-                      )}
-                      {project.target_delivery_date && (
-                        <p><span className="font-medium">Target:</span> {new Date(project.target_delivery_date).toLocaleDateString()}</p>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              </Link>
-            ))}
           </div>
         </>
       )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useOptimistic } from 'react'
+import { useState, useTransition, useOptimistic, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { LayoutList, LayoutGrid } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,6 +9,7 @@ import { InquiryTableView } from './InquiryTableView'
 import { InquiryBoardView } from './InquiryBoardView'
 import { updateStageAction } from '../actions/inquiryActions'
 import { getStageName } from './StageBadge'
+import { useIsMobile } from '@/hooks/use-mobile'
 import type { ProposalStage, Priority } from '@/lib/api/inquiries'
 
 interface Inquiry {
@@ -35,9 +36,17 @@ interface InquiryListViewProps {
 }
 
 export function InquiryListView({ inquiries, defaultView = 'table' }: InquiryListViewProps) {
+  const isMobile = useIsMobile()
   const [view, setView] = useState<'table' | 'board'>(defaultView)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  // Default to board view on mobile (better UX for kanban cards)
+  useEffect(() => {
+    if (isMobile && defaultView === 'table') {
+      setView('board')
+    }
+  }, [isMobile, defaultView])
 
   // Local state for immediate updates (more reliable than useOptimistic for this case)
   const [localInquiries, setLocalInquiries] = useState(inquiries)
