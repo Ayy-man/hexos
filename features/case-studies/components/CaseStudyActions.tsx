@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -10,6 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Copy, Edit, Eye, Loader2, MoreHorizontal, Trash2 } from 'lucide-react'
 import { duplicateCaseStudyAction, deleteCaseStudyAction } from '../actions/caseStudyActions'
 
@@ -20,6 +30,7 @@ interface CaseStudyActionsProps {
 
 export function CaseStudyActions({ caseStudyId, isEditMode }: CaseStudyActionsProps) {
   const [isPending, startTransition] = useTransition()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const handleDuplicate = () => {
     startTransition(async () => {
@@ -28,57 +39,82 @@ export function CaseStudyActions({ caseStudyId, isEditMode }: CaseStudyActionsPr
   }
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this case study? This action cannot be undone.')) {
-      startTransition(async () => {
-        await deleteCaseStudyAction(caseStudyId)
-      })
-    }
+    startTransition(async () => {
+      await deleteCaseStudyAction(caseStudyId)
+    })
   }
 
   return (
-    <div className="flex gap-2">
-      {isEditMode ? (
-        <Button variant="outline" asChild>
-          <Link href={`/case-studies/${caseStudyId}`}>
-            <Eye className="h-4 w-4 mr-2" />
-            View Mode
-          </Link>
-        </Button>
-      ) : (
-        <Button variant="outline" asChild>
-          <Link href={`/case-studies/${caseStudyId}?edit=true`}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Link>
-        </Button>
-      )}
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" disabled={isPending}>
-            {isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MoreHorizontal className="h-4 w-4" />
-            )}
+    <>
+      <div className="flex gap-2">
+        {isEditMode ? (
+          <Button variant="outline" asChild>
+            <Link href={`/case-studies/${caseStudyId}`}>
+              <Eye className="h-4 w-4 mr-2" />
+              View Mode
+            </Link>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleDuplicate} disabled={isPending}>
-            <Copy className="h-4 w-4 mr-2" />
-            Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleDelete}
-            disabled={isPending}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+        ) : (
+          <Button variant="outline" asChild>
+            <Link href={`/case-studies/${caseStudyId}?edit=true`}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
+          </Button>
+        )}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" disabled={isPending}>
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MoreHorizontal className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleDuplicate} disabled={isPending}>
+              <Copy className="h-4 w-4 mr-2" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isPending}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Case Study</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this case study? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

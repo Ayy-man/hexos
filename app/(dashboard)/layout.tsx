@@ -9,12 +9,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-} from '@/components/ui/breadcrumb'
+import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
@@ -59,13 +54,7 @@ export default async function DashboardLayout({
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage>hexOS</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
+          <DynamicBreadcrumb />
           <div className="ml-auto">
             <ThemeToggle />
           </div>

@@ -55,6 +55,11 @@ export default async function ProjectsPage() {
         </div>
       ) : (
         <>
+          {/* Results count */}
+          <p className="text-sm text-stone-500 dark:text-stone-400">
+            {projects.length} project{projects.length !== 1 ? 's' : ''}
+          </p>
+
           {/* Mobile card view */}
           <div className="space-y-3 md:hidden">
             {projects.map((project) => (
