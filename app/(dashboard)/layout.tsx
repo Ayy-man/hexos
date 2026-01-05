@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb'
+import { CommandPalette } from '@/components/command-palette'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
@@ -55,7 +56,8 @@ export default async function DashboardLayout({
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <DynamicBreadcrumb />
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <CommandPalette role={(profile as Profile).role} />
             <ThemeToggle />
           </div>
         </header>
