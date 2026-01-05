@@ -103,24 +103,24 @@ export default async function InquiriesPage({
         </div>
       )}
 
-      {/* Stats - only for active view */}
+      {/* Stats - only for active view - 2 per row on mobile */}
       {filter === 'active' && (
-        <div className="grid gap-4 md:grid-cols-5">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
+        <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-5">
+          <Card className="p-3 md:p-0">
+            <CardHeader className="p-0 pb-1 md:p-6 md:pb-2">
+              <CardTitle className="text-xs md:text-sm font-medium">Total</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{inquiries.length}</div>
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">{inquiries.length}</div>
             </CardContent>
           </Card>
           {STAGE_STATS.map(({ stage, label, color }) => (
-            <Card key={stage}>
-              <CardHeader className="pb-2">
-                <CardTitle className={`text-sm font-medium ${color}`}>{label}</CardTitle>
+            <Card key={stage} className="p-3 md:p-0">
+              <CardHeader className="p-0 pb-1 md:p-6 md:pb-2">
+                <CardTitle className={`text-xs md:text-sm font-medium ${color}`}>{label}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className={`text-2xl font-bold ${color}`}>
+              <CardContent className="p-0 md:p-6 md:pt-0">
+                <div className={`text-xl md:text-2xl font-bold ${color}`}>
                   {inquiries.filter((i) => (i.proposal_stage || 'unopened') === stage).length}
                 </div>
               </CardContent>

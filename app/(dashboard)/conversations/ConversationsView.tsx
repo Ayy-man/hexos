@@ -7,9 +7,10 @@ import { ConversationList, ChatPanel } from '@/features/conversations/components
 import { UnreadBadge } from '@/features/conversations/components/UnreadBadge'
 import type { Conversation, Message } from '@/lib/api/conversations.shared'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MessageSquare, FolderKanban, FileText, Inbox, Plus } from 'lucide-react'
+import { MessageSquare, FolderKanban, FileText, Inbox, Plus, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface Participant {
   id: string
@@ -40,6 +41,7 @@ export function ConversationsView({
   const [messages, setMessages] = useState<Message[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+  const isMobile = useIsMobile()
 
   // Auto-collapse sidebar for conversations view (more space for chat)
   const { open, setOpen } = useSidebar()
@@ -141,38 +143,103 @@ export function ConversationsView({
     setSelectedConversation(conversation)
   }
 
+  const handleBack = () => {
+    setSelectedConversation(null)
+    setMessages([])
+    setParticipants([])
+  }
+
+  // Get conversation title for mobile header
+  const getConversationTitle = (conversation: Conversation) => {
+    if (conversation.type === 'direct' && conversation.participants) {
+      const otherParticipant = conversation.participants.find(
+        (p) => p.user?.id !== currentUserId
+      )
+      return otherParticipant?.user?.name || 'Conversation'
+    }
+    return conversation.title || 'Conversation'
+  }
+
+  // Mobile: Full-screen conversation view (Instagram DM pattern)
+  if (isMobile && selectedConversation) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-4rem)]">
+        {/* Mobile chat header with back button */}
+        <div className="border-b px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="shrink-0"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold truncate">
+              {getConversationTitle(selectedConversation)}
+            </h2>
+            {selectedConversation.type !== 'direct' && (
+              <p className="text-xs text-muted-foreground capitalize">
+                {selectedConversation.type}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Chat content */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {isLoadingMessages ? (
+            <div className="flex-1 p-4 space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ) : (
+            <ChatPanel
+              conversation={selectedConversation}
+              initialMessages={messages}
+              currentUserId={currentUserId}
+              participants={participants}
+              className="h-full"
+            />
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header with tabs */}
       <div className="border-b">
-        <div className="px-6 pt-4 pb-0">
+        <div className="px-4 md:px-6 pt-4 pb-0">
           <h1 className="text-2xl font-semibold">Conversations</h1>
         </div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="px-6">
+          <div className="px-4 md:px-6 overflow-x-auto scrollbar-hide">
             <TabsList className="h-12 bg-transparent p-0 border-b-0">
               <TabsTrigger
                 value="inbox"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4"
+                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 md:px-4"
               >
                 <Inbox className="h-4 w-4" />
-                Inbox
+                <span className="hidden md:inline">Inbox</span>
                 {directUnread > 0 && <UnreadBadge count={directUnread} />}
               </TabsTrigger>
               <TabsTrigger
                 value="projects"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4"
+                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 md:px-4"
               >
                 <FolderKanban className="h-4 w-4" />
-                Projects
+                <span className="hidden md:inline">Projects</span>
                 {projectUnread > 0 && <UnreadBadge count={projectUnread} />}
               </TabsTrigger>
               <TabsTrigger
                 value="inquiries"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4"
+                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 md:px-4"
               >
                 <FileText className="h-4 w-4" />
-                Inquiries
+                <span className="hidden md:inline">Inquiries</span>
                 {inquiryUnread > 0 && <UnreadBadge count={inquiryUnread} />}
               </TabsTrigger>
             </TabsList>
@@ -180,10 +247,9 @@ export function ConversationsView({
         </Tabs>
       </div>
 
-      {/* Two-panel layout */}
-      <div className="flex flex-1 min-h-0">
-        {/* Left panel: Conversation list */}
-        <div className="w-80 shrink-0 border-r flex flex-col">
+      {/* Mobile: Full-width conversation list */}
+      {isMobile ? (
+        <div className="flex-1 flex flex-col min-h-0">
           {activeTab === 'inbox' && (
             <div className="p-3 border-b">
               <Button variant="outline" size="sm" className="w-full gap-2">
@@ -194,47 +260,68 @@ export function ConversationsView({
           )}
           <ConversationList
             conversations={getCurrentConversations()}
-            selectedId={selectedConversation?.id || null}
+            selectedId={null}
             onSelect={handleSelectConversation}
-            className="flex-1 border-r-0"
+            className="flex-1"
           />
         </div>
+      ) : (
+        /* Desktop: Two-panel layout */
+        <div className="flex flex-1 min-h-0">
+          {/* Left panel: Conversation list */}
+          <div className="w-80 shrink-0 border-r flex flex-col">
+            {activeTab === 'inbox' && (
+              <div className="p-3 border-b">
+                <Button variant="outline" size="sm" className="w-full gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Message
+                </Button>
+              </div>
+            )}
+            <ConversationList
+              conversations={getCurrentConversations()}
+              selectedId={selectedConversation?.id || null}
+              onSelect={handleSelectConversation}
+              className="flex-1 border-r-0"
+            />
+          </div>
 
-        {/* Right panel: Chat */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {selectedConversation ? (
-            isLoadingMessages ? (
-              <div className="flex-1 p-4 space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-              </div>
+          {/* Right panel: Chat */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {selectedConversation ? (
+              isLoadingMessages ? (
+                <div className="flex-1 p-4 space-y-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+              ) : (
+                <ChatPanel
+                  conversation={selectedConversation}
+                  initialMessages={messages}
+                  currentUserId={currentUserId}
+                  participants={participants}
+                  className="h-full"
+                />
+              )
             ) : (
-              <ChatPanel
-                conversation={selectedConversation}
-                initialMessages={messages}
-                currentUserId={currentUserId}
-                participants={participants}
-                className="h-full"
-              />
-            )
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">Select a conversation</p>
-                <p className="text-sm">
-                  {activeTab === 'inbox'
-                    ? 'Choose a conversation or start a new one'
-                    : activeTab === 'projects'
-                    ? 'Select a project conversation to view messages'
-                    : 'Select an inquiry to view the discussion'}
-                </p>
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Select a conversation</p>
+                  <p className="text-sm">
+                    {activeTab === 'inbox'
+                      ? 'Choose a conversation or start a new one'
+                      : activeTab === 'projects'
+                      ? 'Select a project conversation to view messages'
+                      : 'Select an inquiry to view the discussion'}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

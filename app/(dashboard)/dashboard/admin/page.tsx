@@ -48,49 +48,49 @@ export default async function AdminDashboard() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+      {/* Stats Cards - 2x2 grid on mobile */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        <Card className="p-3 md:p-0">
+          <CardHeader className="flex flex-row items-center justify-between p-0 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Projects</CardTitle>
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
+          <CardContent className="p-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground hidden md:block">All time</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
+        <Card className="p-3 md:p-0">
+          <CardHeader className="flex flex-row items-center justify-between p-0 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Active</CardTitle>
             <TrendingUp className="h-4 w-4 text-cyan-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-cyan-600">{stats.active}</div>
-            <p className="text-xs text-muted-foreground">In progress</p>
+          <CardContent className="p-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold text-cyan-600">{stats.active}</div>
+            <p className="text-xs text-muted-foreground hidden md:block">In progress</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Inquiries</CardTitle>
+        <Card className="p-3 md:p-0">
+          <CardHeader className="flex flex-row items-center justify-between p-0 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Inquiries</CardTitle>
             <FileText className="h-4 w-4 text-blue-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.inquiry}</div>
-            <p className="text-xs text-muted-foreground">Pending review</p>
+          <CardContent className="p-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold text-blue-600">{stats.inquiry}</div>
+            <p className="text-xs text-muted-foreground hidden md:block">Pending review</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+        <Card className="p-3 md:p-0">
+          <CardHeader className="flex flex-row items-center justify-between p-0 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Completed</CardTitle>
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-            <p className="text-xs text-muted-foreground">Delivered</p>
+          <CardContent className="p-0 md:p-6 md:pt-0">
+            <div className="text-xl md:text-2xl font-bold text-green-600">{stats.completed}</div>
+            <p className="text-xs text-muted-foreground hidden md:block">Delivered</p>
           </CardContent>
         </Card>
       </div>
