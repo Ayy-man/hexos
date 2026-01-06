@@ -458,3 +458,43 @@ export async function deleteRequirementAction(
 
   revalidatePath(`/projects/${projectId}`)
 }
+
+// ============================================
+// Delivery Date Override
+// ============================================
+
+/**
+ * Update the delivery date override for a project.
+ * Pass null to clear the override and use calculated estimate.
+ */
+export async function updateDeliveryOverrideAction(
+  projectId: string,
+  overrideDate: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('projects')
+    .update({ delivery_date_override: overrideDate })
+    .eq('id', projectId)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: projectId,
+    user_id: user.id,
+    action: 'delivery_date_override_updated',
+    details: {
+      override_date: overrideDate,
+      cleared: overrideDate === null,
+    },
+  })
+
+  revalidatePath(`/projects/${projectId}`)
+  return { success: true }
+}
