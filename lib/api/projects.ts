@@ -65,6 +65,9 @@ export interface Project {
   signoff_sent_by: string | null
   signed_off_at: string | null
   signed_off_by: string | null
+
+  // Delivery estimate override
+  delivery_date_override: string | null
 }
 
 export interface ProjectWithRelations extends Project {

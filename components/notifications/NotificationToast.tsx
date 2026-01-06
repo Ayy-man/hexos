@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X } from 'lucide-react'
 import {
@@ -12,7 +12,7 @@ import {
   RefreshCw,
   Bell,
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -79,9 +79,14 @@ export function NotificationToast({
   const Icon = getIcon(notification.type)
   const colorClass = getNotificationColor(notification.type)
   const actionText = getActionText(notification.type)
+  const [isDragging, setIsDragging] = useState(false)
 
-  // Staggered timing: 4s, 5s, 6s, 7s, 8s
-  const duration = 4000 + (index * 1000)
+  // Motion values for drag
+  const x = useMotionValue(0)
+  const opacity = useTransform(x, [-100, 0, 100], [0.5, 1, 0.5])
+
+  // Staggered timing: 5s, 6s, 7s, 8s, 9s
+  const duration = 5000 + (index * 1000)
 
   // Auto-dismiss after duration
   useEffect(() => {
@@ -90,15 +95,34 @@ export function NotificationToast({
   }, [duration, onDismiss])
 
   const handleClick = useCallback(() => {
+    // Don't navigate if we were dragging
+    if (isDragging) return
     const url = getNotificationUrl(notification)
     router.push(url)
     onDismiss()
-  }, [notification, router, onDismiss])
+  }, [notification, router, onDismiss, isDragging])
 
   const handleDismiss = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     onDismiss()
   }, [onDismiss])
+
+  // Handle drag end - dismiss if dragged far enough
+  const handleDragEnd = useCallback(
+    (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+      const threshold = 100
+      const velocity = info.velocity.x
+      const offset = info.offset.x
+
+      // Dismiss if dragged past threshold or with enough velocity
+      if (Math.abs(offset) > threshold || Math.abs(velocity) > 500) {
+        onDismiss()
+      }
+
+      setTimeout(() => setIsDragging(false), 100)
+    },
+    [onDismiss]
+  )
 
   const actorName = notification.actor?.name || 'System'
   const actorInitial = actorName.charAt(0).toUpperCase()
@@ -108,14 +132,21 @@ export function NotificationToast({
       layout
       initial={{ opacity: 0, x: 100, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 100, scale: 0.95 }}
+      exit={{ opacity: 0, x: 200, scale: 0.95 }}
       transition={{
         type: 'spring',
         stiffness: 400,
         damping: 30,
         opacity: { duration: 0.2 }
       }}
-      className="cursor-pointer group"
+      style={{ x, opacity }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={{ left: 0.5, right: 0.7 }}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={handleDragEnd}
+      whileDrag={{ cursor: 'grabbing' }}
+      className="cursor-grab group touch-pan-y"
       onClick={handleClick}
     >
       <div className="w-[340px] rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-2xl shadow-black/20 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-all hover:bg-background/90 hover:scale-[1.02]">
