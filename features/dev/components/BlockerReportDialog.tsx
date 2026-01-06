@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -67,15 +67,16 @@ export function BlockerReportDialog({
   const [priority, setPriority] = useState<BlockerPriority>('medium')
   const [selectedProjectId, setSelectedProjectId] = useState(projectId || '')
   const [deliverableId, setDeliverableId] = useState(preselectedDeliverableId || '')
-  const [isPending, startTransition] = useTransition()
+  const [isLoading, setIsLoading] = useState(false)
 
   // Filter deliverables by selected project
   const filteredDeliverables = selectedProjectId
     ? deliverables.filter(d => d.project_id === selectedProjectId)
     : deliverables
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[DEBUG] handleSubmit called', { projectId, selectedProjectId, title, priority })
 
     const finalProjectId = projectId || selectedProjectId
     if (!finalProjectId) {
@@ -88,7 +89,8 @@ export function BlockerReportDialog({
       return
     }
 
-    startTransition(async () => {
+    setIsLoading(true)
+    try {
       const result = await reportBlockerAction({
         projectId: finalProjectId,
         deliverableId: deliverableId && deliverableId !== '_none' ? deliverableId : undefined,
@@ -96,6 +98,8 @@ export function BlockerReportDialog({
         description: description.trim() || undefined,
         priority,
       })
+
+      console.log('[DEBUG] reportBlockerAction result:', result)
 
       if (result.success) {
         toast.success('Blocker reported')
@@ -105,7 +109,12 @@ export function BlockerReportDialog({
       } else {
         toast.error(result.message || 'Failed to report blocker')
       }
-    })
+    } catch (error) {
+      console.error('[DEBUG] Error in handleSubmit:', error)
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const resetForm = () => {
@@ -227,8 +236,8 @@ export function BlockerReportDialog({
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Reporting...' : 'Report Blocker'}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? 'Reporting...' : 'Report Blocker'}
             </Button>
           </DialogFooter>
         </form>

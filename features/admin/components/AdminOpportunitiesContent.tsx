@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -90,7 +90,7 @@ export function AdminOpportunitiesContent({
   projects,
 }: AdminOpportunitiesContentProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [isLoading, setIsLoading] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
@@ -112,8 +112,16 @@ export function AdminOpportunitiesContent({
     ? opportunities
     : opportunities.filter(o => o.status === filterStatus)
 
-  const handleCreateOpportunity = () => {
-    startTransition(async () => {
+  const handleCreateOpportunity = async () => {
+    console.log('[DEBUG] handleCreateOpportunity called', { newTitle, newProjectId, newComplexity })
+
+    if (!newTitle.trim()) {
+      toast.error('Please enter a title')
+      return
+    }
+
+    setIsLoading(true)
+    try {
       const result = await createOpportunityAction({
         title: newTitle,
         description: newDescription || undefined,
@@ -121,6 +129,8 @@ export function AdminOpportunitiesContent({
         estimatedHours: newEstimatedHours ? parseInt(newEstimatedHours) : null,
         complexity: newComplexity,
       })
+
+      console.log('[DEBUG] createOpportunityAction result:', result)
 
       if (result.success) {
         toast.success('Opportunity created')
@@ -130,10 +140,15 @@ export function AdminOpportunitiesContent({
       } else {
         toast.error(result.message || 'Failed to create opportunity')
       }
-    })
+    } catch (error) {
+      console.error('[DEBUG] Error in handleCreateOpportunity:', error)
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSendInvite = () => {
+  const handleSendInvite = async () => {
     if (!selectedOpportunity || !inviteDevId) return
 
     // Need a project to send invitation - either from opportunity or selected
@@ -143,7 +158,8 @@ export function AdminOpportunitiesContent({
       return
     }
 
-    startTransition(async () => {
+    setIsLoading(true)
+    try {
       const result = await sendInvitationAction({
         opportunityId: selectedOpportunity.id,
         projectId,
@@ -160,7 +176,12 @@ export function AdminOpportunitiesContent({
       } else {
         toast.error(result.message || 'Failed to send invitation')
       }
-    })
+    } catch (error) {
+      console.error('[DEBUG] Error in handleSendInvite:', error)
+      toast.error('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const resetForm = () => {
@@ -273,8 +294,8 @@ export function AdminOpportunitiesContent({
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateOpportunity} disabled={isPending || !newTitle.trim()}>
-                {isPending ? 'Creating...' : 'Create'}
+              <Button onClick={handleCreateOpportunity} disabled={isLoading || !newTitle.trim()}>
+                {isLoading ? 'Creating...' : 'Create'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -420,8 +441,8 @@ export function AdminOpportunitiesContent({
             <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSendInvite} disabled={isPending || !inviteDevId}>
-              {isPending ? 'Sending...' : 'Send Invitation'}
+            <Button onClick={handleSendInvite} disabled={isLoading || !inviteDevId}>
+              {isLoading ? 'Sending...' : 'Send Invitation'}
             </Button>
           </DialogFooter>
         </DialogContent>
