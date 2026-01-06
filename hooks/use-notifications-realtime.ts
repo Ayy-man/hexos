@@ -23,6 +23,8 @@ export function useNotificationsRealtime({
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
   const [isLoading, setIsLoading] = useState(false)
+  const [toastQueue, setToastQueue] = useState<Notification[]>([])
+  const [hasShownInitial, setHasShownInitial] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // Initialize audio on mount
@@ -39,6 +41,11 @@ export function useNotificationsRealtime({
         // Ignore autoplay errors
       })
     }
+  }, [])
+
+  // Dismiss a toast notification
+  const dismissToast = useCallback((id: string) => {
+    setToastQueue(prev => prev.filter(n => n.id !== id))
   }, [])
 
   // Refetch all notifications
@@ -152,6 +159,8 @@ export function useNotificationsRealtime({
             const normalized = normalizeNotification(data)
             setNotifications(prev => [normalized, ...prev])
             setUnreadCount(prev => prev + 1)
+            // Add to toast queue (max 5)
+            setToastQueue(prev => [...prev, normalized].slice(-5))
             onNewNotification?.(normalized)
           }
         }
@@ -190,13 +199,27 @@ export function useNotificationsRealtime({
     setUnreadCount(initialUnreadCount)
   }, [initialNotifications, initialUnreadCount])
 
+  // Show initial unread notifications as toasts on first load
+  useEffect(() => {
+    if (!hasShownInitial && initialNotifications.length > 0) {
+      const unread = initialNotifications.filter(n => !n.read_at).slice(0, 5)
+      if (unread.length > 0) {
+        setToastQueue(unread)
+        playSound()
+      }
+      setHasShownInitial(true)
+    }
+  }, [initialNotifications, hasShownInitial, playSound])
+
   return {
     notifications,
     unreadCount,
     isLoading,
+    toastQueue,
     refetch,
     markAsRead,
     markAllAsRead,
+    dismissToast,
   }
 }
 

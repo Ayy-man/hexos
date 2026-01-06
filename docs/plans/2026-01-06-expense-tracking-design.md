@@ -323,6 +323,39 @@ CREATE POLICY "payment_sources_all_admin"
 
 A debug SQL script is available at: `supabase/debug/fix-payment-sources-rls.sql`
 
+### Payment Sources Still Not Appearing (OPEN ISSUE)
+
+**Status:** Unresolved as of 2026-01-07
+
+**Verified working:**
+- RLS policies are correct (confirmed via `pg_policies` query)
+- Data exists in `payment_sources` table (6 rows)
+- Direct SQL query `SELECT * FROM payment_sources` returns data
+
+**Still broken:**
+- App shows "No payment sources found. Check database RLS policies."
+- ExpenseLedger component receives empty array
+
+**Debug logging added:**
+- `lib/api/financial-metrics.ts` → `getPaymentSources()` logs user auth state and query results
+- Check **server terminal** (not browser console) for `[getPaymentSources]` logs
+
+**Possible causes to investigate:**
+1. Supabase client not properly authenticated on server side
+2. Caching issue (try hard refresh or incognito)
+3. Cookie/session not being passed correctly to server component
+4. Different Supabase project/environment between SQL editor and app
+
+**To debug:**
+1. Restart dev server (`pnpm dev`)
+2. Load `/dashboard/admin/metrics` → Financials tab
+3. Check server terminal for:
+   ```
+   [getPaymentSources] Current user: <user-id> <email>
+   [getPaymentSources] Query result: { data: X, count: X, error: ... }
+   ```
+4. If user is `null` or error exists, that's the problem
+
 ### Metrics Dashboard UI Redesign (TODO)
 
 Current issues identified:
