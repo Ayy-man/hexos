@@ -183,7 +183,7 @@ BEGIN
     END as phase,
     status,
     COUNT(*) as project_count,
-    COALESCE(SUM(quoted_price), 0) as total_value
+    COALESCE(SUM(price_dfy), 0) as total_value
   FROM projects
   GROUP BY phase, status
   ORDER BY
@@ -395,11 +395,11 @@ BEGIN
       0
     ) as avg_deal_size,
     COALESCE(
-      SUM(pr.quoted_price),
+      SUM(pr.price_dfy),
       0
     ) as total_revenue,
     COALESCE(
-      SUM(pr.quoted_price * pr.dfy_commission_pct / 100),
+      SUM(pr.price_dfy * pr.dfy_commission_pct / 100),
       0
     ) as total_commission,
     COALESCE(

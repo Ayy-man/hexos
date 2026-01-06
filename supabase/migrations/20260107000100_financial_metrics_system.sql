@@ -7,7 +7,7 @@
 
 CREATE OR REPLACE FUNCTION create_payment_milestones(
   p_project_id UUID,
-  p_quoted_price DECIMAL(10,2),
+  p_price_dfy DECIMAL(10,2),
   p_payment_structure payment_structure,
   p_target_delivery_date DATE
 ) RETURNS VOID AS $$
@@ -25,20 +25,20 @@ BEGIN
   CASE p_payment_structure
     WHEN '100_upfront' THEN
       INSERT INTO payment_milestones (project_id, label, amount, due_date, sort_order)
-      VALUES (p_project_id, 'Full Payment (100%)', p_quoted_price, CURRENT_DATE, 0);
+      VALUES (p_project_id, 'Full Payment (100%)', p_price_dfy, CURRENT_DATE, 0);
 
     WHEN '50_50' THEN
       INSERT INTO payment_milestones (project_id, label, amount, due_date, sort_order)
       VALUES
-        (p_project_id, 'First Payment (50%)', p_quoted_price * 0.5, CURRENT_DATE, 0),
-        (p_project_id, 'Final Payment (50%)', p_quoted_price * 0.5, p_target_delivery_date, 1);
+        (p_project_id, 'First Payment (50%)', p_price_dfy * 0.5, CURRENT_DATE, 0),
+        (p_project_id, 'Final Payment (50%)', p_price_dfy * 0.5, p_target_delivery_date, 1);
 
     WHEN '40_30_30' THEN
       INSERT INTO payment_milestones (project_id, label, amount, due_date, sort_order)
       VALUES
-        (p_project_id, 'First Payment (40%)', p_quoted_price * 0.4, CURRENT_DATE, 0),
-        (p_project_id, 'Second Payment (30%)', p_quoted_price * 0.3, v_halfway_date, 1),
-        (p_project_id, 'Final Payment (30%)', p_quoted_price * 0.3, p_target_delivery_date, 2);
+        (p_project_id, 'First Payment (40%)', p_price_dfy * 0.4, CURRENT_DATE, 0),
+        (p_project_id, 'Second Payment (30%)', p_price_dfy * 0.3, v_halfway_date, 1),
+        (p_project_id, 'Final Payment (30%)', p_price_dfy * 0.3, p_target_delivery_date, 2);
 
     WHEN 'custom' THEN
       -- For custom, admin will manually create milestones
@@ -71,11 +71,11 @@ BEGIN
   RETURN QUERY
   WITH
   total_revenue AS (
-    SELECT COALESCE(SUM(quoted_price), 0) as total
+    SELECT COALESCE(SUM(price_dfy), 0) as total
     FROM projects WHERE status NOT IN ('cancelled')
   ),
   revenue_this_month AS (
-    SELECT COALESCE(SUM(quoted_price), 0) as total
+    SELECT COALESCE(SUM(price_dfy), 0) as total
     FROM projects WHERE started_at >= DATE_TRUNC('month', CURRENT_DATE)
   ),
   pending AS (
@@ -174,7 +174,7 @@ BEGIN
   SELECT
     DATE_TRUNC('month', started_at) as month,
     COUNT(*) as projects_started,
-    SUM(quoted_price) as revenue
+    SUM(price_dfy) as revenue
   FROM projects
   WHERE started_at >= CURRENT_DATE - (p_months || ' months')::INTERVAL
     AND status NOT IN ('cancelled')
@@ -337,19 +337,19 @@ pending_by_project AS (
     p.id,
     p.project_name,
     p.client_name,
-    p.quoted_price,
+    p.price_dfy,
     p.payment_structure,
     p.status,
     COALESCE(SUM(pm.amount) FILTER (WHERE pm.paid_at IS NOT NULL), 0) as paid_amount,
     COALESCE(SUM(pm.amount) FILTER (WHERE pm.paid_at IS NULL), 0) as pending_amount,
     ROUND(
-      (COALESCE(SUM(pm.amount) FILTER (WHERE pm.paid_at IS NOT NULL), 0) / NULLIF(p.quoted_price, 0) * 100),
+      (COALESCE(SUM(pm.amount) FILTER (WHERE pm.paid_at IS NOT NULL), 0) / NULLIF(p.price_dfy, 0) * 100),
       2
     ) as payment_completion_pct
   FROM projects p
   LEFT JOIN payment_milestones pm ON pm.project_id = p.id
   WHERE p.status NOT IN ('completed', 'cancelled')
-  GROUP BY p.id, p.project_name, p.client_name, p.quoted_price, p.payment_structure, p.status
+  GROUP BY p.id, p.project_name, p.client_name, p.price_dfy, p.payment_structure, p.status
 )
 SELECT * FROM pending_by_project
 ORDER BY pending_amount DESC;

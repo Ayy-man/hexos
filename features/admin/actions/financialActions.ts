@@ -95,13 +95,13 @@ export async function fetchPendingPaymentsByProject() {
  */
 export async function createProjectPaymentMilestones(
   projectId: string,
-  quotedPrice: number,
+  priceDfy: number,
   paymentStructure: PaymentStructure,
   targetDeliveryDate: string
 ) {
   const result = await createPaymentMilestones(
     projectId,
-    quotedPrice,
+    priceDfy,
     paymentStructure,
     targetDeliveryDate
   );
