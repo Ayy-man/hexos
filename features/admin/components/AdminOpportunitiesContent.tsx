@@ -31,20 +31,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Plus,
   MoreHorizontal,
   Send,
   Users,
   Clock,
-  CheckCircle2,
-  XCircle,
   Filter,
   Briefcase,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { ProjectOpportunity, DevAvailability, OpportunityStatus } from '@/lib/api/project-invitations'
+import {
+  createOpportunityAction,
+  sendInvitationAction,
+} from '@/features/admin/actions/opportunityActions'
+import type { ProjectOpportunity, DevAvailability, OpportunityStatus, ProjectComplexity } from '@/lib/api/project-invitations'
 
 interface Project {
   id: string
@@ -100,7 +101,7 @@ export function AdminOpportunitiesContent({
   const [newDescription, setNewDescription] = useState('')
   const [newProjectId, setNewProjectId] = useState<string>('')
   const [newEstimatedHours, setNewEstimatedHours] = useState('')
-  const [newComplexity, setNewComplexity] = useState<string>('medium')
+  const [newComplexity, setNewComplexity] = useState<ProjectComplexity>('medium')
 
   // Invite form state
   const [inviteDevId, setInviteDevId] = useState<string>('')
@@ -112,29 +113,22 @@ export function AdminOpportunitiesContent({
     : opportunities.filter(o => o.status === filterStatus)
 
   const handleCreateOpportunity = () => {
-    // This would call the server action
     startTransition(async () => {
-      try {
-        const response = await fetch('/api/opportunities', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: newTitle,
-            description: newDescription,
-            projectId: newProjectId && newProjectId !== '_none' ? newProjectId : null,
-            estimatedHours: newEstimatedHours ? parseInt(newEstimatedHours) : null,
-            complexity: newComplexity,
-          }),
-        })
+      const result = await createOpportunityAction({
+        title: newTitle,
+        description: newDescription || undefined,
+        projectId: newProjectId && newProjectId !== '_none' ? newProjectId : null,
+        estimatedHours: newEstimatedHours ? parseInt(newEstimatedHours) : null,
+        complexity: newComplexity,
+      })
 
-        if (!response.ok) throw new Error('Failed to create opportunity')
-
+      if (result.success) {
         toast.success('Opportunity created')
         setCreateDialogOpen(false)
         resetForm()
         router.refresh()
-      } catch {
-        toast.error('Failed to create opportunity')
+      } else {
+        toast.error(result.message || 'Failed to create opportunity')
       }
     })
   }
@@ -142,28 +136,29 @@ export function AdminOpportunitiesContent({
   const handleSendInvite = () => {
     if (!selectedOpportunity || !inviteDevId) return
 
+    // Need a project to send invitation - either from opportunity or selected
+    const projectId = selectedOpportunity.project_id
+    if (!projectId) {
+      toast.error('This opportunity is not linked to a project')
+      return
+    }
+
     startTransition(async () => {
-      try {
-        const response = await fetch('/api/invitations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            opportunityId: selectedOpportunity.id,
-            projectId: selectedOpportunity.project_id,
-            devId: inviteDevId,
-            message: inviteMessage,
-          }),
-        })
+      const result = await sendInvitationAction({
+        opportunityId: selectedOpportunity.id,
+        projectId,
+        devId: inviteDevId,
+        message: inviteMessage || undefined,
+      })
 
-        if (!response.ok) throw new Error('Failed to send invitation')
-
+      if (result.success) {
         toast.success('Invitation sent')
         setInviteDialogOpen(false)
         setInviteDevId('')
         setInviteMessage('')
         router.refresh()
-      } catch {
-        toast.error('Failed to send invitation')
+      } else {
+        toast.error(result.message || 'Failed to send invitation')
       }
     })
   }
@@ -261,7 +256,7 @@ export function AdminOpportunitiesContent({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="complexity">Complexity</Label>
-                  <Select value={newComplexity} onValueChange={setNewComplexity}>
+                  <Select value={newComplexity} onValueChange={(v) => setNewComplexity(v as ProjectComplexity)}>
                     <SelectTrigger id="complexity">
                       <SelectValue />
                     </SelectTrigger>
