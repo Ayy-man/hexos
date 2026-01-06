@@ -33,6 +33,15 @@ const adminNav: NavGroup[] = [
     ],
   },
   {
+    label: 'Admin',
+    items: [
+      { title: 'Time Reports', url: '/admin/time-reports', icon: 'Clock' },
+      { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
+      { title: 'Developers', url: '/admin/devs', icon: 'Users' },
+      { title: 'Opportunities', url: '/admin/opportunities', icon: 'Briefcase' },
+    ],
+  },
+  {
     label: 'Settings',
     items: [
       { title: 'Settings', url: '/settings', icon: 'Settings' },
@@ -56,6 +65,15 @@ const internalNav: NavGroup[] = [
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
       { title: 'Suggestions', url: '/suggestions', icon: 'Lightbulb' },
+    ],
+  },
+  {
+    label: 'Admin',
+    items: [
+      { title: 'Time Reports', url: '/admin/time-reports', icon: 'Clock' },
+      { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
+      { title: 'Developers', url: '/admin/devs', icon: 'Users' },
+      { title: 'Opportunities', url: '/admin/opportunities', icon: 'Briefcase' },
     ],
   },
   {

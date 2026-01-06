@@ -1,10 +1,18 @@
 import Link from 'next/link'
-import { FolderKanban, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { FolderKanban, CheckCircle2, Clock, AlertCircle, Timer, Plus } from 'lucide-react'
 import { requireRole, getProfile } from '@/lib/auth/guards'
 import { getProjects } from '@/lib/api/projects'
+import { getActiveTimer, getDailyTimeSummary, getWeeklyTimeSummary } from '@/lib/api/time-tracking'
+import { getMyReportedBlockers } from '@/lib/api/blockers'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { ActiveTimerWidget } from '@/features/dev/components/ActiveTimerWidget'
+import { TimeLogSummary, CompactTimeSummary } from '@/features/dev/components/TimeLogSummary'
+import { BlockersList, BlockerCountBadge } from '@/features/dev/components/BlockersList'
+import { TimeEntryForm } from '@/features/dev/components/TimeEntryForm'
+import { BlockerReportDialog } from '@/features/dev/components/BlockerReportDialog'
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-stone-400',
@@ -21,13 +29,21 @@ export default async function DevDashboard() {
   await requireRole(['dev'])
   const profile = await getProfile()
 
-  let projects: Awaited<ReturnType<typeof getProjects>> = []
+  const today = new Date().toISOString().split('T')[0]
 
-  try {
-    projects = await getProjects()
-  } catch {
-    // RLS filters to assigned only
-  }
+  // Fetch all data in parallel
+  const [projects, activeTimer, dailySummary, weeklySummary, myBlockers] = await Promise.all([
+    getProjects().catch(() => []),
+    getActiveTimer().catch(() => null),
+    getDailyTimeSummary(today).catch(() => ({ date: today, total_minutes: 0, entries: [] })),
+    getWeeklyTimeSummary().catch(() => ({
+      week_start: today,
+      week_end: today,
+      total_minutes: 0,
+      daily_breakdown: [],
+    })),
+    getMyReportedBlockers().catch(() => []),
+  ])
 
   // Calculate deliverable stats across all projects
   const allDeliverables = projects.flatMap((p) => p.deliverables || [])
@@ -40,16 +56,37 @@ export default async function DevDashboard() {
     ? Math.round((completedDeliverables.length / allDeliverables.length) * 100)
     : 0
 
+  // Blocker stats
+  const activeBlockers = myBlockers.filter(b => !['resolved', 'closed'].includes(b.status))
+  const criticalBlockers = activeBlockers.filter(b => b.priority === 'critical')
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome back, {profile?.name?.split(' ')[0]}
-        </h1>
-        <p className="text-muted-foreground">
-          Here&apos;s what you&apos;re working on
-        </p>
+      {/* Header with Timer */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Welcome back, {profile?.name?.split(' ')[0]}
+          </h1>
+          <p className="text-muted-foreground">
+            Here&apos;s what you&apos;re working on
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {activeTimer && (
+            <ActiveTimerWidget initialTimer={activeTimer} variant="compact" />
+          )}
+          <TimeEntryForm
+            deliverables={allDeliverables.map(d => {
+              const project = projects.find(p => p.deliverables?.some(pd => pd.id === d.id))
+              return {
+                id: d.id,
+                title: d.title,
+                project: project ? { id: project.id, project_name: project.project_name } : undefined,
+              }
+            })}
+          />
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -104,21 +141,91 @@ export default async function DevDashboard() {
         </Card>
       </div>
 
-      {/* Overall Progress */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <Progress value={completionRate} className="flex-1" />
-            <span className="text-sm font-medium">{completionRate}%</span>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {completedDeliverables.length} of {allDeliverables.length} deliverables completed
-          </p>
-        </CardContent>
-      </Card>
+      {/* Time Tracking and Progress Row */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Time Tracking Summary */}
+        <TimeLogSummary
+          dailySummary={dailySummary}
+          weeklySummary={weeklySummary}
+          targetHoursPerWeek={40}
+        />
+
+        {/* Overall Progress and Blockers */}
+        <div className="space-y-4">
+          {/* Overall Progress */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <Progress value={completionRate} className="flex-1" />
+                <span className="text-sm font-medium">{completionRate}%</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {completedDeliverables.length} of {allDeliverables.length} deliverables completed
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* My Blockers */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  My Blockers
+                  {activeBlockers.length > 0 && (
+                    <BlockerCountBadge count={activeBlockers.length} critical={criticalBlockers.length} />
+                  )}
+                </CardTitle>
+                {projects.length > 0 && (
+                  <BlockerReportDialog
+                    projects={projects.map(p => ({ id: p.id, project_name: p.project_name }))}
+                    deliverables={allDeliverables.map(d => ({
+                      id: d.id,
+                      title: d.title,
+                      project_id: (projects.find(p => p.deliverables?.some(pd => pd.id === d.id)))?.id || '',
+                    }))}
+                  />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {activeBlockers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No active blockers. Nice work!
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {activeBlockers.slice(0, 3).map((blocker) => (
+                    <div
+                      key={blocker.id}
+                      className="flex items-center justify-between rounded-lg border p-2 text-sm"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <AlertCircle className={`h-4 w-4 flex-shrink-0 ${
+                          blocker.priority === 'critical' ? 'text-red-500' :
+                          blocker.priority === 'high' ? 'text-orange-500' :
+                          'text-amber-500'
+                        }`} />
+                        <span className="truncate">{blocker.title}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs capitalize flex-shrink-0">
+                        {blocker.status.replace(/_/g, ' ')}
+                      </Badge>
+                    </div>
+                  ))}
+                  {activeBlockers.length > 3 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      +{activeBlockers.length - 3} more blockers
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* My Projects */}
       <Card>

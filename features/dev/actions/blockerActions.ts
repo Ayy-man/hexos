@@ -24,6 +24,7 @@ export async function reportBlockerAction(params: {
     const blocker = await createBlocker(params)
     revalidatePath(`/projects/${params.projectId}`)
     revalidatePath('/dashboard/dev')
+    revalidatePath('/admin/blockers')
     return { success: true, blocker }
   } catch (error) {
     console.error('Error reporting blocker:', error)
@@ -43,6 +44,7 @@ export async function updateBlockerStatusAction(
     }
     revalidatePath('/dashboard/dev')
     revalidatePath('/dashboard/admin')
+    revalidatePath('/admin/blockers')
     return { success: true, blocker }
   } catch (error) {
     console.error('Error updating blocker status:', error)
