@@ -8,7 +8,7 @@
  * - Sales cycle analytics
  */
 
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 type PaymentStructure = '100_upfront' | '50_50' | '40_30_30' | 'custom';
 
@@ -87,7 +87,7 @@ export interface PendingPaymentByProject {
  * Returns: total revenue, pending payments, payables, projected revenue, etc.
  */
 export async function getFinancialHeroMetrics(): Promise<FinancialHeroMetrics | null> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.rpc('get_financial_hero_metrics').single();
 
@@ -108,7 +108,7 @@ export async function getFinancialHeroMetrics(): Promise<FinancialHeroMetrics | 
  * @param months - Number of months to project (default: 12)
  */
 export async function getPaymentTimeline(months: number = 12): Promise<PaymentTimelineItem[]> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.rpc('get_payment_timeline', { p_months: months });
 
@@ -129,7 +129,7 @@ export async function getPaymentTimeline(months: number = 12): Promise<PaymentTi
  * @param months - Number of months to look back (default: 12)
  */
 export async function getRevenueTrend(months: number = 12): Promise<RevenueTrendItem[]> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.rpc('get_revenue_trend', { p_months: months });
 
@@ -149,7 +149,7 @@ export async function getRevenueTrend(months: number = 12): Promise<RevenueTrend
  * Get all overdue payment milestones
  */
 export async function getOverduePayments(): Promise<OverduePayment[]> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.rpc('get_overdue_payments');
 
@@ -169,7 +169,7 @@ export async function getOverduePayments(): Promise<OverduePayment[]> {
  * Get sales cycle statistics (avg, median, min, max days)
  */
 export async function getSalesCycleStats(): Promise<SalesCycleStats | null> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.rpc('get_sales_cycle_stats').single();
 
@@ -190,7 +190,7 @@ export async function getSalesCycleStats(): Promise<SalesCycleStats | null> {
  * Based on active inquiries, win rate, and avg sales cycle
  */
 export async function getProjectedRevenueTimeline(): Promise<ProjectedRevenueTimelineItem[]> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.rpc('get_projected_revenue_timeline');
 
@@ -210,7 +210,7 @@ export async function getProjectedRevenueTimeline(): Promise<ProjectedRevenueTim
  * Get pending payments breakdown by project
  */
 export async function getPendingPaymentsByProject(): Promise<PendingPaymentByProject[]> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('financial_overview')
@@ -238,7 +238,7 @@ export async function createPaymentMilestones(
   paymentStructure: PaymentStructure,
   targetDeliveryDate: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { error } = await supabase.rpc('create_payment_milestones', {
     p_project_id: projectId,
@@ -263,7 +263,7 @@ export async function markMilestoneAsPaid(
   paidAt: string = new Date().toISOString(),
   stripePaymentId?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const updateData: any = { paid_at: paidAt };
   if (stripePaymentId) {
@@ -290,7 +290,7 @@ export async function updateMilestoneDueDate(
   milestoneId: string,
   dueDate: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from('payment_milestones')
@@ -309,7 +309,7 @@ export async function updateMilestoneDueDate(
  * Get payment milestones for a specific project
  */
 export async function getProjectPaymentMilestones(projectId: string) {
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('payment_milestones')
