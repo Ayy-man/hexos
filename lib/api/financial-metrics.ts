@@ -70,7 +70,7 @@ export interface PendingPaymentByProject {
   id: string;
   project_name: string;
   client_name: string;
-  quoted_price: number;
+  price_dfy: number;
   payment_structure: PaymentStructure;
   status: string;
   paid_amount: number;
@@ -234,7 +234,7 @@ export async function getPendingPaymentsByProject(): Promise<PendingPaymentByPro
  */
 export async function createPaymentMilestones(
   projectId: string,
-  quotedPrice: number,
+  priceDfy: number,
   paymentStructure: PaymentStructure,
   targetDeliveryDate: string
 ): Promise<{ success: boolean; error?: string }> {
@@ -242,7 +242,7 @@ export async function createPaymentMilestones(
 
   const { error } = await supabase.rpc('create_payment_milestones', {
     p_project_id: projectId,
-    p_quoted_price: quotedPrice,
+    p_price_dfy: priceDfy,
     p_payment_structure: paymentStructure,
     p_target_delivery_date: targetDeliveryDate,
   });
