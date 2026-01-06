@@ -104,6 +104,7 @@ const devNav: NavGroup[] = [
   {
     label: 'Settings',
     items: [
+      { title: 'Developer Profile', url: '/settings/developer', icon: 'Code' },
       { title: 'Settings', url: '/settings', icon: 'Settings' },
     ],
   },
