@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TargetCard } from './TargetCard'
 import { getCurrentQuarter, getQuarterLabel, type Quarter } from '@/lib/utils/pulseCalculations'
-import type { PulseTargetWithOwners } from '@/lib/api/pulse-targets'
+import type { PulseTargetWithOwners } from '@/lib/types/pulse'
 import { createTargetAction } from '../actions/targetActions'
 
 interface QuarterTargetsProps {

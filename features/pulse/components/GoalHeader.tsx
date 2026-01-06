@@ -5,8 +5,8 @@ import { Target, Pencil, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import type { PulseGoal } from '@/lib/api/pulse-goals'
-import { calculateGoalProgress } from '@/lib/api/pulse-goals'
+import type { PulseGoal } from '@/lib/types/pulse'
+import { calculateGoalProgress } from '@/lib/utils/pulseCalculations'
 import { createGoalAction, updateGoalAction } from '../actions/goalActions'
 
 interface GoalHeaderProps {

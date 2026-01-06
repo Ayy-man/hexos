@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { RotateCcw, Link2, Trash2, GripVertical, Pencil, X, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { PulseDailyTask } from '@/lib/api/pulse-tasks'
+import type { PulseDailyTask } from '@/lib/types/pulse'
 import {
   completeTaskAction,
   uncompleteTaskAction,

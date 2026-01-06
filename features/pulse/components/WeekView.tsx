@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DayColumn } from './DayColumn'
 import { getWeekRange, getPreviousWeek, getNextWeek, getToday } from '@/lib/utils/pulseCalculations'
-import type { PulseDailyTask } from '@/lib/api/pulse-tasks'
+import type { PulseDailyTask } from '@/lib/types/pulse'
 
 interface WeekViewProps {
   weekStart: string
