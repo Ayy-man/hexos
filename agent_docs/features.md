@@ -477,14 +477,121 @@ API: `lib/api/requirement-templates.shared.ts` (client-safe), `lib/api/requireme
 - ADM has final approval authority before sending to partners
 - Role-based notification routing based on this distinction
 
-### Phase 5: External Access
+### Phase 5: Developer Skills & Gamification (Complete)
+
+RPG-style skill tracking, badges, and leveling system for developers.
+
+**Database (`20260108000001_dev_skills_system.sql`):**
+- [x] `dev_skills` table - Proficiency tracking (0-10 scale) with usage stats
+- [x] `dev_badges` table - Achievement badges
+- [x] `project_skill_tags` table - Skills used in projects
+- [x] `skill_endorsements` table - Peer endorsements (LinkedIn-style)
+- [x] `skill_templates` table - 30+ pre-defined skills
+- [x] XP & leveling columns on profiles (`xp_points`, `level`, `total_projects_completed`)
+- [x] Auto-increment trigger for skill usage tracking
+- [x] Auto-update trigger for endorsement counts
+- [x] RLS policies for proper access control
+
+**Skill Categories & Templates:**
+- [x] 🤖 AI & Chatbots (7 skills): Chatbots, Voice Agents, Manychat, Agentic Builds, MCP, Model Training, On-Prem LLM
+- [x] ⚡ Automation Platforms (3 skills): n8n, Make, Zapier
+- [x] 🏢 CRM & Business (4 skills): GHL, HubSpot, Airtable, Other CRMs
+- [x] 📧 Marketing & Sales (4 skills): Marketing Automation, Lead Qualification, Sales, Marketing
+- [x] ☁️ Cloud & APIs (3 skills): Meta Platform, Google Cloud, AWS S3
+- [x] 💻 Development (6 skills): Fullstack, Frontend, Backend, Website Building, Scraping, Python
+- [x] 📊 Data & Analytics (2 skills): Analytics Dashboards, Data Analysis
+- [x] ✨ Modern Tools (2 skills): Vibe-coding, Project Management
+
+**API Layer (`/lib/api/dev-skills.ts`):**
+- [x] `getSkillTemplates()` - Fetch all active skill templates
+- [x] `getDevSkills()` - Get all skills for a developer
+- [x] `getDevSkillsByCategory()` - Skills grouped by category
+- [x] `upsertDevSkill()` - Create or update skill
+- [x] `updateSkillProficiency()` - Update proficiency level (0-10)
+- [x] `deleteDevSkill()` - Remove skill
+- [x] `verifyDevSkill()` - Admin verification
+- [x] `endorseSkill()` - Add endorsement
+- [x] `removeEndorsement()` - Remove endorsement
+- [x] `getSkillEndorsements()` - Fetch endorsements
+- [x] `getDevBadges()` - Get earned badges
+- [x] `awardBadge()` - Award badge (admin only)
+- [x] `awardXP()` - Award XP points
+- [x] `getDevStats()` - XP, level, badges, skills count
+
+**Server Actions (`/features/developer/actions/skillActions.ts`):**
+- [x] `upsertSkillAction()` - CRUD for skills
+- [x] `updateProficiencyAction()` - Quick proficiency update
+- [x] `deleteSkillAction()` - Remove skill
+- [x] `verifySkillAction()` - Admin verify (with optional adjusted level)
+- [x] `endorseSkillAction()` - Endorse skill (awards 15 XP)
+- [x] `removeEndorsementAction()` - Remove endorsement
+- [x] `awardBadgeAction()` - Award badge (awards 100 XP)
+- [x] `awardXPAction()` - Award XP (admin only)
+
+**UI Components:**
+- [x] `SkillsMatrix` component
+  - [x] Color-coded proficiency bars (red→orange→yellow→green→cyan)
+  - [x] Interactive sliders for editing (0-10 scale)
+  - [x] Admin verification checkmark badges
+  - [x] Endorsement counts with Users icon
+  - [x] Project usage tracking ("Used in X projects, last used...")
+  - [x] Notes display per skill
+  - [x] Portfolio examples as clickable links
+  - [x] Grouped by category with collapsible cards
+  - [x] Level labels (Beginner, Junior, Intermediate, Advanced, Master)
+
+**Settings Page (`/settings/developer`):**
+- [x] Developer-only access (role check)
+- [x] Stats overview cards:
+  - [x] Level display with XP progress bar
+  - [x] Skills count
+  - [x] Projects completed
+  - [x] Badges earned
+- [x] Full skills matrix with all categories
+- [x] Color-coded proficiency legend
+- [x] Help section with tips
+- [x] Navigation: Added "Developer Profile" link in dev sidebar
+
+**Gamification Features:**
+- [x] XP system (500 XP per level)
+- [x] Leveling progression (displayed on profile)
+- [x] Project skill tagging (auto-increment usage on tag)
+- [x] Badge framework (ready for auto-awarding logic)
+- [x] Peer endorsements (social proof)
+- [x] Admin verification system
+
+**Proficiency Scale (0-10):**
+- 0: No experience
+- 1-2: Beginner (aware, tutorial level)
+- 3-4: Junior (basic tasks, simple projects)
+- 5-6: Intermediate (comfortable, proficient)
+- 7-8: Advanced (expert, can mentor)
+- 9-10: Master (top tier, innovator)
+
+**Integration Points:**
+- Project skill tagging (ready for auto-tagging on project completion)
+- Developer assignment matching (skill match scoring algorithm documented)
+- Team skills dashboard (admin view - future phase)
+- Badge auto-awarding (criteria defined - future phase)
+
+**Future Enhancements (Documented):**
+- [ ] Badge auto-awarding logic (n8n Wizard, Full-Stack Hero, etc.)
+- [ ] Badge collection UI component
+- [ ] Leaderboard component
+- [ ] Team skills heatmap (admin dashboard)
+- [ ] Skill coverage analysis
+- [ ] Hiring recommendations
+- [ ] Auto-tag skills when projects complete
+- [ ] Skill-based project assignment recommendations
+
+### Phase 6: External Access
 
 - [ ] Dev portal (assigned projects)
 - [ ] DFY portal (their deals)
 - [ ] Client portal (if invited)
 - [ ] Role-based visibility
 
-### Phase 6: Payments
+### Phase 7: Payments
 
 - [ ] Stripe integration
 - [ ] Payment milestones
