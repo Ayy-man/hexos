@@ -68,12 +68,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10">
-              <DollarSign className="h-4 w-4 text-emerald-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-success/10">
+              <DollarSign className="h-4 w-4 text-success" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold font-mono tabular-nums">
               {financial ? formatCurrency(financial.total_revenue) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -86,12 +86,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Projected Revenue</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-cyan-500/10">
-              <TrendingUp className="h-4 w-4 text-cyan-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-info/10">
+              <TrendingUp className="h-4 w-4 text-info" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-cyan-600">
+            <div className="text-2xl font-bold font-mono tabular-nums text-info">
               {financial ? formatCurrency(financial.projected_revenue) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -104,12 +104,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-orange-500/10">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold font-mono tabular-nums">
               {financial ? formatCurrency(financial.pending_payments) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -122,12 +122,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-500/10">
-              <Briefcase className="h-4 w-4 text-violet-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10">
+              <Briefcase className="h-4 w-4 text-primary" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold font-mono tabular-nums">
               {projectHealth?.total_active_projects || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -145,7 +145,7 @@ export function HeroMetrics({
             <CardTitle className="text-sm font-medium">Payable This Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
+            <div className="text-2xl font-bold font-mono tabular-nums text-warning">
               {financial ? formatCurrency(financial.payable_this_month) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">Due within this month</p>
@@ -158,7 +158,7 @@ export function HeroMetrics({
             <CardTitle className="text-sm font-medium">Payable Next Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold font-mono tabular-nums">
               {financial ? formatCurrency(financial.payable_next_month) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">Due next month</p>
@@ -171,7 +171,7 @@ export function HeroMetrics({
             <CardTitle className="text-sm font-medium">Sales Metrics</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold font-mono tabular-nums text-success">
               {financial ? `${(financial.win_rate * 100).toFixed(0)}%` : '0%'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -187,12 +187,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10">
-              <PiggyBank className="h-4 w-4 text-emerald-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-success/10">
+              <PiggyBank className="h-4 w-4 text-success" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${(financial?.net_profit || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold font-mono tabular-nums ${(financial?.net_profit || 0) >= 0 ? 'text-success' : 'text-error'}`}>
               {financial ? formatCurrency(financial.net_profit) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -205,12 +205,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10">
-              <Percent className="h-4 w-4 text-blue-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-info/10">
+              <Percent className="h-4 w-4 text-info" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${(financial?.profit_margin || 0) >= 0.2 ? 'text-emerald-600' : (financial?.profit_margin || 0) >= 0 ? 'text-amber-600' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold font-mono tabular-nums ${(financial?.profit_margin || 0) >= 0.2 ? 'text-success' : (financial?.profit_margin || 0) >= 0 ? 'text-warning' : 'text-error'}`}>
               {financial ? `${(financial.profit_margin * 100).toFixed(1)}%` : '0%'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -223,12 +223,12 @@ export function HeroMetrics({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-500/10">
-              <Receipt className="h-4 w-4 text-red-500" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-error/10">
+              <Receipt className="h-4 w-4 text-error" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold font-mono tabular-nums text-error">
               {financial ? formatCurrency(financial.total_expenses) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">

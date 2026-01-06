@@ -21,7 +21,7 @@ export function PulseHeader({ stats, className }: PulseHeaderProps) {
           className={cn(
             'flex h-10 w-10 items-center justify-center rounded-full',
             hasActiveStreak
-              ? 'bg-orange-500/10 text-orange-500'
+              ? 'bg-warning/10 text-warning'
               : 'bg-muted text-muted-foreground'
           )}
         >
@@ -30,7 +30,7 @@ export function PulseHeader({ stats, className }: PulseHeaderProps) {
         <div>
           <p className="text-2xl font-bold leading-none">
             {stats.streak}
-            {hasActiveStreak && <span className="ml-1 text-orange-500">🔥</span>}
+            {hasActiveStreak && <span className="ml-1 text-warning">🔥</span>}
           </p>
           <p className="text-xs text-muted-foreground">day streak</p>
         </div>
@@ -38,7 +38,7 @@ export function PulseHeader({ stats, className }: PulseHeaderProps) {
 
       {/* Today's Points */}
       <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cyan-500/10 text-cyan-500">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-info/10 text-info">
           <TrendingUp className="h-5 w-5" />
         </div>
         <div>
@@ -49,7 +49,7 @@ export function PulseHeader({ stats, className }: PulseHeaderProps) {
 
       {/* This Week */}
       <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/10 text-violet-500">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Calendar className="h-5 w-5" />
         </div>
         <div>
@@ -60,7 +60,7 @@ export function PulseHeader({ stats, className }: PulseHeaderProps) {
 
       {/* Average */}
       <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
           <Trophy className="h-5 w-5" />
         </div>
         <div>

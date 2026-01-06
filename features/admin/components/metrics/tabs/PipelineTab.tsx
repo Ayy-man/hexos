@@ -117,7 +117,7 @@ export function PipelineTab({
             <CardTitle className="text-sm font-medium">Proposals Sent</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-violet-600">
+            <div className="text-2xl font-bold text-primary">
               {inquiryConversion?.proposal_sent || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -131,7 +131,7 @@ export function PipelineTab({
             <CardTitle className="text-sm font-medium">Closed Won</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {inquiryConversion?.closed_won || 0}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -145,7 +145,7 @@ export function PipelineTab({
             <CardTitle className="text-sm font-medium">Closed Lost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold text-error">
               {inquiryConversion?.closed_lost || 0}
             </div>
             <p className="text-xs text-muted-foreground">Lost opportunities</p>
@@ -267,7 +267,7 @@ export function PipelineTab({
                   </TableCell>
                   <TableCell className="text-right">{source.inquiry_count}</TableCell>
                   <TableCell className="text-right">
-                    <span className={source.win_rate >= 50 ? 'text-green-600' : ''}>
+                    <span className={source.win_rate >= 50 ? 'text-success' : ''}>
                       {formatPercentage(source.win_rate)}
                     </span>
                   </TableCell>

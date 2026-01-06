@@ -15,14 +15,16 @@ import {
   reorderTargets,
   reorderActions,
   moveTargetToQuarter,
-  type CreateTargetInput,
-  type UpdateTargetInput,
-  type CreateActionInput,
-  type UpdateActionInput,
-  type PulseTarget,
-  type PulseAction,
-  type Quarter,
 } from '@/lib/api/pulse-targets'
+import type {
+  CreateTargetInput,
+  UpdateTargetInput,
+  CreateActionInput,
+  UpdateActionInput,
+  PulseTarget,
+  PulseAction,
+  Quarter
+} from '@/lib/types/pulse'
 
 // ============================================================================
 // Target CRUD Actions

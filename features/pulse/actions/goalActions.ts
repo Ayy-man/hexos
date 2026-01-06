@@ -6,11 +6,9 @@ import {
   createGoal,
   updateGoal,
   deleteGoal,
-  type CreateGoalInput,
-  type UpdateGoalInput,
-  type PulseGoal,
 } from '@/lib/api/pulse-goals'
-import { updatePulseSettings, type PulseSettings } from '@/lib/api/pulse'
+import { updatePulseSettings } from '@/lib/api/pulse'
+import type { PulseGoal, CreateGoalInput, UpdateGoalInput, PulseSettings } from '@/lib/types/pulse'
 
 // ============================================================================
 // Goal CRUD Actions

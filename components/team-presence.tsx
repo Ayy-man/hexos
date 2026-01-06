@@ -73,8 +73,8 @@ export function TeamPresence() {
         <span className="text-xs font-medium text-muted-foreground">Team</span>
         {online.length > 0 && (
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
           </span>
         )}
         <span className="text-xs text-muted-foreground ml-auto">{online.length} online</span>
@@ -88,7 +88,7 @@ export function TeamPresence() {
               <Avatar
                 key={member.id}
                 size="sm"
-                className="animate-pop-in ring-green-500/50"
+                className="animate-pop-in ring-success/50"
                 style={{ animationDelay: `${i * 80}ms` }}
               >
                 <AvatarImage src={member.logo_url || undefined} />

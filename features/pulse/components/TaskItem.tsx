@@ -145,12 +145,12 @@ export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
 
             {/* Indicators */}
             {isRolledOver && (
-              <span className="flex items-center text-xs text-amber-500" title="Rolled from yesterday">
+              <span className="flex items-center text-xs text-warning" title="Rolled from yesterday">
                 <RotateCcw className="h-3 w-3 mr-0.5" />
               </span>
             )}
             {isLinked && (
-              <span className="flex items-center text-xs text-blue-500" title="Linked to action">
+              <span className="flex items-center text-xs text-info" title="Linked to action">
                 <Link2 className="h-3 w-3" />
               </span>
             )}

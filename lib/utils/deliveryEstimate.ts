@@ -48,24 +48,24 @@ export function getStatusColors(status: DeliveryStatus): {
   switch (status) {
     case 'on_track':
       return {
-        border: 'border-emerald-500',
-        bg: 'bg-emerald-500/10',
-        text: 'text-emerald-600 dark:text-emerald-400',
-        pill: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
+        border: 'border-success',
+        bg: 'bg-success-muted',
+        text: 'text-success',
+        pill: 'bg-success-muted text-success-foreground',
       }
     case 'at_risk':
       return {
-        border: 'border-amber-500',
-        bg: 'bg-amber-500/10',
-        text: 'text-amber-600 dark:text-amber-400',
-        pill: 'bg-amber-500/20 text-amber-700 dark:text-amber-300',
+        border: 'border-warning',
+        bg: 'bg-warning-muted',
+        text: 'text-warning',
+        pill: 'bg-warning-muted text-warning-foreground',
       }
     case 'delayed':
       return {
-        border: 'border-red-500',
-        bg: 'bg-red-500/10',
-        text: 'text-red-600 dark:text-red-400',
-        pill: 'bg-red-500/20 text-red-700 dark:text-red-300',
+        border: 'border-error',
+        bg: 'bg-error-muted',
+        text: 'text-error',
+        pill: 'bg-error-muted text-error-foreground',
       }
   }
 }

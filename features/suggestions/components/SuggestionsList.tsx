@@ -46,10 +46,10 @@ import type { Suggestion } from '@/lib/api/suggestions'
 import { updateSuggestionAction, deleteSuggestionAction } from '@/lib/actions/suggestions'
 
 const statusConfig = {
-  new: { label: 'New', icon: Clock, className: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-  reviewed: { label: 'Reviewed', icon: Eye, className: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' },
-  implemented: { label: 'Implemented', icon: CheckCircle, className: 'bg-green-500/10 text-green-500 border-green-500/20' },
-  declined: { label: 'Declined', icon: XCircle, className: 'bg-red-500/10 text-red-500 border-red-500/20' },
+  new: { label: 'New', icon: Clock, className: 'bg-info-muted text-info border-info/20' },
+  reviewed: { label: 'Reviewed', icon: Eye, className: 'bg-warning-muted text-warning border-warning/20' },
+  implemented: { label: 'Implemented', icon: CheckCircle, className: 'bg-success-muted text-success border-success/20' },
+  declined: { label: 'Declined', icon: XCircle, className: 'bg-error-muted text-error border-error/20' },
 }
 
 interface SuggestionsListProps {

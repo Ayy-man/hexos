@@ -63,20 +63,20 @@ export function getNotificationIcon(type: NotificationType): string {
 export function getNotificationColor(type: NotificationType): string {
   switch (type) {
     case 'project_assigned':
-      return 'text-blue-500'
+      return 'text-info'
     case 'blocker_acknowledged':
-      return 'text-amber-500'
+      return 'text-warning'
     case 'blocker_resolved':
-      return 'text-green-500'
+      return 'text-success'
     case 'blocker_comment':
     case 'admin_comment':
-      return 'text-cyan-500'
+      return 'text-info'
     case 'mention':
-      return 'text-purple-500'
+      return 'text-primary'
     case 'deadline_reminder':
-      return 'text-red-500'
+      return 'text-error'
     case 'status_change':
-      return 'text-stone-500'
+      return 'text-muted-foreground'
     default:
       return 'text-muted-foreground'
   }

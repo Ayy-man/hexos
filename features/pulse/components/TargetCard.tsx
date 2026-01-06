@@ -63,7 +63,7 @@ export function TargetCard({ target, onUpdate }: TargetCardProps) {
     <div
       className={cn(
         'rounded-lg border p-3 transition-colors',
-        isCompleted && 'bg-emerald-500/5 border-emerald-500/20'
+        isCompleted && 'bg-success/5 border-success/20'
       )}
     >
       {/* Header */}
@@ -88,13 +88,13 @@ export function TargetCard({ target, onUpdate }: TargetCardProps) {
             <p
               className={cn(
                 'font-medium text-sm truncate',
-                isCompleted && 'text-emerald-600 dark:text-emerald-400'
+                isCompleted && 'text-success'
               )}
             >
               {target.title}
             </p>
             {isCompleted && (
-              <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+              <Check className="h-4 w-4 text-success shrink-0" />
             )}
           </div>
 
@@ -103,7 +103,7 @@ export function TargetCard({ target, onUpdate }: TargetCardProps) {
             <div
               className={cn(
                 'h-full transition-all',
-                isCompleted ? 'bg-emerald-500' : 'bg-primary'
+                isCompleted ? 'bg-success' : 'bg-primary'
               )}
               style={{ width: `${progress}%` }}
             />
@@ -138,7 +138,7 @@ export function TargetCard({ target, onUpdate }: TargetCardProps) {
                 className={cn(
                   'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors',
                   action.completed_at
-                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                    ? 'bg-success border-success text-white'
                     : 'border-muted-foreground/30 hover:border-primary'
                 )}
               >

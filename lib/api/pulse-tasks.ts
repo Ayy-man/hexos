@@ -1,35 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import type { PulseDailyTask, CreateTaskInput, UpdateTaskInput } from '@/lib/types/pulse'
 import { logPulseEvent } from './pulse'
-
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface PulseDailyTask {
-  id: string
-  user_id: string
-  date: string
-  title: string
-  completed_at: string | null
-  rolled_from: string | null
-  linked_action_id: string | null
-  position: number
-  created_at: string
-}
-
-export interface CreateTaskInput {
-  date: string
-  title: string
-  linked_action_id?: string
-  position?: number
-}
-
-export interface UpdateTaskInput {
-  title?: string
-  date?: string
-  linked_action_id?: string | null
-  position?: number
-}
 
 // ============================================================================
 // CRUD Operations

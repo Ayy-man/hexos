@@ -9,10 +9,7 @@ import { Heatmap } from '@/features/pulse/components/Heatmap'
 import { WeekView } from '@/features/pulse/components/WeekView'
 import { QuarterTargets } from '@/features/pulse/components/QuarterTargets'
 import { GoalHeader } from '@/features/pulse/components/GoalHeader'
-import type { PulseStats, DailyPointsMap } from '@/lib/api/pulse'
-import type { PulseDailyTask } from '@/lib/api/pulse-tasks'
-import type { PulseTargetWithOwners, Quarter } from '@/lib/api/pulse-targets'
-import type { PulseGoal } from '@/lib/api/pulse-goals'
+import type { PulseStats, DailyPointsMap, PulseDailyTask, PulseTargetWithOwners, Quarter, PulseGoal } from '@/lib/types/pulse'
 
 interface PulsePageClientProps {
   initialStats: PulseStats
