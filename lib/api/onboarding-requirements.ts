@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { logPulseEvent } from '@/lib/api/pulse'
 
 // ============================================
 // Types
@@ -214,6 +215,9 @@ export async function updateOnboardingRequirement(
   if (input.resource_url !== undefined) updateData.resource_url = input.resource_url
   if (input.position !== undefined) updateData.position = input.position
 
+  // Track if this is a new approval for pulse logging
+  const isNewApproval = input.status === 'approved'
+
   if (input.status !== undefined) {
     updateData.status = input.status
     if (input.status === 'approved') {
@@ -233,6 +237,12 @@ export async function updateOnboardingRequirement(
     .single()
 
   if (error) throw error
+
+  // Log pulse event when requirement is approved
+  if (isNewApproval && user?.id) {
+    await logPulseEvent(user.id, 'requirement_completed', 'requirement', id)
+  }
+
   return data as OnboardingRequirement
 }
 

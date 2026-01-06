@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { logPulseEvent } from '@/lib/api/pulse'
 
 // ============================================
 // Deliverable CRUD Actions
@@ -146,6 +147,11 @@ export async function updateDeliverableStatusAction(
       new_status: status,
     },
   })
+
+  // Log pulse event when deliverable is marked done
+  if (status === 'done' && oldStatus !== 'done') {
+    await logPulseEvent(user.id, 'deliverable_advanced', 'deliverable', deliverableId)
+  }
 
   revalidatePath(`/projects/${projectId}`)
 }

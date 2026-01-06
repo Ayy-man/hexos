@@ -17,6 +17,10 @@ import {
   MessageSquare,
   Clock,
   AlertTriangle,
+  Zap,
+  BarChart3,
+  Code,
+  Flame,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -56,16 +60,21 @@ const iconMap: Record<string, LucideIcon> = {
   MessageSquare,
   Clock,
   AlertTriangle,
+  Zap,
+  BarChart3,
+  Code,
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profile: Profile
   navigation: NavGroup[]
+  pulseStreak?: number
 }
 
 export function AppSidebar({
   profile,
   navigation,
+  pulseStreak,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname()
@@ -102,13 +111,22 @@ export function AppSidebar({
                   const isActive = pathname === item.url || pathname.startsWith(item.url + '/')
                   const Icon = iconMap[item.icon] || LayoutDashboard
 
+                  // Show streak badge for Pulse
+                  const showStreakBadge = item.title === 'Pulse' && pulseStreak !== undefined && pulseStreak > 0
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                         <Link href={item.url} prefetch={true}>
                           <Icon />
                           <span>{item.title}</span>
-                          {item.badge && (
+                          {showStreakBadge && (
+                            <span className="ml-auto flex items-center gap-0.5 text-xs font-bold text-orange-500">
+                              {pulseStreak}
+                              <Flame className="h-3 w-3" />
+                            </span>
+                          )}
+                          {item.badge && !showStreakBadge && (
                             <Badge variant="secondary" className="ml-auto">
                               {item.badge}
                             </Badge>

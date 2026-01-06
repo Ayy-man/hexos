@@ -16,6 +16,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
 import { getMyNotifications, getUnreadCount } from '@/lib/api/notifications'
+import { getStreak } from '@/lib/api/pulse'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -43,10 +44,12 @@ export default async function DashboardLayout({
 
   const navigation = getNavigation((profile as Profile).role)
 
-  // Fetch notifications for the header
-  const [notifications, unreadCount] = await Promise.all([
+  // Fetch notifications and pulse streak for the header
+  const isAdminOrInternal = ['admin', 'internal'].includes((profile as Profile).role)
+  const [notifications, unreadCount, pulseStreak] = await Promise.all([
     getMyNotifications(20).catch(() => []),
     getUnreadCount().catch(() => 0),
+    isAdminOrInternal ? getStreak(user.id).catch(() => 0) : Promise.resolve(0),
   ])
 
   // Get sidebar state from cookie
@@ -58,6 +61,7 @@ export default async function DashboardLayout({
       <AppSidebar
         profile={profile as Profile}
         navigation={navigation}
+        pulseStreak={isAdminOrInternal ? pulseStreak : undefined}
       />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">

@@ -18,6 +18,7 @@ const adminNav: NavGroup[] = [
     label: 'Overview',
     items: [
       { title: 'Dashboard', url: '/dashboard/admin', icon: 'LayoutDashboard' },
+      { title: 'Pulse', url: '/pulse', icon: 'Zap' },
     ],
   },
   {
@@ -55,6 +56,7 @@ const internalNav: NavGroup[] = [
     label: 'Overview',
     items: [
       { title: 'Dashboard', url: '/dashboard/admin', icon: 'LayoutDashboard' },
+      { title: 'Pulse', url: '/pulse', icon: 'Zap' },
     ],
   },
   {
