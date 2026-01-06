@@ -9,9 +9,12 @@ import {
   addBlockerComment,
   updateBlockerComment,
   deleteBlockerComment,
+  getBlocker,
   type BlockerStatus,
   type BlockerPriority,
 } from '@/lib/api/blockers'
+import { createNotification } from '@/lib/api/notifications'
+import { createClient } from '@/lib/supabase/server'
 
 export async function reportBlockerAction(params: {
   projectId: string
@@ -38,6 +41,12 @@ export async function updateBlockerStatusAction(
   notes?: string
 ) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // Get blocker before update for reporter info
+    const blockerBefore = await getBlocker(blockerId)
+
     const blocker = await updateBlockerStatus(blockerId, status, notes)
     if (blocker.project_id) {
       revalidatePath(`/projects/${blocker.project_id}`)
@@ -45,6 +54,34 @@ export async function updateBlockerStatusAction(
     revalidatePath('/dashboard/dev')
     revalidatePath('/dashboard/admin')
     revalidatePath('/admin/blockers')
+
+    // Notify the reporter if status changed to acknowledged or resolved
+    if (blockerBefore && user && blockerBefore.reported_by !== user.id) {
+      const notificationType = status === 'acknowledged'
+        ? 'blocker_acknowledged'
+        : status === 'resolved'
+          ? 'blocker_resolved'
+          : null
+
+      if (notificationType) {
+        try {
+          await createNotification({
+            userId: blockerBefore.reported_by,
+            type: notificationType,
+            title: status === 'acknowledged'
+              ? 'Blocker acknowledged'
+              : 'Blocker resolved',
+            message: `Your blocker "${blocker.title}" has been ${status}`,
+            projectId: blocker.project_id,
+            blockerId: blocker.id,
+            actorId: user.id,
+          })
+        } catch (e) {
+          console.error('Failed to create notification:', e)
+        }
+      }
+    }
+
     return { success: true, blocker }
   } catch (error) {
     console.error('Error updating blocker status:', error)
