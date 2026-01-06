@@ -141,7 +141,7 @@ export function SkillsMatrix({
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{skill.display_name}</span>
                         {skill.admin_verified && (
-                          <Check className="h-4 w-4 text-green-500" title="Admin verified" />
+                          <Check className="h-4 w-4 text-green-500" aria-label="Admin verified" />
                         )}
                         {skill.endorsement_count > 0 && (
                           <Badge variant="secondary" className="flex items-center gap-1">
