@@ -286,6 +286,44 @@ end;
 $$;
 ```
 
+## Known Issues & Fixes
+
+### Payment Sources RLS Fix
+
+If payment sources dropdown is empty, run:
+
+```sql
+-- Drop old policy
+drop policy if exists "Payment sources readable by authenticated" on payment_sources;
+
+-- Create simpler policy
+create policy "Payment sources readable by all logged in"
+  on payment_sources for select
+  using (auth.uid() is not null);
+```
+
+### Metrics Dashboard UI Redesign (TODO)
+
+Current issues identified:
+
+| Issue | Current State | Planned Fix |
+|-------|---------------|-------------|
+| Too many cards | 9 metric cards overwhelming | Reduce to 4 key metrics (Revenue, Profit, Pending, Active Projects) |
+| No visual hierarchy | Everything same priority | Hero numbers big, trends small, progressive disclosure |
+| Tab bar lost | Tabs in middle of page | Move tabs to top, below page title |
+| Invalid Date on charts | "Invalid Date" on x-axis | Fix date formatting in chart data transform |
+| Too many colors | Orange, teal, red, green competing | Single accent + semantic colors only (red=bad, green=good) |
+| Blockers banner missed | Easy to overlook | Make sticky or more prominent |
+| Disconnected sections | Inconsistent spacing | Consistent card spacing, group related items |
+| Conversion funnel | Feels disconnected at bottom | Integrate into Pipeline tab properly |
+
+**Redesign approach:**
+1. Summary view: 4 key KPIs at top (Revenue, Net Profit, Pending, Active Projects)
+2. Alerts: Sticky banner for critical items (overdue payments, blockers)
+3. Tabs: Move to top, cleaner navigation
+4. Progressive disclosure: Click cards to see detail breakdowns
+5. Charts: Fix date formatting, improve contrast/readability
+
 ## RLS Policies
 
 ```sql
