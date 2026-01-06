@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,14 @@ export function NotificationPopover({
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
   const [loading, setLoading] = useState(false)
   const [markingAllRead, setMarkingAllRead] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const previousUnreadCount = useRef(initialUnreadCount)
+
+  // Initialize audio on mount
+  useEffect(() => {
+    audioRef.current = new Audio('/sounds/notification.wav')
+    audioRef.current.volume = 0.5
+  }, [])
 
   // Fetch notifications when popover opens
   const fetchNotifications = useCallback(async () => {
@@ -55,6 +63,14 @@ export function NotificationPopover({
     const interval = setInterval(async () => {
       const result = await fetchNotificationsAction(50)
       if (result.success) {
+        // Play sound if new notifications arrived
+        if (result.unreadCount > previousUnreadCount.current && audioRef.current) {
+          audioRef.current.currentTime = 0
+          audioRef.current.play().catch(() => {
+            // Ignore autoplay errors (browser policy)
+          })
+        }
+        previousUnreadCount.current = result.unreadCount
         setUnreadCount(result.unreadCount)
         // Only update full list if popover is open
         if (open) {
