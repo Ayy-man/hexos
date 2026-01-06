@@ -290,17 +290,38 @@ $$;
 
 ### Payment Sources RLS Fix
 
-If payment sources dropdown is empty, run:
+If payment sources dropdown is empty, run this in Supabase SQL Editor:
 
 ```sql
--- Drop old policy
-drop policy if exists "Payment sources readable by authenticated" on payment_sources;
+-- Drop all existing policies
+DROP POLICY IF EXISTS "Payment sources readable by authenticated" ON payment_sources;
+DROP POLICY IF EXISTS "Payment sources readable by all logged in" ON payment_sources;
+DROP POLICY IF EXISTS "Admins manage payment sources" ON payment_sources;
 
--- Create simpler policy
-create policy "Payment sources readable by all logged in"
-  on payment_sources for select
-  using (auth.uid() is not null);
+-- Create correct SELECT policy using TO clause (not USING with auth.role())
+CREATE POLICY "payment_sources_select_authenticated"
+  ON payment_sources
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Create ALL policy for admins
+CREATE POLICY "payment_sources_all_admin"
+  ON payment_sources
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.role = 'admin'
+    )
+  );
 ```
+
+**Root cause:** The original policy `auth.role() = 'authenticated'` is incorrect syntax. Supabase RLS policies should use `TO authenticated` to target authenticated users, not `USING (auth.role() = ...)`.
+
+A debug SQL script is available at: `supabase/debug/fix-payment-sources-rls.sql`
 
 ### Metrics Dashboard UI Redesign (TODO)
 

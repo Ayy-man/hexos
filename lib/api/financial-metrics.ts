@@ -425,11 +425,22 @@ export function getPaymentUrgency(dueDate: string): 'overdue' | 'due_soon' | 'up
 export async function getPaymentSources(): Promise<PaymentSource[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // Debug: Check auth state
+  const { data: { user } } = await supabase.auth.getUser();
+  console.log('[getPaymentSources] Current user:', user?.id, user?.email);
+
+  const { data, error, count } = await supabase
     .from('payment_sources')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('is_active', true)
     .order('name');
+
+  console.log('[getPaymentSources] Query result:', {
+    data: data?.length || 0,
+    count,
+    error: error?.message,
+    errorCode: error?.code
+  });
 
   if (error) {
     console.error('Error fetching payment sources:', error);

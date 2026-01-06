@@ -31,12 +31,16 @@ create table if not exists payment_sources (
 -- RLS for payment_sources
 alter table payment_sources enable row level security;
 
-create policy "Payment sources readable by authenticated"
+-- Simple SELECT policy - any authenticated user can read payment sources
+create policy "payment_sources_select_authenticated"
   on payment_sources for select
-  using (auth.role() = 'authenticated');
+  to authenticated
+  using (true);
 
-create policy "Admins manage payment sources"
+-- Admin ALL policy - admins can insert/update/delete
+create policy "payment_sources_all_admin"
   on payment_sources for all
+  to authenticated
   using (
     exists (
       select 1 from profiles
