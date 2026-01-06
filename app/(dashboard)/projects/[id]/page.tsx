@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getProject, getAvailableDevs } from '@/lib/api/projects'
 import type { ProjectStatus } from '@/lib/api/projects'
@@ -6,6 +5,7 @@ import { requireAuth, getProfile } from '@/lib/auth/guards'
 import { ProjectTabs } from '@/features/projects/components/ProjectTabs'
 import { ProjectStatusControl } from '@/features/projects/components/ProjectStatusControl'
 import { ProjectProgressBar } from '@/features/projects/components/ProjectProgressBar'
+import { ProjectHeader } from '@/features/projects/components/ProjectHeader'
 import { isNotFoundError } from '@/lib/errors'
 
 export default async function ProjectDetailPage({
@@ -43,25 +43,8 @@ export default async function ProjectDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/projects"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Projects
-          </Link>
-          <span className="text-muted-foreground">/</span>
-        </div>
-        <h1 className="mt-1 text-2xl font-semibold">
-          {project.project_name}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {project.client_name}
-          {project.client_business && ` · ${project.client_business}`}
-        </p>
-      </div>
+      {/* Header with Delivery Badge */}
+      <ProjectHeader project={project} isAdmin={isAdmin} />
 
       {/* Progress Summary */}
       <div className="rounded-lg border bg-card p-4">

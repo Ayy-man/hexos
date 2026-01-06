@@ -19,6 +19,8 @@ export interface EstimatedDeliveryBadgeProps {
   isOverride?: boolean
   onEditClick?: () => void
   className?: string
+  /** Compact variant for header placement */
+  variant?: 'default' | 'compact'
 }
 
 export function EstimatedDeliveryBadge({
@@ -30,6 +32,7 @@ export function EstimatedDeliveryBadge({
   isOverride = false,
   onEditClick,
   className,
+  variant = 'default',
 }: EstimatedDeliveryBadgeProps) {
   const colors = getStatusColors(status)
   const statusLabel = getStatusLabel(status)
@@ -39,6 +42,42 @@ export function EstimatedDeliveryBadge({
   // Show delay indicator for at_risk and delayed
   const showDelay = delayDays > 0 && !isOverride
 
+  // Compact variant for header placement
+  if (variant === 'compact') {
+    return (
+      <div
+        className={cn(
+          'inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm',
+          colors.border,
+          colors.bg,
+          className
+        )}
+      >
+        <Clock className={cn('h-3.5 w-3.5', colors.text)} />
+        <span className={cn('font-medium', colors.text)}>{dateString}</span>
+        <span
+          className={cn(
+            'rounded-full px-2 py-0.5 text-xs font-semibold',
+            colors.pill
+          )}
+        >
+          {statusLabel}
+          {showDelay && <span className="ml-1 opacity-80">+{delayDays}d</span>}
+        </span>
+        {onEditClick && (
+          <button
+            onClick={onEditClick}
+            className="p-0.5 rounded hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+            title="Edit delivery date"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  // Default full variant
   return (
     <div className={cn('animate-fade-in-up', className)}>
       <div className="relative">
