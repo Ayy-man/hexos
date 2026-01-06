@@ -2,7 +2,7 @@
 
 import { Flame, TrendingUp, Calendar, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { PulseStats } from '@/lib/api/pulse'
+import type { PulseStats } from '@/lib/types/pulse'
 import { formatPoints, formatStreak } from '@/lib/utils/pulseCalculations'
 
 interface PulseHeaderProps {

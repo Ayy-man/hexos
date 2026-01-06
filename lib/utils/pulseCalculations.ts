@@ -314,3 +314,33 @@ export function formatStreak(streak: number): string {
   if (streak === 1) return '1 day'
   return `${streak} days`
 }
+
+// ============================================================================
+// Progress Calculations
+// ============================================================================
+
+/**
+ * Calculate progress percentage for a goal based on current vs target value
+ */
+export function calculateGoalProgress(goal: {
+  target_value: number | null
+  current_value: number | null
+}): number {
+  if (!goal.target_value || goal.target_value === 0) return 0
+  if (!goal.current_value) return 0
+
+  const progress = Math.round((goal.current_value / goal.target_value) * 100)
+  return Math.min(progress, 100) // Cap at 100%
+}
+
+/**
+ * Calculate progress percentage for a target based on completed actions
+ */
+export function calculateTargetProgress(target: {
+  actions?: Array<{ completed_at: string | null }>
+}): number {
+  if (!target.actions?.length) return 0
+
+  const completed = target.actions.filter(a => a.completed_at != null).length
+  return Math.round((completed / target.actions.length) * 100)
+}

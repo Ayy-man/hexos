@@ -5,8 +5,8 @@ import { ChevronDown, ChevronRight, Check, Circle, Plus, Trash2 } from 'lucide-r
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import type { PulseTargetWithOwners, PulseAction } from '@/lib/api/pulse-targets'
-import { calculateTargetProgress } from '@/lib/api/pulse-targets'
+import type { PulseTargetWithOwners, PulseAction } from '@/lib/types/pulse'
+import { calculateTargetProgress } from '@/lib/utils/pulseCalculations'
 import {
   createActionAction,
   completeActionAction,

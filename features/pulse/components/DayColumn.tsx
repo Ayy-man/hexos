@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { isToday, isPast, formatDateShort, getDayOfWeek } from '@/lib/utils/pulseCalculations'
-import type { PulseDailyTask } from '@/lib/api/pulse-tasks'
+import type { PulseDailyTask } from '@/lib/types/pulse'
 import { TaskItem } from './TaskItem'
 import { createTaskAction } from '../actions/taskActions'
 
