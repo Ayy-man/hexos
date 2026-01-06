@@ -6,6 +6,10 @@ DROP POLICY IF EXISTS "blocker_comments_admin_all" ON blocker_comments;
 DROP POLICY IF EXISTS "blocker_comments_project_select" ON blocker_comments;
 DROP POLICY IF EXISTS "blocker_comments_project_insert" ON blocker_comments;
 DROP POLICY IF EXISTS "blocker_comments_own_update" ON blocker_comments;
+DROP POLICY IF EXISTS "blocker_comments_select" ON blocker_comments;
+DROP POLICY IF EXISTS "blocker_comments_insert" ON blocker_comments;
+DROP POLICY IF EXISTS "blocker_comments_update" ON blocker_comments;
+DROP POLICY IF EXISTS "blocker_comments_delete" ON blocker_comments;
 
 -- Recreate with simpler, more reliable policies
 
@@ -14,19 +18,15 @@ CREATE POLICY "blocker_comments_admin_all" ON blocker_comments
   FOR ALL USING (get_user_role() = 'admin');
 
 -- Anyone can SELECT comments on blockers in projects they can access
+-- Uses can_access_project which checks: assigned_dev_id, dfy_partner_id, client_id
 CREATE POLICY "blocker_comments_select" ON blocker_comments
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM blockers b
       WHERE b.id = blocker_comments.blocker_id
       AND (
-        get_user_role() = 'admin'
-        OR b.reported_by = auth.uid()
-        OR EXISTS (
-          SELECT 1 FROM project_assignments pa
-          WHERE pa.project_id = b.project_id
-          AND pa.user_id = auth.uid()
-        )
+        b.reported_by = auth.uid()
+        OR can_access_project(b.project_id)
       )
     )
   );
@@ -39,13 +39,8 @@ CREATE POLICY "blocker_comments_insert" ON blocker_comments
       SELECT 1 FROM blockers b
       WHERE b.id = blocker_comments.blocker_id
       AND (
-        get_user_role() = 'admin'
-        OR b.reported_by = auth.uid()
-        OR EXISTS (
-          SELECT 1 FROM project_assignments pa
-          WHERE pa.project_id = b.project_id
-          AND pa.user_id = auth.uid()
-        )
+        b.reported_by = auth.uid()
+        OR can_access_project(b.project_id)
       )
     )
   );
