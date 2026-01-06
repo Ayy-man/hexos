@@ -153,13 +153,13 @@ export function FinancialsTab({
           </CardContent>
         </Card>
 
-        <Card className={overduePayments.length > 0 ? 'border-red-500/50 bg-red-500/5' : ''}>
+        <Card className={overduePayments.length > 0 ? 'border-error/50 bg-error/5' : ''}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertTriangle className={`h-4 w-4 ${overduePayments.length > 0 ? 'text-red-500' : 'text-muted-foreground'}`} />
+            <AlertTriangle className={`h-4 w-4 ${overduePayments.length > 0 ? 'text-error' : 'text-muted-foreground'}`} />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${overduePayments.length > 0 ? 'text-red-600' : ''}`}>
+            <div className={`text-2xl font-bold ${overduePayments.length > 0 ? 'text-error' : ''}`}>
               {formatCurrency(totalOverdue)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -171,10 +171,10 @@ export function FinancialsTab({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Due This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-amber-500" />
+            <Calendar className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
+            <div className="text-2xl font-bold text-warning">
               {financial ? formatCurrency(financial.payable_this_month) : '$0'}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -358,7 +358,7 @@ export function FinancialsTab({
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right font-medium text-amber-600">
+                  <TableCell className="text-right font-medium text-warning">
                     {formatCurrency(project.pending_amount)}
                   </TableCell>
                 </TableRow>
@@ -377,11 +377,11 @@ export function FinancialsTab({
 
       {/* Overdue Payments (only show if there are any) */}
       {overduePayments.length > 0 && (
-        <Card className="border-red-500/50">
-          <CardHeader className="bg-red-500/5">
+        <Card className="border-error/50">
+          <CardHeader className="bg-error/5">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2 text-red-600">
+                <CardTitle className="flex items-center gap-2 text-error">
                   <AlertTriangle className="h-4 w-4" />
                   Overdue Payments
                 </CardTitle>
@@ -407,11 +407,11 @@ export function FinancialsTab({
               </TableHeader>
               <TableBody>
                 {overduePayments.map((payment) => (
-                  <TableRow key={payment.milestone_id} className="bg-red-500/5">
+                  <TableRow key={payment.milestone_id} className="bg-error/5">
                     <TableCell className="font-medium">{payment.project_name}</TableCell>
                     <TableCell>{payment.client_name}</TableCell>
                     <TableCell>{payment.milestone_label}</TableCell>
-                    <TableCell className="text-right font-medium text-red-600">
+                    <TableCell className="text-right font-medium text-error">
                       {formatCurrency(payment.amount)}
                     </TableCell>
                     <TableCell>{new Date(payment.due_date).toLocaleDateString()}</TableCell>

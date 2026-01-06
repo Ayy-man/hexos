@@ -1,80 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
+import type {
+  PulseTarget,
+  PulseTargetWithOwners,
+  PulseAction,
+  CreateTargetInput,
+  UpdateTargetInput,
+  CreateActionInput,
+  UpdateActionInput,
+  TargetStatus,
+  Quarter
+} from '@/lib/types/pulse'
 import { logPulseEvent } from './pulse'
-
-// ============================================================================
-// Types
-// ============================================================================
-
-export type TargetStatus = 'not_started' | 'in_progress' | 'completed'
-export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
-
-export interface PulseTarget {
-  id: string
-  goal_id: string | null
-  quarter: Quarter
-  title: string
-  status: TargetStatus
-  due_date: string | null
-  completed_at: string | null
-  position: number
-  created_at: string
-  updated_at: string
-}
-
-export interface PulseTargetWithOwners extends PulseTarget {
-  owners: Array<{
-    id: string
-    name: string
-    email: string
-  }>
-  actions: PulseAction[]
-}
-
-export interface PulseAction {
-  id: string
-  target_id: string
-  title: string
-  owner_id: string | null
-  due_date: string | null
-  completed_at: string | null
-  position: number
-  created_at: string
-  owner?: {
-    id: string
-    name: string
-    email: string
-  }
-}
-
-export interface CreateTargetInput {
-  goal_id?: string
-  quarter: Quarter
-  title: string
-  due_date?: string
-  owner_ids?: string[]
-}
-
-export interface UpdateTargetInput {
-  title?: string
-  quarter?: Quarter
-  status?: TargetStatus
-  due_date?: string | null
-  position?: number
-}
-
-export interface CreateActionInput {
-  target_id: string
-  title: string
-  owner_id?: string
-  due_date?: string
-}
-
-export interface UpdateActionInput {
-  title?: string
-  owner_id?: string | null
-  due_date?: string | null
-  position?: number
-}
 
 // ============================================================================
 // Target CRUD

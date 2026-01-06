@@ -160,7 +160,7 @@ export function NotificationToast({
       className="cursor-grab group touch-pan-y select-none"
       onClick={handleClick}
     >
-      <div className="w-[340px] rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-2xl shadow-black/20 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-all hover:bg-background/90 hover:scale-[1.02]">
+      <div className="w-[340px] rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-lg ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-all hover:bg-background/90 hover:scale-[1.02]">
         <div className="p-4">
           <div className="flex gap-3">
             {/* Avatar with icon overlay */}
@@ -190,7 +190,7 @@ export function NotificationToast({
                   )}
                 </div>
                 {/* Unread indicator */}
-                <div className="size-2 rounded-full bg-emerald-500 shrink-0 mt-1.5 animate-pulse" />
+                <div className="size-2 rounded-full bg-success shrink-0 mt-1.5 animate-pulse" />
               </div>
 
               {/* Message preview */}
@@ -221,7 +221,7 @@ export function NotificationToast({
         {/* Progress bar */}
         <div className="h-0.5 bg-muted/30">
           <div
-            className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full origin-left"
+            className="h-full bg-primary rounded-full origin-left"
             style={{
               animation: `shrink-width ${duration}ms linear forwards`
             }}

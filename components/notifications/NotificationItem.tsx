@@ -150,7 +150,7 @@ export function NotificationItem({
                 )}
               </div>
               {isUnread && (
-                <div className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <div className="size-1.5 rounded-full bg-success shrink-0" />
               )}
             </div>
 

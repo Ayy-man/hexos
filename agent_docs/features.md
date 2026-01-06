@@ -603,6 +603,38 @@ RPG-style skill tracking, badges, and leveling system for developers.
 - [ ] Auto-tag skills when projects complete
 - [ ] Skill-based project assignment recommendations
 
+### Phase 5.5: Pulse — Personal Ops & Progress Tracking (Complete)
+
+A personal productivity system for admin/internal users with heatmap, streak tracking, and quarterly targets.
+
+**See `pulse.md` for full documentation.**
+
+- [x] Database: 7 pulse tables with RLS
+  - [x] `pulse_goals` - Yearly company goals (shared)
+  - [x] `pulse_targets` - Quarterly targets with owners
+  - [x] `pulse_target_owners` - M2M target ownership
+  - [x] `pulse_actions` - Actions for targets
+  - [x] `pulse_daily_tasks` - Personal daily tasks
+  - [x] `pulse_events` - All pulse point events
+  - [x] `pulse_settings` - User settings (min_daily_pulse)
+- [x] Point System
+  - [x] Task: 3pts, Linked task: 5pts, Action: 10pts
+  - [x] Target: 25pts, Deliverable: 8pts, Requirement: 5pts
+- [x] Streak Calculation
+  - [x] Based on meeting daily minimum (default 10pts)
+  - [x] Sunday is optional (doesn't break streak)
+- [x] UI Components
+  - [x] Heatmap using cal-heatmap library (12-week, brand cyan colors)
+  - [x] Streak hero design (large 🔥 left, secondary stats right)
+  - [x] Week View (7-column CSS grid, all days visible)
+  - [x] GoalAndTargets (unified goal banner + targets card)
+  - [x] Compact task items for week view
+- [x] Sidebar streak badge (flame icon with count)
+- [x] Integration points (deliverable done, requirement approved)
+
+**Architecture Note:**
+Client components import types from `lib/types/pulse.ts` (client-safe) rather than API files to avoid server-only import errors. Progress calculation functions are in `lib/utils/pulseCalculations.ts`. Heatmap uses `cal-heatmap` library with type declarations in `types/cal-heatmap.d.ts`.
+
 ### Phase 6: External Access
 
 - [ ] Dev portal (assigned projects)

@@ -154,10 +154,10 @@ export function TeamTab({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Timers</CardTitle>
-            <Activity className="h-4 w-4 text-green-500" />
+            <Activity className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {timeTracking?.active_timers_count || 0}
             </div>
             <p className="text-xs text-muted-foreground">Working now</p>
@@ -229,7 +229,7 @@ export function TeamTab({
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium text-green-600">
+                    <div className="font-medium text-success">
                       {formatPercentage(partner.win_rate)}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -346,18 +346,18 @@ export function TeamTab({
                   <TableCell className="font-medium">{partner.partner_name}</TableCell>
                   <TableCell className="text-right">{partner.total_inquiries}</TableCell>
                   <TableCell className="text-right">
-                    <span className="text-green-600">{partner.closed_inquiries}</span>
+                    <span className="text-success">{partner.closed_inquiries}</span>
                     {' / '}
-                    <span className="text-red-600">{partner.lost_inquiries}</span>
+                    <span className="text-error">{partner.lost_inquiries}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={partner.win_rate >= 50 ? 'text-green-600' : ''}>
+                    <span className={partner.win_rate >= 50 ? 'text-success' : ''}>
                       {formatPercentage(partner.win_rate)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(partner.avg_deal_size)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(partner.total_revenue)}</TableCell>
-                  <TableCell className="text-right text-green-600">
+                  <TableCell className="text-right text-success">
                     {formatCurrency(partner.total_commission)}
                   </TableCell>
                 </TableRow>

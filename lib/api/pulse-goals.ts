@@ -1,31 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface PulseGoal {
-  id: string
-  year: number
-  title: string
-  target_value: number | null
-  current_value: number | null
-  created_by: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface CreateGoalInput {
-  year: number
-  title: string
-  target_value?: number
-}
-
-export interface UpdateGoalInput {
-  title?: string
-  target_value?: number | null
-  current_value?: number | null
-}
+import type { PulseGoal, CreateGoalInput, UpdateGoalInput } from '@/lib/types/pulse'
 
 // ============================================================================
 // CRUD Operations

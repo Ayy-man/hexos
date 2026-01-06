@@ -1,45 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-
-// ============================================================================
-// Types
-// ============================================================================
-
-export type PulseEventType =
-  | 'task_completed'
-  | 'linked_task_completed'
-  | 'action_completed'
-  | 'target_completed'
-  | 'deliverable_advanced'
-  | 'requirement_completed'
-
-export type PulseSourceType =
-  | 'task'
-  | 'action'
-  | 'target'
-  | 'deliverable'
-  | 'requirement'
-
-export interface PulseEvent {
-  id: string
-  user_id: string
-  event_type: PulseEventType
-  points: number
-  source_type: PulseSourceType
-  source_id: string | null
-  created_at: string
-}
-
-export interface PulseStats {
-  streak: number
-  todayPoints: number
-  weekPoints: number
-  averageDaily: number
-  longestStreak: number
-}
-
-export interface DailyPointsMap {
-  [date: string]: number
-}
+import type { PulseEvent, PulseEventType, PulseSourceType, PulseStats, DailyPointsMap, PulseSettings } from '@/lib/types/pulse'
 
 // Point values for each event type
 export const PULSE_POINTS: Record<PulseEventType, number> = {
@@ -267,12 +227,6 @@ export async function getHeatmapData(
 // ============================================================================
 // Settings
 // ============================================================================
-
-export interface PulseSettings {
-  user_id: string
-  min_daily_pulse: number
-  updated_at: string
-}
 
 export async function getPulseSettings(userId: string): Promise<PulseSettings | null> {
   const supabase = await createClient()

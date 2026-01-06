@@ -5,6 +5,17 @@
 export type Quarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 export type TargetStatus = 'not_started' | 'in_progress' | 'completed'
 
+export interface DailyPointsMap {
+  [date: string]: number
+}
+
+export interface PulseSettings {
+  user_id: string
+  min_daily_pulse: number
+  updated_at: string
+}
+
+
 export interface PulseGoal {
   id: string
   year: number
@@ -15,6 +26,19 @@ export interface PulseGoal {
   created_at: string
   updated_at: string
 }
+
+export interface CreateGoalInput {
+  year: number
+  title: string
+  target_value?: number
+}
+
+export interface UpdateGoalInput {
+  title?: string
+  target_value?: number | null
+  current_value?: number | null
+}
+
 
 export interface PulseTarget {
   id: string
@@ -28,6 +52,23 @@ export interface PulseTarget {
   created_at: string
   updated_at: string
 }
+
+export interface CreateTargetInput {
+  goal_id?: string
+  quarter: Quarter
+  title: string
+  due_date?: string
+  owner_ids?: string[]
+}
+
+export interface UpdateTargetInput {
+  title?: string
+  quarter?: Quarter
+  status?: TargetStatus
+  due_date?: string | null
+  position?: number
+}
+
 
 export interface PulseAction {
   id: string
@@ -44,6 +85,21 @@ export interface PulseAction {
     email: string
   }
 }
+
+export interface CreateActionInput {
+  target_id: string
+  title: string
+  owner_id?: string
+  due_date?: string
+}
+
+export interface UpdateActionInput {
+  title?: string
+  owner_id?: string | null
+  due_date?: string | null
+  position?: number
+}
+
 
 export interface PulseTargetWithOwners extends PulseTarget {
   owners: Array<{
@@ -65,6 +121,21 @@ export interface PulseDailyTask {
   position: number
   created_at: string
 }
+
+export interface CreateTaskInput {
+  date: string
+  title: string
+  linked_action_id?: string
+  position?: number
+}
+
+export interface UpdateTaskInput {
+  title?: string
+  date?: string
+  linked_action_id?: string | null
+  position?: number
+}
+
 
 export type PulseEventType =
   | 'task_completed'

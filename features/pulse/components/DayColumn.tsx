@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { isToday, isPast, formatDateShort, getDayOfWeek } from '@/lib/utils/pulseCalculations'
+import { isToday, isPast, getDayOfWeek } from '@/lib/utils/pulseCalculations'
 import type { PulseDailyTask } from '@/lib/types/pulse'
 import { TaskItem } from './TaskItem'
 import { createTaskAction } from '../actions/taskActions'
@@ -14,11 +14,12 @@ interface DayColumnProps {
   date: string
   tasks: PulseDailyTask[]
   onUpdate?: () => void
+  isWeekend?: boolean
 }
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-export function DayColumn({ date, tasks, onUpdate }: DayColumnProps) {
+export function DayColumn({ date, tasks, onUpdate, isWeekend = false }: DayColumnProps) {
   const [isAddingTask, setIsAddingTask] = useState(false)
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [isCreating, setIsCreating] = useState(false)
@@ -27,6 +28,7 @@ export function DayColumn({ date, tasks, onUpdate }: DayColumnProps) {
   const past = isPast(date)
   const dayOfWeek = getDayOfWeek(date)
   const dayName = DAY_NAMES[dayOfWeek]
+  const dateNum = new Date(date + 'T00:00:00').getDate()
 
   // Separate completed and incomplete tasks
   const incompleteTasks = tasks.filter(t => !t.completed_at)
@@ -61,41 +63,52 @@ export function DayColumn({ date, tasks, onUpdate }: DayColumnProps) {
   return (
     <div
       className={cn(
-        'flex flex-col min-w-[140px] rounded-lg border p-3',
-        today && 'border-primary bg-primary/5',
-        past && !today && 'opacity-60'
+        'flex flex-col rounded-lg border p-2 min-h-[200px]',
+        today && 'border-primary bg-primary/5 ring-1 ring-primary/20',
+        past && !today && 'opacity-50',
+        isWeekend && 'bg-muted/30'
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className={cn('text-sm font-medium', today && 'text-primary')}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-center w-full">
+          <p className={cn(
+            'text-xs font-medium',
+            today && 'text-primary',
+            isWeekend && !today && 'text-muted-foreground'
+          )}>
             {dayName}
           </p>
-          <p className="text-xs text-muted-foreground">{formatDateShort(date)}</p>
+          <p className={cn(
+            'text-lg font-semibold leading-tight',
+            today && 'text-primary'
+          )}>
+            {dateNum}
+          </p>
         </div>
-        {today && (
-          <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-            TODAY
-          </span>
-        )}
       </div>
 
+      {today && (
+        <span className="text-[9px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded text-center mb-2">
+          TODAY
+        </span>
+      )}
+
       {/* Tasks */}
-      <div className="flex-1 space-y-1">
+      <div className="flex-1 space-y-1 overflow-y-auto max-h-[180px]">
         {/* Incomplete tasks first */}
         {incompleteTasks.map((task) => (
-          <TaskItem key={task.id} task={task} onUpdate={onUpdate} />
+          <TaskItem key={task.id} task={task} onUpdate={onUpdate} compact />
         ))}
 
         {/* Completed tasks */}
         {completedTasks.map((task) => (
-          <TaskItem key={task.id} task={task} onUpdate={onUpdate} />
+          <TaskItem key={task.id} task={task} onUpdate={onUpdate} compact />
         ))}
 
         {/* Empty state */}
         {tasks.length === 0 && !isAddingTask && (
-          <p className="text-xs text-muted-foreground text-center py-4">
+          <p className="text-[10px] text-muted-foreground text-center py-3">
             No tasks
           </p>
         )}
@@ -103,20 +116,20 @@ export function DayColumn({ date, tasks, onUpdate }: DayColumnProps) {
 
       {/* Add task */}
       {isAddingTask ? (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-1">
           <Input
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Task title..."
-            className="h-8 text-sm"
+            placeholder="Task..."
+            className="h-7 text-xs"
             autoFocus
             disabled={isCreating}
           />
           <div className="flex gap-1">
             <Button
               size="sm"
-              className="flex-1 h-7"
+              className="flex-1 h-6 text-xs"
               onClick={handleAddTask}
               disabled={isCreating || !newTaskTitle.trim()}
             >
@@ -125,13 +138,13 @@ export function DayColumn({ date, tasks, onUpdate }: DayColumnProps) {
             <Button
               size="sm"
               variant="ghost"
-              className="h-7"
+              className="h-6 text-xs px-2"
               onClick={() => {
                 setNewTaskTitle('')
                 setIsAddingTask(false)
               }}
             >
-              Cancel
+              ✕
             </Button>
           </div>
         </div>
@@ -139,11 +152,11 @@ export function DayColumn({ date, tasks, onUpdate }: DayColumnProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="mt-2 w-full justify-start text-muted-foreground"
+          className="mt-2 w-full h-7 text-xs text-muted-foreground hover:text-foreground"
           onClick={() => setIsAddingTask(true)}
         >
-          <Plus className="h-4 w-4 mr-1" />
-          Add task
+          <Plus className="h-3 w-3 mr-1" />
+          Add
         </Button>
       )}
     </div>

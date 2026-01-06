@@ -128,6 +128,13 @@ CREATE TYPE onboarding_requirement_status AS ENUM (
   'blocked',
   'not_applicable'
 );
+
+-- Pulse target status
+CREATE TYPE pulse_target_status AS ENUM (
+  'not_started',
+  'in_progress',
+  'completed'
+);
 ```
 
 ### Core Tables

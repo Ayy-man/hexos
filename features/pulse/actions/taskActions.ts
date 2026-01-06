@@ -11,10 +11,8 @@ import {
   rolloverIncompleteTasks,
   reorderTasks,
   moveTaskToDate,
-  type CreateTaskInput,
-  type UpdateTaskInput,
-  type PulseDailyTask,
 } from '@/lib/api/pulse-tasks'
+import type { CreateTaskInput, UpdateTaskInput, PulseDailyTask } from '@/lib/types/pulse'
 
 // ============================================================================
 // Task CRUD Actions

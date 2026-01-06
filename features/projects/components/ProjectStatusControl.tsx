@@ -89,37 +89,38 @@ const STATUS_LABELS: Record<string, string> = {
   on_hold: 'On Hold',
 }
 
+// Semantic status colors - simplified palette
 const STATUS_COLORS: Record<string, string> = {
-  // Sign-off - Indigo
-  deliverables_pending: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
-  awaiting_signoff: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
-  signed_off: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
-  // Agreement - Purple
-  agreement_sent: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  agreement_signed: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  // Payment - Amber
-  payment_pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  payment_partial: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  payment_paid: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  // Onboarding - Teal
-  collecting_access: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300',
-  access_complete: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300',
-  dev_assigned: 'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300',
-  // Development - Cyan
-  in_progress: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  blocked_client: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-  blocked_internal: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-  review_checkpoint: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  revisions: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-  final_qa: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  // Delivery - Green
-  delivered: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  acceptance_pending: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  accepted: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  // Sign-off - Neutral (pipeline progress)
+  deliverables_pending: 'bg-secondary text-secondary-foreground',
+  awaiting_signoff: 'bg-secondary text-secondary-foreground',
+  signed_off: 'bg-secondary text-secondary-foreground',
+  // Agreement - Neutral
+  agreement_sent: 'bg-secondary text-secondary-foreground',
+  agreement_signed: 'bg-secondary text-secondary-foreground',
+  // Payment - Warning (needs attention)
+  payment_pending: 'bg-warning-muted text-warning-foreground',
+  payment_partial: 'bg-warning-muted text-warning-foreground',
+  payment_paid: 'bg-success-muted text-success-foreground',
+  // Onboarding - Neutral
+  collecting_access: 'bg-secondary text-secondary-foreground',
+  access_complete: 'bg-secondary text-secondary-foreground',
+  dev_assigned: 'bg-secondary text-secondary-foreground',
+  // Development - Info (active work)
+  in_progress: 'bg-info-muted text-info-foreground',
+  blocked_client: 'bg-error-muted text-error-foreground',
+  blocked_internal: 'bg-error-muted text-error-foreground',
+  review_checkpoint: 'bg-info-muted text-info-foreground',
+  revisions: 'bg-warning-muted text-warning-foreground',
+  final_qa: 'bg-info-muted text-info-foreground',
+  // Delivery - Success
+  delivered: 'bg-success-muted text-success-foreground',
+  acceptance_pending: 'bg-success-muted text-success-foreground',
+  accepted: 'bg-success-muted text-success-foreground',
   // Closed
-  completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
-  cancelled: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-  on_hold: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
+  completed: 'bg-success-muted text-success-foreground',
+  cancelled: 'bg-error-muted text-error-foreground',
+  on_hold: 'bg-muted text-muted-foreground',
 }
 
 // Transition map: what statuses can transition to what
