@@ -431,21 +431,27 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
 
             <div className="space-y-2">
               <Label htmlFor="payment_source">Payment Source</Label>
-              <Select
-                value={formData.payment_source_id}
-                onValueChange={(v) => setFormData({ ...formData, payment_source_id: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentSources.map((ps) => (
-                    <SelectItem key={ps.id} value={ps.id}>
-                      {ps.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {paymentSources.length === 0 ? (
+                <p className="text-sm text-destructive">
+                  No payment sources found. Check database RLS policies.
+                </p>
+              ) : (
+                <Select
+                  value={formData.payment_source_id}
+                  onValueChange={(v) => setFormData({ ...formData, payment_source_id: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {paymentSources.map((ps) => (
+                      <SelectItem key={ps.id} value={ps.id}>
+                        {ps.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
