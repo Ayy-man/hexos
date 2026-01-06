@@ -20,9 +20,8 @@ import {
   updateMilestoneDueDate,
   getProjectPaymentMilestones,
 } from '@/lib/api/financial-metrics';
-import type { Database } from '@/types/supabase';
 
-type PaymentStructure = Database['public']['Enums']['payment_structure'];
+type PaymentStructure = '100_upfront' | '50_50' | '40_30_30' | 'custom';
 
 // ============================================================================
 // HERO METRICS
