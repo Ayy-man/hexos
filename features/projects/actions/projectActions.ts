@@ -7,6 +7,7 @@ import {
   updateRequirementDependencies,
 } from '@/lib/api/project-requirements'
 import { checkAndNotifyUnblockedRequirements } from '@/lib/api/requirement-notifications'
+import { createNotification } from '@/lib/api/notifications'
 import type { ProjectStatus } from '@/lib/api/projects'
 
 // ============================================
@@ -26,10 +27,10 @@ export async function updateProjectStatusAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // Get current status for logging
+  // Get current status and project details for logging
   const { data: project } = await supabase
     .from('projects')
-    .select('status')
+    .select('status, project_name, assigned_dev_id')
     .eq('id', projectId)
     .single()
 
@@ -56,6 +57,22 @@ export async function updateProjectStatusAction(
       notes: notes || null,
     },
   })
+
+  // Notify assigned dev if status changed
+  if (project.assigned_dev_id && project.assigned_dev_id !== user.id) {
+    try {
+      await createNotification({
+        userId: project.assigned_dev_id,
+        type: 'status_change',
+        title: 'Project status updated',
+        message: `${project.project_name} status changed to ${newStatus.replace(/_/g, ' ')}`,
+        projectId,
+        actorId: user.id,
+      })
+    } catch (e) {
+      console.error('Failed to create notification:', e)
+    }
+  }
 
   revalidatePath(`/projects/${projectId}`)
   revalidatePath('/projects')
@@ -250,6 +267,13 @@ export async function assignDevAction(projectId: string, devId: string): Promise
     .eq('id', devId)
     .single()
 
+  // Get project name for notification
+  const { data: project } = await supabase
+    .from('projects')
+    .select('project_name')
+    .eq('id', projectId)
+    .single()
+
   await supabase
     .from('projects')
     .update({ assigned_dev_id: devId })
@@ -262,6 +286,20 @@ export async function assignDevAction(projectId: string, devId: string): Promise
     action: 'dev_assigned',
     details: { dev_id: devId, dev_name: dev?.name },
   })
+
+  // Notify the assigned developer
+  try {
+    await createNotification({
+      userId: devId,
+      type: 'project_assigned',
+      title: 'New project assigned',
+      message: `You have been assigned to ${project?.project_name || 'a project'}`,
+      projectId,
+      actorId: user.id,
+    })
+  } catch (e) {
+    console.error('Failed to create notification:', e)
+  }
 
   revalidatePath(`/projects/${projectId}`)
 }

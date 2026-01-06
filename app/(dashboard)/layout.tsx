@@ -11,9 +11,11 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb'
 import { CommandPalette } from '@/components/command-palette'
+import { NotificationPopover } from '@/components/notifications'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
+import { getMyNotifications, getUnreadCount } from '@/lib/api/notifications'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -41,6 +43,12 @@ export default async function DashboardLayout({
 
   const navigation = getNavigation((profile as Profile).role)
 
+  // Fetch notifications for the header
+  const [notifications, unreadCount] = await Promise.all([
+    getMyNotifications(20).catch(() => []),
+    getUnreadCount().catch(() => 0),
+  ])
+
   // Get sidebar state from cookie
   const cookieStore = await cookies()
   const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false'
@@ -58,6 +66,10 @@ export default async function DashboardLayout({
           <DynamicBreadcrumb />
           <div className="ml-auto flex items-center gap-2">
             <CommandPalette role={(profile as Profile).role} />
+            <NotificationPopover
+              initialNotifications={notifications}
+              initialUnreadCount={unreadCount}
+            />
             <ThemeToggle />
           </div>
         </header>
