@@ -2,14 +2,33 @@
 
 ## Custom Components Available
 
-These components are ready to integrate (ask user for code):
+| Component | Status | Use In |
+|-----------|--------|--------|
+| Action Searchbar | ✅ Integrated | Global ⌘K command palette |
+| File Tree | Ready | Deliverables hierarchy, project structure |
+| Kanban Board | ✅ Integrated | Pipeline view (inquiries board) |
+| Location Tag | ✅ Integrated | User profiles, team views, conversations |
 
-| Component | Use In |
-|-----------|--------|
-| Action Searchbar | Global ⌘K command palette, project search |
-| File Tree | Deliverables hierarchy, project structure |
-| Kanban Board | Pipeline view, deliverables board, dev tasks |
-| Location Tag | User profiles, client timezone display |
+### Location Tag Component
+
+Shows user's location with live local time on hover. Integrated with profile settings.
+
+**Files:**
+- `components/ui/location-tag.tsx` - Base component
+- `components/profile-location-tag.tsx` - Wrapper using profile data
+- `features/settings/components/LocationSettings.tsx` - Settings UI
+- `supabase/migrations/20260108000003_profile_location_fields.sql` - DB fields
+
+**Usage:**
+```tsx
+// With profile data
+import { ProfileLocationTag } from '@/components/profile-location-tag'
+<ProfileLocationTag profile={user} />
+
+// Direct usage
+import { LocationTag } from '@/components/ui/location-tag'
+<LocationTag city="Lahore" country="Pakistan" timezone="PKT" />
+```
 
 See `components.md` for details.
 

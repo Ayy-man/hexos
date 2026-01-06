@@ -4,12 +4,19 @@
 
 ## Current State
 
-**Profiles Table (Basic):**
+**Profiles Table:**
 - `id` (UUID, FK to auth.users)
 - `name`, `email`, `role`
 - `logo_url` (DFY branding)
+- `city`, `country`, `timezone` (✅ location for LocationTag)
 - `last_seen_at` (presence tracking)
 - `created_at`
+
+**Location Settings (Implemented):**
+- Users can set city, country, timezone in `/settings`
+- `LocationSettings` component with live preview
+- `ProfileLocationTag` component for displaying in any context
+- Supported timezones: UTC, PST, MST, CST, EST, GMT, CET, IST, JST, AEST, PKT, GST
 
 **Conversations System:**
 - ✅ 3 conversation types per project (project, workspace, partner)
@@ -26,8 +33,9 @@
 
 -- Bio & Location
 ALTER TABLE profiles ADD COLUMN bio TEXT;
-ALTER TABLE profiles ADD COLUMN timezone TEXT DEFAULT 'America/New_York';
-ALTER TABLE profiles ADD COLUMN location TEXT; -- for Location Tag component
+ALTER TABLE profiles ADD COLUMN city TEXT;      -- ✅ IMPLEMENTED
+ALTER TABLE profiles ADD COLUMN country TEXT;   -- ✅ IMPLEMENTED
+ALTER TABLE profiles ADD COLUMN timezone TEXT DEFAULT 'UTC'; -- ✅ IMPLEMENTED
 ALTER TABLE profiles ADD COLUMN phone TEXT; -- for future WhatsApp
 
 -- Developer-specific
@@ -447,22 +455,25 @@ CREATE TABLE user_invitations (
 ### Phase 1: Core Profile Settings (P0)
 
 **Database:**
-- [ ] Enhanced profiles migration (bio, timezone, location, phone, skills, preferences)
+- [x] Location fields migration (city, country, timezone) - `20260108000003_profile_location_fields.sql`
+- [ ] Enhanced profiles migration (bio, phone, skills, preferences)
 - [ ] dev_availability table
 - [ ] Avatar storage bucket setup
 
 **Pages:**
-- [ ] `/settings/profile` - Edit name, bio, avatar, timezone, location
+- [x] `/settings` - Basic settings with location
+- [ ] `/settings/profile` - Edit name, bio, avatar
 - [ ] `/settings/account` - Change password, view sessions
 - [ ] `/settings/notifications` - Email/in-app preferences
 - [ ] `/settings/appearance` - Theme, compact mode (reuse existing theme toggle)
 
 **Components:**
+- [x] LocationSettings component with timezone dropdown
+- [x] LocationTag component (live pulse + hover time)
+- [x] ProfileLocationTag wrapper for profile data
 - [ ] SettingsSidebar with role-based navigation
 - [ ] AvatarUpload component
 - [ ] NotificationPreferencesForm
-- [ ] TimezoneSelector
-- [ ] LocationInput (for Location Tag)
 
 ### Phase 2: Role-Specific Settings (P1)
 
@@ -652,34 +663,43 @@ FROM profiles WHERE role = 'dev';
 
 ## Quick Start Checklist
 
-To build Phase 1 (Core Profile Settings):
+### Location Feature (✅ Complete)
 
 1. **Database:**
-   - [ ] Create migration `20260107xxxxxx_enhanced_profiles.sql`
-   - [ ] Run migration: `pnpm supabase db push`
-   - [ ] Create `avatars` storage bucket in Supabase dashboard
+   - [x] Migration `20260108000003_profile_location_fields.sql` (city, country, timezone)
 
 2. **API Layer:**
-   - [ ] Create `/lib/api/profiles.ts`
-   - [ ] Create `/features/settings/actions/profileActions.ts`
+   - [x] `updateCurrentUserLocation()` in `/lib/api/profiles.ts`
+   - [x] `updateLocationAction()` in `/features/settings/actions/settingsActions.ts`
 
 3. **UI Components:**
+   - [x] `LocationTag` - `/components/ui/location-tag.tsx`
+   - [x] `ProfileLocationTag` - `/components/profile-location-tag.tsx`
+   - [x] `LocationSettings` - `/features/settings/components/LocationSettings.tsx`
+
+4. **Integration:**
+   - [x] Settings page includes LocationSettings
+   - [x] Profile type includes city, country, timezone
+
+### Remaining Phase 1 Items
+
+1. **Database:**
+   - [ ] Create migration for enhanced profiles (bio, phone, skills, preferences)
+   - [ ] Create `avatars` storage bucket in Supabase dashboard
+
+2. **UI Components:**
    - [ ] Create `/features/settings/components/SettingsSidebar.tsx`
    - [ ] Create `/features/settings/components/AvatarUpload.tsx`
    - [ ] Create `/features/settings/components/NotificationPreferencesForm.tsx`
 
-4. **Pages:**
-   - [ ] Create `/app/(dashboard)/settings/layout.tsx`
+3. **Pages:**
+   - [ ] Create `/app/(dashboard)/settings/layout.tsx` (with sidebar)
    - [ ] Create `/app/(dashboard)/settings/profile/page.tsx`
    - [ ] Create `/app/(dashboard)/settings/account/page.tsx`
    - [ ] Create `/app/(dashboard)/settings/notifications/page.tsx`
-   - [ ] Create `/app/(dashboard)/settings/appearance/page.tsx`
 
-5. **Navigation:**
-   - [ ] Update `/lib/navigation.ts` to add Settings link
-
-6. **Test:**
+4. **Test:**
    - [ ] Upload avatar as each role
-   - [ ] Update bio, timezone, location
+   - [ ] Update bio
    - [ ] Toggle notification preferences
    - [ ] Verify RLS policies (dev can't see admin settings)
