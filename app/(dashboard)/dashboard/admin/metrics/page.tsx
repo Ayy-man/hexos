@@ -22,10 +22,20 @@ import {
   fetchPaymentTimeline,
   fetchRevenueTrend,
   fetchPendingPaymentsByProject,
+  fetchExpenses,
+  fetchPaymentSources,
 } from '@/features/admin/actions/financialActions';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function MetricsPage() {
   await requireRole(['admin']);
+
+  // Fetch projects for expense dropdown
+  const supabase = await createClient();
+  const { data: projectsData } = await supabase
+    .from('projects')
+    .select('id, name')
+    .order('name');
 
   // Fetch all metrics in parallel
   const [
@@ -48,6 +58,8 @@ export default async function MetricsPage() {
     paymentTimelineRes,
     revenueTrendRes,
     pendingByProjectRes,
+    expensesRes,
+    paymentSourcesRes,
   ] = await Promise.all([
     fetchInquiryPipelineBreakdown(),
     fetchInquiryConversionRates(),
@@ -68,6 +80,8 @@ export default async function MetricsPage() {
     fetchPaymentTimeline(6),
     fetchRevenueTrend(6),
     fetchPendingPaymentsByProject(),
+    fetchExpenses(),
+    fetchPaymentSources(),
   ]);
 
   return (
@@ -91,6 +105,9 @@ export default async function MetricsPage() {
       paymentTimeline={paymentTimelineRes.data || []}
       revenueTrend={revenueTrendRes.data || []}
       pendingByProject={pendingByProjectRes.data || []}
+      expenses={expensesRes.data || []}
+      paymentSources={paymentSourcesRes.data || []}
+      projects={projectsData || []}
     />
   );
 }

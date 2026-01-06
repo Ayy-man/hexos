@@ -7,6 +7,9 @@ import {
   TrendingUp,
   AlertTriangle,
   Briefcase,
+  Receipt,
+  PiggyBank,
+  Percent,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/api/financial-metrics-utils';
 import type {
@@ -173,6 +176,63 @@ export function HeroMetrics({
             </div>
             <p className="text-xs text-muted-foreground">
               Win rate | Avg ticket {financial ? formatCurrency(financial.avg_ticket_size) : '$0'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Hero KPI Cards - Row 3: Profitability */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Net Profit */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10">
+              <PiggyBank className="h-4 w-4 text-emerald-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${(financial?.net_profit || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+              {financial ? formatCurrency(financial.net_profit) : '$0'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Revenue minus expenses
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Profit Margin */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10">
+              <Percent className="h-4 w-4 text-blue-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${(financial?.profit_margin || 0) >= 0.2 ? 'text-emerald-600' : (financial?.profit_margin || 0) >= 0 ? 'text-amber-600' : 'text-red-600'}`}>
+              {financial ? `${(financial.profit_margin * 100).toFixed(1)}%` : '0%'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {(financial?.profit_margin || 0) >= 0.2 ? 'Healthy margin' : (financial?.profit_margin || 0) >= 0 ? 'Low margin' : 'Negative margin'}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Total Expenses */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-500/10">
+              <Receipt className="h-4 w-4 text-red-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {financial ? formatCurrency(financial.total_expenses) : '$0'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {financial ? formatCurrency(financial.expenses_this_month) : '$0'} this month
             </p>
           </CardContent>
         </Card>

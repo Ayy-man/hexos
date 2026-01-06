@@ -19,6 +19,13 @@ import {
   markMilestoneAsPaid,
   updateMilestoneDueDate,
   getProjectPaymentMilestones,
+  getPaymentSources,
+  getExpenses,
+  getExpenseSummary,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+  type ExpenseCategory,
 } from '@/lib/api/financial-metrics';
 
 type PaymentStructure = '100_upfront' | '50_50' | '40_30_30' | 'custom';
@@ -156,4 +163,99 @@ export async function updatePaymentMilestoneDueDate(
 export async function fetchProjectPaymentMilestones(projectId: string) {
   const milestones = await getProjectPaymentMilestones(projectId);
   return { success: true, data: milestones };
+}
+
+// ============================================================================
+// EXPENSE TRACKING
+// ============================================================================
+
+/**
+ * Fetch all payment sources
+ */
+export async function fetchPaymentSources() {
+  const sources = await getPaymentSources();
+  return { success: true, data: sources };
+}
+
+/**
+ * Fetch expenses with optional filters
+ */
+export async function fetchExpenses(filters?: {
+  projectId?: string;
+  category?: ExpenseCategory;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const expenses = await getExpenses(filters);
+  return { success: true, data: expenses };
+}
+
+/**
+ * Fetch expense summary for dashboard
+ */
+export async function fetchExpenseSummary() {
+  const summary = await getExpenseSummary();
+  return { success: true, data: summary };
+}
+
+/**
+ * Create a new expense
+ */
+export async function addExpense(expense: {
+  date: string;
+  description: string;
+  amount: number;
+  category: ExpenseCategory;
+  project_id?: string | null;
+  payment_source_id: string;
+  paid_by?: string | null;
+  reimbursed?: boolean;
+  receipt_url?: string | null;
+}) {
+  const result = await createExpense(expense);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}
+
+/**
+ * Update an existing expense
+ */
+export async function editExpense(
+  id: string,
+  updates: Partial<{
+    date: string;
+    description: string;
+    amount: number;
+    category: ExpenseCategory;
+    project_id: string | null;
+    payment_source_id: string;
+    paid_by: string | null;
+    reimbursed: boolean;
+    receipt_url: string | null;
+  }>
+) {
+  const result = await updateExpense(id, updates);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}
+
+/**
+ * Delete an expense
+ */
+export async function removeExpense(id: string) {
+  const result = await deleteExpense(id);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
 }

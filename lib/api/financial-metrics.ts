@@ -26,6 +26,10 @@ export interface FinancialHeroMetrics {
   win_rate: number;
   avg_ticket_size: number;
   active_inquiries: number;
+  total_expenses: number;
+  expenses_this_month: number;
+  net_profit: number;
+  profit_margin: number;
 }
 
 export interface PaymentTimelineItem {
@@ -76,6 +80,45 @@ export interface PendingPaymentByProject {
   paid_amount: number;
   pending_amount: number;
   payment_completion_pct: number;
+  expenses: number;
+  net_revenue: number;
+}
+
+export type ExpenseCategory = 'direct_cost' | 'contractor' | 'tools_ops' | 'other';
+
+export interface PaymentSource {
+  id: string;
+  name: string;
+  label: string;
+  type: 'credit_card' | 'debit' | 'bank_account' | null;
+  is_active: boolean;
+}
+
+export interface Expense {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  date: string;
+  description: string;
+  amount: number;
+  category: ExpenseCategory;
+  project_id: string | null;
+  payment_source_id: string;
+  paid_by: string | null;
+  reimbursed: boolean;
+  receipt_url: string | null;
+  created_by: string | null;
+  // Joined fields
+  project_name?: string;
+  payment_source_label?: string;
+  paid_by_name?: string;
+}
+
+export interface ExpenseSummary {
+  total_expenses: number;
+  expenses_this_month: number;
+  by_category: { category: string; total: number }[];
+  by_payment_source: { label: string; total: number }[];
 }
 
 // ============================================================================
@@ -370,4 +413,201 @@ export function getPaymentUrgency(dueDate: string): 'overdue' | 'due_soon' | 'up
   if (daysDiff < 0) return 'overdue';
   if (daysDiff <= 7) return 'due_soon';
   return 'upcoming';
+}
+
+// ============================================================================
+// EXPENSE TRACKING
+// ============================================================================
+
+/**
+ * Get all payment sources
+ */
+export async function getPaymentSources(): Promise<PaymentSource[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('payment_sources')
+    .select('*')
+    .eq('is_active', true)
+    .order('name');
+
+  if (error) {
+    console.error('Error fetching payment sources:', error);
+    return [];
+  }
+
+  return data as PaymentSource[];
+}
+
+/**
+ * Get all expenses with optional filters
+ */
+export async function getExpenses(filters?: {
+  projectId?: string;
+  category?: ExpenseCategory;
+  startDate?: string;
+  endDate?: string;
+}): Promise<Expense[]> {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from('expenses')
+    .select(`
+      *,
+      projects:project_id(name),
+      payment_sources:payment_source_id(label),
+      paid_by_profile:paid_by(full_name)
+    `)
+    .order('date', { ascending: false });
+
+  if (filters?.projectId) {
+    query = query.eq('project_id', filters.projectId);
+  }
+  if (filters?.category) {
+    query = query.eq('category', filters.category);
+  }
+  if (filters?.startDate) {
+    query = query.gte('date', filters.startDate);
+  }
+  if (filters?.endDate) {
+    query = query.lte('date', filters.endDate);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching expenses:', error);
+    return [];
+  }
+
+  // Transform joined data
+  return (data || []).map((expense: any) => ({
+    ...expense,
+    project_name: expense.projects?.name || null,
+    payment_source_label: expense.payment_sources?.label || null,
+    paid_by_name: expense.paid_by_profile?.full_name || null,
+    projects: undefined,
+    payment_sources: undefined,
+    paid_by_profile: undefined,
+  }));
+}
+
+/**
+ * Get expense summary for dashboard
+ */
+export async function getExpenseSummary(): Promise<ExpenseSummary | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc('get_expense_summary');
+
+  if (error) {
+    console.error('Error fetching expense summary:', error);
+    return null;
+  }
+
+  return data as ExpenseSummary;
+}
+
+/**
+ * Create a new expense
+ */
+export async function createExpense(expense: {
+  date: string;
+  description: string;
+  amount: number;
+  category: ExpenseCategory;
+  project_id?: string | null;
+  payment_source_id: string;
+  paid_by?: string | null;
+  reimbursed?: boolean;
+  receipt_url?: string | null;
+}): Promise<{ success: boolean; data?: Expense; error?: string }> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('expenses')
+    .insert({
+      ...expense,
+      created_by: user?.id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error creating expense:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data: data as Expense };
+}
+
+/**
+ * Update an expense
+ */
+export async function updateExpense(
+  id: string,
+  updates: Partial<{
+    date: string;
+    description: string;
+    amount: number;
+    category: ExpenseCategory;
+    project_id: string | null;
+    payment_source_id: string;
+    paid_by: string | null;
+    reimbursed: boolean;
+    receipt_url: string | null;
+  }>
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('expenses')
+    .update(updates)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error updating expense:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Delete an expense
+ */
+export async function deleteExpense(id: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting expense:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Get project expenses total
+ */
+export async function getProjectExpenses(projectId: string): Promise<number> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc('get_project_expenses', {
+    p_project_id: projectId,
+  });
+
+  if (error) {
+    console.error('Error fetching project expenses:', error);
+    return 0;
+  }
+
+  return data || 0;
 }

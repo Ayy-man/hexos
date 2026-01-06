@@ -6,6 +6,9 @@ export interface Profile {
   email: string
   role: UserRole
   logo_url?: string | null
+  city?: string | null
+  country?: string | null
+  timezone?: string | null
   created_at: string
   last_seen_at?: string | null
 }

@@ -122,6 +122,25 @@ export async function updateCurrentUserLogo(logoUrl: string | null): Promise<voi
   if (error) throw error
 }
 
+// Update current user's location
+export async function updateCurrentUserLocation(location: {
+  city?: string | null
+  country?: string | null
+  timezone?: string | null
+}): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(location)
+    .eq('id', user.id)
+
+  if (error) throw error
+}
+
 // Remove DFY logo from storage
 export async function removeDfyLogo(): Promise<void> {
   const supabase = await createClient()

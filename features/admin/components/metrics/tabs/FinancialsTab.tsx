@@ -34,7 +34,15 @@ import type {
   PaymentTimelineItem,
   RevenueTrendItem,
   PendingPaymentByProject,
+  Expense,
+  PaymentSource,
 } from '@/lib/api/financial-metrics';
+import { ExpenseLedger } from '../ExpenseLedger';
+
+interface Project {
+  id: string;
+  name: string;
+}
 
 interface FinancialsTabProps {
   financial: FinancialHeroMetrics | null;
@@ -42,6 +50,9 @@ interface FinancialsTabProps {
   revenueTrend: RevenueTrendItem[];
   pendingByProject: PendingPaymentByProject[];
   overduePayments: OverduePayment[];
+  expenses: Expense[];
+  paymentSources: PaymentSource[];
+  projects: Project[];
 }
 
 const paymentChartConfig: ChartConfig = {
@@ -64,6 +75,9 @@ export function FinancialsTab({
   revenueTrend,
   pendingByProject,
   overduePayments,
+  expenses,
+  paymentSources,
+  projects,
 }: FinancialsTabProps) {
   // Transform payment timeline for chart
   const paymentChartData = paymentTimeline.slice(0, 6).map((item) => ({
@@ -411,6 +425,13 @@ export function FinancialsTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Expense Ledger */}
+      <ExpenseLedger
+        expenses={expenses}
+        paymentSources={paymentSources}
+        projects={projects}
+      />
     </div>
   );
 }

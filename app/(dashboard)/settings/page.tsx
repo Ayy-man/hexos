@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth/guards'
 import { getCurrentProfile } from '@/lib/api/profiles'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LogoUpload } from '@/features/settings/components/LogoUpload'
+import { LocationSettings } from '@/features/settings/components/LocationSettings'
 import { User, Settings2 } from 'lucide-react'
 
 export default async function SettingsPage() {
@@ -45,6 +46,13 @@ export default async function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Location Settings */}
+      <LocationSettings
+        currentCity={profile?.city}
+        currentCountry={profile?.country}
+        currentTimezone={profile?.timezone}
+      />
 
       {/* DFY-only: Logo Upload */}
       {isDfy && (

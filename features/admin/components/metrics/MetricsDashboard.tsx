@@ -30,7 +30,14 @@ import type {
   PaymentTimelineItem,
   RevenueTrendItem,
   PendingPaymentByProject,
+  Expense,
+  PaymentSource,
 } from '@/lib/api/financial-metrics';
+
+interface Project {
+  id: string;
+  name: string;
+}
 
 interface MetricsDashboardProps {
   inquiryPipeline: InquiryPipelineStage[];
@@ -52,6 +59,9 @@ interface MetricsDashboardProps {
   paymentTimeline: PaymentTimelineItem[];
   revenueTrend: RevenueTrendItem[];
   pendingByProject: PendingPaymentByProject[];
+  expenses: Expense[];
+  paymentSources: PaymentSource[];
+  projects: Project[];
 }
 
 export function MetricsDashboard({
@@ -74,6 +84,9 @@ export function MetricsDashboard({
   paymentTimeline,
   revenueTrend,
   pendingByProject,
+  expenses,
+  paymentSources,
+  projects,
 }: MetricsDashboardProps) {
   return (
     <div className="space-y-6">
@@ -148,6 +161,9 @@ export function MetricsDashboard({
             revenueTrend={revenueTrend}
             pendingByProject={pendingByProject}
             overduePayments={overduePayments}
+            expenses={expenses}
+            paymentSources={paymentSources}
+            projects={projects}
           />
         </TabsContent>
       </Tabs>
