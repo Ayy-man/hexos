@@ -18,9 +18,10 @@ interface TaskItemProps {
   task: PulseDailyTask
   onUpdate?: () => void
   draggable?: boolean
+  compact?: boolean
 }
 
-export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
+export function TaskItem({ task, onUpdate, draggable = false, compact = false }: TaskItemProps) {
   const [isCompleting, setIsCompleting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -81,13 +82,13 @@ export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
   return (
     <div
       className={cn(
-        'group flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors',
-        'hover:bg-muted/50',
+        'group flex items-center gap-1.5 rounded-md transition-colors hover:bg-muted/50',
+        compact ? 'px-1 py-1' : 'px-2 py-1.5 gap-2',
         isCompleted && 'opacity-60'
       )}
     >
       {/* Drag handle */}
-      {draggable && (
+      {draggable && !compact && (
         <div className="cursor-grab opacity-0 group-hover:opacity-50 transition-opacity">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
@@ -98,7 +99,7 @@ export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
         checked={isCompleted}
         onCheckedChange={handleToggle}
         disabled={isCompleting}
-        className="h-4 w-4"
+        className={cn(compact ? 'h-3 w-3' : 'h-4 w-4')}
       />
 
       {/* Content */}
@@ -109,49 +110,51 @@ export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-6 text-sm"
+              className={cn(compact ? 'h-5 text-xs' : 'h-6 text-sm')}
               autoFocus
             />
             <Button
               size="icon"
               variant="ghost"
-              className="h-6 w-6"
+              className={cn(compact ? 'h-5 w-5' : 'h-6 w-6')}
               onClick={handleSaveEdit}
             >
-              <Check className="h-3 w-3" />
+              <Check className={cn(compact ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
             </Button>
             <Button
               size="icon"
               variant="ghost"
-              className="h-6 w-6"
+              className={cn(compact ? 'h-5 w-5' : 'h-6 w-6')}
               onClick={() => {
                 setEditTitle(task.title)
                 setIsEditing(false)
               }}
             >
-              <X className="h-3 w-3" />
+              <X className={cn(compact ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
             </Button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <span
               className={cn(
-                'text-sm truncate',
+                'truncate',
+                compact ? 'text-xs' : 'text-sm',
                 isCompleted && 'line-through text-muted-foreground'
               )}
+              title={task.title}
             >
               {task.title}
             </span>
 
             {/* Indicators */}
             {isRolledOver && (
-              <span className="flex items-center text-xs text-warning" title="Rolled from yesterday">
-                <RotateCcw className="h-3 w-3 mr-0.5" />
+              <span className="flex-shrink-0 text-warning" title="Rolled from yesterday">
+                <RotateCcw className={cn(compact ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
               </span>
             )}
             {isLinked && (
-              <span className="flex items-center text-xs text-info" title="Linked to action">
-                <Link2 className="h-3 w-3" />
+              <span className="flex-shrink-0 text-info" title="Linked to action">
+                <Link2 className={cn(compact ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
               </span>
             )}
           </div>
@@ -159,7 +162,7 @@ export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
       </div>
 
       {/* Actions */}
-      {!isEditing && (
+      {!isEditing && !compact && (
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <Button
             size="icon"
@@ -179,6 +182,19 @@ export function TaskItem({ task, onUpdate, draggable = false }: TaskItemProps) {
             <Trash2 className="h-3 w-3" />
           </Button>
         </div>
+      )}
+
+      {/* Compact mode: show delete on hover */}
+      {!isEditing && compact && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
+          <X className="h-2.5 w-2.5" />
+        </Button>
       )}
     </div>
   )

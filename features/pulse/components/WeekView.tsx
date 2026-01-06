@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DayColumn } from './DayColumn'
-import { getWeekRange, getPreviousWeek, getNextWeek, getToday } from '@/lib/utils/pulseCalculations'
+import { getWeekRange, getPreviousWeek, getNextWeek, formatDateShort } from '@/lib/utils/pulseCalculations'
 import type { PulseDailyTask } from '@/lib/types/pulse'
 
 interface WeekViewProps {
@@ -52,11 +52,17 @@ export function WeekView({ weekStart, tasks, onWeekChange, onUpdate }: WeekViewP
     return weekStart === currentWeek.start
   }, [weekStart])
 
+  // Format week range for header
+  const weekRangeLabel = `${formatDateShort(week.start)} – ${formatDateShort(week.end)}`
+
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">This Week</CardTitle>
+          <div>
+            <CardTitle className="text-base font-medium">This Week</CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">{weekRangeLabel}</p>
+          </div>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
@@ -87,14 +93,16 @@ export function WeekView({ weekStart, tasks, onWeekChange, onUpdate }: WeekViewP
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {week.dates.map((date) => (
+      <CardContent className="pt-0">
+        {/* 7-column grid - all days visible */}
+        <div className="grid grid-cols-7 gap-2">
+          {week.dates.map((date, idx) => (
             <DayColumn
               key={date}
               date={date}
               tasks={tasksByDate[date] || []}
               onUpdate={onUpdate}
+              isWeekend={idx >= 5}
             />
           ))}
         </div>

@@ -1,9 +1,7 @@
 'use client'
 
-import { Flame, TrendingUp, Calendar, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { PulseStats } from '@/lib/types/pulse'
-import { formatPoints, formatStreak } from '@/lib/utils/pulseCalculations'
 
 interface PulseHeaderProps {
   stats: PulseStats
@@ -14,58 +12,45 @@ export function PulseHeader({ stats, className }: PulseHeaderProps) {
   const hasActiveStreak = stats.streak > 0
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-6', className)}>
-      {/* Streak */}
-      <div className="flex items-center gap-2">
-        <div
+    <div
+      className={cn(
+        'flex items-center justify-between rounded-lg border bg-card p-4',
+        className
+      )}
+    >
+      {/* Left: Streak - The Hero */}
+      <div className="flex items-center gap-3">
+        <span
           className={cn(
-            'flex h-10 w-10 items-center justify-center rounded-full',
-            hasActiveStreak
-              ? 'bg-warning/10 text-warning'
-              : 'bg-muted text-muted-foreground'
+            'text-3xl transition-all',
+            hasActiveStreak && 'animate-pulse drop-shadow-[0_0_8px_rgba(251,146,60,0.5)]'
           )}
         >
-          <Flame className={cn('h-5 w-5', hasActiveStreak && 'animate-pulse')} />
-        </div>
+          🔥
+        </span>
         <div>
-          <p className="text-2xl font-bold leading-none">
+          <p className="text-3xl font-bold leading-none">
             {stats.streak}
-            {hasActiveStreak && <span className="ml-1 text-warning">🔥</span>}
+            <span className="ml-2 text-lg font-normal text-muted-foreground">
+              day{stats.streak !== 1 ? 's' : ''} streak
+            </span>
           </p>
-          <p className="text-xs text-muted-foreground">day streak</p>
         </div>
       </div>
 
-      {/* Today's Points */}
-      <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-info/10 text-info">
-          <TrendingUp className="h-5 w-5" />
+      {/* Right: Secondary Stats */}
+      <div className="flex items-center gap-6 text-right">
+        <div>
+          <p className="text-sm text-muted-foreground">Today</p>
+          <p className="text-lg font-semibold">{stats.todayPoints} pts</p>
         </div>
         <div>
-          <p className="text-2xl font-bold leading-none">{stats.todayPoints}</p>
-          <p className="text-xs text-muted-foreground">today</p>
-        </div>
-      </div>
-
-      {/* This Week */}
-      <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Calendar className="h-5 w-5" />
+          <p className="text-sm text-muted-foreground">This week</p>
+          <p className="text-lg font-semibold">{stats.weekPoints}</p>
         </div>
         <div>
-          <p className="text-2xl font-bold leading-none">{stats.weekPoints}</p>
-          <p className="text-xs text-muted-foreground">this week</p>
-        </div>
-      </div>
-
-      {/* Average */}
-      <div className="flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
-          <Trophy className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="text-2xl font-bold leading-none">{stats.averageDaily}</p>
-          <p className="text-xs text-muted-foreground">avg/day</p>
+          <p className="text-sm text-muted-foreground">Avg/day</p>
+          <p className="text-lg font-semibold">{stats.averageDaily}</p>
         </div>
       </div>
     </div>

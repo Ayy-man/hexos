@@ -3,12 +3,10 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Zap } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PulseHeader } from '@/features/pulse/components/PulseHeader'
 import { Heatmap } from '@/features/pulse/components/Heatmap'
 import { WeekView } from '@/features/pulse/components/WeekView'
-import { QuarterTargets } from '@/features/pulse/components/QuarterTargets'
-import { GoalHeader } from '@/features/pulse/components/GoalHeader'
+import { GoalAndTargets } from '@/features/pulse/components/GoalAndTargets'
 import type { PulseStats, DailyPointsMap, PulseDailyTask, PulseTargetWithOwners, Quarter, PulseGoal } from '@/lib/types/pulse'
 
 interface PulsePageClientProps {
@@ -59,48 +57,31 @@ export function PulsePageClient({
         </div>
       </div>
 
-      {/* Stats Header */}
+      {/* Stats Header - Streak is hero */}
       <PulseHeader stats={initialStats} />
 
-      {/* Heatmap */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-medium">Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Heatmap dailyPoints={initialHeatmapData} weeks={12} />
-        </CardContent>
-      </Card>
+      {/* Heatmap - No section header */}
+      <Heatmap dailyPoints={initialHeatmapData} weeks={12} />
 
-      {/* Main Content Grid */}
+      {/* Main Content Grid - Tasks left, Goal+Targets right */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Left Column: Week View */}
-        <div className="space-y-6">
-          <WeekView
-            weekStart={weekStart}
-            tasks={initialTasks}
-            onWeekChange={setWeekStart}
-            onUpdate={handleUpdate}
-          />
-        </div>
+        <WeekView
+          weekStart={weekStart}
+          tasks={initialTasks}
+          onWeekChange={setWeekStart}
+          onUpdate={handleUpdate}
+        />
 
-        {/* Right Column: Goal & Targets */}
-        <div className="space-y-6">
-          <GoalHeader
-            goal={initialGoal}
-            year={currentYear}
-            isAdmin={isAdmin}
-            onUpdate={handleUpdate}
-          />
-
-          <QuarterTargets
-            targets={initialTargets}
-            quarter={currentQuarter}
-            goalId={initialGoal?.id}
-            isAdmin={isAdmin}
-            onUpdate={handleUpdate}
-          />
-        </div>
+        {/* Right Column: Goal banner + Q Targets in unified card */}
+        <GoalAndTargets
+          goal={initialGoal}
+          targets={initialTargets}
+          quarter={currentQuarter}
+          year={currentYear}
+          isAdmin={isAdmin}
+          onUpdate={handleUpdate}
+        />
       </div>
     </div>
   )

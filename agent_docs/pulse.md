@@ -43,6 +43,36 @@ Targets belong to a quarter (Q1–Q4) and contribute to the yearly goal. Each ta
 - Multiple actions (steps to complete)
 - Progress based on completed actions
 
+## UI Layout
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Pulse                                                  │
+│                                                         │
+│  🔥 12 day streak        Today: 18 pts       Avg: 14   │
+│                                                         │
+│  [====== 12 week heatmap (cal-heatmap) ======]         │
+│                                                         │
+├────────────────────────┬────────────────────────────────┤
+│  THIS WEEK     < >     │  2026 Goal: Hit $X revenue     │
+│  ┌───┬───┬───┬───┬───┐ ├────────────────────────────────┤
+│  │Mon│Tue│Wed│Thu│Fri│ │  Q1 TARGETS                    │
+│  ├───┼───┼───┼───┼───┤ │                                │
+│  │ ☐ │ ☐ │ ☐ │   │   │ │  ████████░░ Close 5 clients    │
+│  │ ☐ │ ☑ │   │   │   │ │  ██████░░░░ Launch new offer   │
+│  │ ☑ │   │   │   │   │ │                                │
+│  └───┴───┴───┴───┴───┘ │  [+ Add Target]                │
+│  Sat  Sun              │                                │
+└────────────────────────┴────────────────────────────────┘
+```
+
+### Key UI Decisions
+
+- **Streak is the hero** — Large 🔥 emoji with count on left, secondary stats smaller on right
+- **Heatmap uses cal-heatmap** — 12 weeks, Monday start, brand cyan colors
+- **Week view shows all 7 days** — CSS grid, equal columns, current day highlighted
+- **Goal + Targets unified** — Single card with goal banner header above targets
+
 ## Database Tables
 
 All tables use `pulse_` prefix:
@@ -66,14 +96,15 @@ app/(dashboard)/pulse/
 
 features/pulse/
 ├── components/
-│   ├── PulseHeader.tsx             # Stats: streak, today, week, avg
-│   ├── Heatmap.tsx                 # 12-week contribution graph
-│   ├── WeekView.tsx                # Week task view with navigation
-│   ├── DayColumn.tsx               # Single day's tasks
-│   ├── TaskItem.tsx                # Task with checkbox
-│   ├── QuarterTargets.tsx          # Current quarter targets
+│   ├── PulseHeader.tsx             # Streak hero + secondary stats
+│   ├── Heatmap.tsx                 # cal-heatmap 12-week contribution graph
+│   ├── WeekView.tsx                # 7-column week grid with navigation
+│   ├── DayColumn.tsx               # Single day column (compact mode)
+│   ├── TaskItem.tsx                # Task checkbox (supports compact)
+│   ├── GoalAndTargets.tsx          # Unified goal banner + targets card
 │   ├── TargetCard.tsx              # Expandable target with actions
-│   └── GoalHeader.tsx              # Yearly goal display
+│   ├── QuarterTargets.tsx          # (legacy, use GoalAndTargets)
+│   └── GoalHeader.tsx              # (legacy, use GoalAndTargets)
 ├── actions/
 │   ├── taskActions.ts              # Task CRUD server actions
 │   ├── targetActions.ts            # Target/action server actions
@@ -87,8 +118,14 @@ lib/api/
 ├── pulse-targets.ts                # Target/action operations
 └── pulse-goals.ts                  # Goal operations
 
+lib/types/
+└── pulse.ts                        # Shared types (client-safe)
+
 lib/utils/
-└── pulseCalculations.ts            # Streak calc, date utils, heatmap
+└── pulseCalculations.ts            # Streak calc, date utils
+
+types/
+└── cal-heatmap.d.ts                # Type declarations for cal-heatmap
 ```
 
 ## Key Functions
@@ -168,14 +205,16 @@ Run in Supabase SQL Editor:
 -- Creates all pulse tables with RLS policies
 ```
 
-## Status Thresholds (Heatmap)
+## Heatmap Color Scale
 
-| Points | Intensity | Color |
-|--------|-----------|-------|
-| 0 | 0 | Gray (muted) |
-| 1–9 | 1 | Cyan 25% |
-| 10–24 | 2 | Cyan 60% |
-| 25+ | 3 | Cyan 100% |
+Uses cal-heatmap with brand cyan colors:
+
+| Points | Color | Hex |
+|--------|-------|-----|
+| 0 | Dark gray | `#262626` |
+| 1–9 | Dark cyan | `#0d4f4f` |
+| 10–24 | Mid cyan | `#0891b2` |
+| 25+ | Bright cyan | `#22d3ee` |
 
 ## RLS Policies Summary
 
