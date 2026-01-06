@@ -29,7 +29,8 @@ export async function createOpportunityAction(params: {
     return { success: true, opportunity }
   } catch (error) {
     console.error('Error creating opportunity:', error)
-    return { success: false, message: 'Failed to create opportunity' }
+    const message = error instanceof Error ? error.message : 'Failed to create opportunity'
+    return { success: false, message }
   }
 }
 
