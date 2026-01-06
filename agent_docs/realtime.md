@@ -97,51 +97,177 @@ CREATE INDEX idx_notifications_user_unread
 | `payment_received` | Stripe webhook | INT, CLIENT |
 | `project_status_change` | Project moves to new status | All project stakeholders |
 
-### Real-time Notification Hook
+### Real-time Notification Hook (Implemented)
 
 ```typescript
-// src/hooks/useNotifications.ts
+// hooks/use-notifications-realtime.ts
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import type { Notification } from '@/lib/api/notifications-utils'
 
-export function useNotifications(userId: string) {
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
-  const supabase = createClientComponentClient()
+export function useNotificationsRealtime({
+  userId,
+  initialNotifications,
+  initialUnreadCount,
+  onNewNotification,
+}: UseNotificationsRealtimeOptions) {
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
+  const [toastQueue, setToastQueue] = useState<Notification[]>([])
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
+  // Play notification sound
   useEffect(() => {
-    // Initial fetch
-    fetchNotifications()
+    audioRef.current = new Audio('/sounds/notification.wav')
+    audioRef.current.volume = 0.5
+  }, [])
 
-    // Subscribe to new notifications
+  // Subscribe to realtime notifications
+  useEffect(() => {
+    const supabase = createClient()
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${userId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `user_id=eq.${userId}`
+          filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
-          setNotifications(prev => [payload.new as Notification, ...prev])
-          setUnreadCount(prev => prev + 1)
-          // Optional: Show toast
-          showToast(payload.new as Notification)
+        async (payload) => {
+          // Play sound
+          audioRef.current?.play()
+
+          // Fetch full notification with relations
+          const { data } = await supabase
+            .from('notifications')
+            .select(`*, actor:profiles!actor_id(id, name), project:projects(id, project_name)`)
+            .eq('id', payload.new.id)
+            .single()
+
+          if (data) {
+            setNotifications(prev => [data, ...prev])
+            setUnreadCount(prev => prev + 1)
+            // Add to toast queue (max 5)
+            setToastQueue(prev => [...prev, data].slice(-5))
+          }
         }
       )
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => { supabase.removeChannel(channel) }
   }, [userId])
 
-  return { notifications, unreadCount, markAsRead }
+  // Show initial unread as toasts on first load
+  useEffect(() => {
+    const unread = initialNotifications.filter(n => !n.read_at).slice(0, 5)
+    if (unread.length > 0) {
+      setToastQueue(unread)
+      audioRef.current?.play()
+    }
+  }, [])
+
+  const dismissToast = (id: string) => {
+    setToastQueue(prev => prev.filter(n => n.id !== id))
+  }
+
+  return { notifications, unreadCount, toastQueue, dismissToast, markAsRead, markAllAsRead }
 }
+```
+
+### Toast Notifications (macOS Style)
+
+Toast notifications slide in from the right with:
+- **Staggered timing**: 5s, 6s, 7s, 8s, 9s (based on position in queue)
+- **Swipe-to-dismiss**: Drag right to dismiss (80px threshold or fast flick)
+- **Spring animations**: Framer Motion with elastic drag
+- **Progress bar**: Gradient countdown bar
+- **Rich UI**: Avatar, action text, message preview, unread indicator
+
+```tsx
+// components/notifications/NotificationToast.tsx
+<motion.div
+  layout
+  initial={{ opacity: 0, x: 100, scale: 0.95 }}
+  animate={isExiting ? { opacity: 0, x: 300 } : { opacity: 1, x: 0, scale: 1 }}
+  exit={{ opacity: 0, x: 300, scale: 0.95 }}
+  drag="x"
+  dragConstraints={{ left: 0, right: 0 }}
+  dragElastic={{ left: 0.3, right: 0.8 }}
+  onDragEnd={handleDragEnd}
+  whileDrag={{ cursor: 'grabbing', scale: 1.02 }}
+>
+  {/* Avatar with icon badge, action text, message preview, progress bar */}
+</motion.div>
+```
+
+### Notification Popover
+
+Rich notification panel with:
+- **Header**: "Your notifications" + mark all read + settings icons
+- **Tabs**: All / Unread with badge counts
+- **List**: Grouped by time (Today, Yesterday, Earlier)
+- **Items**: Avatar, action text, timestamp, message preview, type indicator
+- **Footer**: "View all notifications" link
+- **Styling**: Glass-morphism, backdrop blur, dashed dividers
+
+```tsx
+// components/notifications/NotificationPopover.tsx
+<PopoverContent className="w-[420px] rounded-xl bg-background/95 backdrop-blur-xl">
+  <Tabs value={tab} onValueChange={setTab}>
+    <TabsList>
+      <TabsTrigger value="all">View all <Badge>{count}</Badge></TabsTrigger>
+      <TabsTrigger value="unread">Unread <Badge>{unreadCount}</Badge></TabsTrigger>
+    </TabsList>
+  </Tabs>
+  <ScrollArea>
+    <NotificationList notifications={filteredNotifications} />
+  </ScrollArea>
+</PopoverContent>
+
+{/* Toast stack with AnimatePresence */}
+<AnimatePresence mode="popLayout">
+  {toastQueue.map((notification, index) => (
+    <NotificationToast key={notification.id} notification={notification} index={index} />
+  ))}
+</AnimatePresence>
+```
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `hooks/use-notifications-realtime.ts` | Realtime subscription + toast queue |
+| `components/notifications/NotificationToast.tsx` | Toast component with swipe |
+| `components/notifications/NotificationPopover.tsx` | Bell icon + popover |
+| `components/notifications/NotificationItem.tsx` | Rich list item |
+| `components/notifications/NotificationList.tsx` | Grouped list |
+| `lib/api/notifications.ts` | CRUD + createNotification |
+| `lib/api/notifications-utils.ts` | Types, helpers, URL routing |
+| `public/sounds/notification.wav` | Notification sound |
+| `app/globals.css` | Animations (slide-in-right, shrink-width) |
+
+### Trigger Points
+
+Notifications are created via `createNotification()` in:
+- `features/projects/actions/projectActions.ts` - Status changes, dev assignment
+- `features/dev/actions/blockerActions.ts` - Blocker acknowledged/resolved
+
+### Test via Supabase
+
+```sql
+INSERT INTO public.notifications (user_id, type, title, message, actor_id)
+VALUES (
+  'user-uuid-here',
+  'mention',
+  'You were mentioned',
+  'Can you review the latest designs?',
+  'actor-uuid-here'
+);
+```
 ```
 
 ---
