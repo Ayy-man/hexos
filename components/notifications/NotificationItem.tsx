@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Bell,
 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   type Notification,
   getNotificationColor,
@@ -23,16 +24,6 @@ interface NotificationItemProps {
   onMarkAsRead?: (id: string) => void
   onClose?: () => void
 }
-
-const iconMap = {
-  'folder': Folder,
-  'alert-circle': AlertCircle,
-  'message-circle': MessageCircle,
-  'at-sign': AtSign,
-  'clock': Clock,
-  'refresh-cw': RefreshCw,
-  'bell': Bell,
-} as const
 
 function getIcon(type: Notification['type']) {
   switch (type) {
@@ -55,6 +46,56 @@ function getIcon(type: Notification['type']) {
   }
 }
 
+function getActionText(type: Notification['type']): string {
+  switch (type) {
+    case 'project_assigned':
+      return 'assigned you to'
+    case 'blocker_acknowledged':
+      return 'acknowledged blocker in'
+    case 'blocker_resolved':
+      return 'resolved blocker in'
+    case 'blocker_comment':
+    case 'admin_comment':
+      return 'commented in'
+    case 'mention':
+      return 'mentioned you in'
+    case 'deadline_reminder':
+      return 'deadline approaching for'
+    case 'status_change':
+      return 'updated status of'
+    default:
+      return 'notified you about'
+  }
+}
+
+function formatTimestamp(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const isYesterday = date.toDateString() === yesterday.toDateString()
+
+  const timeStr = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  })
+
+  if (isToday) {
+    return `Today ${timeStr}`
+  } else if (isYesterday) {
+    return `Yesterday ${timeStr}`
+  } else {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    })
+  }
+}
+
 export function NotificationItem({
   notification,
   onMarkAsRead,
@@ -64,6 +105,10 @@ export function NotificationItem({
   const Icon = getIcon(notification.type)
   const colorClass = getNotificationColor(notification.type)
   const isUnread = !notification.read_at
+  const actionText = getActionText(notification.type)
+
+  const actorName = notification.actor?.name || 'System'
+  const actorInitial = actorName.charAt(0).toUpperCase()
 
   const handleClick = () => {
     if (isUnread && onMarkAsRead) {
@@ -77,40 +122,61 @@ export function NotificationItem({
   return (
     <button
       onClick={handleClick}
-      className={cn(
-        'w-full flex items-start gap-3 p-3 text-left rounded-lg transition-colors',
-        'hover:bg-accent/50',
-        isUnread && 'bg-accent/30'
-      )}
+      className="w-full py-4 first:pt-0 last:pb-0 text-left group"
     >
-      {/* Icon */}
-      <div className={cn('mt-0.5 shrink-0', colorClass)}>
-        <Icon className="h-4 w-4" />
-      </div>
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <Avatar className="size-11 ring-1 ring-border">
+          <AvatarImage
+            src={`https://api.dicebear.com/7.x/notionists/svg?seed=${actorName}`}
+            alt={actorName}
+            className="object-cover"
+          />
+          <AvatarFallback className="bg-muted text-muted-foreground font-medium">
+            {actorInitial}
+          </AvatarFallback>
+        </Avatar>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-start justify-between gap-2">
-          <p className={cn('text-sm leading-tight', isUnread && 'font-medium')}>
-            {notification.title}
-          </p>
-          {isUnread && (
-            <span className="shrink-0 h-2 w-2 rounded-full bg-cyan-500 mt-1.5" />
+        {/* Content */}
+        <div className="flex flex-1 flex-col space-y-2 min-w-0">
+          <div className="w-full">
+            {/* Header with action text */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm">
+                <span className="font-medium">{actorName}</span>
+                <span className="text-muted-foreground"> {actionText} </span>
+                {notification.project && (
+                  <span className="font-medium">{notification.project.project_name}</span>
+                )}
+              </div>
+              {isUnread && (
+                <div className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+              )}
+            </div>
+
+            {/* Timestamp row */}
+            <div className="flex items-center justify-between gap-2 mt-0.5">
+              <div className="text-xs text-muted-foreground">
+                {formatTimestamp(notification.created_at)}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {formatRelativeTime(notification.created_at)}
+              </div>
+            </div>
+          </div>
+
+          {/* Message content */}
+          {notification.message && (
+            <div className="rounded-lg bg-muted/60 p-2.5 text-sm text-muted-foreground tracking-tight line-clamp-2">
+              {notification.message}
+            </div>
           )}
-        </div>
-        {notification.message && (
-          <p className="text-xs text-muted-foreground line-clamp-2">
-            {notification.message}
-          </p>
-        )}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{formatRelativeTime(notification.created_at)}</span>
-          {notification.project && (
-            <>
-              <span>·</span>
-              <span className="truncate">{notification.project.project_name}</span>
-            </>
-          )}
+
+          {/* Type indicator with icon */}
+          <div className={cn('flex items-center gap-1.5 text-xs', colorClass)}>
+            <Icon className="size-3.5" />
+            <span className="capitalize">{notification.type.replace(/_/g, ' ')}</span>
+          </div>
         </div>
       </div>
     </button>

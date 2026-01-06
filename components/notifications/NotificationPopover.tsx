@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Bell, Check } from 'lucide-react'
+import { Bell, CheckCheck, Settings, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import {
   Popover,
   PopoverContent,
@@ -11,6 +12,11 @@ import {
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { NotificationList } from './NotificationList'
 import { NotificationToast } from './NotificationToast'
 import { type Notification } from '@/lib/api/notifications-utils'
@@ -79,54 +85,100 @@ export function NotificationPopover({
             className="relative"
             aria-label="Notifications"
           >
-            <Bell className="h-5 w-5" />
+            <Bell className="size-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-500 px-1 text-[10px] font-medium text-white animate-in zoom-in">
-                {unreadCount > 9 ? '9+' : unreadCount}
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-medium text-white animate-in zoom-in">
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </Button>
         </PopoverTrigger>
         <PopoverContent
           align="end"
-          className="w-[380px] p-0"
+          className="w-[420px] p-0 rounded-xl border-border/50 bg-background/95 backdrop-blur-xl shadow-2xl"
           sideOffset={8}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <h3 className="font-semibold">Notifications</h3>
-            {unreadCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto py-1 px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={handleMarkAllAsRead}
-                disabled={markingAllRead}
-              >
-                <Check className="mr-1 h-3 w-3" />
-                Mark all read
-              </Button>
-            )}
+          <div className="p-4 pb-2">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold tracking-tight">
+                Your notifications
+              </h3>
+              <div className="flex items-center gap-1">
+                {unreadCount > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:text-foreground"
+                        onClick={handleMarkAllAsRead}
+                        disabled={markingAllRead}
+                      >
+                        <CheckCheck className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Mark all as read</TooltipContent>
+                  </Tooltip>
+                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground hover:text-foreground"
+                      asChild
+                    >
+                      <Link href="/settings" onClick={() => setOpen(false)}>
+                        <Settings className="size-4" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Notification settings</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <Tabs value={tab} onValueChange={(v) => setTab(v as 'all' | 'unread')} className="w-full">
+              <TabsList className="w-full h-9 p-1 bg-muted/50">
+                <TabsTrigger value="all" className="flex-1 gap-1.5 text-xs data-[state=active]:bg-background">
+                  View all
+                  <Badge variant="secondary" className="size-5 rounded-full p-0 justify-center text-[10px] bg-muted-foreground/20">
+                    {notifications.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="unread" className="flex-1 gap-1.5 text-xs data-[state=active]:bg-background">
+                  Unread
+                  <Badge variant="secondary" className="size-5 rounded-full p-0 justify-center text-[10px] bg-muted-foreground/20">
+                    {unreadCount}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
 
           {/* Notification List */}
-          <ScrollArea className="h-[400px]">
-            <NotificationList
-              notifications={notifications}
-              onMarkAsRead={handleMarkAsRead}
-              onClose={() => setOpen(false)}
-              loading={isLoading}
-            />
+          <ScrollArea className="h-[420px]">
+            <div className="px-4">
+              <NotificationList
+                notifications={filteredNotifications}
+                onMarkAsRead={handleMarkAsRead}
+                onClose={() => setOpen(false)}
+                loading={isLoading}
+              />
+            </div>
           </ScrollArea>
 
           {/* Footer */}
-          <div className="border-t px-4 py-2">
+          <div className="border-t border-border/50 p-3">
             <Link
               href="/notifications"
               onClick={() => setOpen(false)}
-              className="block w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50"
             >
               View all notifications
+              <ArrowRight className="size-4" />
             </Link>
           </div>
         </PopoverContent>
@@ -134,7 +186,7 @@ export function NotificationPopover({
 
       {/* Toast notification stack */}
       {toastQueue.length > 0 && (
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+        <div className="fixed top-4 right-4 z-50 flex flex-col gap-3">
           {toastQueue.map((notification, index) => (
             <NotificationToast
               key={notification.id}
