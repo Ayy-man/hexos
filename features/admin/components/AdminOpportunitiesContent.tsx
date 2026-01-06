@@ -121,7 +121,7 @@ export function AdminOpportunitiesContent({
           body: JSON.stringify({
             title: newTitle,
             description: newDescription,
-            projectId: newProjectId || null,
+            projectId: newProjectId && newProjectId !== '_none' ? newProjectId : null,
             estimatedHours: newEstimatedHours ? parseInt(newEstimatedHours) : null,
             complexity: newComplexity,
           }),
@@ -239,7 +239,7 @@ export function AdminOpportunitiesContent({
                     <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No project</SelectItem>
+                    <SelectItem value="_none">No project</SelectItem>
                     {projects.map((project) => (
                       <SelectItem key={project.id} value={project.id}>
                         {project.project_name}

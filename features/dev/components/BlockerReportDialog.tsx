@@ -91,7 +91,7 @@ export function BlockerReportDialog({
     startTransition(async () => {
       const result = await reportBlockerAction({
         projectId: finalProjectId,
-        deliverableId: deliverableId || undefined,
+        deliverableId: deliverableId && deliverableId !== '_none' ? deliverableId : undefined,
         title: title.trim(),
         description: description.trim() || undefined,
         priority,
@@ -180,7 +180,7 @@ export function BlockerReportDialog({
                   <SelectValue placeholder="Select a deliverable" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None - Project level</SelectItem>
+                  <SelectItem value="_none">None - Project level</SelectItem>
                   {filteredDeliverables.map((d) => (
                     <SelectItem key={d.id} value={d.id}>
                       {d.title}
