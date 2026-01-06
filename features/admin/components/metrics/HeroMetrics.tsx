@@ -8,10 +8,10 @@ import {
   AlertTriangle,
   Briefcase,
 } from 'lucide-react';
-import {
-  formatCurrency,
-  type FinancialHeroMetrics,
-  type OverduePayment,
+import { formatCurrency } from '@/lib/api/financial-metrics-utils';
+import type {
+  FinancialHeroMetrics,
+  OverduePayment,
 } from '@/lib/api/financial-metrics';
 import type { ProjectHealthIndicators, BlockersOverview } from '@/lib/api/admin-metrics';
 

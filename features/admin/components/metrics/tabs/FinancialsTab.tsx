@@ -27,13 +27,13 @@ import {
   Download,
   Clock,
 } from 'lucide-react';
-import {
-  formatCurrency,
-  type FinancialHeroMetrics,
-  type OverduePayment,
-  type PaymentTimelineItem,
-  type RevenueTrendItem,
-  type PendingPaymentByProject,
+import { formatCurrency } from '@/lib/api/financial-metrics-utils';
+import type {
+  FinancialHeroMetrics,
+  OverduePayment,
+  PaymentTimelineItem,
+  RevenueTrendItem,
+  PendingPaymentByProject,
 } from '@/lib/api/financial-metrics';
 
 interface FinancialsTabProps {

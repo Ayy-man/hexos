@@ -27,8 +27,8 @@ import {
   Copy,
   BarChart3,
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/api/financial-metrics';
-import { formatHours } from '@/lib/api/admin-metrics';
+import { formatCurrency } from '@/lib/api/financial-metrics-utils';
+import { formatHours } from '@/lib/api/admin-metrics-utils';
 import type {
   ProjectHealthIndicators,
   ProjectStatusDistribution,

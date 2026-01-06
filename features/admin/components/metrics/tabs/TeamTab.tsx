@@ -26,8 +26,8 @@ import {
   Download,
   Activity,
 } from 'lucide-react';
-import { formatCurrency, formatPercentage } from '@/lib/api/financial-metrics';
-import { formatHours } from '@/lib/api/admin-metrics';
+import { formatCurrency, formatPercentage } from '@/lib/api/financial-metrics-utils';
+import { formatHours } from '@/lib/api/admin-metrics-utils';
 import type {
   DeveloperUtilization,
   TimeTrackingSummary,

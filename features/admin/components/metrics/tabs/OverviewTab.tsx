@@ -18,7 +18,7 @@ import {
   Briefcase,
   TrendingUp,
 } from 'lucide-react';
-import { formatPercentage } from '@/lib/api/admin-metrics';
+import { formatPercentage } from '@/lib/api/admin-metrics-utils';
 import type {
   InquiryConversionRates,
   InquiryTimelineItem,

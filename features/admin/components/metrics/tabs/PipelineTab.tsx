@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/chart';
 import { Bar, BarChart, XAxis, YAxis } from 'recharts';
 import { Copy, Download, FileText } from 'lucide-react';
-import { formatCurrency, formatPercentage } from '@/lib/api/financial-metrics';
+import { formatCurrency, formatPercentage } from '@/lib/api/financial-metrics-utils';
 import type {
   InquiryPipelineStage,
   InquiryConversionRates,
