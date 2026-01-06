@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Bell, CheckCheck, Settings, ArrowRight } from 'lucide-react'
+import { AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -185,8 +186,8 @@ export function NotificationPopover({
       </Popover>
 
       {/* Toast notification stack */}
-      {toastQueue.length > 0 && (
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-3">
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-3">
+        <AnimatePresence mode="popLayout">
           {toastQueue.map((notification, index) => (
             <NotificationToast
               key={notification.id}
@@ -195,8 +196,8 @@ export function NotificationPopover({
               onDismiss={() => dismissToast(notification.id)}
             />
           ))}
-        </div>
-      )}
+        </AnimatePresence>
+      </div>
     </>
   )
 }

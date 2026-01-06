@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Bell,
 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -103,8 +104,18 @@ export function NotificationToast({
   const actorInitial = actorName.charAt(0).toUpperCase()
 
   return (
-    <div
-      className="animate-slide-in-right cursor-pointer group"
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: 100, scale: 0.95 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 100, scale: 0.95 }}
+      transition={{
+        type: 'spring',
+        stiffness: 400,
+        damping: 30,
+        opacity: { duration: 0.2 }
+      }}
+      className="cursor-pointer group"
       onClick={handleClick}
     >
       <div className="w-[340px] rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-2xl shadow-black/20 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-all hover:bg-background/90 hover:scale-[1.02]">
@@ -168,11 +179,13 @@ export function NotificationToast({
         {/* Progress bar */}
         <div className="h-0.5 bg-muted/30">
           <div
-            className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 animate-shrink-width rounded-full"
-            style={{ animationDuration: `${duration}ms` }}
+            className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full origin-left"
+            style={{
+              animation: `shrink-width ${duration}ms linear forwards`
+            }}
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
