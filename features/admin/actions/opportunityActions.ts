@@ -15,6 +15,7 @@ export async function createOpportunityAction(params: {
   projectId?: string | null
   estimatedHours?: number | null
   complexity?: ProjectComplexity
+  expiresAt?: string
 }) {
   try {
     const opportunity = await createOpportunity({
@@ -23,6 +24,7 @@ export async function createOpportunityAction(params: {
       projectId: params.projectId || undefined,
       estimatedHours: params.estimatedHours || undefined,
       complexity: params.complexity || 'medium',
+      expiresAt: params.expiresAt,
     })
 
     revalidatePath('/admin/opportunities')

@@ -1,41 +1,94 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { Briefcase, Code2, CalendarDays, Clock } from 'lucide-react'
+import { useState, useTransition, useMemo } from 'react'
+import { Briefcase, Star, Eye, EyeOff, Filter } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import { OpportunityCard } from './OpportunityCard'
+import { OpportunityDetailModal } from './OpportunityDetailModal'
 import { applyToOpportunityAction } from '@/features/dev/actions/invitationActions'
-import type { ProjectOpportunity } from '@/lib/api/project-invitations'
+import {
+  toggleStarAction,
+  toggleHideAction,
+} from '@/features/dev/actions/opportunityPrefsActions'
+import type { OpportunityWithPrefs } from '@/lib/api/project-invitations'
 
 interface OpportunityListProps {
-  opportunities: ProjectOpportunity[]
-}
-
-const complexityColors = {
-  low: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200',
-  medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200',
-  high: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200',
+  opportunities: OpportunityWithPrefs[]
 }
 
 export function OpportunityList({ opportunities }: OpportunityListProps) {
-  const [selectedOpportunity, setSelectedOpportunity] = useState<ProjectOpportunity | null>(null)
-  const [coverMessage, setCoverMessage] = useState('')
+  const [selectedOpportunity, setSelectedOpportunity] = useState<OpportunityWithPrefs | null>(null)
+  const [showHidden, setShowHidden] = useState(false)
+  const [starredOnly, setStarredOnly] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [actioningId, setActioningId] = useState<string | null>(null)
+  const [actionType, setActionType] = useState<'star' | 'hide' | 'apply' | null>(null)
 
-  const handleApply = () => {
+  // Filter and sort opportunities
+  const filteredOpportunities = useMemo(() => {
+    let result = opportunities
+
+    // Filter hidden
+    if (!showHidden) {
+      result = result.filter(o => !o.is_hidden)
+    }
+
+    // Filter starred only
+    if (starredOnly) {
+      result = result.filter(o => o.is_starred)
+    }
+
+    // Sort: starred first, then by created_at
+    return result.sort((a, b) => {
+      if (a.is_starred && !b.is_starred) return -1
+      if (!a.is_starred && b.is_starred) return 1
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }, [opportunities, showHidden, starredOnly])
+
+  const handleToggleStar = (opportunityId: string) => {
+    setActioningId(opportunityId)
+    setActionType('star')
+    startTransition(async () => {
+      const result = await toggleStarAction(opportunityId)
+      if (result.success) {
+        toast.success(result.isStarred ? 'Starred' : 'Unstarred')
+      } else {
+        toast.error(result.message || 'Failed to update')
+      }
+      setActioningId(null)
+      setActionType(null)
+    })
+  }
+
+  const handleToggleHide = (opportunityId: string) => {
+    setActioningId(opportunityId)
+    setActionType('hide')
+    startTransition(async () => {
+      const result = await toggleHideAction(opportunityId)
+      if (result.success) {
+        toast.success(result.isHidden ? 'Hidden' : 'Unhidden')
+        // Close modal if hiding the currently selected opportunity
+        if (selectedOpportunity?.id === opportunityId && result.isHidden) {
+          setSelectedOpportunity(null)
+        }
+      } else {
+        toast.error(result.message || 'Failed to update')
+      }
+      setActioningId(null)
+      setActionType(null)
+    })
+  }
+
+  const handleApply = (coverMessage: string) => {
     if (!selectedOpportunity) return
 
+    setActioningId(selectedOpportunity.id)
+    setActionType('apply')
     startTransition(async () => {
       const result = await applyToOpportunityAction({
         opportunityId: selectedOpportunity.id,
@@ -45,13 +98,15 @@ export function OpportunityList({ opportunities }: OpportunityListProps) {
       if (result.success) {
         toast.success('Application submitted!')
         setSelectedOpportunity(null)
-        setCoverMessage('')
       } else {
         toast.error(result.message || 'Failed to apply')
       }
+      setActioningId(null)
+      setActionType(null)
     })
   }
 
+  // Empty state
   if (opportunities.length === 0) {
     return (
       <Card>
@@ -67,119 +122,107 @@ export function OpportunityList({ opportunities }: OpportunityListProps) {
     )
   }
 
+  const starredCount = opportunities.filter(o => o.is_starred).length
+  const hiddenCount = opportunities.filter(o => o.is_hidden).length
+
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {opportunities.map((opportunity) => (
-          <Card key={opportunity.id} className="overflow-hidden">
-            <CardContent className="p-4">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="font-semibold line-clamp-1">{opportunity.title}</h3>
-                  {opportunity.project && (
-                    <p className="text-sm text-muted-foreground">
-                      {opportunity.project.client_name}
-                    </p>
-                  )}
-                </div>
-                <Badge className={complexityColors[opportunity.complexity]}>
-                  {opportunity.complexity}
-                </Badge>
-              </div>
+      {/* Filters */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">
+              {filteredOpportunities.length} opportunities
+            </span>
+          </div>
+        </div>
 
-              {/* Description */}
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                {opportunity.description || 'No description provided'}
-              </p>
-
-              {/* Details */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {opportunity.estimated_hours && (
-                  <Badge variant="secondary">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {opportunity.estimated_hours}h
-                  </Badge>
-                )}
-                {opportunity.deadline && (
-                  <Badge variant="secondary">
-                    <CalendarDays className="h-3 w-3 mr-1" />
-                    {new Date(opportunity.deadline).toLocaleDateString()}
-                  </Badge>
-                )}
-              </div>
-
-              {/* Tech Stack */}
-              {opportunity.tech_stack && opportunity.tech_stack.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {opportunity.tech_stack.slice(0, 4).map((tech) => (
-                    <Badge key={tech} variant="outline" className="text-xs">
-                      {tech}
-                    </Badge>
-                  ))}
-                  {opportunity.tech_stack.length > 4 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{opportunity.tech_stack.length - 4}
-                    </Badge>
-                  )}
-                </div>
+        <div className="flex items-center gap-4">
+          {/* Starred only toggle */}
+          <div className="flex items-center gap-2">
+            <Switch
+              id="starred-only"
+              checked={starredOnly}
+              onCheckedChange={setStarredOnly}
+            />
+            <Label htmlFor="starred-only" className="text-sm flex items-center gap-1">
+              <Star className="h-3 w-3" />
+              Starred only
+              {starredCount > 0 && (
+                <span className="text-muted-foreground">({starredCount})</span>
               )}
-
-              {/* Actions */}
-              <Button
-                className="w-full"
-                onClick={() => setSelectedOpportunity(opportunity)}
-              >
-                Apply
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Apply Dialog */}
-      <Dialog open={!!selectedOpportunity} onOpenChange={(open) => !open && setSelectedOpportunity(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Apply to {selectedOpportunity?.title}</DialogTitle>
-            <DialogDescription>
-              Send your application for this project opportunity.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {selectedOpportunity?.description && (
-              <div>
-                <p className="text-sm font-medium mb-1">Description</p>
-                <p className="text-sm text-muted-foreground">
-                  {selectedOpportunity.description}
-                </p>
-              </div>
-            )}
-
-            <div>
-              <label className="text-sm font-medium mb-1 block">
-                Cover Message (optional)
-              </label>
-              <Textarea
-                placeholder="Introduce yourself and explain why you're a good fit..."
-                value={coverMessage}
-                onChange={(e) => setCoverMessage(e.target.value)}
-                rows={4}
-              />
-            </div>
+            </Label>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedOpportunity(null)}>
-              Cancel
+          {/* Show hidden toggle */}
+          <div className="flex items-center gap-2">
+            <Switch
+              id="show-hidden"
+              checked={showHidden}
+              onCheckedChange={setShowHidden}
+            />
+            <Label htmlFor="show-hidden" className="text-sm flex items-center gap-1">
+              {showHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              Show hidden
+              {hiddenCount > 0 && (
+                <span className="text-muted-foreground">({hiddenCount})</span>
+              )}
+            </Label>
+          </div>
+        </div>
+      </div>
+
+      {/* No results after filtering */}
+      {filteredOpportunities.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-muted-foreground text-center">
+              {starredOnly
+                ? 'No starred opportunities. Star some to see them here!'
+                : 'All opportunities are hidden. Toggle "Show hidden" to see them.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                setStarredOnly(false)
+                setShowHidden(true)
+              }}
+            >
+              Show all
             </Button>
-            <Button onClick={handleApply} disabled={isPending}>
-              {isPending ? 'Submitting...' : 'Submit Application'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+      ) : (
+        /* Opportunity grid */
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredOpportunities.map((opportunity) => (
+            <OpportunityCard
+              key={opportunity.id}
+              opportunity={opportunity}
+              onClick={() => setSelectedOpportunity(opportunity)}
+              onToggleStar={() => handleToggleStar(opportunity.id)}
+              onToggleHide={() => handleToggleHide(opportunity.id)}
+              isStarring={actioningId === opportunity.id && actionType === 'star'}
+              isHiding={actioningId === opportunity.id && actionType === 'hide'}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      <OpportunityDetailModal
+        opportunity={selectedOpportunity}
+        open={!!selectedOpportunity}
+        onOpenChange={(open) => !open && setSelectedOpportunity(null)}
+        onApply={handleApply}
+        onToggleStar={() => selectedOpportunity && handleToggleStar(selectedOpportunity.id)}
+        onToggleHide={() => selectedOpportunity && handleToggleHide(selectedOpportunity.id)}
+        isApplying={actioningId === selectedOpportunity?.id && actionType === 'apply'}
+        isStarring={actioningId === selectedOpportunity?.id && actionType === 'star'}
+        isHiding={actioningId === selectedOpportunity?.id && actionType === 'hide'}
+      />
     </>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format, isPast } from 'date-fns'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -39,6 +39,8 @@ import {
   Clock,
   Filter,
   Briefcase,
+  AlertCircle,
+  Calendar,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -102,6 +104,7 @@ export function AdminOpportunitiesContent({
   const [newProjectId, setNewProjectId] = useState<string>('')
   const [newEstimatedHours, setNewEstimatedHours] = useState('')
   const [newComplexity, setNewComplexity] = useState<ProjectComplexity>('medium')
+  const [newExpiresAt, setNewExpiresAt] = useState('')
 
   // Invite form state
   const [inviteDevId, setInviteDevId] = useState<string>('')
@@ -128,6 +131,7 @@ export function AdminOpportunitiesContent({
         projectId: newProjectId && newProjectId !== '_none' ? newProjectId : null,
         estimatedHours: newEstimatedHours ? parseInt(newEstimatedHours) : null,
         complexity: newComplexity,
+        expiresAt: newExpiresAt || undefined,
       })
 
       console.log('[DEBUG] createOpportunityAction result:', result)
@@ -190,6 +194,7 @@ export function AdminOpportunitiesContent({
     setNewProjectId('')
     setNewEstimatedHours('')
     setNewComplexity('medium')
+    setNewExpiresAt('')
   }
 
   return (
@@ -289,6 +294,19 @@ export function AdminOpportunitiesContent({
                   </Select>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="expires">Expires On (optional)</Label>
+                <Input
+                  id="expires"
+                  type="date"
+                  value={newExpiresAt}
+                  onChange={(e) => setNewExpiresAt(e.target.value)}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Devs won't be able to apply after this date
+                </p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
@@ -385,9 +403,26 @@ export function AdminOpportunitiesContent({
                   ))}
                 </div>
 
-                <p className="text-xs text-muted-foreground mt-3">
-                  Created {formatDistanceToNow(new Date(opportunity.created_at), { addSuffix: true })}
-                </p>
+                <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+                  <span>
+                    Created {formatDistanceToNow(new Date(opportunity.created_at), { addSuffix: true })}
+                  </span>
+                  {opportunity.expires_at && (
+                    <span className={isPast(new Date(opportunity.expires_at)) ? 'text-red-500' : ''}>
+                      {isPast(new Date(opportunity.expires_at)) ? (
+                        <>
+                          <AlertCircle className="h-3 w-3 inline mr-1" />
+                          Expired
+                        </>
+                      ) : (
+                        <>
+                          <Calendar className="h-3 w-3 inline mr-1" />
+                          Expires {formatDistanceToNow(new Date(opportunity.expires_at), { addSuffix: true })}
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

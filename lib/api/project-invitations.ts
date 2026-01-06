@@ -22,6 +22,7 @@ export interface ProjectOpportunity {
   created_by: string
   created_at: string
   published_at: string | null
+  expires_at: string | null
   project?: {
     id: string
     project_name: string
@@ -32,6 +33,22 @@ export interface ProjectOpportunity {
     name: string
   }
   applications_count?: number
+}
+
+export interface DevOpportunityPreference {
+  id: string
+  dev_id: string
+  opportunity_id: string
+  is_starred: boolean
+  is_hidden: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface OpportunityWithPrefs extends ProjectOpportunity {
+  preference?: DevOpportunityPreference | null
+  is_starred?: boolean
+  is_hidden?: boolean
 }
 
 export interface ProjectInvitation {
@@ -176,6 +193,7 @@ export async function createOpportunity(params: {
   techStack?: string[]
   complexity?: ProjectComplexity
   deadline?: string
+  expiresAt?: string
   isPublic?: boolean
   requiredSkills?: string[]
 }): Promise<ProjectOpportunity> {
@@ -195,6 +213,7 @@ export async function createOpportunity(params: {
       tech_stack: params.techStack || [],
       complexity: params.complexity || 'medium',
       deadline: params.deadline || null,
+      expires_at: params.expiresAt || null,
       is_public: params.isPublic || false,
       required_skills: params.requiredSkills || [],
       created_by: user.id,
@@ -549,6 +568,139 @@ export async function updateMyAvailability(updates: {
 
   if (error) throw error
   return data as DevAvailability
+}
+
+// ============================================================================
+// DEV OPPORTUNITY PREFERENCES
+// ============================================================================
+
+/**
+ * Get opportunities for dev with their preferences (starred/hidden status)
+ */
+export async function getOpportunitiesForDev(): Promise<OpportunityWithPrefs[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  // Get all visible opportunities (public + open, or invited)
+  const { data: opportunities, error: oppError } = await supabase
+    .from('project_opportunities')
+    .select(`
+      *,
+      project:projects(id, project_name, client_name),
+      creator:profiles!created_by(id, name)
+    `)
+    .eq('status', 'open')
+    .order('created_at', { ascending: false })
+
+  if (oppError) throw oppError
+
+  // Get dev's preferences
+  const { data: preferences, error: prefError } = await supabase
+    .from('dev_opportunity_preferences')
+    .select('*')
+    .eq('dev_id', user.id)
+
+  if (prefError) throw prefError
+
+  // Merge preferences with opportunities
+  const prefMap = new Map(preferences?.map(p => [p.opportunity_id, p]) || [])
+
+  return (opportunities || []).map(opp => {
+    const normalized = normalizeOpportunityRelations(opp)
+    const pref = prefMap.get(opp.id)
+    return {
+      ...normalized,
+      preference: pref || null,
+      is_starred: pref?.is_starred || false,
+      is_hidden: pref?.is_hidden || false,
+    } as OpportunityWithPrefs
+  })
+}
+
+/**
+ * Toggle star status for an opportunity
+ */
+export async function toggleOpportunityStar(opportunityId: string): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Check if preference exists
+  const { data: existing } = await supabase
+    .from('dev_opportunity_preferences')
+    .select('*')
+    .eq('dev_id', user.id)
+    .eq('opportunity_id', opportunityId)
+    .single()
+
+  if (existing) {
+    // Toggle existing
+    const { error } = await supabase
+      .from('dev_opportunity_preferences')
+      .update({ is_starred: !existing.is_starred })
+      .eq('id', existing.id)
+
+    if (error) throw error
+    return !existing.is_starred
+  } else {
+    // Create new with starred = true
+    const { error } = await supabase
+      .from('dev_opportunity_preferences')
+      .insert({
+        dev_id: user.id,
+        opportunity_id: opportunityId,
+        is_starred: true,
+        is_hidden: false,
+      })
+
+    if (error) throw error
+    return true
+  }
+}
+
+/**
+ * Toggle hide status for an opportunity
+ */
+export async function toggleOpportunityHide(opportunityId: string): Promise<boolean> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Check if preference exists
+  const { data: existing } = await supabase
+    .from('dev_opportunity_preferences')
+    .select('*')
+    .eq('dev_id', user.id)
+    .eq('opportunity_id', opportunityId)
+    .single()
+
+  if (existing) {
+    // Toggle existing
+    const { error } = await supabase
+      .from('dev_opportunity_preferences')
+      .update({ is_hidden: !existing.is_hidden })
+      .eq('id', existing.id)
+
+    if (error) throw error
+    return !existing.is_hidden
+  } else {
+    // Create new with hidden = true
+    const { error } = await supabase
+      .from('dev_opportunity_preferences')
+      .insert({
+        dev_id: user.id,
+        opportunity_id: opportunityId,
+        is_starred: false,
+        is_hidden: true,
+      })
+
+    if (error) throw error
+    return true
+  }
 }
 
 // ============================================================================
