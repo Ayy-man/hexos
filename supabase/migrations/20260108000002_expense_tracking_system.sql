@@ -2,6 +2,20 @@
 -- Tracks expenses per project for profitability calculation
 
 -- ============================================================================
+-- HELPER FUNCTION (if not exists)
+-- ============================================================================
+
+create or replace function update_updated_at_column()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+-- ============================================================================
 -- PAYMENT SOURCES TABLE
 -- ============================================================================
 
