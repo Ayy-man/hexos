@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,102 +12,55 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { NotificationList } from './NotificationList'
 import { type Notification } from '@/lib/api/notifications-utils'
-import {
-  fetchNotificationsAction,
-  markNotificationReadAction,
-  markAllNotificationsReadAction,
-} from '@/features/notifications/actions/notificationActions'
+import { useNotificationsRealtime } from '@/hooks/use-notifications-realtime'
 
 interface NotificationPopoverProps {
+  userId: string
   initialNotifications?: Notification[]
   initialUnreadCount?: number
 }
 
 export function NotificationPopover({
+  userId,
   initialNotifications = [],
   initialUnreadCount = 0,
 }: NotificationPopoverProps) {
   const [open, setOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
-  const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
-  const [loading, setLoading] = useState(false)
   const [markingAllRead, setMarkingAllRead] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const previousUnreadCount = useRef(initialUnreadCount)
 
-  // Initialize audio on mount
-  useEffect(() => {
-    audioRef.current = new Audio('/sounds/notification.wav')
-    audioRef.current.volume = 0.5
-  }, [])
-
-  // Fetch notifications when popover opens
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true)
-    const result = await fetchNotificationsAction(50)
-    if (result.success) {
-      setNotifications(result.notifications)
-      setUnreadCount(result.unreadCount)
-    }
-    setLoading(false)
-  }, [])
-
-  useEffect(() => {
-    if (open) {
-      fetchNotifications()
-    }
-  }, [open, fetchNotifications])
-
-  // Poll for new notifications every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const result = await fetchNotificationsAction(50)
-      if (result.success) {
-        // Play sound if new notifications arrived
-        if (result.unreadCount > previousUnreadCount.current && audioRef.current) {
-          audioRef.current.currentTime = 0
-          audioRef.current.play().catch(() => {
-            // Ignore autoplay errors (browser policy)
-          })
-        }
-        previousUnreadCount.current = result.unreadCount
-        setUnreadCount(result.unreadCount)
-        // Only update full list if popover is open
-        if (open) {
-          setNotifications(result.notifications)
-        }
-      }
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [open])
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    refetch,
+    markAsRead,
+    markAllAsRead,
+  } = useNotificationsRealtime({
+    userId,
+    initialNotifications,
+    initialUnreadCount,
+  })
 
   const handleMarkAsRead = async (id: string) => {
-    // Optimistic update
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, read_at: new Date().toISOString() } : n
-      )
-    )
-    setUnreadCount((prev) => Math.max(0, prev - 1))
-
-    await markNotificationReadAction(id)
+    await markAsRead(id)
   }
 
   const handleMarkAllAsRead = async () => {
     setMarkingAllRead(true)
-    const result = await markAllNotificationsReadAction()
-    if (result.success) {
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
-      )
-      setUnreadCount(0)
-    }
+    await markAllAsRead()
     setMarkingAllRead(false)
   }
 
+  // Refetch when popover opens
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen)
+    if (isOpen) {
+      refetch()
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -117,7 +70,7 @@ export function NotificationPopover({
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-500 px-1 text-[10px] font-medium text-white">
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-500 px-1 text-[10px] font-medium text-white animate-in zoom-in">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -151,7 +104,7 @@ export function NotificationPopover({
             notifications={notifications}
             onMarkAsRead={handleMarkAsRead}
             onClose={() => setOpen(false)}
-            loading={loading}
+            loading={isLoading}
           />
         </ScrollArea>
 

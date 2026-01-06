@@ -67,6 +67,7 @@ export default async function DashboardLayout({
           <div className="ml-auto flex items-center gap-2">
             <CommandPalette role={(profile as Profile).role} />
             <NotificationPopover
+              userId={user.id}
               initialNotifications={notifications}
               initialUnreadCount={unreadCount}
             />
