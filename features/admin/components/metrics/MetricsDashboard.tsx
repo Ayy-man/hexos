@@ -5,6 +5,7 @@ import { OverviewTab } from './tabs/OverviewTab';
 import { PipelineTab } from './tabs/PipelineTab';
 import { ProjectsTab } from './tabs/ProjectsTab';
 import { TeamTab } from './tabs/TeamTab';
+import { FinancialsTab } from './tabs/FinancialsTab';
 import { HeroMetrics } from './HeroMetrics';
 import type {
   InquiryConversionRates,
@@ -26,6 +27,9 @@ import type {
 import type {
   FinancialHeroMetrics,
   OverduePayment,
+  PaymentTimelineItem,
+  RevenueTrendItem,
+  PendingPaymentByProject,
 } from '@/lib/api/financial-metrics';
 
 interface MetricsDashboardProps {
@@ -45,6 +49,9 @@ interface MetricsDashboardProps {
   opportunities: OpportunityMetrics | null;
   financial: FinancialHeroMetrics | null;
   overduePayments: OverduePayment[];
+  paymentTimeline: PaymentTimelineItem[];
+  revenueTrend: RevenueTrendItem[];
+  pendingByProject: PendingPaymentByProject[];
 }
 
 export function MetricsDashboard({
@@ -64,6 +71,9 @@ export function MetricsDashboard({
   opportunities,
   financial,
   overduePayments,
+  paymentTimeline,
+  revenueTrend,
+  pendingByProject,
 }: MetricsDashboardProps) {
   return (
     <div className="space-y-6">
@@ -85,11 +95,12 @@ export function MetricsDashboard({
 
       {/* Tabbed Content */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
+          <TabsTrigger value="financials">Financials</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -127,6 +138,16 @@ export function MetricsDashboard({
             developerUtil={developerUtil}
             timeTracking={timeTracking}
             dfyPerformance={dfyPerformance}
+          />
+        </TabsContent>
+
+        <TabsContent value="financials" className="space-y-4">
+          <FinancialsTab
+            financial={financial}
+            paymentTimeline={paymentTimeline}
+            revenueTrend={revenueTrend}
+            pendingByProject={pendingByProject}
+            overduePayments={overduePayments}
           />
         </TabsContent>
       </Tabs>

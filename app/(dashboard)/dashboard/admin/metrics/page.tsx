@@ -16,7 +16,13 @@ import {
   fetchActivityOverview,
   fetchOpportunityMetrics,
 } from '@/features/admin/actions/metricsActions';
-import { fetchFinancialHeroMetrics, fetchOverduePayments } from '@/features/admin/actions/financialActions';
+import {
+  fetchFinancialHeroMetrics,
+  fetchOverduePayments,
+  fetchPaymentTimeline,
+  fetchRevenueTrend,
+  fetchPendingPaymentsByProject,
+} from '@/features/admin/actions/financialActions';
 
 export default async function MetricsPage() {
   await requireRole(['admin']);
@@ -39,6 +45,9 @@ export default async function MetricsPage() {
     opportunitiesRes,
     financialRes,
     overduePaymentsRes,
+    paymentTimelineRes,
+    revenueTrendRes,
+    pendingByProjectRes,
   ] = await Promise.all([
     fetchInquiryPipelineBreakdown(),
     fetchInquiryConversionRates(),
@@ -56,6 +65,9 @@ export default async function MetricsPage() {
     fetchOpportunityMetrics(),
     fetchFinancialHeroMetrics(),
     fetchOverduePayments(),
+    fetchPaymentTimeline(6),
+    fetchRevenueTrend(6),
+    fetchPendingPaymentsByProject(),
   ]);
 
   return (
@@ -76,6 +88,9 @@ export default async function MetricsPage() {
       opportunities={opportunitiesRes.data}
       financial={financialRes.data}
       overduePayments={overduePaymentsRes.data || []}
+      paymentTimeline={paymentTimelineRes.data || []}
+      revenueTrend={revenueTrendRes.data || []}
+      pendingByProject={pendingByProjectRes.data || []}
     />
   );
 }
