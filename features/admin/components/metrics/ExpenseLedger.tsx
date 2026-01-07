@@ -21,7 +21,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ExcelTable } from '@/components/ui/excel-style-table';
-import { Plus, Receipt, Download } from 'lucide-react';
+import { Plus, Receipt, Download, RefreshCw } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { addExpense, editExpense, removeExpense } from '@/features/admin/actions/financialActions';
 import { formatCurrency } from '@/lib/api/financial-metrics-utils';
@@ -65,6 +66,9 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
     project_id: '',
     payment_source_id: paymentSources[0]?.id || '',
     reimbursed: false,
+    is_recurring: false,
+    recurring_frequency: 'monthly' as 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+    recurring_day: 1,
   });
 
   // Filter state
@@ -87,7 +91,7 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
   const tableData = useMemo(() => {
     return filteredExpenses.map((expense) => [
       new Date(expense.date).toLocaleDateString(),
-      expense.description,
+      (expense as any).is_recurring ? `🔄 ${expense.description}` : expense.description,
       expense.project_name || 'Overhead',
       CATEGORY_LABELS[expense.category],
       expense.payment_source_label || '-',
@@ -106,6 +110,9 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
       project_id: '',
       payment_source_id: paymentSources[0]?.id || '',
       reimbursed: false,
+      is_recurring: false,
+      recurring_frequency: 'monthly',
+      recurring_day: 1,
     });
   }, [paymentSources]);
 
@@ -128,6 +135,9 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
       project_id: expense.project_id || '',
       payment_source_id: expense.payment_source_id,
       reimbursed: expense.reimbursed,
+      is_recurring: (expense as any).is_recurring || false,
+      recurring_frequency: (expense as any).recurring_frequency || 'monthly',
+      recurring_day: (expense as any).recurring_day || 1,
     });
     setIsAddDialogOpen(true);
   };
@@ -148,6 +158,9 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
         project_id: formData.project_id || null,
         payment_source_id: formData.payment_source_id,
         reimbursed: formData.reimbursed,
+        is_recurring: formData.is_recurring,
+        recurring_frequency: formData.is_recurring ? formData.recurring_frequency : null,
+        recurring_day: formData.is_recurring ? formData.recurring_day : null,
       };
 
       if (editingExpense) {
@@ -451,6 +464,83 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+            </div>
+
+            {/* Recurring Expense Section */}
+            <div className="space-y-4 rounded-lg border p-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="is_recurring"
+                  checked={formData.is_recurring}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_recurring: checked === true })
+                  }
+                />
+                <Label htmlFor="is_recurring" className="flex items-center gap-2 cursor-pointer">
+                  <RefreshCw className="h-4 w-4" />
+                  Make this a recurring expense
+                </Label>
+              </div>
+
+              {formData.is_recurring && (
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <Label>Frequency</Label>
+                    <Select
+                      value={formData.recurring_frequency}
+                      onValueChange={(v) =>
+                        setFormData({
+                          ...formData,
+                          recurring_frequency: v as 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>
+                      {formData.recurring_frequency === 'weekly' ? 'Day of Week' : 'Day of Month'}
+                    </Label>
+                    <Select
+                      value={formData.recurring_day.toString()}
+                      onValueChange={(v) => setFormData({ ...formData, recurring_day: parseInt(v) })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.recurring_frequency === 'weekly' ? (
+                          <>
+                            <SelectItem value="1">Monday</SelectItem>
+                            <SelectItem value="2">Tuesday</SelectItem>
+                            <SelectItem value="3">Wednesday</SelectItem>
+                            <SelectItem value="4">Thursday</SelectItem>
+                            <SelectItem value="5">Friday</SelectItem>
+                            <SelectItem value="6">Saturday</SelectItem>
+                            <SelectItem value="7">Sunday</SelectItem>
+                          </>
+                        ) : (
+                          Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                            <SelectItem key={day} value={day.toString()}>
+                              {day}
+                              {day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               )}
             </div>
           </div>
