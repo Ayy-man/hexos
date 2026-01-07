@@ -3,6 +3,8 @@
 // Helper functions for streak calculation, date handling, and rollover logic
 // ============================================================================
 
+import { LEVEL_THRESHOLDS, type LevelInfo } from '@/lib/types/pulse'
+
 // ============================================================================
 // Date Utilities
 // ============================================================================
@@ -343,4 +345,34 @@ export function calculateTargetProgress(target: {
 
   const completed = target.actions.filter(a => a.completed_at != null).length
   return Math.round((completed / target.actions.length) * 100)
+}
+
+// ============================================================================
+// Level Calculations
+// ============================================================================
+
+export function calculateLevel(lifetimePoints: number): LevelInfo {
+  // Find current level
+  let currentLevel = LEVEL_THRESHOLDS[0]
+  let nextLevel = LEVEL_THRESHOLDS[1]
+
+  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (lifetimePoints >= LEVEL_THRESHOLDS[i].points) {
+      currentLevel = LEVEL_THRESHOLDS[i]
+      nextLevel = LEVEL_THRESHOLDS[i + 1] || LEVEL_THRESHOLDS[i]
+      break
+    }
+  }
+
+  const pointsInLevel = lifetimePoints - currentLevel.points
+  const pointsNeeded = nextLevel.points - currentLevel.points
+  const progress = pointsNeeded > 0 ? Math.round((pointsInLevel / pointsNeeded) * 100) : 100
+
+  return {
+    level: currentLevel.level,
+    title: currentLevel.title,
+    currentPoints: lifetimePoints,
+    pointsForNextLevel: nextLevel.points,
+    progress,
+  }
 }
