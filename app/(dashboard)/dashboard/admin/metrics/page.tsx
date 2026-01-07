@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { MetricsDashboard } from '@/features/admin/components/metrics';
 import { requireRole } from '@/lib/auth/guards';
 import {
