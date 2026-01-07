@@ -58,6 +58,7 @@ export interface Invoice {
 export interface InvoiceWithProject extends Invoice {
   project_name?: string
   milestone_label?: string
+  dfy_partner_id?: string
 }
 
 // Create invoice input

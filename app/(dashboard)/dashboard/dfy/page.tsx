@@ -4,6 +4,7 @@ import { requireRole, getProfile } from '@/lib/auth/guards'
 import { getProjects } from '@/lib/api/projects'
 import { getInquiries } from '@/lib/api/inquiries'
 import { getStaleProposalsForDfy } from '@/lib/api/proposal-reminders'
+import { getInvoices } from '@/lib/api/invoices'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ export default async function DfyDashboard() {
 
   let projects: Awaited<ReturnType<typeof getProjects>> = []
   let inquiries: Awaited<ReturnType<typeof getInquiries>> = []
+  let invoices: Awaited<ReturnType<typeof getInvoices>> = []
 
   try {
     projects = await getProjects()
@@ -38,6 +40,12 @@ export default async function DfyDashboard() {
     inquiries = await getInquiries()
   } catch {
     // RLS filters to DFY's own inquiries
+  }
+
+  try {
+    invoices = await getInvoices()
+  } catch {
+    // RLS filters to DFY's project invoices
   }
 
   // Fetch stale proposals for reminder banner
@@ -57,6 +65,16 @@ export default async function DfyDashboard() {
   const completedDeals = projects.filter((p) => p.status === 'completed')
   const pendingInquiries = inquiries.filter((i) =>
     ['new', 'processing'].includes(i.status)
+  )
+
+  // Pending Invoices (Sent or Overdue)
+  const pendingInvoices = invoices.filter((inv) =>
+    ['sent', 'overdue'].includes(inv.status)
+  )
+
+  // Upcoming Invoices (Draft)
+  const upcomingInvoices = invoices.filter((inv) =>
+    ['draft'].includes(inv.status)
   )
 
   // Calculate estimated commission (only for completed deals)
@@ -145,6 +163,92 @@ export default async function DfyDashboard() {
         </Card>
       </div>
 
+      {/* Pending Invoices */}
+      {pendingInvoices.length > 0 && (
+        <Card className="border-yellow-200 bg-yellow-50/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-yellow-700">Pending Invoices</CardTitle>
+                <CardDescription>Sent and awaiting payment from clients</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingInvoices.slice(0, 5).map((invoice) => (
+                <div
+                  key={invoice.id}
+                  className="flex items-center justify-between rounded-lg border bg-background p-4 shadow-sm"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
+                      <DollarSign className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{invoice.project_name || 'Project Invoice'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {invoice.invoice_number} • Due {new Date(invoice.due_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">${(invoice.total / 100).toLocaleString()}</p>
+                    <Badge variant="outline" className="mt-1 capitalize bg-yellow-100 text-yellow-700 border-yellow-200">
+                      {invoice.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upcoming Invoices */}
+      {upcomingInvoices.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Upcoming Invoices</CardTitle>
+                <CardDescription>Draft invoices scheduled for your projects</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {upcomingInvoices.slice(0, 5).map((invoice) => (
+                <div
+                  key={invoice.id}
+                  className="flex items-center justify-between rounded-lg border p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{invoice.project_name || 'Project Invoice'}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Draft • {invoice.invoice_number}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-muted-foreground">
+                      ${(invoice.total / 100).toLocaleString()}
+                    </p>
+                    <Badge variant="secondary" className="mt-1 capitalize">
+                      {invoice.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* My Inquiries */}
       <Card>
         <CardHeader>
@@ -180,11 +284,10 @@ export default async function DfyDashboard() {
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`h-2 w-2 rounded-full ${
-                        inquiry.status === 'new' ? 'bg-blue-500' :
+                      className={`h-2 w-2 rounded-full ${inquiry.status === 'new' ? 'bg-blue-500' :
                         inquiry.status === 'processing' ? 'bg-yellow-500' :
-                        inquiry.status === 'converted' ? 'bg-green-500' : 'bg-stone-400'
-                      }`}
+                          inquiry.status === 'converted' ? 'bg-green-500' : 'bg-stone-400'
+                        }`}
                     />
                     <div>
                       <p className="font-medium">

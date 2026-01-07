@@ -10,6 +10,8 @@ export type NotificationType =
   | 'mention'
   | 'deadline_reminder'
   | 'status_change'
+  | 'invoice_sent'
+  | 'invoice_paid'
 
 export interface Notification {
   id: string
@@ -52,6 +54,10 @@ export function getNotificationIcon(type: NotificationType): string {
       return 'clock'
     case 'status_change':
       return 'refresh-cw'
+    case 'invoice_sent':
+      return 'file-text'
+    case 'invoice_paid':
+      return 'check-circle'
     default:
       return 'bell'
   }
@@ -77,6 +83,10 @@ export function getNotificationColor(type: NotificationType): string {
       return 'text-error'
     case 'status_change':
       return 'text-muted-foreground'
+    case 'invoice_sent':
+      return 'text-info'
+    case 'invoice_paid':
+      return 'text-success'
     default:
       return 'text-muted-foreground'
   }
@@ -105,6 +115,9 @@ export function getNotificationUrl(notification: Notification): string {
       return `/projects/${projectId}?tab=activity`
     case 'deadline_reminder':
       return `/projects/${projectId}?tab=deliverables`
+    case 'invoice_sent':
+    case 'invoice_paid':
+      return `/projects/${projectId}?tab=financials`
     default:
       return `/projects/${projectId}`
   }

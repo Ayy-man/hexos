@@ -3,13 +3,14 @@
  * CRUD operations for invoices with Stripe integration
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/admin'
 import {
   createStripeInvoice,
   finalizeAndSendInvoice,
   voidStripeInvoice,
   createCheckoutSession,
 } from '@/lib/stripe/server'
+import { createNotification } from '@/lib/api/notifications'
 import type {
   Invoice,
   InvoiceWithProject,
@@ -30,7 +31,7 @@ export async function getInvoices(filters?: {
   status?: string
   limit?: number
 }): Promise<InvoiceWithProject[]> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   let query = supabase
     .from('invoices')
@@ -73,14 +74,14 @@ export async function getInvoices(filters?: {
  * Get a single invoice by ID
  */
 export async function getInvoice(id: string): Promise<InvoiceWithProject | null> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data, error } = await supabase
     .from('invoices')
     .select(
       `
       *,
-      projects:project_id(name),
+      projects:project_id(name, dfy_partner_id),
       milestones:milestone_id(label)
     `
     )
@@ -95,6 +96,7 @@ export async function getInvoice(id: string): Promise<InvoiceWithProject | null>
   return {
     ...data,
     project_name: (data as any).projects?.name || null,
+    dfy_partner_id: (data as any).projects?.dfy_partner_id || null,
     milestone_label: (data as any).milestones?.label || null,
     projects: undefined,
     milestones: undefined,
@@ -107,7 +109,7 @@ export async function getInvoice(id: string): Promise<InvoiceWithProject | null>
 export async function getInvoiceByNumber(
   invoiceNumber: string
 ): Promise<InvoiceWithProject | null> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data, error } = await supabase
     .from('invoices')
@@ -141,7 +143,7 @@ export async function getInvoiceByNumber(
 export async function createInvoice(
   input: CreateInvoiceInput
 ): Promise<{ success: boolean; data?: Invoice; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // Generate invoice number using DB function
   const { data: invoiceNumber, error: numError } = await supabase.rpc(
@@ -201,7 +203,7 @@ export async function updateInvoice(
   id: string,
   input: UpdateInvoiceInput
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // Verify invoice is still draft
   const { data: existing, error: fetchError } = await supabase
@@ -263,7 +265,7 @@ export async function updateInvoice(
 export async function sendInvoice(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // Get full invoice
   const invoice = await getInvoice(id)
@@ -310,6 +312,22 @@ export async function sendInvoice(
     if (updateError) {
       console.error('Error updating invoice with Stripe IDs:', updateError)
       return { success: false, error: 'Invoice sent but failed to update record' }
+    }
+
+    // Notify DFY Partner if present
+    if (invoice.dfy_partner_id) {
+      try {
+        await createNotification({
+          userId: invoice.dfy_partner_id,
+          type: 'invoice_sent',
+          title: 'Invoice Sent',
+          message: `An invoice for ${invoice.total / 100} USD has been sent to ${invoice.client_name} for project ${invoice.project_name || 'N/A'}.`,
+          projectId: invoice.project_id || undefined,
+        })
+      } catch (notifyErr) {
+        console.error('Error notifying DFY partner:', notifyErr)
+        // Don't fail the whole operation if notification fails
+      }
     }
 
     return { success: true }
@@ -377,7 +395,7 @@ export async function createInvoiceCheckoutSession(
 export async function voidInvoice(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const invoice = await getInvoice(id)
   if (!invoice) {
@@ -442,8 +460,10 @@ export async function markInvoicePaid(
     return { success: false, error: error.message }
   }
 
-  // Also mark associated milestone as paid if linked
+  // Fetch full invoice with project details
   const invoice = await getInvoice(id)
+
+  // Also mark associated milestone as paid if linked
   if (invoice?.milestone_id) {
     await supabase
       .from('payment_milestones')
@@ -452,6 +472,21 @@ export async function markInvoicePaid(
         stripe_payment_id: stripePaymentIntentId,
       })
       .eq('id', invoice.milestone_id)
+  }
+
+  // Notify DFY Partner if present
+  if (invoice?.dfy_partner_id) {
+    try {
+      await createNotification({
+        userId: invoice.dfy_partner_id,
+        type: 'invoice_paid',
+        title: 'Invoice Paid!',
+        message: `Great news! The invoice for ${invoice.total / 100} USD for project ${invoice.project_name || 'N/A'} has been paid in full.`,
+        projectId: invoice.project_id || undefined,
+      })
+    } catch (notifyErr) {
+      console.error('Error notifying DFY partner of payment:', notifyErr)
+    }
   }
 
   return { success: true }
@@ -463,7 +498,7 @@ export async function markInvoicePaid(
 export async function deleteInvoice(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   // Verify invoice is draft
   const { data: existing, error: fetchError } = await supabase
@@ -506,7 +541,7 @@ export async function getInvoiceStats(): Promise<{
   total_outstanding: number
   total_collected: number
 } | null> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data, error } = await supabase.from('invoices').select('status, total')
 
@@ -552,7 +587,7 @@ export async function getInvoiceStats(): Promise<{
  * Get invoice by public token (for client view)
  */
 export async function getInvoiceByPublicToken(token: string): Promise<InvoiceWithProject | null> {
-  const supabase = await createClient()
+  const supabase = createClient()
 
   const { data, error } = await supabase
     .from('invoices')

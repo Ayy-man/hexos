@@ -10,6 +10,8 @@ export type NotificationType =
   | 'mention'
   | 'deadline_reminder'
   | 'status_change'
+  | 'invoice_sent'
+  | 'invoice_paid'
 
 export interface Notification {
   id: string

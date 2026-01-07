@@ -28,13 +28,13 @@ import {
   fetchPaymentSources,
   fetchInvoices,
 } from '@/features/admin/actions/financialActions';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/admin';
 
 export default async function MetricsPage() {
   await requireRole(['admin']);
 
   // Fetch projects for expense dropdown
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data: projectsData } = await supabase
     .from('projects')
     .select('id, name')

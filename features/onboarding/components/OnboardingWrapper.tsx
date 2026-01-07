@@ -32,17 +32,23 @@ export function OnboardingWrapper({ userId, role, onboardingStatus }: Onboarding
         const completedTours = onboardingStatus?.completed_tours || [];
 
         if (!completedTours.includes(tourId)) {
+            console.log(`[Onboarding] Tour '${tourId}' not completed. Starting in 2.5s...`);
             // Small delay to ensure layout is ready
             const timer = setTimeout(() => {
+                console.log(`[Onboarding] Executing startOnborda('${tourId}')`);
                 startOnborda(tourId);
                 setHasStarted(true);
 
-                // Mark as completed in the background immediately or after certain steps?
-                // For onboarding tours, usually marking "seen" is enough to not show again.
-                updateOnboardingStatus(userId, tourId);
-            }, 1000);
+                // Mark as completed in the background immediately
+                // We'll keep this enabled but maybe it was firing too fast?
+                updateOnboardingStatus(userId, tourId).then(res => {
+                    console.log('[Onboarding] Status updated:', res);
+                });
+            }, 2500);
 
             return () => clearTimeout(timer);
+        } else {
+            console.log(`[Onboarding] Tour '${tourId}' already completed.`);
         }
     }, [role, onboardingStatus, startOnborda, hasStarted, userId]);
 
