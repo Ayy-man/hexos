@@ -61,7 +61,12 @@ export default async function DashboardLayout({
 
   return (
     <OnbordaProvider>
-      <Onborda steps={onboardingTours}>
+      <Onborda
+        steps={onboardingTours}
+        showOnborda={true}
+        shadowRgb="0, 0, 0"
+        shadowOpacity="0.5"
+      >
         <SidebarProvider defaultOpen={defaultOpen}>
           <OnboardingWrapper
             userId={user.id}
