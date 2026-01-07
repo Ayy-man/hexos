@@ -37,6 +37,7 @@ const adminNav: NavGroup[] = [
     label: 'Admin',
     items: [
       { title: 'Metrics', url: '/dashboard/admin/metrics', icon: 'BarChart3' },
+      { title: 'Finances', url: '/finances', icon: 'DollarSign' },
       { title: 'Time Reports', url: '/admin/time-reports', icon: 'Clock' },
       { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
       { title: 'Developers', url: '/admin/devs', icon: 'Users' },
@@ -74,6 +75,7 @@ const internalNav: NavGroup[] = [
     label: 'Admin',
     items: [
       { title: 'Metrics', url: '/dashboard/admin/metrics', icon: 'BarChart3' },
+      { title: 'Finances', url: '/finances', icon: 'DollarSign' },
       { title: 'Time Reports', url: '/admin/time-reports', icon: 'Clock' },
       { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
       { title: 'Developers', url: '/admin/devs', icon: 'Users' },
