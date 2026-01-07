@@ -20,6 +20,7 @@ import { getStreak } from '@/lib/api/pulse'
 import { OnbordaProvider, Onborda } from 'onborda'
 import { OnboardingWrapper } from '@/features/onboarding/components/OnboardingWrapper'
 import { onboardingTours } from '@/features/onboarding/lib/tours'
+import { TourCard } from '@/features/onboarding/components/TourCard'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -66,6 +67,7 @@ export default async function DashboardLayout({
         showOnborda={true}
         shadowRgb="0, 0, 0"
         shadowOpacity="0.5"
+        cardComponent={TourCard}
       >
         <SidebarProvider defaultOpen={defaultOpen}>
           <OnboardingWrapper
