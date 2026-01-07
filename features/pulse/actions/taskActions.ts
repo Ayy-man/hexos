@@ -11,8 +11,11 @@ import {
   rolloverIncompleteTasks,
   reorderTasks,
   moveTaskToDate,
+  createFocusTask,
+  completeFocusTask,
 } from '@/lib/api/pulse-tasks'
 import type { CreateTaskInput, UpdateTaskInput, PulseDailyTask } from '@/lib/types/pulse'
+import { getTodayDate } from '@/lib/utils/pulseCalculations'
 
 // ============================================================================
 // Task CRUD Actions
@@ -200,4 +203,30 @@ export async function moveTaskToDateAction(
     console.error('[Pulse Task Action] Move error:', error)
     return { success: false, error: 'An error occurred' }
   }
+}
+
+// ============================================================================
+// Focus Task Actions
+// ============================================================================
+
+export async function createFocusTaskAction(title: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const task = await createFocusTask(user.id, title, getTodayDate())
+  revalidatePath('/pulse')
+  return task
+}
+
+export async function completeFocusTaskAction(taskId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const result = await completeFocusTask(taskId, user.id)
+  revalidatePath('/pulse')
+  return result
 }
