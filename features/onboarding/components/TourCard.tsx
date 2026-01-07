@@ -2,9 +2,10 @@
 
 import type { CardComponentProps } from "onborda";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useOnborda } from "onborda";
-import { X } from "lucide-react";
+import { X, ArrowRight, ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export const TourCard = ({
     step,
@@ -17,53 +18,72 @@ export const TourCard = ({
     const { closeOnborda } = useOnborda();
 
     return (
-        <Card className="w-[350px] shadow-xl border-2 border-primary/20 bg-background relative z-[9999]">
-            <div className="absolute -top-3 -left-3 bg-background border rounded-full p-2 shadow-sm text-2xl">
-                {step.icon}
-            </div>
-
-            <button
-                onClick={closeOnborda}
-                className="absolute top-2 right-2 text-muted-foreground hover:text-foreground p-1"
-                aria-label="Close tour"
-            >
-                <X className="h-4 w-4" />
-            </button>
-
-            <CardHeader className="pt-8 pb-2">
-                <CardTitle className="text-lg">{step.title}</CardTitle>
-                <CardDescription className="text-sm mt-1">
-                    {currentStep + 1} of {totalSteps}
-                </CardDescription>
-            </CardHeader>
-
-            <CardContent className="text-sm text-muted-foreground pb-4">
-                {step.content}
-                <div className="mt-4 flex justify-between items-center">
-                    {arrow}
+        <div className="relative z-[9999]">
+            <Card className="w-[380px] border border-border/50 shadow-2xl bg-card/95 backdrop-blur-sm overflow-hidden ring-1 ring-ring/10">
+                {/* Progress Bar */}
+                <div className="absolute top-0 left-0 h-1 bg-muted w-full">
+                    <div
+                        className="h-full bg-primary transition-all duration-300 ease-out"
+                        style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+                    />
                 </div>
-            </CardContent>
 
-            <CardFooter className="flex justify-between gap-2 pt-0">
-                <div className="flex gap-2">
-                    {currentStep > 0 && (
-                        <Button onClick={prevStep} variant="outline" size="sm">
-                            Previous
-                        </Button>
-                    )}
-                </div>
-                <div className="flex gap-2">
-                    {currentStep + 1 === totalSteps ? (
-                        <Button onClick={closeOnborda} variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
-                            Finish
-                        </Button>
-                    ) : (
-                        <Button onClick={nextStep} variant="default" size="sm">
-                            Next
-                        </Button>
-                    )}
-                </div>
-            </CardFooter>
-        </Card>
+                <button
+                    onClick={closeOnborda}
+                    className="absolute top-3 right-3 text-muted-foreground/50 hover:text-foreground p-1 transition-colors rounded-full hover:bg-muted"
+                    aria-label="Close tour"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+
+                <CardHeader className="pt-6 pb-2 px-6 flex flex-row items-start gap-4 space-y-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xl ring-1 ring-inset ring-primary/20">
+                        {step.icon}
+                    </div>
+                    <div className="space-y-1">
+                        <h3 className="font-semibold leading-none tracking-tight text-lg">
+                            {step.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                            Step {currentStep + 1} of {totalSteps}
+                        </p>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="px-6 py-4">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                        {step.content}
+                    </p>
+                    <div className="mt-2 flex justify-end">
+                        {arrow}
+                    </div>
+                </CardContent>
+
+                <CardFooter className="px-6 pb-6 pt-0 flex justify-between gap-4">
+                    <Button
+                        onClick={prevStep}
+                        variant="ghost"
+                        size="sm"
+                        className={cn("text-muted-foreground hover:text-foreground pl-0", currentStep === 0 && "invisible")}
+                    >
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back
+                    </Button>
+
+                    <div className="flex gap-2">
+                        {currentStep + 1 === totalSteps ? (
+                            <Button onClick={closeOnborda} size="sm" className="bg-primary hover:bg-primary/90 shadow-sm">
+                                Finish Tour
+                            </Button>
+                        ) : (
+                            <Button onClick={nextStep} size="sm" className="shadow-sm">
+                                Next
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
+                </CardFooter>
+            </Card>
+        </div>
     );
 };
