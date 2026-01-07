@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -106,6 +107,7 @@ export function InvoiceManagement({
   invoices,
   projects,
 }: InvoiceManagementProps) {
+  const router = useRouter();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<InvoiceWithProject | null>(
     null
@@ -264,6 +266,7 @@ export function InvoiceManagement({
           toast.success('Invoice updated');
           setIsAddDialogOpen(false);
           resetForm();
+          router.refresh();
         } else {
           toast.error(result.error || 'Failed to update invoice');
         }
@@ -273,6 +276,7 @@ export function InvoiceManagement({
           toast.success('Invoice created');
           setIsAddDialogOpen(false);
           resetForm();
+          router.refresh();
         } else {
           toast.error(result.error || 'Failed to create invoice');
         }
@@ -290,6 +294,7 @@ export function InvoiceManagement({
       const result = await sendInvoiceToClient(invoiceId);
       if (result.success) {
         toast.success('Invoice sent to client');
+        router.refresh();
       } else {
         toast.error(result.error || 'Failed to send invoice');
       }
@@ -306,6 +311,7 @@ export function InvoiceManagement({
       const result = await voidExistingInvoice(invoiceId);
       if (result.success) {
         toast.success('Invoice voided');
+        router.refresh();
       } else {
         toast.error(result.error || 'Failed to void invoice');
       }
@@ -323,6 +329,7 @@ export function InvoiceManagement({
       if (result.success) {
         toast.success('Invoice deleted');
         setIsAddDialogOpen(false);
+        router.refresh();
       } else {
         toast.error(result.error || 'Failed to delete invoice');
       }
