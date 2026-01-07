@@ -74,12 +74,18 @@ export function PulsePageClient({
   }, [handleUpdate])
 
   const handleCreateFocus = useCallback(async (title: string) => {
-    await createFocusTaskAction(title)
+    const result = await createFocusTaskAction(title)
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to create focus task')
+    }
     handleUpdate()
   }, [handleUpdate])
 
   const handleCompleteFocus = useCallback(async (taskId: string) => {
-    await completeFocusTaskAction(taskId)
+    const result = await completeFocusTaskAction(taskId)
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to complete focus task')
+    }
     handleUpdate()
   }, [handleUpdate])
 

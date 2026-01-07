@@ -209,24 +209,52 @@ export async function moveTaskToDateAction(
 // Focus Task Actions
 // ============================================================================
 
-export async function createFocusTaskAction(title: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export async function createFocusTaskAction(
+  title: string
+): Promise<{ success: boolean; task?: PulseDailyTask; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) throw new Error('Not authenticated')
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
 
-  const task = await createFocusTask(user.id, title, getTodayDate())
-  revalidatePath('/pulse')
-  return task
+    const task = await createFocusTask(user.id, title, getTodayDate())
+
+    if (!task) {
+      return { success: false, error: 'Failed to create focus task (check server logs)' }
+    }
+
+    revalidatePath('/pulse')
+    return { success: true, task }
+  } catch (error) {
+    console.error('[Pulse Focus Action] Create error:', error)
+    return { success: false, error: 'An error occurred' }
+  }
 }
 
-export async function completeFocusTaskAction(taskId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export async function completeFocusTaskAction(
+  taskId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) throw new Error('Not authenticated')
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
 
-  const result = await completeFocusTask(taskId, user.id)
-  revalidatePath('/pulse')
-  return result
+    const result = await completeFocusTask(taskId, user.id)
+
+    if (!result) {
+      return { success: false, error: 'Failed to complete focus task' }
+    }
+
+    revalidatePath('/pulse')
+    return { success: true }
+  } catch (error) {
+    console.error('[Pulse Focus Action] Complete error:', error)
+    return { success: false, error: 'An error occurred' }
+  }
 }
