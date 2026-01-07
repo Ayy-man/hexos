@@ -4,9 +4,16 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { PulseHeader } from '@/features/pulse/components/PulseHeader'
 import { PulseTabs } from '@/features/pulse/components/PulseTabs'
-import { Heatmap } from '@/features/pulse/components/Heatmap'
-import { WeekView } from '@/features/pulse/components/WeekView'
-import { GoalAndTargets } from '@/features/pulse/components/GoalAndTargets'
+import { TodayTab } from '@/features/pulse/components/tabs/TodayTab'
+import { WeekTab } from '@/features/pulse/components/tabs/WeekTab'
+import { GoalsTab } from '@/features/pulse/components/tabs/GoalsTab'
+import { InsightsTab } from '@/features/pulse/components/tabs/InsightsTab'
+import {
+  createTaskAction,
+  createFocusTaskAction,
+  completeFocusTaskAction,
+} from '@/features/pulse/actions/taskActions'
+import { getTodayDate } from '@/lib/utils/pulseCalculations'
 import type {
   PulseStats,
   DailyPointsMap,
@@ -60,6 +67,22 @@ export function PulsePageClient({
   const focusTasks = todayTasks.filter((t) => t.is_focus)
   const regularTasks = todayTasks.filter((t) => !t.is_focus)
 
+  // Task handlers
+  const handleCreateTask = useCallback(async (title: string) => {
+    await createTaskAction({ date: getTodayDate(), title })
+    handleUpdate()
+  }, [handleUpdate])
+
+  const handleCreateFocus = useCallback(async (title: string) => {
+    await createFocusTaskAction(title)
+    handleUpdate()
+  }, [handleUpdate])
+
+  const handleCompleteFocus = useCallback(async (taskId: string) => {
+    await completeFocusTaskAction(taskId)
+    handleUpdate()
+  }, [handleUpdate])
+
   return (
     <div className="space-y-6">
       {/* Persistent Header */}
@@ -70,29 +93,29 @@ export function PulsePageClient({
 
       {/* Tab Content */}
       {activeTab === 'today' && (
-        <div className="space-y-6">
-          {/* Placeholder for Today tab components (DailyScore, FocusPanel, TaskList, QuickCapture) */}
-          <div className="rounded-lg border bg-card p-6">
-            <p className="text-muted-foreground">Today tab - components coming in Phase 3</p>
-            <p className="text-sm mt-2">Tasks today: {todayTasks.length} ({focusTasks.length} focus, {regularTasks.length} regular)</p>
-          </div>
-        </div>
+        <TodayTab
+          stats={initialStats}
+          tasks={regularTasks}
+          focusTasks={focusTasks}
+          onCreateTask={handleCreateTask}
+          onCreateFocus={handleCreateFocus}
+          onCompleteFocus={handleCompleteFocus}
+          onUpdate={handleUpdate}
+        />
       )}
 
       {activeTab === 'week' && (
-        <div className="space-y-6">
-          <Heatmap dailyPoints={initialHeatmapData} weeks={12} />
-          <WeekView
-            weekStart={weekStart}
-            tasks={initialTasks}
-            onWeekChange={setWeekStart}
-            onUpdate={handleUpdate}
-          />
-        </div>
+        <WeekTab
+          heatmapData={initialHeatmapData}
+          tasks={initialTasks}
+          weekStart={weekStart}
+          onWeekChange={setWeekStart}
+          onUpdate={handleUpdate}
+        />
       )}
 
       {activeTab === 'goals' && (
-        <GoalAndTargets
+        <GoalsTab
           goal={initialGoal}
           targets={initialTargets}
           quarter={currentQuarter}
@@ -103,9 +126,7 @@ export function PulsePageClient({
       )}
 
       {activeTab === 'insights' && (
-        <div className="rounded-lg border bg-card p-6">
-          <p className="text-muted-foreground">Insights tab - components coming in Phase 6</p>
-        </div>
+        <InsightsTab userId={userId} />
       )}
     </div>
   )

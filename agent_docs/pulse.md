@@ -45,33 +45,47 @@ Targets belong to a quarter (Q1–Q4) and contribute to the yearly goal. Each ta
 
 ## UI Layout
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Pulse                                                  │
-│                                                         │
-│  🔥 12 day streak        Today: 18 pts       Avg: 14   │
-│                                                         │
-│  [====== 12 week heatmap (cal-heatmap) ======]         │
-│                                                         │
-├────────────────────────┬────────────────────────────────┤
-│  THIS WEEK     < >     │  2026 Goal: Hit $X revenue     │
-│  ┌───┬───┬───┬───┬───┐ ├────────────────────────────────┤
-│  │Mon│Tue│Wed│Thu│Fri│ │  Q1 TARGETS                    │
-│  ├───┼───┼───┼───┼───┤ │                                │
-│  │ ☐ │ ☐ │ ☐ │   │   │ │  ████████░░ Close 5 clients    │
-│  │ ☐ │ ☑ │   │   │   │ │  ██████░░░░ Launch new offer   │
-│  │ ☑ │   │   │   │   │ │                                │
-│  └───┴───┴───┴───┴───┘ │  [+ Add Target]                │
-│  Sat  Sun              │                                │
-└────────────────────────┴────────────────────────────────┘
-```
+4-tab navigation with URL persistence (`?tab=today|week|goals|insights`).
+
+### Persistent Header
+Always visible at top:
+- Streak fire with scaling animation (more flames at higher streaks)
+- Today's points
+- Level system (lifetime points → level + title)
+
+### Tab: Today
+Daily productivity view:
+- **Daily Score** — Circular progress ring showing % of daily goal (default 25 pts)
+- **Focus Panel** — Top 3 must-do items (10 pts each), max 3
+- **Task List** — Regular daily tasks (3 pts each)
+- **Quick Capture** — `Cmd+K` to rapidly add tasks
+
+### Tab: Week
+Weekly overview:
+- **12-week Heatmap** — Contribution graph using cal-heatmap
+- **Week View** — 7-day grid with task counts per day
+- **vs Last Week** — Comparison mode toggle
+- **Weekly Review** — Monday prompt for reflection + setting weekly focus
+
+### Tab: Goals
+Quarterly targets and yearly goal:
+- **Yearly Goal Card** — Company goal with progress bar
+- **Collapsible Quarters** — Q1-Q4 sections, current quarter expanded by default
+- **Target Cards** — Health scores, action tracking, forecasting
+
+### Tab: Insights
+Analytics dashboard:
+- **Streak Stats** — Current, longest, avg streak length, break patterns
+- **Personal Records** — Best day, week, month
+- **Task Completion Chart** — Same day vs rolled vs abandoned breakdown
+- **Weekly Summary** — This week vs last week comparison
 
 ### Key UI Decisions
 
-- **Streak is the hero** — Large 🔥 emoji with count on left, secondary stats smaller on right
+- **Streak is the hero** — Large fire emoji with count, scales with streak length
 - **Heatmap uses cal-heatmap** — 12 weeks, Monday start, brand cyan colors
-- **Week view shows all 7 days** — CSS grid, equal columns, current day highlighted
-- **Goal + Targets unified** — Single card with goal banner header above targets
+- **Focus items are special** — Max 3 per day, earn 10 pts instead of 3
+- **Level system** — 50 levels from Rookie (0 pts) to Godlike (150k pts)
 
 ## Database Tables
 
@@ -83,46 +97,68 @@ All tables use `pulse_` prefix:
 | `pulse_targets` | Quarterly targets |
 | `pulse_target_owners` | Target ownership (M2M) |
 | `pulse_actions` | Actions for targets |
-| `pulse_daily_tasks` | Personal daily tasks |
+| `pulse_daily_tasks` | Personal daily tasks (includes `is_focus`, `times_rolled` columns) |
 | `pulse_events` | All pulse point events |
 | `pulse_settings` | User settings (min_daily_pulse) |
+| `pulse_weekly_reviews` | Monday reflection prompts |
+| `pulse_quarterly_reviews` | End-of-quarter reflections |
 
 ## File Structure
 
 ```
 app/(dashboard)/pulse/
 ├── page.tsx                        # Server component - data fetching
-└── PulsePageClient.tsx             # Client component - interactivity
+└── PulsePageClient.tsx             # Client component - tab routing
 
 features/pulse/
 ├── components/
-│   ├── PulseHeader.tsx             # Streak hero + secondary stats
+│   ├── PulseHeader.tsx             # Streak hero + level system
+│   ├── PulseTabs.tsx               # Tab navigation with URL persistence
 │   ├── Heatmap.tsx                 # cal-heatmap 12-week contribution graph
 │   ├── WeekView.tsx                # 7-column week grid with navigation
 │   ├── DayColumn.tsx               # Single day column (compact mode)
 │   ├── TaskItem.tsx                # Task checkbox (supports compact)
-│   ├── GoalAndTargets.tsx          # Unified goal banner + targets card
-│   ├── TargetCard.tsx              # Expandable target with actions
-│   ├── QuarterTargets.tsx          # (legacy, use GoalAndTargets)
-│   └── GoalHeader.tsx              # (legacy, use GoalAndTargets)
+│   ├── DailyScore.tsx              # Circular progress component
+│   ├── FocusPanel.tsx              # Top 3 focus items
+│   ├── TaskList.tsx                # Regular task list
+│   ├── QuickCapture.tsx            # Cmd+K rapid task entry
+│   ├── WeeklyReview.tsx            # Monday reflection prompt
+│   ├── YearlyGoalCard.tsx          # Goal with progress bar
+│   ├── TargetCardEnhanced.tsx      # Target with health scores
+│   ├── GoalAndTargets.tsx          # (legacy)
+│   ├── TargetCard.tsx              # (legacy)
+│   ├── tabs/
+│   │   ├── TodayTab.tsx            # Today tab container
+│   │   ├── WeekTab.tsx             # Week tab container
+│   │   ├── GoalsTab.tsx            # Goals tab container
+│   │   └── InsightsTab.tsx         # Insights tab container
+│   └── insights/
+│       ├── StreakStatsCard.tsx     # Streak analytics
+│       ├── PersonalRecordsCard.tsx # Best day/week/month
+│       ├── TaskCompletionChart.tsx # Completion breakdown
+│       └── WeeklySummaryCard.tsx   # Week-over-week comparison
 ├── actions/
-│   ├── taskActions.ts              # Task CRUD server actions
+│   ├── taskActions.ts              # Task CRUD + focus tasks
 │   ├── targetActions.ts            # Target/action server actions
-│   └── goalActions.ts              # Goal + settings server actions
+│   ├── goalActions.ts              # Goal + settings server actions
+│   ├── reviewActions.ts            # Weekly/quarterly review actions
+│   └── insightsActions.ts          # Insights data fetching
 └── hooks/
     └── (hooks if needed)
 
 lib/api/
 ├── pulse.ts                        # Core: logPulseEvent, getPulseStats
-├── pulse-tasks.ts                  # Daily task operations
+├── pulse-tasks.ts                  # Daily + focus task operations
 ├── pulse-targets.ts                # Target/action operations
-└── pulse-goals.ts                  # Goal operations
+├── pulse-goals.ts                  # Goal operations
+├── pulse-reviews.ts                # Weekly/quarterly reviews
+└── pulse-insights.ts               # Insights calculations
 
 lib/types/
-└── pulse.ts                        # Shared types (client-safe)
+└── pulse.ts                        # Shared types (includes LevelInfo, PulseInsights)
 
 lib/utils/
-└── pulseCalculations.ts            # Streak calc, date utils
+└── pulseCalculations.ts            # Streak calc, level calc, date utils
 
 types/
 └── cal-heatmap.d.ts                # Type declarations for cal-heatmap
