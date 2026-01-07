@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LogoUpload } from '@/features/settings/components/LogoUpload'
 import { LocationSettings } from '@/features/settings/components/LocationSettings'
 import { User, Settings2 } from 'lucide-react'
+import { TutorialSettings } from '@/features/onboarding/components/TutorialSettings'
 
 export default async function SettingsPage() {
   await requireAuth()
@@ -57,6 +58,11 @@ export default async function SettingsPage() {
       {/* DFY-only: Logo Upload */}
       {isDfy && (
         <LogoUpload currentLogoUrl={profile?.logo_url || null} />
+      )}
+
+      {/* Onboarding Tutorial Reset */}
+      {profile?.id && (
+        <TutorialSettings userId={profile.id} />
       )}
 
       {/* Future Settings */}

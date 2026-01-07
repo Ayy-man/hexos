@@ -17,6 +17,9 @@ import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
 import { getMyNotifications, getUnreadCount } from '@/lib/api/notifications'
 import { getStreak } from '@/lib/api/pulse'
+import { OnbordaProvider, Onborda } from 'onborda'
+import { OnboardingWrapper } from '@/features/onboarding/components/OnboardingWrapper'
+import { onboardingTours } from '@/features/onboarding/lib/tours'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -57,34 +60,43 @@ export default async function DashboardLayout({
   const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false'
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      <AppSidebar
-        profile={profile as Profile}
-        navigation={navigation}
-        pulseStreak={isAdminOrInternal ? pulseStreak : undefined}
-      />
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <DynamicBreadcrumb />
-          <div className="ml-auto flex items-center gap-2">
-            <CommandPalette role={(profile as Profile).role} />
-            <NotificationPopover
-              userId={user.id}
-              initialNotifications={notifications}
-              initialUnreadCount={unreadCount}
-            />
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="flex-1 p-4 md:p-6">
-          <PresenceProvider profile={profile as Profile}>
-            {children}
-          </PresenceProvider>
-        </main>
-      </SidebarInset>
-      <Toaster richColors position="bottom-right" />
-    </SidebarProvider>
+    <OnbordaProvider>
+      <Onborda steps={onboardingTours}>
+        <SidebarProvider defaultOpen={defaultOpen}>
+          <OnboardingWrapper
+            userId={user.id}
+            role={(profile as Profile).role}
+            onboardingStatus={profile.onboarding_status}
+          />
+          <AppSidebar
+            profile={profile as Profile}
+            navigation={navigation}
+            pulseStreak={isAdminOrInternal ? pulseStreak : undefined}
+          />
+          <SidebarInset>
+            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator orientation="vertical" className="mr-2 h-4" />
+              <DynamicBreadcrumb />
+              <div className="ml-auto flex items-center gap-2">
+                <CommandPalette role={(profile as Profile).role} />
+                <NotificationPopover
+                  userId={user.id}
+                  initialNotifications={notifications}
+                  initialUnreadCount={unreadCount}
+                />
+                <ThemeToggle />
+              </div>
+            </header>
+            <main className="flex-1 p-4 md:p-6">
+              <PresenceProvider profile={profile as Profile}>
+                {children}
+              </PresenceProvider>
+            </main>
+          </SidebarInset>
+          <Toaster richColors position="bottom-right" />
+        </SidebarProvider>
+      </Onborda>
+    </OnbordaProvider>
   )
 }
