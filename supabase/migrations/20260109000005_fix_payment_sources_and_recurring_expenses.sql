@@ -14,10 +14,10 @@ CREATE INDEX IF NOT EXISTS idx_expenses_recurring ON expenses(is_recurring) WHER
 CREATE INDEX IF NOT EXISTS idx_expenses_parent ON expenses(parent_expense_id);
 
 -- Insert default payment sources if they don't exist
+-- Valid types: credit_card, debit, bank_account
 INSERT INTO payment_sources (name, label, type, is_active)
 VALUES
-  ('business_checking', 'Business Checking', 'bank', true),
+  ('business_checking', 'Business Checking', 'bank_account', true),
   ('business_credit', 'Business Credit Card', 'credit_card', true),
-  ('paypal', 'PayPal', 'digital', true),
-  ('cash', 'Cash', 'cash', true)
+  ('business_debit', 'Business Debit Card', 'debit', true)
 ON CONFLICT DO NOTHING;
