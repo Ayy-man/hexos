@@ -1,7 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 interface GitHubHeatmapProps {
   dailyPoints: Record<string, number>
@@ -33,19 +39,36 @@ function getMonthLabel(date: Date): string {
   return date.toLocaleDateString('en-US', { month: 'short' })
 }
 
-export function GitHubHeatmap({ dailyPoints, weeks = 12 }: GitHubHeatmapProps) {
+function formatDisplayDate(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00')
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+export function GitHubHeatmap({ dailyPoints }: GitHubHeatmapProps) {
+  const [selectedDay, setSelectedDay] = useState<{ date: string; points: number } | null>(null)
+
   const { grid, monthLabels } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Find the Sunday of the current week
+    // Start from January 1, 2026
+    const startDate = new Date(2026, 0, 1) // Jan 1, 2026
+
+    // Find the Sunday before or on Jan 1
+    const startDayOfWeek = startDate.getDay()
+    if (startDayOfWeek !== 0) {
+      startDate.setDate(startDate.getDate() - startDayOfWeek)
+    }
+
+    // End date is Saturday of current week
     const dayOfWeek = today.getDay()
     const endDate = new Date(today)
-    endDate.setDate(today.getDate() + (6 - dayOfWeek)) // Go to Saturday
-
-    // Start date is (weeks) weeks before, aligned to Sunday
-    const startDate = new Date(endDate)
-    startDate.setDate(endDate.getDate() - (weeks * 7) + 1)
+    endDate.setDate(today.getDate() + (6 - dayOfWeek))
 
     // Build the grid: array of weeks, each week is array of 7 days
     const grid: Array<Array<{ date: string; points: number; isToday: boolean; isFuture: boolean }>> = []
@@ -87,7 +110,7 @@ export function GitHubHeatmap({ dailyPoints, weeks = 12 }: GitHubHeatmapProps) {
     }
 
     return { grid, monthLabels }
-  }, [dailyPoints, weeks])
+  }, [dailyPoints])
 
   const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -120,19 +143,21 @@ export function GitHubHeatmap({ dailyPoints, weeks = 12 }: GitHubHeatmapProps) {
         </div>
 
         {/* Grid */}
-        <div className="flex gap-[3px]">
+        <div className="flex gap-[3px] overflow-x-auto pb-2">
           {grid.map((week, weekIdx) => (
             <div key={weekIdx} className="flex flex-col gap-[3px]">
-              {week.map((day, dayIdx) => (
-                <div
+              {week.map((day) => (
+                <button
                   key={day.date}
+                  onClick={() => !day.isFuture && setSelectedDay({ date: day.date, points: day.points })}
                   className={cn(
-                    'w-[10px] h-[10px] rounded-sm transition-all',
+                    'w-[10px] h-[10px] rounded-sm transition-all hover:ring-1 hover:ring-white/50',
                     day.isToday && 'ring-1 ring-cyan-400',
-                    day.isFuture && 'opacity-30'
+                    day.isFuture && 'opacity-30 cursor-not-allowed'
                   )}
                   style={{ backgroundColor: day.isFuture ? COLORS.empty : getColor(day.points) }}
                   title={`${day.date}: ${day.points} pts`}
+                  disabled={day.isFuture}
                 />
               ))}
             </div>
@@ -154,6 +179,40 @@ export function GitHubHeatmap({ dailyPoints, weeks = 12 }: GitHubHeatmapProps) {
         </div>
         <span>More</span>
       </div>
+
+      {/* Day Detail Dialog */}
+      <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedDay && formatDisplayDate(selectedDay.date)}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+              <span className="text-muted-foreground">Points Earned</span>
+              <span className="text-2xl font-bold" style={{ color: selectedDay ? getColor(selectedDay.points) : undefined }}>
+                {selectedDay?.points || 0} pts
+              </span>
+            </div>
+            {selectedDay && selectedDay.points >= 25 && (
+              <div className="text-center text-green-500 text-sm">
+                🎯 Goal reached!
+              </div>
+            )}
+            {selectedDay && selectedDay.points > 0 && selectedDay.points < 25 && (
+              <div className="text-center text-muted-foreground text-sm">
+                {25 - selectedDay.points} pts away from daily goal
+              </div>
+            )}
+            {selectedDay && selectedDay.points === 0 && (
+              <div className="text-center text-muted-foreground text-sm">
+                No activity recorded
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
