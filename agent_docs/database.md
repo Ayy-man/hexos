@@ -235,15 +235,71 @@ CREATE TABLE public.project_files (
 CREATE TABLE public.payment_milestones (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
-  
+
   label TEXT NOT NULL,
   amount DECIMAL(10,2) NOT NULL,
   due_date DATE,
   paid_at TIMESTAMPTZ,
   stripe_payment_id TEXT,
-  
+
   sort_order INT DEFAULT 0
 );
+
+-- Invoices (Stripe Integration)
+CREATE TABLE public.invoices (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- Links
+  project_id UUID REFERENCES projects(id) ON DELETE SET NULL,
+  milestone_id UUID REFERENCES payment_milestones(id) ON DELETE SET NULL,
+
+  -- Invoice details
+  invoice_number TEXT UNIQUE NOT NULL,  -- HEX-0001 format
+  status TEXT DEFAULT 'draft',           -- draft, sent, paid, void, overdue
+
+  -- Amounts (in cents)
+  subtotal INT NOT NULL DEFAULT 0,
+  tax_rate DECIMAL(5,4) DEFAULT 0,
+  tax_amount INT NOT NULL DEFAULT 0,
+  total INT NOT NULL DEFAULT 0,
+
+  -- Dates
+  issue_date DATE DEFAULT CURRENT_DATE,
+  due_date DATE NOT NULL,
+  paid_at TIMESTAMPTZ,
+
+  -- Stripe
+  stripe_invoice_id TEXT,
+  stripe_payment_intent_id TEXT,
+  stripe_hosted_url TEXT,
+  stripe_pdf_url TEXT,
+
+  -- Recipient
+  client_name TEXT NOT NULL,
+  client_email TEXT NOT NULL,
+  client_company TEXT,
+
+  -- Line items (JSONB array)
+  line_items JSONB NOT NULL DEFAULT '[]',
+
+  notes TEXT
+);
+
+-- Auto-generate invoice numbers
+CREATE OR REPLACE FUNCTION generate_invoice_number()
+RETURNS TEXT AS $$
+DECLARE
+  next_num INT;
+BEGIN
+  SELECT COALESCE(MAX(CAST(SUBSTRING(invoice_number FROM 5) AS INT)), 0) + 1
+  INTO next_num
+  FROM invoices;
+
+  RETURN 'HEX-' || LPAD(next_num::TEXT, 4, '0');
+END;
+$$ LANGUAGE plpgsql;
 
 -- Scope Changes
 CREATE TABLE public.scope_changes (
@@ -475,7 +531,9 @@ projects 1──* payment_milestones
 projects 1──* scope_changes
 projects 1──* activity_log
 projects 1──* project_requirements
+projects 1──* invoices
 deliverables 1──* project_files
+payment_milestones 1──* invoices
 blueprints 1──* projects (via matched_blueprint_id)
 blueprints 1──* inquiries (via blueprint_id)
 inquiries 1──* inquiry_comments
@@ -517,6 +575,9 @@ CREATE INDEX idx_onboarding_requirements_status ON onboarding_requirements(statu
 CREATE INDEX idx_requirement_attachments_requirement ON requirement_attachments(requirement_id);
 CREATE INDEX idx_project_files_parent ON project_files(parent_id);
 CREATE INDEX idx_project_files_shared_to ON project_files(shared_to) WHERE shared_to IS NOT NULL;
+CREATE INDEX idx_invoices_project ON invoices(project_id);
+CREATE INDEX idx_invoices_status ON invoices(status);
+CREATE INDEX idx_invoices_number ON invoices(invoice_number);
 ```
 
 See `security.md` for RLS policies on these tables.

@@ -642,11 +642,39 @@ Client components import types from `lib/types/pulse.ts` (client-safe) rather th
 - [ ] Client portal (if invited)
 - [ ] Role-based visibility
 
-### Phase 7: Payments
+### Phase 7: Payments (In Progress)
 
-- [ ] Stripe integration
-- [ ] Payment milestones
-- [ ] Manual payment marking
+Stripe integration for invoice management and payment collection.
+
+**Completed:**
+- [x] Stripe SDK integration (`lib/stripe/server.ts`, `lib/stripe/client.ts`)
+- [x] Invoice CRUD (`lib/api/invoices.ts`)
+  - [x] Create draft invoices with line items
+  - [x] Auto-generate invoice numbers (DB function)
+  - [x] Send via Stripe (creates Stripe invoice, sends email)
+  - [x] Void invoices
+  - [x] Mark as paid (webhook or manual)
+- [x] Stripe Checkout sessions for direct payment
+- [x] Webhook handler (`app/api/webhooks/stripe/route.ts`)
+  - [x] `checkout.session.completed` - marks invoice paid
+  - [x] `invoice.paid` - marks invoice paid
+- [x] Invoice API routes
+  - [x] `POST /api/invoices` - create invoice
+  - [x] `GET /api/invoices/[id]` - get invoice
+  - [x] `POST /api/invoices/[id]/send` - send invoice
+  - [x] `POST /api/invoices/[id]/void` - void invoice
+  - [x] `POST /api/invoices/[id]/checkout` - create checkout session
+- [x] Invoice types (`lib/types/invoices.ts`)
+
+**Database:**
+- [x] `invoices` table with Stripe integration fields
+- [x] `generate_invoice_number()` function (HEX-0001 format)
+- [x] Links to projects and payment_milestones
+
+**Remaining:**
+- [ ] Invoice management UI (admin)
+- [ ] Payment milestones UI
+- [ ] Client payment portal
 - [ ] Payment status visibility per role
 
 ### Phase 7: Scope Monitoring
