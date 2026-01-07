@@ -37,7 +37,9 @@ import type {
   Expense,
   PaymentSource,
 } from '@/lib/api/financial-metrics';
+import type { InvoiceWithProject } from '@/lib/types/invoices';
 import { ExpenseLedger } from '../ExpenseLedger';
+import { InvoiceManagement } from '../InvoiceManagement';
 
 interface Project {
   id: string;
@@ -53,6 +55,7 @@ interface FinancialsTabProps {
   expenses: Expense[];
   paymentSources: PaymentSource[];
   projects: Project[];
+  invoices: InvoiceWithProject[];
 }
 
 const paymentChartConfig: ChartConfig = {
@@ -78,6 +81,7 @@ export function FinancialsTab({
   expenses,
   paymentSources,
   projects,
+  invoices,
 }: FinancialsTabProps) {
   // Transform payment timeline for chart
   const paymentChartData = paymentTimeline.slice(0, 6).map((item) => ({
@@ -425,6 +429,9 @@ export function FinancialsTab({
           </CardContent>
         </Card>
       )}
+
+      {/* Invoice Management */}
+      <InvoiceManagement invoices={invoices} projects={projects} />
 
       {/* Expense Ledger */}
       <ExpenseLedger

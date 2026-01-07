@@ -259,3 +259,104 @@ export async function removeExpense(id: string) {
 
   return result;
 }
+
+// ============================================================================
+// INVOICE MANAGEMENT
+// ============================================================================
+
+import {
+  getInvoices,
+  getInvoice,
+  createInvoice,
+  updateInvoice,
+  sendInvoice,
+  voidInvoice,
+  deleteInvoice,
+  getInvoiceStats,
+} from '@/lib/api/invoices';
+import type { CreateInvoiceInput, UpdateInvoiceInput } from '@/lib/types/invoices';
+
+/**
+ * Fetch all invoices with optional filters
+ */
+export async function fetchInvoices(filters?: {
+  projectId?: string;
+  status?: string;
+  limit?: number;
+}) {
+  const invoices = await getInvoices(filters);
+  return { success: true, data: invoices };
+}
+
+/**
+ * Fetch invoice statistics
+ */
+export async function fetchInvoiceStats() {
+  const stats = await getInvoiceStats();
+  return { success: true, data: stats };
+}
+
+/**
+ * Create a new invoice
+ */
+export async function addInvoice(input: CreateInvoiceInput) {
+  const result = await createInvoice(input);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}
+
+/**
+ * Update a draft invoice
+ */
+export async function editInvoice(id: string, input: UpdateInvoiceInput) {
+  const result = await updateInvoice(id, input);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}
+
+/**
+ * Send invoice to client via Stripe
+ */
+export async function sendInvoiceToClient(id: string) {
+  const result = await sendInvoice(id);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}
+
+/**
+ * Void an invoice
+ */
+export async function voidExistingInvoice(id: string) {
+  const result = await voidInvoice(id);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}
+
+/**
+ * Delete a draft invoice
+ */
+export async function removeInvoice(id: string) {
+  const result = await deleteInvoice(id);
+
+  if (result.success) {
+    revalidatePath('/dashboard/admin/metrics');
+  }
+
+  return result;
+}

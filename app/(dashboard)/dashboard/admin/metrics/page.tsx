@@ -24,6 +24,7 @@ import {
   fetchPendingPaymentsByProject,
   fetchExpenses,
   fetchPaymentSources,
+  fetchInvoices,
 } from '@/features/admin/actions/financialActions';
 import { createClient } from '@/lib/supabase/server';
 
@@ -60,6 +61,7 @@ export default async function MetricsPage() {
     pendingByProjectRes,
     expensesRes,
     paymentSourcesRes,
+    invoicesRes,
   ] = await Promise.all([
     fetchInquiryPipelineBreakdown(),
     fetchInquiryConversionRates(),
@@ -82,6 +84,7 @@ export default async function MetricsPage() {
     fetchPendingPaymentsByProject(),
     fetchExpenses(),
     fetchPaymentSources(),
+    fetchInvoices(),
   ]);
 
   return (
@@ -108,6 +111,7 @@ export default async function MetricsPage() {
       expenses={expensesRes.data || []}
       paymentSources={paymentSourcesRes.data || []}
       projects={projectsData || []}
+      invoices={invoicesRes.data || []}
     />
   );
 }

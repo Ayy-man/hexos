@@ -34,6 +34,8 @@ import type {
   PaymentSource,
 } from '@/lib/api/financial-metrics';
 
+import type { InvoiceWithProject } from '@/lib/types/invoices';
+
 interface Project {
   id: string;
   name: string;
@@ -62,6 +64,7 @@ interface MetricsDashboardProps {
   expenses: Expense[];
   paymentSources: PaymentSource[];
   projects: Project[];
+  invoices: InvoiceWithProject[];
 }
 
 export function MetricsDashboard({
@@ -87,6 +90,7 @@ export function MetricsDashboard({
   expenses,
   paymentSources,
   projects,
+  invoices,
 }: MetricsDashboardProps) {
   return (
     <div className="space-y-6">
@@ -164,6 +168,7 @@ export function MetricsDashboard({
             expenses={expenses}
             paymentSources={paymentSources}
             projects={projects}
+            invoices={invoices}
           />
         </TabsContent>
       </Tabs>
