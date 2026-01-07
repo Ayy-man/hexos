@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, GripVertical } from 'lucide-react'
 import {
   DndContext,
@@ -25,6 +25,7 @@ import { Card } from '@/components/ui/card'
 import { TaskItem } from './TaskItem'
 import { reorderTasksAction } from '../actions/taskActions'
 import type { PulseDailyTask } from '@/lib/types/pulse'
+import { getTodayDate } from '@/lib/utils/pulseCalculations'
 
 interface TaskListProps {
   tasks: PulseDailyTask[]
@@ -76,10 +77,10 @@ export function TaskList({ tasks, onCreateTask, onUpdate }: TaskListProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderedTasks, setOrderedTasks] = useState<PulseDailyTask[]>(tasks)
 
-  // Keep orderedTasks in sync with props
-  if (tasks.length !== orderedTasks.length || tasks.some((t, i) => orderedTasks[i]?.id !== t.id && !orderedTasks.find(ot => ot.id === t.id))) {
+  // Sync with server data when props change
+  useEffect(() => {
     setOrderedTasks(tasks)
-  }
+  }, [tasks])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -113,16 +114,35 @@ export function TaskList({ tasks, onCreateTask, onUpdate }: TaskListProps) {
   const handleAdd = async () => {
     if (!newTitle.trim() || isSubmitting) return
 
-    setIsSubmitting(true)
+    const title = newTitle.trim()
+
+    // Optimistic update - add task immediately
+    const optimisticTask: PulseDailyTask = {
+      id: `temp-${Date.now()}`,
+      user_id: '',
+      date: getTodayDate(),
+      title,
+      is_focus: false,
+      points: 3,
+      completed_at: null,
+      completed_by: null,
+      linked_action_id: null,
+      sort_order: orderedTasks.length,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    setOrderedTasks(prev => [...prev, optimisticTask])
+    setNewTitle('')
+    setIsAdding(false)
+
     try {
-      await onCreateTask(newTitle.trim())
-      setNewTitle('')
+      await onCreateTask(title)
       onUpdate()
     } catch (error) {
+      // Revert on error
+      setOrderedTasks(prev => prev.filter(t => t.id !== optimisticTask.id))
       console.error('Failed to create task:', error)
-      alert('Failed to create task. Check console for details.')
-    } finally {
-      setIsSubmitting(false)
     }
   }
 

@@ -8,6 +8,7 @@ import { TodayTab } from '@/features/pulse/components/tabs/TodayTab'
 import { WeekTab } from '@/features/pulse/components/tabs/WeekTab'
 import { GoalsTab } from '@/features/pulse/components/tabs/GoalsTab'
 import { InsightsTab } from '@/features/pulse/components/tabs/InsightsTab'
+import { usePulseRealtime } from '@/hooks/use-pulse-realtime'
 import {
   createTaskAction,
   createFocusTaskAction,
@@ -59,12 +60,21 @@ export function PulsePageClient({
   const router = useRouter()
   const [weekStart, setWeekStart] = useState(initialWeekStart)
 
+  // Use realtime hook for live updates
+  const { tasks, stats, heatmapData } = usePulseRealtime({
+    userId,
+    initialTasks,
+    initialStats,
+    initialHeatmapData,
+    today,
+  })
+
   const handleUpdate = useCallback(() => {
     router.refresh()
   }, [router])
 
   // Filter tasks for today
-  const todayTasks = initialTasks.filter((t) => t.date === today)
+  const todayTasks = tasks.filter((t) => t.date === today)
   const focusTasks = todayTasks.filter((t) => t.is_focus)
   const regularTasks = todayTasks.filter((t) => !t.is_focus)
 
@@ -101,7 +111,7 @@ export function PulsePageClient({
   return (
     <div className="space-y-6">
       {/* Persistent Header */}
-      <PulseHeader stats={initialStats} lifetimePoints={lifetimePoints} />
+      <PulseHeader stats={stats} lifetimePoints={lifetimePoints} />
 
       {/* Tab Navigation */}
       <PulseTabs activeTab={activeTab} />
@@ -109,7 +119,7 @@ export function PulsePageClient({
       {/* Tab Content */}
       {activeTab === 'today' && (
         <TodayTab
-          stats={initialStats}
+          stats={stats}
           tasks={regularTasks}
           focusTasks={focusTasks}
           onCreateTask={handleCreateTask}
@@ -122,8 +132,8 @@ export function PulsePageClient({
 
       {activeTab === 'week' && (
         <WeekTab
-          heatmapData={initialHeatmapData}
-          tasks={initialTasks}
+          heatmapData={heatmapData}
+          tasks={tasks}
           weekStart={weekStart}
           onWeekChange={setWeekStart}
           onUpdate={handleUpdate}
