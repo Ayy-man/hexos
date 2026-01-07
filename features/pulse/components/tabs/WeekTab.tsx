@@ -26,8 +26,8 @@ export function WeekTab({
 
   return (
     <div className="space-y-6">
-      {/* 12 Week Heatmap */}
-      <GitHubHeatmap dailyPoints={heatmapData} weeks={12} />
+      {/* Heatmap */}
+      <GitHubHeatmap dailyPoints={heatmapData} />
 
       {/* Week Grid with comparison toggle */}
       <div>
