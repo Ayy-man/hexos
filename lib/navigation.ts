@@ -118,6 +118,7 @@ const devNav: NavGroup[] = [
       { title: 'My Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Opportunities', url: '/opportunities', icon: 'Briefcase' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
+      { title: 'Payouts', url: '/dashboard/dev/payouts', icon: 'Wallet' },
     ],
   },
   {

@@ -12,6 +12,7 @@ export default async function FinancesPage() {
     { data: expenses },
     { data: milestones },
     { data: projects },
+    { data: payouts },
   ] = await Promise.all([
     supabase
       .from('invoices')
@@ -29,6 +30,14 @@ export default async function FinancesPage() {
       .from('projects')
       .select('id, project_name, client_name, price_dfy, status')
       .order('created_at', { ascending: false }),
+    supabase
+      .from('payouts')
+      .select(`
+        *,
+        submitter:profiles!payouts_submitted_by_fkey(id, name, email),
+        project:projects(id, project_name, client_name)
+      `)
+      .order('created_at', { ascending: false }),
   ]);
 
   return (
@@ -37,6 +46,7 @@ export default async function FinancesPage() {
       expenses={expenses || []}
       milestones={milestones || []}
       projects={projects || []}
+      payouts={payouts || []}
     />
   );
 }

@@ -13,6 +13,9 @@ import {
   Receipt,
   Calendar,
   BarChart3,
+  Send,
+  Wallet,
+  Clock,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,12 +37,14 @@ import {
   Tooltip,
 } from 'recharts';
 import type { Invoice, Expense, PaymentMilestone, Project, FinancialAction } from '../types';
+import type { PayoutWithDetails } from '@/lib/api/payouts';
 
 interface FinancesOverviewProps {
   invoices: Invoice[];
   expenses: Expense[];
   milestones: PaymentMilestone[];
   projects: Project[];
+  payouts: PayoutWithDetails[];
 }
 
 type Period = 'month' | 'quarter' | 'year' | 'all';
@@ -48,6 +53,7 @@ export function FinancesOverview({
   invoices,
   expenses,
   milestones,
+  payouts,
 }: FinancesOverviewProps) {
   const [period, setPeriod] = useState<Period>('month');
 
@@ -131,6 +137,21 @@ export function FinancesOverview({
     };
   }, [invoices, milestones]);
 
+  // Payout metrics
+  const payoutMetrics = useMemo(() => {
+    const pendingPayouts = payouts.filter((p) => p.status === 'pending');
+    const approvedPayouts = payouts.filter((p) => p.status === 'approved');
+    const paidPayouts = payouts.filter((p) => p.status === 'paid' || p.status === 'completed');
+
+    return {
+      pendingCount: pendingPayouts.length,
+      pendingAmount: pendingPayouts.reduce((sum, p) => sum + p.amount, 0) / 100,
+      approvedCount: approvedPayouts.length,
+      approvedAmount: approvedPayouts.reduce((sum, p) => sum + p.amount, 0) / 100,
+      totalPaid: paidPayouts.reduce((sum, p) => sum + p.amount, 0) / 100,
+    };
+  }, [payouts]);
+
   // Action items
   const actions = useMemo(() => {
     const items: FinancialAction[] = [];
@@ -178,8 +199,38 @@ export function FinancesOverview({
         });
       });
 
+    // Pending payout requests needing review
+    payouts
+      .filter((p) => p.status === 'pending')
+      .forEach((p) => {
+        items.push({
+          id: p.id,
+          type: 'payout_pending',
+          severity: 'warning',
+          message: `Payout request from ${p.submitter?.name || 'Developer'} - $${(p.amount / 100).toLocaleString()}`,
+          action: 'review_payout',
+          entityId: p.id,
+          entityType: 'payout',
+        });
+      });
+
+    // Approved payouts awaiting payment
+    payouts
+      .filter((p) => p.status === 'approved')
+      .forEach((p) => {
+        items.push({
+          id: p.id,
+          type: 'payout_approved',
+          severity: 'info',
+          message: `Approved payout to ${p.submitter?.name || 'Developer'} - $${(p.amount / 100).toLocaleString()} awaiting payment`,
+          action: 'pay_payout',
+          entityId: p.id,
+          entityType: 'payout',
+        });
+      });
+
     return items;
-  }, [invoices, milestones]);
+  }, [invoices, milestones, payouts]);
 
   // Recent activity
   const recentActivity = useMemo(() => {
@@ -221,10 +272,36 @@ export function FinancesOverview({
       });
     });
 
+    // Payout submitted
+    payouts
+      .filter((p) => p.submitted_at)
+      .slice(0, 5)
+      .forEach((p) => {
+        activities.push({
+          id: `payout-submitted-${p.id}`,
+          type: 'payout_submitted',
+          description: `Payout request from ${p.submitter?.name || 'Developer'} ($${(p.amount / 100).toLocaleString()})`,
+          date: new Date(p.submitted_at!),
+        });
+      });
+
+    // Payout paid
+    payouts
+      .filter((p) => p.paid_at)
+      .slice(0, 5)
+      .forEach((p) => {
+        activities.push({
+          id: `payout-paid-${p.id}`,
+          type: 'payout_paid',
+          description: `Payout sent to ${p.submitter?.name || 'Developer'} ($${(p.amount / 100).toLocaleString()})`,
+          date: new Date(p.paid_at!),
+        });
+      });
+
     return activities
       .sort((a, b) => b.date.getTime() - a.date.getTime())
       .slice(0, 8);
-  }, [invoices, expenses]);
+  }, [invoices, expenses, payouts]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('en-US', {
@@ -326,9 +403,9 @@ export function FinancesOverview({
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Cash Flow */}
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Cash Flow Projection</CardTitle>
             <CardDescription>Expected collections over next 6 months</CardDescription>
@@ -372,29 +449,39 @@ export function FinancesOverview({
           </CardContent>
         </Card>
 
-        {/* Outstanding */}
+        {/* Payable (Payouts) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Outstanding</CardTitle>
-            <CardDescription>Money owed to you</CardDescription>
+            <CardTitle className="text-lg">Payable</CardTitle>
+            <CardDescription>Money you owe</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Unpaid invoices</span>
-              <span className="font-medium">{formatCurrency(outstanding.unpaidInvoices)}</span>
+              <span className="text-yellow-500">Pending review</span>
+              <div className="text-right">
+                <span className="font-medium text-yellow-500">{formatCurrency(payoutMetrics.pendingAmount)}</span>
+                {payoutMetrics.pendingCount > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground">({payoutMetrics.pendingCount})</span>
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-red-500">Overdue</span>
-              <span className="font-medium text-red-500">{formatCurrency(outstanding.overdue)}</span>
+              <span className="text-blue-500">Approved</span>
+              <div className="text-right">
+                <span className="font-medium text-blue-500">{formatCurrency(payoutMetrics.approvedAmount)}</span>
+                {payoutMetrics.approvedCount > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground">({payoutMetrics.approvedCount})</span>
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Pending milestones</span>
-              <span className="font-medium">{formatCurrency(outstanding.pendingMilestones)}</span>
+              <span className="text-muted-foreground">Total paid</span>
+              <span className="font-medium">{formatCurrency(payoutMetrics.totalPaid)}</span>
             </div>
             <div className="pt-2">
               <Button variant="outline" size="sm" asChild>
-                <Link href="/finances/invoices">
-                  View All Invoices
+                <Link href="/finances/payouts">
+                  Manage Payouts
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -402,6 +489,38 @@ export function FinancesOverview({
           </CardContent>
         </Card>
       </div>
+
+      {/* Outstanding */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Outstanding</CardTitle>
+          <CardDescription>Money owed to you</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-start">
+              <span className="text-muted-foreground">Unpaid invoices</span>
+              <span className="font-medium text-lg">{formatCurrency(outstanding.unpaidInvoices)}</span>
+            </div>
+            <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-start">
+              <span className="text-red-500">Overdue</span>
+              <span className="font-medium text-lg text-red-500">{formatCurrency(outstanding.overdue)}</span>
+            </div>
+            <div className="flex items-center justify-between sm:flex-col sm:items-start sm:justify-start">
+              <span className="text-muted-foreground">Pending milestones</span>
+              <span className="font-medium text-lg">{formatCurrency(outstanding.pendingMilestones)}</span>
+            </div>
+          </div>
+          <div className="mt-4 pt-2 border-t">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/finances/invoices">
+                View All Invoices
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Activity */}
       <Card>
@@ -426,6 +545,12 @@ export function FinancesOverview({
                     )}
                     {activity.type === 'expense_logged' && (
                       <Receipt className="h-4 w-4 text-orange-500" />
+                    )}
+                    {activity.type === 'payout_submitted' && (
+                      <Clock className="h-4 w-4 text-yellow-500" />
+                    )}
+                    {activity.type === 'payout_paid' && (
+                      <Send className="h-4 w-4 text-green-500" />
                     )}
                     <span className="text-sm">{activity.description}</span>
                   </div>
@@ -465,7 +590,15 @@ export function FinancesOverview({
                   className="flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    {action.type === 'payout_pending' && (
+                      <Clock className="h-4 w-4 text-yellow-500" />
+                    )}
+                    {action.type === 'payout_approved' && (
+                      <Wallet className="h-4 w-4 text-blue-500" />
+                    )}
+                    {(action.type === 'invoice_overdue' || action.type === 'milestone_due') && (
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    )}
                     <span className="text-sm">{action.message}</span>
                   </div>
                   <Button variant="outline" size="sm" asChild>
@@ -473,11 +606,15 @@ export function FinancesOverview({
                       href={
                         action.entityType === 'invoice'
                           ? `/finances/invoices/${action.entityId}`
+                          : action.entityType === 'payout'
+                          ? `/finances/payouts`
                           : `/finances/schedule`
                       }
                     >
                       {action.action === 'send_reminder' && 'Send Reminder'}
                       {action.action === 'create_invoice' && 'Create Invoice'}
+                      {action.action === 'review_payout' && 'Review'}
+                      {action.action === 'pay_payout' && 'Process Payment'}
                     </Link>
                   </Button>
                 </div>
@@ -493,11 +630,17 @@ export function FinancesOverview({
       </Card>
 
       {/* Quick Links */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Button variant="outline" className="h-auto py-4" asChild>
           <Link href="/finances/invoices" className="flex flex-col items-center gap-2">
             <FileText className="h-5 w-5" />
             <span>Invoices</span>
+          </Link>
+        </Button>
+        <Button variant="outline" className="h-auto py-4" asChild>
+          <Link href="/finances/payouts" className="flex flex-col items-center gap-2">
+            <Send className="h-5 w-5" />
+            <span>Payouts</span>
           </Link>
         </Button>
         <Button variant="outline" className="h-auto py-4" asChild>
@@ -509,7 +652,7 @@ export function FinancesOverview({
         <Button variant="outline" className="h-auto py-4" asChild>
           <Link href="/finances/schedule" className="flex flex-col items-center gap-2">
             <Calendar className="h-5 w-5" />
-            <span>Payment Schedule</span>
+            <span>Schedule</span>
           </Link>
         </Button>
         <Button variant="outline" className="h-auto py-4" asChild>

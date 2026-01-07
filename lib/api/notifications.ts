@@ -12,6 +12,10 @@ export type NotificationType =
   | 'status_change'
   | 'invoice_sent'
   | 'invoice_paid'
+  | 'payout_submitted'
+  | 'payout_approved'
+  | 'payout_paid'
+  | 'payout_rejected'
 
 export interface Notification {
   id: string
