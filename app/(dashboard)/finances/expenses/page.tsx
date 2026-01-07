@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/admin';
 export default async function ExpensesPage() {
   const supabase = createClient();
 
-  const [{ data: expenses }, { data: projects }, { data: paymentSources }] = await Promise.all([
+  const [{ data: expenses }, { data: projectsData }, { data: paymentSources }] = await Promise.all([
     supabase
       .from('expenses')
       .select('*, projects:project_id(project_name)')
@@ -22,6 +22,12 @@ export default async function ExpensesPage() {
       .order('name'),
   ]);
 
+  // Map project_name to name for ExpenseLedger component
+  const projects = (projectsData || []).map((p) => ({
+    id: p.id,
+    name: p.project_name,
+  }));
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -30,7 +36,7 @@ export default async function ExpensesPage() {
       </div>
       <ExpenseLedger
         expenses={expenses || []}
-        projects={projects || []}
+        projects={projects}
         paymentSources={paymentSources || []}
       />
     </div>

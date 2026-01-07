@@ -1,7 +1,7 @@
 'use client'
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { LayoutDashboard, CheckSquare, FileText, FolderOpen, Activity, Info, MessageSquare } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign } from 'lucide-react'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DeliverablesTab } from './tabs/DeliverablesTab'
 import { RequirementsTab } from './tabs/RequirementsTab'
@@ -9,6 +9,7 @@ import { FilesTab } from './tabs/FilesTab'
 import { ActivityTab } from './tabs/ActivityTab'
 import { ProjectInfoTab } from './tabs/ProjectInfoTab'
 import { ChatTab } from './tabs/ChatTab'
+import { FinancialsTab } from './tabs/FinancialsTab'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
@@ -64,10 +65,16 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
           Chat
         </TabsTrigger>
         {isAdmin && (
-          <TabsTrigger value="info" className="gap-2">
-            <Info className="h-4 w-4" />
-            Project Info
-          </TabsTrigger>
+          <>
+            <TabsTrigger value="financials" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Financials
+            </TabsTrigger>
+            <TabsTrigger value="info" className="gap-2">
+              <Info className="h-4 w-4" />
+              Project Info
+            </TabsTrigger>
+          </>
         )}
       </TabsList>
 
@@ -122,12 +129,17 @@ export function ProjectTabs({ project, userRole, userId, availableDevs }: Projec
       </TabsContent>
 
       {isAdmin && (
-        <TabsContent value="info" className="mt-6" forceMount>
-          <ProjectInfoTab
-            project={project}
-            userRole={userRole}
-          />
-        </TabsContent>
+        <>
+          <TabsContent value="financials" className="mt-6" forceMount>
+            <FinancialsTab project={project} />
+          </TabsContent>
+          <TabsContent value="info" className="mt-6" forceMount>
+            <ProjectInfoTab
+              project={project}
+              userRole={userRole}
+            />
+          </TabsContent>
+        </>
       )}
     </Tabs>
   )

@@ -1,24 +1,25 @@
-import { RefreshCw } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+export const dynamic = 'force-dynamic';
 
-export default function RetainersPage() {
+import { createClient } from '@/lib/supabase/admin';
+import { RetainerManagement } from '@/features/finances/components/RetainerManagement';
+
+export default async function RetainersPage() {
+  const supabase = createClient();
+
+  const [{ data: retainers }, { data: projects }] = await Promise.all([
+    supabase
+      .from('retainers')
+      .select('*, projects:project_id(project_name)')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('projects')
+      .select('id, project_name, client_name')
+      .order('project_name'),
+  ]);
+
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Retainers</h1>
-        <p className="text-muted-foreground">Manage recurring client retainers</p>
-      </div>
-
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <RefreshCw className="h-12 w-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-lg font-medium">Coming Soon</h3>
-          <p className="mt-1 max-w-md text-center text-sm text-muted-foreground">
-            Set up recurring monthly retainers for clients. Automatically generate and send
-            invoices on a schedule.
-          </p>
-        </CardContent>
-      </Card>
+    <div className="p-6">
+      <RetainerManagement retainers={retainers || []} projects={projects || []} />
     </div>
   );
 }
