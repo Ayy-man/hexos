@@ -285,3 +285,19 @@ export async function getStreak(userId: string): Promise<number> {
   const stats = await getPulseStats(userId)
   return stats.streak
 }
+
+export async function getLifetimePoints(userId: string): Promise<number> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('pulse_events')
+    .select('points')
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('[Pulse] Failed to fetch lifetime points:', error)
+    return 0
+  }
+
+  return (data || []).reduce((sum, event) => sum + event.points, 0)
+}
