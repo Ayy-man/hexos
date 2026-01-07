@@ -320,3 +320,22 @@
 .animate-fade-in-up {
   animation: fade-in-up 0.4s ease-out;
 }
+
+/* Streak fire animations */
+.streak-fire {
+  animation: fire-glow 2s ease-in-out infinite;
+}
+
+.streak-fire-intense {
+  animation: fire-glow-intense 1.5s ease-in-out infinite;
+}
+
+@keyframes fire-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px #ff6b00); }
+  50% { filter: drop-shadow(0 0 12px #ff9500); }
+}
+
+@keyframes fire-glow-intense {
+  0%, 100% { filter: drop-shadow(0 0 8px #ff6b00); }
+  50% { filter: drop-shadow(0 0 20px #ff9500) drop-shadow(0 0 30px #ffcc00); }
+}

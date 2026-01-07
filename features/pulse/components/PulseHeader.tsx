@@ -1,58 +1,74 @@
 'use client'
 
+import { Flame, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { PulseStats } from '@/lib/types/pulse'
+import type { PulseStats, LevelInfo } from '@/lib/types/pulse'
+import { calculateLevel } from '@/lib/utils/pulseCalculations'
 
 interface PulseHeaderProps {
   stats: PulseStats
-  className?: string
+  lifetimePoints: number
 }
 
-export function PulseHeader({ stats, className }: PulseHeaderProps) {
-  const hasActiveStreak = stats.streak > 0
+export function PulseHeader({ stats, lifetimePoints }: PulseHeaderProps) {
+  const level = calculateLevel(lifetimePoints)
 
   return (
-    <div
-      className={cn(
-        'flex items-center justify-between rounded-lg border bg-card p-4',
-        className
-      )}
-    >
-      {/* Left: Streak - The Hero */}
-      <div className="flex items-center gap-3">
-        <span
-          className={cn(
-            'text-3xl transition-all',
-            hasActiveStreak && 'animate-pulse drop-shadow-[0_0_8px_rgba(251,146,60,0.5)]'
-          )}
-        >
-          🔥
-        </span>
-        <div>
-          <p className="text-3xl font-bold leading-none">
-            {stats.streak}
-            <span className="ml-2 text-lg font-normal text-muted-foreground">
-              day{stats.streak !== 1 ? 's' : ''} streak
-            </span>
-          </p>
-        </div>
+    <div className="rounded-lg border bg-card p-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Zap className="h-5 w-5 text-primary" />
+        <span className="text-lg font-semibold">Pulse</span>
       </div>
 
-      {/* Right: Secondary Stats */}
-      <div className="flex items-center gap-6 text-right">
-        <div>
-          <p className="text-sm text-muted-foreground">Today</p>
-          <p className="text-lg font-semibold">{stats.todayPoints} pts</p>
+      <div className="flex items-center justify-between">
+        {/* Streak */}
+        <div className="flex items-center gap-2">
+          <StreakFire streak={stats.streak} />
+          <div>
+            <span className="text-2xl font-bold text-cyan-400">{stats.streak}</span>
+            <span className="text-sm text-muted-foreground ml-1">day streak</span>
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-muted-foreground">This week</p>
-          <p className="text-lg font-semibold">{stats.weekPoints}</p>
+
+        {/* Divider */}
+        <div className="h-10 w-px bg-border" />
+
+        {/* Today Points */}
+        <div className="text-center">
+          <div className="text-sm text-muted-foreground">Today</div>
+          <div className="font-medium">{stats.todayPoints} pts</div>
         </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Avg/day</p>
-          <p className="text-lg font-semibold">{stats.averageDaily}</p>
+
+        {/* Divider */}
+        <div className="h-10 w-px bg-border" />
+
+        {/* Level */}
+        <div className="text-right">
+          <div className="font-medium">Level {level.level}</div>
+          <div className="text-sm text-muted-foreground">
+            {lifetimePoints.toLocaleString()} lifetime
+          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function StreakFire({ streak }: { streak: number }) {
+  // Scale fire animation based on streak length
+  const getFireConfig = () => {
+    if (streak >= 50) return { emoji: '💙', className: 'animate-pulse text-2xl' }
+    if (streak >= 30) return { emoji: '🔥🔥🔥', className: 'streak-fire-intense text-xl' }
+    if (streak >= 15) return { emoji: '🔥🔥', className: 'streak-fire text-xl' }
+    if (streak >= 8) return { emoji: '🔥', className: 'streak-fire text-xl' }
+    return { emoji: '🔥', className: 'text-xl' }
+  }
+
+  const config = getFireConfig()
+
+  return (
+    <span className={cn(config.className)} role="img" aria-label="streak fire">
+      {config.emoji}
+    </span>
   )
 }
