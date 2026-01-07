@@ -345,7 +345,7 @@ export function FinancesOverview({
                       tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
                     />
                     <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
+                      formatter={(value) => formatCurrency(Number(value) || 0)}
                       labelStyle={{ color: 'var(--foreground)' }}
                       contentStyle={{
                         backgroundColor: 'var(--background)',
