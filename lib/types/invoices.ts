@@ -24,6 +24,7 @@ export interface Invoice {
   // Invoice details
   invoice_number: string
   status: InvoiceStatus
+  public_token: string
 
   // Amounts (in cents)
   subtotal: number

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { constructWebhookEvent, stripe } from '@/lib/stripe/server'
 import { markInvoicePaid } from '@/lib/api/invoices'
-import { createClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
 /**
@@ -56,7 +55,8 @@ export async function POST(req: NextRequest) {
         const stripeInvoice = event.data.object as Stripe.Invoice
 
         // Find our invoice by Stripe invoice ID
-        const supabase = await createClient()
+        const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
+        const supabase = createAdminClient()
         const { data: invoice } = await supabase
           .from('invoices')
           .select('id')
@@ -75,7 +75,8 @@ export async function POST(req: NextRequest) {
         const stripeInvoice = event.data.object as Stripe.Invoice
 
         // Find our invoice and update status
-        const supabase = await createClient()
+        const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
+        const supabase = createAdminClient()
         const { data: invoice } = await supabase
           .from('invoices')
           .select('id')

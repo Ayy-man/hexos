@@ -116,7 +116,12 @@ export function AppSidebar({
 
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.title}
+                        id={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
                         <Link href={item.url} prefetch={true}>
                           <Icon />
                           <span>{item.title}</span>

@@ -423,7 +423,8 @@ export async function markInvoicePaid(
   id: string,
   stripePaymentIntentId?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
+  const { createClient: createAdminClient } = await import('@/lib/supabase/admin')
+  const supabase = createAdminClient()
 
   const updates: any = {
     status: 'paid',
@@ -545,4 +546,31 @@ export async function getInvoiceStats(): Promise<{
   }
 
   return stats
+}
+
+/**
+ * Get invoice by public token (for client view)
+ */
+export async function getInvoiceByPublicToken(token: string): Promise<InvoiceWithProject | null> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('invoices')
+    .select(`
+      *,
+      projects:project_id(name)
+    `)
+    .eq('public_token', token)
+    .single()
+
+  if (error) {
+    console.error('Error fetching invoice by token:', error)
+    return null
+  }
+
+  return {
+    ...data,
+    project_name: (data as any).projects?.name || null,
+    projects: undefined,
+  } as InvoiceWithProject
 }
