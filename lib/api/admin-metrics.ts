@@ -12,7 +12,7 @@
  * - Opportunities & Invitations
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/admin';
 
 // ============================================================================
 // TYPES
@@ -178,7 +178,7 @@ export interface ComprehensiveDashboardMetrics {
 // ============================================================================
 
 export async function getInquiryPipelineBreakdown(): Promise<InquiryPipelineStage[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_inquiry_pipeline_breakdown');
 
   if (error) {
@@ -190,7 +190,7 @@ export async function getInquiryPipelineBreakdown(): Promise<InquiryPipelineStag
 }
 
 export async function getInquiryConversionRates(): Promise<InquiryConversionRates | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_inquiry_conversion_rates').single();
 
   if (error) {
@@ -202,7 +202,7 @@ export async function getInquiryConversionRates(): Promise<InquiryConversionRate
 }
 
 export async function getInquiriesBySource(): Promise<InquirySource[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_inquiries_by_source');
 
   if (error) {
@@ -214,7 +214,7 @@ export async function getInquiriesBySource(): Promise<InquirySource[]> {
 }
 
 export async function getInquiryTimeline(months: number = 12): Promise<InquiryTimelineItem[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_inquiry_timeline', { p_months: months });
 
   if (error) {
@@ -230,7 +230,7 @@ export async function getInquiryTimeline(months: number = 12): Promise<InquiryTi
 // ============================================================================
 
 export async function getProjectStatusDistribution(): Promise<ProjectStatusDistribution[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_project_status_distribution');
 
   if (error) {
@@ -242,7 +242,7 @@ export async function getProjectStatusDistribution(): Promise<ProjectStatusDistr
 }
 
 export async function getProjectHealthIndicators(): Promise<ProjectHealthIndicators | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_project_health_indicators').single();
 
   if (error) {
@@ -254,7 +254,7 @@ export async function getProjectHealthIndicators(): Promise<ProjectHealthIndicat
 }
 
 export async function getProjectTimelineMetrics(): Promise<ProjectTimelineMetrics | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_project_timeline_metrics').single();
 
   if (error) {
@@ -270,7 +270,7 @@ export async function getProjectTimelineMetrics(): Promise<ProjectTimelineMetric
 // ============================================================================
 
 export async function getDeveloperUtilization(): Promise<DeveloperUtilization[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_developer_utilization');
 
   if (error) {
@@ -282,7 +282,7 @@ export async function getDeveloperUtilization(): Promise<DeveloperUtilization[]>
 }
 
 export async function getTimeTrackingSummary(): Promise<TimeTrackingSummary | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_time_tracking_summary').single();
 
   if (error) {
@@ -298,7 +298,7 @@ export async function getTimeTrackingSummary(): Promise<TimeTrackingSummary | nu
 // ============================================================================
 
 export async function getDFYPartnerPerformance(): Promise<DFYPartnerPerformance[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_dfy_partner_performance');
 
   if (error) {
@@ -314,7 +314,7 @@ export async function getDFYPartnerPerformance(): Promise<DFYPartnerPerformance[
 // ============================================================================
 
 export async function getDeliverablesOverview(): Promise<DeliverablesOverview | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_deliverables_overview').single();
 
   if (error) {
@@ -330,7 +330,7 @@ export async function getDeliverablesOverview(): Promise<DeliverablesOverview | 
 // ============================================================================
 
 export async function getBlockersOverview(): Promise<BlockersOverview | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_blockers_overview').single();
 
   if (error) {
@@ -346,7 +346,7 @@ export async function getBlockersOverview(): Promise<BlockersOverview | null> {
 // ============================================================================
 
 export async function getActivityOverview(): Promise<ActivityOverview | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_activity_overview').single();
 
   if (error) {
@@ -358,7 +358,7 @@ export async function getActivityOverview(): Promise<ActivityOverview | null> {
 }
 
 export async function getCommentStatistics(): Promise<CommentStatistics | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_comment_statistics').single();
 
   if (error) {
@@ -374,7 +374,7 @@ export async function getCommentStatistics(): Promise<CommentStatistics | null> 
 // ============================================================================
 
 export async function getOpportunityMetrics(): Promise<OpportunityMetrics | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_opportunity_metrics').single();
 
   if (error) {
@@ -394,7 +394,7 @@ export async function getOpportunityMetrics(): Promise<OpportunityMetrics | null
  * This is the most efficient way to load the entire dashboard
  */
 export async function getComprehensiveDashboardMetrics(): Promise<ComprehensiveDashboardMetrics | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase.rpc('get_comprehensive_dashboard_metrics').single();
 
   if (error) {

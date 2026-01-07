@@ -8,7 +8,7 @@
  * - Sales cycle analytics
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/admin';
 
 type PaymentStructure = '100_upfront' | '50_50' | '40_30_30' | 'custom';
 
@@ -130,7 +130,7 @@ export interface ExpenseSummary {
  * Returns: total revenue, pending payments, payables, projected revenue, etc.
  */
 export async function getFinancialHeroMetrics(): Promise<FinancialHeroMetrics | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_financial_hero_metrics').single();
 
@@ -151,7 +151,7 @@ export async function getFinancialHeroMetrics(): Promise<FinancialHeroMetrics | 
  * @param months - Number of months to project (default: 12)
  */
 export async function getPaymentTimeline(months: number = 12): Promise<PaymentTimelineItem[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_payment_timeline', { p_months: months });
 
@@ -172,7 +172,7 @@ export async function getPaymentTimeline(months: number = 12): Promise<PaymentTi
  * @param months - Number of months to look back (default: 12)
  */
 export async function getRevenueTrend(months: number = 12): Promise<RevenueTrendItem[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_revenue_trend', { p_months: months });
 
@@ -192,7 +192,7 @@ export async function getRevenueTrend(months: number = 12): Promise<RevenueTrend
  * Get all overdue payment milestones
  */
 export async function getOverduePayments(): Promise<OverduePayment[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_overdue_payments');
 
@@ -212,7 +212,7 @@ export async function getOverduePayments(): Promise<OverduePayment[]> {
  * Get sales cycle statistics (avg, median, min, max days)
  */
 export async function getSalesCycleStats(): Promise<SalesCycleStats | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_sales_cycle_stats').single();
 
@@ -233,7 +233,7 @@ export async function getSalesCycleStats(): Promise<SalesCycleStats | null> {
  * Based on active inquiries, win rate, and avg sales cycle
  */
 export async function getProjectedRevenueTimeline(): Promise<ProjectedRevenueTimelineItem[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_projected_revenue_timeline');
 
@@ -253,7 +253,7 @@ export async function getProjectedRevenueTimeline(): Promise<ProjectedRevenueTim
  * Get pending payments breakdown by project
  */
 export async function getPendingPaymentsByProject(): Promise<PendingPaymentByProject[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase
     .from('financial_overview')
@@ -281,7 +281,7 @@ export async function createPaymentMilestones(
   paymentStructure: PaymentStructure,
   targetDeliveryDate: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { error } = await supabase.rpc('create_payment_milestones', {
     p_project_id: projectId,
@@ -306,7 +306,7 @@ export async function markMilestoneAsPaid(
   paidAt: string = new Date().toISOString(),
   stripePaymentId?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const updateData: any = { paid_at: paidAt };
   if (stripePaymentId) {
@@ -333,7 +333,7 @@ export async function updateMilestoneDueDate(
   milestoneId: string,
   dueDate: string
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { error } = await supabase
     .from('payment_milestones')
@@ -352,7 +352,7 @@ export async function updateMilestoneDueDate(
  * Get payment milestones for a specific project
  */
 export async function getProjectPaymentMilestones(projectId: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase
     .from('payment_milestones')
@@ -423,7 +423,7 @@ export function getPaymentUrgency(dueDate: string): 'overdue' | 'due_soon' | 'up
  * Get all payment sources
  */
 export async function getPaymentSources(): Promise<PaymentSource[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   // Debug: Check auth state
   const { data: { user } } = await supabase.auth.getUser();
@@ -459,7 +459,7 @@ export async function getExpenses(filters?: {
   startDate?: string;
   endDate?: string;
 }): Promise<Expense[]> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   let query = supabase
     .from('expenses')
@@ -507,7 +507,7 @@ export async function getExpenses(filters?: {
  * Get expense summary for dashboard
  */
 export async function getExpenseSummary(): Promise<ExpenseSummary | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_expense_summary');
 
@@ -533,7 +533,7 @@ export async function createExpense(expense: {
   reimbursed?: boolean;
   receipt_url?: string | null;
 }): Promise<{ success: boolean; data?: Expense; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -571,7 +571,7 @@ export async function updateExpense(
     receipt_url: string | null;
   }>
 ): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { error } = await supabase
     .from('expenses')
@@ -590,7 +590,7 @@ export async function updateExpense(
  * Delete an expense
  */
 export async function deleteExpense(id: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { error } = await supabase
     .from('expenses')
@@ -609,7 +609,7 @@ export async function deleteExpense(id: string): Promise<{ success: boolean; err
  * Get project expenses total
  */
 export async function getProjectExpenses(projectId: string): Promise<number> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase.rpc('get_project_expenses', {
     p_project_id: projectId,
