@@ -190,7 +190,7 @@ export async function createAdminInvitation(
 
   if (error) {
     console.error('[createAdminInvitation] Error:', error)
-    return null
+    throw new Error(error.message)
   }
 
   return data

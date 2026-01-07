@@ -59,7 +59,7 @@ export async function inviteAdminUserAction(
     const invitation = await createAdminInvitation(input, user.id)
 
     if (!invitation) {
-      return { success: false, error: 'Failed to create invitation' }
+      return { success: false, error: 'Invitation creation returned null' }
     }
 
     // TODO: Send invitation email via Resend
