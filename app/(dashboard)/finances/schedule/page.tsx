@@ -75,7 +75,9 @@ export default async function PaymentSchedulePage() {
 
       {sortedMonths.length > 0 ? (
         <div className="space-y-6">
-          {sortedMonths.map(([key, { label, milestones: monthMilestones, total }]) => (
+          {sortedMonths.map(([key, data]) => {
+            const { label, milestones: monthMilestones, total } = data as { label: string; milestones: any[]; total: number };
+            return (
             <Card key={key}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -138,7 +140,8 @@ export default async function PaymentSchedulePage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <Card>
