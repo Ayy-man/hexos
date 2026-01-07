@@ -13,6 +13,10 @@ export function getToday(): string {
   return new Date().toISOString().split('T')[0]
 }
 
+export function getTodayDate(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
 export function getYesterday(): string {
   const date = new Date()
   date.setDate(date.getDate() - 1)

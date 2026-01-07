@@ -2,14 +2,23 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Zap } from 'lucide-react'
 import { PulseHeader } from '@/features/pulse/components/PulseHeader'
+import { PulseTabs } from '@/features/pulse/components/PulseTabs'
 import { Heatmap } from '@/features/pulse/components/Heatmap'
 import { WeekView } from '@/features/pulse/components/WeekView'
 import { GoalAndTargets } from '@/features/pulse/components/GoalAndTargets'
-import type { PulseStats, DailyPointsMap, PulseDailyTask, PulseTargetWithOwners, Quarter, PulseGoal } from '@/lib/types/pulse'
+import type {
+  PulseStats,
+  DailyPointsMap,
+  PulseDailyTask,
+  PulseTargetWithOwners,
+  Quarter,
+  PulseGoal,
+  PulseTab,
+} from '@/lib/types/pulse'
 
 interface PulsePageClientProps {
+  activeTab: PulseTab
   initialStats: PulseStats
   initialHeatmapData: DailyPointsMap
   initialTasks: PulseDailyTask[]
@@ -20,9 +29,12 @@ interface PulsePageClientProps {
   currentYear: number
   isAdmin: boolean
   userId: string
+  lifetimePoints: number
+  today: string
 }
 
 export function PulsePageClient({
+  activeTab,
   initialStats,
   initialHeatmapData,
   initialTasks,
@@ -33,47 +45,53 @@ export function PulsePageClient({
   currentYear,
   isAdmin,
   userId,
+  lifetimePoints,
+  today,
 }: PulsePageClientProps) {
   const router = useRouter()
   const [weekStart, setWeekStart] = useState(initialWeekStart)
 
-  // Refresh data when something changes
   const handleUpdate = useCallback(() => {
     router.refresh()
   }, [router])
 
+  // Filter tasks for today
+  const todayTasks = initialTasks.filter((t) => t.date === today)
+  const focusTasks = todayTasks.filter((t) => t.is_focus)
+  const regularTasks = todayTasks.filter((t) => !t.is_focus)
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-          <Zap className="h-5 w-5 text-primary" />
+      {/* Persistent Header */}
+      <PulseHeader stats={initialStats} lifetimePoints={lifetimePoints} />
+
+      {/* Tab Navigation */}
+      <PulseTabs activeTab={activeTab} />
+
+      {/* Tab Content */}
+      {activeTab === 'today' && (
+        <div className="space-y-6">
+          {/* Placeholder for Today tab components (DailyScore, FocusPanel, TaskList, QuickCapture) */}
+          <div className="rounded-lg border bg-card p-6">
+            <p className="text-muted-foreground">Today tab - components coming in Phase 3</p>
+            <p className="text-sm mt-2">Tasks today: {todayTasks.length} ({focusTasks.length} focus, {regularTasks.length} regular)</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-semibold">Pulse</h1>
-          <p className="text-sm text-muted-foreground">
-            Track your daily progress and quarterly targets
-          </p>
+      )}
+
+      {activeTab === 'week' && (
+        <div className="space-y-6">
+          <Heatmap dailyPoints={initialHeatmapData} weeks={12} />
+          <WeekView
+            weekStart={weekStart}
+            tasks={initialTasks}
+            onWeekChange={setWeekStart}
+            onUpdate={handleUpdate}
+          />
         </div>
-      </div>
+      )}
 
-      {/* Stats Header - Streak is hero */}
-      <PulseHeader stats={initialStats} />
-
-      {/* Heatmap - No section header */}
-      <Heatmap dailyPoints={initialHeatmapData} weeks={12} />
-
-      {/* Main Content Grid - Tasks left, Goal+Targets right */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Left Column: Week View */}
-        <WeekView
-          weekStart={weekStart}
-          tasks={initialTasks}
-          onWeekChange={setWeekStart}
-          onUpdate={handleUpdate}
-        />
-
-        {/* Right Column: Goal banner + Q Targets in unified card */}
+      {activeTab === 'goals' && (
         <GoalAndTargets
           goal={initialGoal}
           targets={initialTargets}
@@ -82,7 +100,13 @@ export function PulsePageClient({
           isAdmin={isAdmin}
           onUpdate={handleUpdate}
         />
-      </div>
+      )}
+
+      {activeTab === 'insights' && (
+        <div className="rounded-lg border bg-card p-6">
+          <p className="text-muted-foreground">Insights tab - components coming in Phase 6</p>
+        </div>
+      )}
     </div>
   )
 }
