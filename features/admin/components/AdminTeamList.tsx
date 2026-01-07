@@ -42,7 +42,7 @@ import type { InvitationWithDetails } from '@/lib/types/organization'
 interface TeamMember {
   id: string
   email: string
-  full_name: string | null
+  name: string | null
   role: string
   created_at: string
 }
@@ -66,7 +66,7 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
     const searchLower = search.toLowerCase()
     return (
       m.email.toLowerCase().includes(searchLower) ||
-      m.full_name?.toLowerCase().includes(searchLower)
+      m.name?.toLowerCase().includes(searchLower)
     )
   })
 
@@ -191,7 +191,7 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
             {filteredTeam.map((member) => (
               <TableRow key={member.id}>
                 <TableCell className="font-medium">
-                  {member.full_name || 'Unnamed'}
+                  {member.name || 'Unnamed'}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {member.email}

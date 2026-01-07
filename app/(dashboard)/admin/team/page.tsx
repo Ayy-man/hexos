@@ -9,7 +9,7 @@ import { AdminTeamList } from '@/features/admin/components/AdminTeamList'
 interface TeamMember {
   id: string
   email: string
-  full_name: string | null
+  name: string | null
   role: string
   created_at: string
 }
@@ -19,7 +19,7 @@ async function getHexonaTeam(): Promise<TeamMember[]> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, full_name, role, created_at')
+    .select('id, email, name, role, created_at')
     .in('role', ['admin', 'internal'])
     .order('role')
     .order('created_at')

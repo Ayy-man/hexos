@@ -201,7 +201,7 @@ export default async function InvitePage({
             </h1>
             {invitation.inviter && (
               <p className="mt-2 text-sm text-stone-600 dark:text-stone-400">
-                Invited by {invitation.inviter.full_name || invitation.inviter.email}
+                Invited by {invitation.inviter.name || invitation.inviter.email}
               </p>
             )}
           </div>
@@ -267,7 +267,7 @@ export default async function InvitePage({
           </p>
           {invitation.inviter && (
             <p className="mt-1 text-xs text-stone-500 dark:text-stone-500">
-              Invited by {invitation.inviter.full_name || invitation.inviter.email}
+              Invited by {invitation.inviter.name || invitation.inviter.email}
             </p>
           )}
         </div>

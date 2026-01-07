@@ -45,7 +45,7 @@ export interface OrganizationMemberWithProfile extends OrganizationMember {
   profile: {
     id: string
     email: string
-    full_name: string | null
+    name: string | null
     avatar_url: string | null
   }
 }
@@ -103,7 +103,7 @@ export interface InvitationWithDetails extends Invitation {
   inviter?: {
     id: string
     email: string
-    full_name: string | null
+    name: string | null
   } | null
 }
 

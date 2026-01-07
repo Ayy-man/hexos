@@ -32,7 +32,7 @@ export async function getInvitationByToken(
     .select(`
       *,
       organization:organizations(*),
-      inviter:profiles!invitations_invited_by_fkey(id, email, full_name)
+      inviter:profiles!invitations_invited_by_fkey(id, email, name)
     `)
     .eq('token', token)
     .single()
@@ -77,7 +77,7 @@ export async function getOrganizationInvitations(
     .from('invitations')
     .select(`
       *,
-      inviter:profiles!invitations_invited_by_fkey(id, email, full_name)
+      inviter:profiles!invitations_invited_by_fkey(id, email, name)
     `)
     .eq('organization_id', organizationId)
     .in('status', ['pending', 'pending_approval'])
@@ -101,7 +101,7 @@ export async function getHexonaTeamInvitations(): Promise<InvitationWithDetails[
     .from('invitations')
     .select(`
       *,
-      inviter:profiles!invitations_invited_by_fkey(id, email, full_name)
+      inviter:profiles!invitations_invited_by_fkey(id, email, name)
     `)
     .in('type', ['admin', 'internal'])
     .in('status', ['pending'])
@@ -125,7 +125,7 @@ export async function getPendingDfyFirstInvitations(): Promise<InvitationWithDet
     .from('invitations')
     .select(`
       *,
-      inviter:profiles!invitations_invited_by_fkey(id, email, full_name)
+      inviter:profiles!invitations_invited_by_fkey(id, email, name)
     `)
     .eq('type', 'dfy_first')
     .eq('status', 'pending')

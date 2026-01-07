@@ -8,7 +8,7 @@
 -- Create a solo agency for each existing DFY user who doesn't have one
 INSERT INTO organizations (name, slug, type, max_seats, created_by, contact_email)
 SELECT
-  COALESCE(p.full_name, split_part(p.email, '@', 1)) || '''s Agency',
+  COALESCE(p.name, split_part(p.email, '@', 1)) || '''s Agency',
   'agency-' || p.id::text,
   'dfy_agency'::organization_type,
   3,

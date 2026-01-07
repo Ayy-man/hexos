@@ -267,7 +267,7 @@ export function TeamSettings({
                         <User className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="font-medium">{member.profile.full_name || 'Unnamed'}</p>
+                        <p className="font-medium">{member.profile.name || 'Unnamed'}</p>
                         <p className="text-sm text-muted-foreground">{member.profile.email}</p>
                       </div>
                     </div>

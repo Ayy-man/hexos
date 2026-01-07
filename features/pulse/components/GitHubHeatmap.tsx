@@ -3,228 +3,174 @@
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { subDays, startOfWeek, addDays, format, isAfter, isSameDay, getDay } from 'date-fns'
 
 interface GitHubHeatmapProps {
   dailyPoints: Record<string, number>
 }
 
-// GitHub contribution colors (green theme like actual GitHub)
-const COLORS = [
-  '#161b22', // Level 0: No activity
-  '#0e4429', // Level 1: 1-9 pts
-  '#006d32', // Level 2: 10-24 pts
-  '#26a641', // Level 3: 25-49 pts
-  '#39d353', // Level 4: 50+ pts
+// Color levels using Tailwind classes for better theme support
+const LEVEL_COLORS = [
+  'bg-muted/30 dark:bg-muted/20', // Level 0: No activity
+  'bg-cyan-900/60',       // Level 1: 1-9 pts
+  'bg-cyan-700',          // Level 2: 10-24 pts
+  'bg-cyan-500',          // Level 3: 25-49 pts
+  'bg-cyan-400',          // Level 4: 50+ pts
 ]
 
-function getColorLevel(points: number): number {
-  if (points === 0) return 0
-  if (points < 10) return 1
-  if (points < 25) return 2
-  if (points < 50) return 3
-  return 4
+function getColorClass(points: number): string {
+  if (points === 0) return LEVEL_COLORS[0]
+  if (points < 10) return LEVEL_COLORS[1]
+  if (points < 25) return LEVEL_COLORS[2]
+  if (points < 50) return LEVEL_COLORS[3]
+  return LEVEL_COLORS[4]
 }
 
 function formatDateKey(date: Date): string {
-  return date.toISOString().split('T')[0]
-}
-
-function formatDisplayDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T12:00:00')
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return format(date, 'yyyy-MM-dd')
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const CELL_SIZE = 11
+const CELL_SIZE = 12
 const CELL_GAP = 3
 
 interface DayData {
   date: string
+  dateObj: Date
   points: number
   isToday: boolean
-  isFuture: boolean
-  dayOfWeek: number
+  level: number
 }
 
 export function GitHubHeatmap({ dailyPoints }: GitHubHeatmapProps) {
-  const [selectedDay, setSelectedDay] = useState<DayData | null>(null)
-
-  const { weeks, monthPositions, totalWeeks } = useMemo(() => {
+  const { weeks, monthPositions } = useMemo(() => {
     const today = new Date()
-    today.setHours(12, 0, 0, 0)
-
-    // Start from January 1, 2026
-    const yearStart = new Date(2026, 0, 1, 12, 0, 0)
-
-    // Align to Sunday of that week
-    const startDow = yearStart.getDay()
-    const startDate = new Date(yearStart)
-    startDate.setDate(yearStart.getDate() - startDow)
-
-    // End at Saturday of current week
-    const endDow = today.getDay()
-    const endDate = new Date(today)
-    endDate.setDate(today.getDate() + (6 - endDow))
+    // Show last 365 days (approx 52 weeks)
+    const startDate = startOfWeek(subDays(today, 365))
+    const endDate = today
 
     const weeks: DayData[][] = []
     const monthPositions: { month: string; weekIndex: number }[] = []
 
-    let currentDate = new Date(startDate)
+    let currentDate = startDate
     let weekIndex = 0
     let lastMonth = -1
 
-    while (currentDate <= endDate) {
+    // We generate weeks until we cover today
+    while (currentDate <= endDate || weeks.length < 52) {
       const week: DayData[] = []
 
-      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+      for (let i = 0; i < 7; i++) {
         const dateKey = formatDateKey(currentDate)
         const month = currentDate.getMonth()
 
         // Track first day of each month for labels
-        if (month !== lastMonth && dayOfWeek === 0) {
+        if (month !== lastMonth && i === 0 && weeks.length > 0) {
           monthPositions.push({ month: MONTHS[month], weekIndex })
           lastMonth = month
         }
 
         week.push({
           date: dateKey,
+          dateObj: new Date(currentDate),
           points: dailyPoints[dateKey] || 0,
-          isToday: dateKey === formatDateKey(today),
-          isFuture: currentDate > today,
-          dayOfWeek,
+          isToday: isSameDay(currentDate, today),
+          level: 0 // placeholder
         })
 
-        currentDate.setDate(currentDate.getDate() + 1)
+        currentDate = addDays(currentDate, 1)
       }
 
       weeks.push(week)
       weekIndex++
+
+      // Safety break to prevent infinite loops if logic is off
+      if (weeks.length > 54) break
     }
 
-    return { weeks, monthPositions, totalWeeks: weeks.length }
+    return { weeks, monthPositions }
   }, [dailyPoints])
 
-  const gridWidth = totalWeeks * (CELL_SIZE + CELL_GAP)
-
   return (
-    <div className="rounded-lg border bg-card p-4 overflow-hidden">
-      <div className="overflow-x-auto">
-        <div style={{ minWidth: gridWidth + 40 }}>
-          {/* Month labels */}
-          <div className="relative h-5 ml-10" style={{ width: gridWidth }}>
-            {monthPositions.map((m, i) => (
-              <span
-                key={`${m.month}-${i}`}
-                className="absolute text-xs text-muted-foreground"
-                style={{ left: m.weekIndex * (CELL_SIZE + CELL_GAP) }}
-              >
-                {m.month}
-              </span>
-            ))}
-          </div>
-
-          <div className="flex">
-            {/* Day of week labels */}
-            <div className="flex flex-col justify-around pr-2 text-xs text-muted-foreground" style={{ height: 7 * (CELL_SIZE + CELL_GAP) - CELL_GAP }}>
-              <span className="h-[11px] leading-[11px]"></span>
-              <span className="h-[11px] leading-[11px]">Mon</span>
-              <span className="h-[11px] leading-[11px]"></span>
-              <span className="h-[11px] leading-[11px]">Wed</span>
-              <span className="h-[11px] leading-[11px]"></span>
-              <span className="h-[11px] leading-[11px]">Fri</span>
-              <span className="h-[11px] leading-[11px]"></span>
-            </div>
-
-            {/* Grid */}
-            <div className="flex" style={{ gap: CELL_GAP }}>
-              {weeks.map((week, weekIdx) => (
-                <div key={weekIdx} className="flex flex-col" style={{ gap: CELL_GAP }}>
-                  {week.map((day) => (
-                    <button
-                      key={day.date}
-                      onClick={() => !day.isFuture && setSelectedDay(day)}
-                      disabled={day.isFuture}
-                      className={cn(
-                        'rounded-sm transition-all',
-                        day.isToday && 'ring-2 ring-cyan-400 ring-offset-1 ring-offset-background',
-                        day.isFuture ? 'opacity-30 cursor-default' : 'hover:ring-1 hover:ring-white/50 cursor-pointer'
-                      )}
-                      style={{
-                        width: CELL_SIZE,
-                        height: CELL_SIZE,
-                        backgroundColor: day.isFuture ? COLORS[0] : COLORS[getColorLevel(day.points)],
-                      }}
-                      title={`${day.date}: ${day.points} pts`}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center justify-end gap-2 mt-4 text-xs text-muted-foreground">
-        <span>Less</span>
-        <div className="flex gap-[2px]">
-          {COLORS.map((color, i) => (
-            <div
-              key={i}
-              className="w-[11px] h-[11px] rounded-sm"
-              style={{ backgroundColor: color }}
-            />
+    <div className="w-full overflow-x-auto pb-2">
+      <div className="min-w-fit pr-4">
+        {/* Month labels */}
+        <div className="flex h-6 mb-2 text-xs text-muted-foreground relative">
+          {monthPositions.map((m, i) => (
+            // Only show month if it fits (not too close to the end)
+            <span
+              key={`${m.month}-${i}`}
+              className="absolute font-medium"
+              style={{ left: (m.weekIndex * (CELL_SIZE + CELL_GAP)) + 30 }} // +30 for the day label offset
+            >
+              {m.month}
+            </span>
           ))}
         </div>
-        <span>More</span>
-      </div>
 
-      {/* Day Detail Dialog */}
-      <Dialog open={!!selectedDay} onOpenChange={(open) => !open && setSelectedDay(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedDay && formatDisplayDate(selectedDay.date)}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-              <span className="text-muted-foreground">Points Earned</span>
-              <span
-                className="text-2xl font-bold"
-                style={{ color: selectedDay ? COLORS[getColorLevel(selectedDay.points)] : undefined }}
-              >
-                {selectedDay?.points || 0} pts
-              </span>
-            </div>
-            {selectedDay && selectedDay.points >= 25 && (
-              <div className="text-center text-green-500 text-sm font-medium">
-                Goal reached!
-              </div>
-            )}
-            {selectedDay && selectedDay.points > 0 && selectedDay.points < 25 && (
-              <div className="text-center text-muted-foreground text-sm">
-                {25 - selectedDay.points} pts away from daily goal
-              </div>
-            )}
-            {selectedDay && selectedDay.points === 0 && (
-              <div className="text-center text-muted-foreground text-sm">
-                No activity recorded
-              </div>
-            )}
+        <div className="flex">
+          {/* Day of week labels */}
+          <div className="flex flex-col justify-between pr-2 text-[10px] text-muted-foreground h-[102px] pt-[2px]">
+            <span></span>
+            <span>Mon</span>
+            <span></span>
+            <span>Wed</span>
+            <span></span>
+            <span>Fri</span>
+            <span></span>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {/* Grid */}
+          <div className="flex gap-[3px]">
+            {weeks.map((week, weekIdx) => (
+              <div key={weekIdx} className="flex flex-col gap-[3px]">
+                {week.map((day) => (
+                  <Tooltip key={day.date} delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          'rounded-[2px] transition-all border border-transparent',
+                          getColorClass(day.points),
+                          day.isToday && 'ring-2 ring-foreground ring-offset-1 ring-offset-background z-10',
+                          'hover:ring-1 hover:ring-foreground/50 hover:z-20 cursor-default'
+                        )}
+                        style={{
+                          width: CELL_SIZE,
+                          height: CELL_SIZE,
+                        }}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="text-xs">
+                      <div className="font-semibold">{format(day.dateObj, 'EEEE, MMMM do, yyyy')}</div>
+                      <div className="text-muted-foreground">
+                        {day.points === 0 ? 'No activity' : `${day.points} contributions`}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-end gap-2 mt-4 text-xs text-muted-foreground ml-8">
+          <span>Less</span>
+          <div className="flex gap-[3px]">
+            {LEVEL_COLORS.map((color, i) => (
+              <div
+                key={i}
+                className={cn("w-3 h-3 rounded-[2px]", color)}
+              />
+            ))}
+          </div>
+          <span>More</span>
+        </div>
+      </div>
     </div>
   )
 }

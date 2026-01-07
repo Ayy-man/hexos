@@ -467,7 +467,7 @@ export async function getExpenses(filters?: {
       *,
       projects:project_id(name),
       payment_sources:payment_source_id(label),
-      paid_by_profile:paid_by(full_name)
+      paid_by_profile:paid_by(name)
     `)
     .order('date', { ascending: false });
 
@@ -496,7 +496,7 @@ export async function getExpenses(filters?: {
     ...expense,
     project_name: expense.projects?.name || null,
     payment_source_label: expense.payment_sources?.label || null,
-    paid_by_name: expense.paid_by_profile?.full_name || null,
+    paid_by_name: expense.paid_by_profile?.name || null,
     projects: undefined,
     payment_sources: undefined,
     paid_by_profile: undefined,
