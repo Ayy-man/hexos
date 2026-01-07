@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heatmap } from '../Heatmap'
+import { GitHubHeatmap } from '../GitHubHeatmap'
 import { WeekView } from '../WeekView'
 import { WeeklyReview } from '../WeeklyReview'
 import { Button } from '@/components/ui/button'
@@ -27,7 +27,7 @@ export function WeekTab({
   return (
     <div className="space-y-6">
       {/* 12 Week Heatmap */}
-      <Heatmap dailyPoints={heatmapData} weeks={12} />
+      <GitHubHeatmap dailyPoints={heatmapData} weeks={12} />
 
       {/* Week Grid with comparison toggle */}
       <div>

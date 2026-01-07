@@ -29,7 +29,10 @@ export function TaskList({ tasks, onCreateTask, onUpdate }: TaskListProps) {
     try {
       await onCreateTask(newTitle.trim())
       setNewTitle('')
-      // Keep input open for rapid entry
+      onUpdate()
+    } catch (error) {
+      console.error('Failed to create task:', error)
+      alert('Failed to create task. Check console for details.')
     } finally {
       setIsSubmitting(false)
     }

@@ -31,6 +31,9 @@ export function FocusPanel({ focusTasks, onCreateFocus, onCompleteFocus }: Focus
       await onCreateFocus(newTitle.trim())
       setNewTitle('')
       setIsAdding(false)
+    } catch (error) {
+      console.error('Failed to create focus task:', error)
+      alert('Failed to create focus task. Check console for details.')
     } finally {
       setIsSubmitting(false)
     }
