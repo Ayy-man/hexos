@@ -377,3 +377,117 @@ async function checkAndCompleteTarget(actionId: string): Promise<void> {
     }
   }
 }
+
+// ============================================================================
+// Focus Tasks
+// ============================================================================
+
+export async function getFocusTasksForDate(
+  userId: string,
+  date: string
+): Promise<PulseDailyTask[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('pulse_daily_tasks')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .eq('is_focus', true)
+    .order('position')
+
+  if (error) {
+    console.error('[Pulse] Failed to fetch focus tasks:', error)
+    return []
+  }
+
+  return data as PulseDailyTask[]
+}
+
+export async function createFocusTask(
+  userId: string,
+  title: string,
+  date: string
+): Promise<PulseDailyTask | null> {
+  const supabase = await createClient()
+
+  // Check if already at max focus items (3)
+  const { count } = await supabase
+    .from('pulse_daily_tasks')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('date', date)
+    .eq('is_focus', true)
+
+  if ((count || 0) >= 3) {
+    console.error('[Pulse] Max focus items (3) reached')
+    return null
+  }
+
+  // Get next position
+  const { data: lastTask } = await supabase
+    .from('pulse_daily_tasks')
+    .select('position')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .eq('is_focus', true)
+    .order('position', { ascending: false })
+    .limit(1)
+    .single()
+
+  const position = (lastTask?.position || 0) + 1
+
+  const { data, error } = await supabase
+    .from('pulse_daily_tasks')
+    .insert({
+      user_id: userId,
+      date,
+      title,
+      is_focus: true,
+      position,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[Pulse] Failed to create focus task:', error)
+    return null
+  }
+
+  return data as PulseDailyTask
+}
+
+export async function completeFocusTask(
+  taskId: string,
+  userId: string
+): Promise<boolean> {
+  const supabase = await createClient()
+
+  // Get the task to check if it has linked action
+  const { data: task } = await supabase
+    .from('pulse_daily_tasks')
+    .select('linked_action_id')
+    .eq('id', taskId)
+    .single()
+
+  // Update the task as completed
+  const { error } = await supabase
+    .from('pulse_daily_tasks')
+    .update({ completed_at: new Date().toISOString() })
+    .eq('id', taskId)
+
+  if (error) {
+    console.error('[Pulse] Failed to complete focus task:', error)
+    return false
+  }
+
+  // Log points - focus items get more points
+  // Using 'task_completed' event type for now (would ideally have 'focus_completed')
+  if (task?.linked_action_id) {
+    await logPulseEvent(userId, 'linked_task_completed', 'task', taskId)
+  } else {
+    await logPulseEvent(userId, 'task_completed', 'task', taskId)
+  }
+
+  return true
+}
