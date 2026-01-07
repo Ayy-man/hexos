@@ -1,14 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, GripVertical } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TargetCard } from './TargetCard'
 import { getCurrentQuarter, getQuarterLabel, type Quarter } from '@/lib/utils/pulseCalculations'
 import type { PulseTargetWithOwners } from '@/lib/types/pulse'
-import { createTargetAction } from '../actions/targetActions'
+import { createTargetAction, reorderTargetsAction } from '../actions/targetActions'
 
 interface QuarterTargetsProps {
   targets: PulseTargetWithOwners[]
@@ -16,6 +33,44 @@ interface QuarterTargetsProps {
   goalId?: string
   isAdmin?: boolean
   onUpdate?: () => void
+}
+
+function SortableTargetCard({
+  target,
+  onUpdate,
+}: {
+  target: PulseTargetWithOwners
+  onUpdate?: () => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: target.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-start gap-1">
+      <button
+        {...attributes}
+        {...listeners}
+        className="p-1 mt-3 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="flex-1">
+        <TargetCard target={target} onUpdate={onUpdate} />
+      </div>
+    </div>
+  )
 }
 
 export function QuarterTargets({
@@ -28,6 +83,37 @@ export function QuarterTargets({
   const [isAddingTarget, setIsAddingTarget] = useState(false)
   const [newTargetTitle, setNewTargetTitle] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+  const [orderedTargets, setOrderedTargets] = useState<PulseTargetWithOwners[]>(targets)
+
+  // Keep orderedTargets in sync with props
+  if (targets.length !== orderedTargets.length || targets.some((t) => !orderedTargets.find(ot => ot.id === t.id))) {
+    setOrderedTargets(targets)
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      const oldIndex = orderedTargets.findIndex((t) => t.id === active.id)
+      const newIndex = orderedTargets.findIndex((t) => t.id === over.id)
+
+      const newOrder = arrayMove(orderedTargets, oldIndex, newIndex)
+      setOrderedTargets(newOrder)
+
+      await reorderTargetsAction(quarter, newOrder.map((t) => t.id))
+    }
+  }
 
   const handleAddTarget = async () => {
     if (!newTargetTitle.trim()) return
@@ -56,8 +142,8 @@ export function QuarterTargets({
   }
 
   // Separate completed and in-progress targets
-  const completedTargets = targets.filter(t => t.status === 'completed')
-  const activeTargets = targets.filter(t => t.status !== 'completed')
+  const completedTargets = orderedTargets.filter(t => t.status === 'completed')
+  const activeTargets = orderedTargets.filter(t => t.status !== 'completed')
 
   return (
     <Card>
@@ -67,12 +153,23 @@ export function QuarterTargets({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Active targets */}
-        {activeTargets.map((target) => (
-          <TargetCard key={target.id} target={target} onUpdate={onUpdate} />
-        ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={activeTargets.map((t) => t.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {/* Active targets */}
+            {activeTargets.map((target) => (
+              <SortableTargetCard key={target.id} target={target} onUpdate={onUpdate} />
+            ))}
+          </SortableContext>
+        </DndContext>
 
-        {/* Completed targets */}
+        {/* Completed targets (not draggable) */}
         {completedTargets.map((target) => (
           <TargetCard key={target.id} target={target} onUpdate={onUpdate} />
         ))}

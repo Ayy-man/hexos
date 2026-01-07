@@ -61,6 +61,8 @@ export interface OrganizationWithStats extends Organization {
 // Invitation Types
 // ============================================================================
 
+// Note: These map to org_invitation_type and org_invitation_status in the DB
+// (prefixed with org_ to avoid conflict with existing invitation_status enum)
 export type InvitationType =
   | 'admin'      // Hexona admin invite
   | 'internal'   // Hexona internal invite

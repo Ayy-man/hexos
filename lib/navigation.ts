@@ -45,6 +45,14 @@ const adminNav: NavGroup[] = [
     ],
   },
   {
+    label: 'Teams',
+    items: [
+      { title: 'Hexona Team', url: '/admin/team', icon: 'Shield' },
+      { title: 'DFY Partners', url: '/admin/partners', icon: 'Building2' },
+      { title: 'Applications', url: '/admin/applications', icon: 'FileText' },
+    ],
+  },
+  {
     label: 'Settings',
     items: [
       { title: 'Settings', url: '/settings', icon: 'Settings' },
@@ -83,6 +91,13 @@ const internalNav: NavGroup[] = [
     ],
   },
   {
+    label: 'Teams',
+    items: [
+      { title: 'DFY Partners', url: '/admin/partners', icon: 'Building2' },
+      { title: 'Applications', url: '/admin/applications', icon: 'FileText' },
+    ],
+  },
+  {
     label: 'Settings',
     items: [
       { title: 'Settings', url: '/settings', icon: 'Settings' },
@@ -108,6 +123,7 @@ const devNav: NavGroup[] = [
   {
     label: 'Settings',
     items: [
+      { title: 'Team', url: '/dashboard/dev/settings/team', icon: 'Users' },
       { title: 'Developer Profile', url: '/settings/developer', icon: 'Code' },
       { title: 'Settings', url: '/settings', icon: 'Settings' },
     ],
@@ -134,6 +150,7 @@ const dfyNav: NavGroup[] = [
   {
     label: 'Settings',
     items: [
+      { title: 'Team', url: '/dashboard/dfy/settings/team', icon: 'Users' },
       { title: 'Settings', url: '/settings', icon: 'Settings' },
     ],
   },

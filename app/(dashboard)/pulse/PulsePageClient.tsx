@@ -8,11 +8,7 @@ import { TodayTab } from '@/features/pulse/components/tabs/TodayTab'
 import { WeekTab } from '@/features/pulse/components/tabs/WeekTab'
 import { GoalsTab } from '@/features/pulse/components/tabs/GoalsTab'
 import { InsightsTab } from '@/features/pulse/components/tabs/InsightsTab'
-import {
-  createTaskAction,
-  createFocusTaskAction,
-  completeFocusTaskAction,
-} from '@/features/pulse/actions/taskActions'
+import { createTaskAction } from '@/features/pulse/actions/taskActions'
 import { getTodayDate } from '@/lib/utils/pulseCalculations'
 import type {
   PulseStats,
@@ -64,28 +60,10 @@ export function PulsePageClient({
 
   // Filter tasks for today
   const todayTasks = initialTasks.filter((t) => t.date === today)
-  const focusTasks = todayTasks.filter((t) => t.is_focus)
-  const regularTasks = todayTasks.filter((t) => !t.is_focus)
 
   // Task handlers
   const handleCreateTask = useCallback(async (title: string) => {
     await createTaskAction({ date: getTodayDate(), title })
-    handleUpdate()
-  }, [handleUpdate])
-
-  const handleCreateFocus = useCallback(async (title: string) => {
-    const result = await createFocusTaskAction(title)
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to create focus task')
-    }
-    handleUpdate()
-  }, [handleUpdate])
-
-  const handleCompleteFocus = useCallback(async (taskId: string) => {
-    const result = await completeFocusTaskAction(taskId)
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to complete focus task')
-    }
     handleUpdate()
   }, [handleUpdate])
 
@@ -101,11 +79,8 @@ export function PulsePageClient({
       {activeTab === 'today' && (
         <TodayTab
           stats={initialStats}
-          tasks={regularTasks}
-          focusTasks={focusTasks}
+          tasks={todayTasks}
           onCreateTask={handleCreateTask}
-          onCreateFocus={handleCreateFocus}
-          onCompleteFocus={handleCompleteFocus}
           onUpdate={handleUpdate}
         />
       )}

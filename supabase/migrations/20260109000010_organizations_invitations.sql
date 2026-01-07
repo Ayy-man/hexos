@@ -7,7 +7,7 @@
 
 CREATE TYPE organization_type AS ENUM ('dfy_agency', 'dev_agency');
 
-CREATE TYPE invitation_type AS ENUM (
+CREATE TYPE org_invitation_type AS ENUM (
   'admin',      -- Hexona admin invite
   'internal',   -- Hexona internal invite
   'dfy_first',  -- Hexona invites first DFY (creates org)
@@ -16,7 +16,7 @@ CREATE TYPE invitation_type AS ENUM (
   'dev_team'    -- Dev agency owner invites team member
 );
 
-CREATE TYPE invitation_status AS ENUM (
+CREATE TYPE org_invitation_status AS ENUM (
   'pending_approval',  -- Dev application awaiting review
   'pending',           -- Invitation sent, awaiting acceptance
   'accepted',          -- User accepted
@@ -101,7 +101,7 @@ CREATE INDEX idx_org_members_active ON organization_members(organization_id, is_
 CREATE TABLE public.invitations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  type invitation_type NOT NULL,
+  type org_invitation_type NOT NULL,
   email TEXT NOT NULL,
   token TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
 
@@ -115,7 +115,7 @@ CREATE TABLE public.invitations (
   target_role TEXT NOT NULL CHECK (target_role IN ('admin', 'internal', 'dfy', 'dev')),
 
   -- Status
-  status invitation_status NOT NULL DEFAULT 'pending',
+  status org_invitation_status NOT NULL DEFAULT 'pending',
 
   -- Metadata
   invited_by UUID REFERENCES profiles(id),
@@ -131,13 +131,13 @@ CREATE TABLE public.invitations (
   UNIQUE NULLS NOT DISTINCT (email, organization_id)
 );
 
--- Indexes
-CREATE INDEX idx_invitations_token ON invitations(token);
-CREATE INDEX idx_invitations_email ON invitations(email);
-CREATE INDEX idx_invitations_type ON invitations(type);
-CREATE INDEX idx_invitations_status ON invitations(status);
-CREATE INDEX idx_invitations_org ON invitations(organization_id) WHERE organization_id IS NOT NULL;
-CREATE INDEX idx_invitations_pending ON invitations(status) WHERE status IN ('pending', 'pending_approval');
+-- Indexes (prefixed with org_ to avoid conflicts with existing project_invitations indexes)
+CREATE INDEX idx_org_invitations_token ON invitations(token);
+CREATE INDEX idx_org_invitations_email ON invitations(email);
+CREATE INDEX idx_org_invitations_type ON invitations(type);
+CREATE INDEX idx_org_invitations_status ON invitations(status);
+CREATE INDEX idx_org_invitations_org ON invitations(organization_id) WHERE organization_id IS NOT NULL;
+CREATE INDEX idx_org_invitations_pending ON invitations(status) WHERE status IN ('pending', 'pending_approval');
 
 -- ============================================================================
 -- ADD ORGANIZATION COLUMNS TO PROJECTS & INQUIRIES
