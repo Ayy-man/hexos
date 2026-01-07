@@ -22,26 +22,30 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task, onUpdate, draggable = false, compact = false }: TaskItemProps) {
-  const [isCompleting, setIsCompleting] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(task.title)
 
-  const isCompleted = !!task.completed_at
+  // Optimistic state for instant feedback
+  const [optimisticCompleted, setOptimisticCompleted] = useState<boolean | null>(null)
+
+  const isCompleted = optimisticCompleted ?? !!task.completed_at
   const isRolledOver = !!task.rolled_from
   const isLinked = !!task.linked_action_id
 
   const handleToggle = async () => {
-    setIsCompleting(true)
+    const newState = !isCompleted
+    setOptimisticCompleted(newState) // Instant visual feedback
+
     try {
-      if (isCompleted) {
+      if (task.completed_at) {
         await uncompleteTaskAction(task.id)
       } else {
         await completeTaskAction(task.id)
       }
       onUpdate?.()
-    } finally {
-      setIsCompleting(false)
+    } catch {
+      setOptimisticCompleted(null) // Revert on error
     }
   }
 
@@ -98,8 +102,11 @@ export function TaskItem({ task, onUpdate, draggable = false, compact = false }:
       <Checkbox
         checked={isCompleted}
         onCheckedChange={handleToggle}
-        disabled={isCompleting}
-        className={cn(compact ? 'h-3 w-3' : 'h-4 w-4')}
+        className={cn(
+          compact ? 'h-3 w-3' : 'h-4 w-4',
+          'transition-all duration-150',
+          isCompleted && 'bg-cyan-500 border-cyan-500 data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500'
+        )}
       />
 
       {/* Content */}
