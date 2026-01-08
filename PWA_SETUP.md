@@ -13,7 +13,8 @@ The following has been implemented:
 
 ### 2. Core PWA Infrastructure
 - ✅ PWA manifest (`/public/manifest.json`)
-- ✅ Service worker configuration in `next.config.ts`
+- ✅ Service worker (`/public/sw.js`) using Workbox CDN
+- ✅ Service worker registration (`/components/service-worker-register.tsx`)
 - ✅ IndexedDB offline storage layer (`/lib/db/offline-storage.ts`)
 - ✅ Offline mutation queue system (`/lib/offline/sync-queue.ts`)
 - ✅ Online/offline status detection hook (`/hooks/use-online-status.ts`)
@@ -30,7 +31,8 @@ The following has been implemented:
 - ✅ Custom service worker with push handlers (`/public/sw-custom.js`)
 
 ### 5. Dependencies
-- ✅ All NPM packages installed (next-pwa, idb, workbox-window, web-push)
+- ✅ All NPM packages installed (idb, web-push)
+- ✅ Service worker uses Workbox CDN (no build dependencies)
 
 ---
 
@@ -236,23 +238,23 @@ cached.messages = cached.messages.slice(-100); // Changed from 50
 
 ### Modify Service Worker Caching
 
-Edit `next.config.ts` to adjust caching strategies:
+Edit `/public/sw.js` to adjust caching strategies:
 
-```typescript
-runtimeCaching: [
-  {
-    urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/.*/,
-    handler: "NetworkFirst",
-    options: {
-      cacheName: "api-cache",
-      networkTimeoutSeconds: 5, // Increase timeout
-      expiration: {
-        maxEntries: 100, // Cache more entries
-        maxAgeSeconds: 10 * 60, // Keep for 10 minutes
-      },
-    },
-  },
-]
+```javascript
+// Example: Increase cache timeout for API calls
+registerRoute(
+  ({ url }) => url.hostname.includes('supabase.co') && url.pathname.includes('/rest/'),
+  new NetworkFirst({
+    cacheName: 'api-cache',
+    networkTimeoutSeconds: 5, // Increase from 3 to 5 seconds
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 100, // Increase from 50 to 100
+        maxAgeSeconds: 10 * 60, // Increase from 5 to 10 minutes
+      }),
+    ],
+  })
+);
 ```
 
 ### Customize Install Prompt
