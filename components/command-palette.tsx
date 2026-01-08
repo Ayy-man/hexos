@@ -316,7 +316,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
   const ResultItem = ({ result }: { result: SearchResult }) => (
     <CommandItem
       key={`${result.type}-${result.id}`}
-      value={`${result.type}-${result.id}-${result.title}`}
+      value={`${result.title} ${result.subtitle} ${result.type}`}
       onSelect={() => handleSelect(result)}
       className="relative flex items-center gap-3 py-3 px-4 outline-none 
                  data-[selected=true]:bg-cyan-500/10 data-[selected=true]:text-cyan-500
@@ -330,18 +330,9 @@ export function CommandPalette({ role }: CommandPaletteProps) {
     </CommandItem>
   )
 
-  // Filter navigation actions for the search
-  const filteredNavActions = useMemo(() => {
-    if (!query) return []
-    return quickActions.filter((action: SearchResult) =>
-      action.title.toLowerCase().includes(query.toLowerCase()) ||
-      action.subtitle.toLowerCase().includes(query.toLowerCase())
-    )
-  }, [query, quickActions])
-
   // Shared command content
   const commandContent = (
-    <Command className="bg-transparent overflow-hidden">
+    <Command className="bg-transparent overflow-hidden" shouldFilter={true}>
       <div className="flex items-center border-b px-3 bg-background/20 backdrop-blur-md">
         <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
         <CommandInput
@@ -358,21 +349,17 @@ export function CommandPalette({ role }: CommandPaletteProps) {
           </div>
         )}
 
-        {!loading && query && !hasResults && filteredNavActions.length === 0 && (
-          <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">
-            No results found for &quot;{query}&quot;
-          </CommandEmpty>
-        )}
+        <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">
+          {!loading && `No results found for "${query}"`}
+        </CommandEmpty>
 
         <AnimatePresence mode="popLayout">
-          {/* Navigation Results (Always available if match) */}
-          {query && filteredNavActions.length > 0 && (
-            <CommandGroup heading="Navigation">
-              {filteredNavActions.map((action) => (
-                <ResultItem key={`nav-${action.id}`} result={action} />
-              ))}
-            </CommandGroup>
-          )}
+          {/* Static Navigation - Always searchable */}
+          <CommandGroup heading={query ? "Navigation" : "Quick Links"}>
+            {quickActions.map((action) => (
+              <ResultItem key={`nav-${action.id}`} result={action} />
+            ))}
+          </CommandGroup>
 
           {/* Recent Searches */}
           {!query && recentSearches.length > 0 && (
@@ -390,16 +377,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
             </CommandGroup>
           )}
 
-          {/* Quick Actions / Suggestions */}
-          {!query && (
-            <CommandGroup heading="Quick Links">
-              {quickActions.map((action) => (
-                <ResultItem key={action.id} result={action} />
-              ))}
-            </CommandGroup>
-          )}
-
-          {/* Search Results */}
+          {/* Dynamic Search Results */}
           {results && query && (
             <>
               {results.projects.length > 0 && (
@@ -427,7 +405,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
               )}
 
               {results.caseStudies.length > 0 && (
-                <CommandGroup heading="Case Studies">
+                <CommandGroup heading="Case Studies" className="border-t border-white/5 pt-2 mt-2">
                   {results.caseStudies.map((result) => (
                     <ResultItem key={`case-study-${result.id}`} result={result} />
                   ))}
@@ -435,7 +413,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
               )}
 
               {results.conversations.length > 0 && (
-                <CommandGroup heading="Conversations">
+                <CommandGroup heading="Conversations" className="border-t border-white/5 pt-2 mt-2">
                   {results.conversations.map((result) => (
                     <ResultItem key={`conversation-${result.id}`} result={result} />
                   ))}
@@ -447,19 +425,19 @@ export function CommandPalette({ role }: CommandPaletteProps) {
       </CommandList>
 
       {/* Footer with keyboard hints */}
-      <div className="flex items-center justify-between border-t bg-background/30 backdrop-blur-md px-4 py-3 text-[10px] font-medium text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-white/5 bg-background/40 backdrop-blur-md px-4 py-3 text-[10px] font-medium text-muted-foreground">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
-            <kbd className="flex h-5 items-center justify-center rounded border bg-muted/50 px-1.5 font-sans text-[11px]">↵</kbd>
+            <kbd className="flex h-5 items-center justify-center rounded border border-white/10 bg-muted/50 px-1.5 font-sans text-[11px]">↵</kbd>
             Select
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="flex h-5 items-center justify-center rounded border bg-muted/50 px-1.5 font-sans text-[11px]">↑↓</kbd>
+            <kbd className="flex h-5 items-center justify-center rounded border border-white/10 bg-muted/50 px-1.5 font-sans text-[11px]">↑↓</kbd>
             Navigate
           </span>
         </div>
         <span className="flex items-center gap-1.5">
-          <kbd className="flex h-5 items-center justify-center rounded border bg-muted/50 px-1.5 font-sans text-[11px]">esc</kbd>
+          <kbd className="flex h-5 items-center justify-center rounded border border-white/10 bg-muted/50 px-1.5 font-sans text-[11px]">esc</kbd>
           Dismiss
         </span>
       </div>
