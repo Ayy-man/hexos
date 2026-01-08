@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, UserPlus, Mail, MoreHorizontal, RefreshCw, X } from 'lucide-react'
+import { Search, UserPlus, Mail, MoreHorizontal, RefreshCw, X, Copy, Check } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +63,8 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
   const [inviteRole, setInviteRole] = useState<'admin' | 'internal'>('internal')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const { onlineUsers } = useOnlineUsers()
   const onlineUserIds = new Set(onlineUsers.map(u => u.id))
@@ -96,6 +98,15 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
     setIsInviteOpen(false)
     setInviteEmail('')
     setInviteRole('internal')
+    setSuccessMessage(`Invitation sent to ${inviteEmail}. Copy the link from pending invitations below.`)
+    setTimeout(() => setSuccessMessage(null), 5000)
+  }
+
+  const handleCopyLink = async (token: string) => {
+    const url = `${window.location.origin}/invite/${token}`
+    await navigator.clipboard.writeText(url)
+    setCopiedId(token)
+    setTimeout(() => setCopiedId(null), 2000)
   }
 
   const handleRevoke = async (invitationId: string) => {
@@ -108,6 +119,13 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
 
   return (
     <div className="space-y-4">
+      {/* Success Message */}
+      {successMessage && (
+        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          {successMessage}
+        </div>
+      )}
+
       {/* Search and Actions */}
       <Card>
         <CardContent className="py-4">
@@ -255,6 +273,14 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleCopyLink(inv.token)}>
+                        {copiedId === inv.token ? (
+                          <Check className="h-4 w-4 mr-2 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4 mr-2" />
+                        )}
+                        {copiedId === inv.token ? 'Copied!' : 'Copy Link'}
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleResend(inv.id)}>
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Resend

@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Search, Users, CheckCircle2, XCircle, Briefcase, Clock, UserPlus, Mail, RefreshCw, X } from 'lucide-react'
+import { Search, Users, CheckCircle2, XCircle, Briefcase, Clock, UserPlus, Mail, RefreshCw, X, Copy, Check } from 'lucide-react'
 import { inviteDevAction, revokeInvitationAction, resendInvitationAction } from '@/features/organizations/actions/invitationActions'
 import { InvitationStatusBadge } from '@/components/invitation-status-badge'
 import type { InvitationWithDetails } from '@/lib/types/organization'
@@ -60,6 +60,8 @@ export function AdminDevDirectory({ devs, pendingInvitations }: AdminDevDirector
   const [inviteEmail, setInviteEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const handleInvite = async () => {
     setIsSubmitting(true)
@@ -75,7 +77,17 @@ export function AdminDevDirectory({ devs, pendingInvitations }: AdminDevDirector
     }
 
     setIsInviteOpen(false)
+    const email = inviteEmail
     setInviteEmail('')
+    setSuccessMessage(`Invitation sent to ${email}. Copy the link from pending invitations below.`)
+    setTimeout(() => setSuccessMessage(null), 5000)
+  }
+
+  const handleCopyLink = async (token: string) => {
+    const url = `${window.location.origin}/invite/${token}`
+    await navigator.clipboard.writeText(url)
+    setCopiedId(token)
+    setTimeout(() => setCopiedId(null), 2000)
   }
 
   const handleRevoke = async (invitationId: string) => {
@@ -106,6 +118,13 @@ export function AdminDevDirectory({ devs, pendingInvitations }: AdminDevDirector
 
   return (
     <div className="space-y-4">
+      {/* Success Message */}
+      {successMessage && (
+        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          {successMessage}
+        </div>
+      )}
+
       {/* Search and Filters */}
       <Card>
         <CardContent className="py-4">
@@ -306,6 +325,14 @@ export function AdminDevDirectory({ devs, pendingInvitations }: AdminDevDirector
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleCopyLink(inv.token)}>
+                      {copiedId === inv.token ? (
+                        <Check className="h-4 w-4 mr-1 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4 mr-1" />
+                      )}
+                      {copiedId === inv.token ? 'Copied!' : 'Copy Link'}
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleResend(inv.id)}>
                       <RefreshCw className="h-4 w-4 mr-1" />
                       Resend
