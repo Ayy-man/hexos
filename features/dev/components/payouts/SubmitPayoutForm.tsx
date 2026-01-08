@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, FileText, X, Loader2 } from 'lucide-react';
+import { Upload, FileText, X, Loader2, Building2, Mail, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { submitPayoutAction } from '@/features/finances/actions/payoutActions';
+import type { PaymentPreference } from '@/lib/types/payouts';
 
 interface Project {
   id: string;
@@ -42,6 +43,18 @@ export function SubmitPayoutForm({ projects }: SubmitPayoutFormProps) {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+
+  // Payment preference
+  const [paymentPreference, setPaymentPreference] = useState<PaymentPreference>('wire_transfer');
+
+  // Wire transfer details
+  const [wireRecipientName, setWireRecipientName] = useState('');
+  const [wireSwiftCode, setWireSwiftCode] = useState('');
+  const [wireAccountNumber, setWireAccountNumber] = useState('');
+  const [wireBankName, setWireBankName] = useState('');
+  const [wireBankAddress, setWireBankAddress] = useState('');
+  const [wireRecipientAddress, setWireRecipientAddress] = useState('');
+  const [wireRecipientCountry, setWireRecipientCountry] = useState('');
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -98,7 +111,32 @@ export function SubmitPayoutForm({ projects }: SubmitPayoutFormProps) {
       return;
     }
 
-    if (!invoiceFile) {
+    // Validate wire transfer details if wire_transfer selected
+    if (paymentPreference === 'wire_transfer') {
+      if (!wireRecipientName.trim()) {
+        toast.error('Please enter recipient name');
+        return;
+      }
+      if (!wireSwiftCode.trim()) {
+        toast.error('Please enter SWIFT/BIC code');
+        return;
+      }
+      if (!wireAccountNumber.trim()) {
+        toast.error('Please enter IBAN or account number');
+        return;
+      }
+      if (!wireBankName.trim()) {
+        toast.error('Please enter bank name');
+        return;
+      }
+      if (!wireRecipientCountry.trim()) {
+        toast.error('Please enter recipient country');
+        return;
+      }
+    }
+
+    // Invoice file is optional for emailed_invoice preference
+    if (paymentPreference === 'wire_transfer' && !invoiceFile) {
       toast.error('Please upload your invoice');
       return;
     }
@@ -111,7 +149,22 @@ export function SubmitPayoutForm({ projects }: SubmitPayoutFormProps) {
     formData.append('amount', amount);
     formData.append('invoice_number', invoiceNumber);
     formData.append('invoice_date', invoiceDate);
-    formData.append('invoice_file', invoiceFile);
+    formData.append('payment_preference', paymentPreference);
+
+    if (invoiceFile) {
+      formData.append('invoice_file', invoiceFile);
+    }
+
+    // Wire transfer details
+    if (paymentPreference === 'wire_transfer') {
+      formData.append('wire_recipient_name', wireRecipientName);
+      formData.append('wire_swift_code', wireSwiftCode);
+      formData.append('wire_account_number', wireAccountNumber);
+      formData.append('wire_bank_name', wireBankName);
+      formData.append('wire_bank_address', wireBankAddress);
+      formData.append('wire_recipient_address', wireRecipientAddress);
+      formData.append('wire_recipient_country', wireRecipientCountry);
+    }
 
     const result = await submitPayoutAction(formData);
 
@@ -192,9 +245,186 @@ export function SubmitPayoutForm({ projects }: SubmitPayoutFormProps) {
               </div>
             </div>
 
+            {/* Payment Preference */}
+            <div className="space-y-3">
+              <Label>How would you like to receive payment? *</Label>
+              <div className="grid gap-3">
+                <div
+                  className={cn(
+                    'flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors',
+                    paymentPreference === 'wire_transfer'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-muted-foreground/50'
+                  )}
+                  onClick={() => setPaymentPreference('wire_transfer')}
+                >
+                  <div className="mt-0.5">
+                    <div
+                      className={cn(
+                        'flex h-4 w-4 items-center justify-center rounded-full border-2',
+                        paymentPreference === 'wire_transfer'
+                          ? 'border-primary'
+                          : 'border-muted-foreground/50'
+                      )}
+                    >
+                      {paymentPreference === 'wire_transfer' && (
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Wire Transfer</span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Receive payment via international wire transfer (1-3 business days)
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={cn(
+                    'flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors',
+                    paymentPreference === 'emailed_invoice'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-muted-foreground/50'
+                  )}
+                  onClick={() => setPaymentPreference('emailed_invoice')}
+                >
+                  <div className="mt-0.5">
+                    <div
+                      className={cn(
+                        'flex h-4 w-4 items-center justify-center rounded-full border-2',
+                        paymentPreference === 'emailed_invoice'
+                          ? 'border-primary'
+                          : 'border-muted-foreground/50'
+                      )}
+                    >
+                      {paymentPreference === 'emailed_invoice' && (
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">I&apos;ll email my invoice</span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Email your invoice to us and we&apos;ll process payment (1-3 business days)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Wire Transfer Details */}
+            {paymentPreference === 'wire_transfer' && (
+              <div className="space-y-4 rounded-lg border border-dashed bg-muted/30 p-4">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">Wire Transfer Details</span>
+                </div>
+
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wire_recipient_name">Recipient Name *</Label>
+                    <Input
+                      id="wire_recipient_name"
+                      value={wireRecipientName}
+                      onChange={(e) => setWireRecipientName(e.target.value)}
+                      placeholder="Full name as it appears on bank account"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="wire_swift_code">SWIFT/BIC Code *</Label>
+                      <Input
+                        id="wire_swift_code"
+                        value={wireSwiftCode}
+                        onChange={(e) => setWireSwiftCode(e.target.value.toUpperCase())}
+                        placeholder="e.g., HDFCINBB"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="wire_account_number">IBAN / Account Number *</Label>
+                      <Input
+                        id="wire_account_number"
+                        value={wireAccountNumber}
+                        onChange={(e) => setWireAccountNumber(e.target.value)}
+                        placeholder="IBAN or account number"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="wire_bank_name">Bank Name *</Label>
+                      <Input
+                        id="wire_bank_name"
+                        value={wireBankName}
+                        onChange={(e) => setWireBankName(e.target.value)}
+                        placeholder="e.g., HDFC Bank"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="wire_recipient_country">Country *</Label>
+                      <Input
+                        id="wire_recipient_country"
+                        value={wireRecipientCountry}
+                        onChange={(e) => setWireRecipientCountry(e.target.value)}
+                        placeholder="e.g., India"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="wire_bank_address">Bank Address</Label>
+                    <Input
+                      id="wire_bank_address"
+                      value={wireBankAddress}
+                      onChange={(e) => setWireBankAddress(e.target.value)}
+                      placeholder="Bank branch address (optional)"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="wire_recipient_address">Your Address</Label>
+                    <Input
+                      id="wire_recipient_address"
+                      value={wireRecipientAddress}
+                      onChange={(e) => setWireRecipientAddress(e.target.value)}
+                      placeholder="Your address (optional)"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Email Invoice Instructions */}
+            {paymentPreference === 'emailed_invoice' && (
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                <div className="flex gap-3">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                  <div className="space-y-2">
+                    <p className="font-medium text-blue-400">Email your invoice to:</p>
+                    <p className="font-mono text-sm">ayman@hexonasystems.com</p>
+                    <p className="text-sm text-muted-foreground">
+                      Please include your name and this payout request description in the email.
+                      Processing typically takes 1-3 business days after we receive your invoice.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Invoice Upload */}
             <div className="space-y-2">
-              <Label>Your Invoice *</Label>
+              <Label>
+                Your Invoice {paymentPreference === 'wire_transfer' ? '*' : '(optional)'}
+              </Label>
               <div
                 className={cn(
                   'relative rounded-lg border-2 border-dashed p-6 transition-colors',

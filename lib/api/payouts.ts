@@ -6,6 +6,8 @@ export type {
   PayoutStatus,
   PayoutType,
   PaymentMethod,
+  PaymentPreference,
+  WireTransferDetails,
   Payout,
   PayoutWithDetails,
   PayoutFilters,
@@ -17,6 +19,7 @@ export type {
 export { formatPayoutStatus, getPayoutStatusColor } from './payouts.shared';
 
 import type {
+  Payout,
   PayoutStatus,
   PayoutFilters,
   SubmitPayoutInput,
@@ -288,6 +291,16 @@ export async function submitPayout(
       invoice_date: input.invoice_date,
       submitted_by: input.submitted_by,
       submitted_at: new Date().toISOString(),
+      // Payment preference
+      payment_preference: input.payment_preference,
+      // Wire transfer details
+      wire_recipient_name: input.wire_details?.recipient_name || null,
+      wire_swift_code: input.wire_details?.swift_code || null,
+      wire_account_number: input.wire_details?.account_number || null,
+      wire_bank_name: input.wire_details?.bank_name || null,
+      wire_bank_address: input.wire_details?.bank_address || null,
+      wire_recipient_address: input.wire_details?.recipient_address || null,
+      wire_recipient_country: input.wire_details?.recipient_country || null,
     })
     .select()
     .single();

@@ -12,6 +12,10 @@ import {
   ExternalLink,
   MoreVertical,
   Download,
+  Building2,
+  Mail,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,6 +67,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
   const [payouts, setPayouts] = useState(initialPayouts);
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [loading, setLoading] = useState(false);
+  const [expandedPayout, setExpandedPayout] = useState<string | null>(null);
 
   // Dialogs
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; payout: PayoutWithDetails | null }>({
@@ -242,88 +247,178 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
         <CardContent>
           {filteredPayouts.length > 0 ? (
             <div className="space-y-3">
-              {filteredPayouts.map((payout) => (
-                <div
-                  key={payout.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Send className="h-5 w-5 text-primary" />
+              {filteredPayouts.map((payout) => {
+                const isExpanded = expandedPayout === payout.id;
+                const hasWireDetails = payout.payment_preference === 'wire_transfer' && payout.wire_swift_code;
+
+                return (
+                  <div key={payout.id} className="rounded-lg border">
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                          {payout.payment_preference === 'emailed_invoice' ? (
+                            <Mail className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Building2 className="h-5 w-5 text-primary" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{payout.submitter?.name || 'Unknown Dev'}</p>
+                            <Badge variant="outline" className="text-xs">
+                              {payout.payment_preference === 'emailed_invoice' ? 'Email Invoice' : 'Wire Transfer'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {payout.project?.project_name || 'No project'}
+                            {payout.description && ` - ${payout.description}`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-medium">{formatCurrency(payout.amount)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {payout.submitted_at
+                              ? new Date(payout.submitted_at).toLocaleDateString()
+                              : new Date(payout.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        <Badge className={getPayoutStatusColor(payout.status)}>
+                          {formatPayoutStatus(payout.status)}
+                        </Badge>
+
+                        {hasWireDetails && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setExpandedPayout(isExpanded ? null : payout.id)}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {payout.contractor_invoice_url && (
+                              <>
+                                <DropdownMenuItem asChild>
+                                  <a
+                                    href={payout.contractor_invoice_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    View Invoice
+                                  </a>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+
+                            {payout.status === 'pending' && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleApprove(payout)} disabled={loading}>
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => setRejectDialog({ open: true, payout })}
+                                  className="text-destructive"
+                                >
+                                  <XCircle className="mr-2 h-4 w-4" />
+                                  Reject
+                                </DropdownMenuItem>
+                              </>
+                            )}
+
+                            {payout.status === 'approved' && (
+                              <DropdownMenuItem onClick={() => setPayDialog({ open: true, payout })}>
+                                <DollarSign className="mr-2 h-4 w-4" />
+                                Mark as Paid
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{payout.submitter?.name || 'Unknown Dev'}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {payout.project?.project_name || 'No project'}
-                        {payout.description && ` - ${payout.description}`}
-                      </p>
-                    </div>
+
+                    {/* Wire Transfer Details (Expanded) */}
+                    {isExpanded && hasWireDetails && (
+                      <div className="border-t bg-muted/30 p-4">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div>
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              Recipient Name
+                            </p>
+                            <p className="font-mono text-sm">{payout.wire_recipient_name}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              Country
+                            </p>
+                            <p className="font-mono text-sm">{payout.wire_recipient_country}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              SWIFT/BIC Code
+                            </p>
+                            <p className="font-mono text-sm">{payout.wire_swift_code}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              IBAN / Account Number
+                            </p>
+                            <p className="font-mono text-sm">{payout.wire_account_number}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              Bank Name
+                            </p>
+                            <p className="font-mono text-sm">{payout.wire_bank_name}</p>
+                          </div>
+                          {payout.wire_bank_address && (
+                            <div>
+                              <p className="text-xs font-medium uppercase text-muted-foreground">
+                                Bank Address
+                              </p>
+                              <p className="font-mono text-sm">{payout.wire_bank_address}</p>
+                            </div>
+                          )}
+                          {payout.wire_recipient_address && (
+                            <div className="md:col-span-2">
+                              <p className="text-xs font-medium uppercase text-muted-foreground">
+                                Recipient Address
+                              </p>
+                              <p className="font-mono text-sm">{payout.wire_recipient_address}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Email Invoice Note */}
+                    {payout.payment_preference === 'emailed_invoice' && !payout.contractor_invoice_url && payout.status === 'pending' && (
+                      <div className="border-t bg-blue-500/5 px-4 py-2">
+                        <p className="text-xs text-blue-400">
+                          Developer will email invoice to ayman@hexonasystems.com
+                        </p>
+                      </div>
+                    )}
                   </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-medium">{formatCurrency(payout.amount)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {payout.submitted_at
-                          ? new Date(payout.submitted_at).toLocaleDateString()
-                          : new Date(payout.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    <Badge className={getPayoutStatusColor(payout.status)}>
-                      {formatPayoutStatus(payout.status)}
-                    </Badge>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {payout.contractor_invoice_url && (
-                          <>
-                            <DropdownMenuItem asChild>
-                              <a
-                                href={payout.contractor_invoice_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <FileText className="mr-2 h-4 w-4" />
-                                View Invoice
-                              </a>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                          </>
-                        )}
-
-                        {payout.status === 'pending' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleApprove(payout)} disabled={loading}>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Approve
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => setRejectDialog({ open: true, payout })}
-                              className="text-destructive"
-                            >
-                              <XCircle className="mr-2 h-4 w-4" />
-                              Reject
-                            </DropdownMenuItem>
-                          </>
-                        )}
-
-                        {payout.status === 'approved' && (
-                          <DropdownMenuItem onClick={() => setPayDialog({ open: true, payout })}>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            Mark as Paid
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">

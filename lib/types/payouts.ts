@@ -19,6 +19,18 @@ export type PayoutType = 'commission' | 'dev_payment' | 'contractor' | 'reimburs
 
 export type PaymentMethod = 'bank_transfer' | 'paypal' | 'wise' | 'crypto' | 'other';
 
+export type PaymentPreference = 'wire_transfer' | 'emailed_invoice';
+
+export interface WireTransferDetails {
+  recipient_name: string;
+  swift_code: string;
+  account_number: string; // IBAN or account number
+  bank_name: string;
+  bank_address?: string;
+  recipient_address?: string;
+  recipient_country: string;
+}
+
 export interface Payout {
   id: string;
   created_at: string;
@@ -45,6 +57,16 @@ export interface Payout {
   paid_at: string | null;
   paid_by: string | null;
   notes: string | null;
+  // Payment preference
+  payment_preference: PaymentPreference | null;
+  // Wire transfer details
+  wire_recipient_name: string | null;
+  wire_swift_code: string | null;
+  wire_account_number: string | null;
+  wire_bank_name: string | null;
+  wire_bank_address: string | null;
+  wire_recipient_address: string | null;
+  wire_recipient_country: string | null;
 }
 
 export interface PayoutWithDetails extends Payout {
@@ -76,10 +98,14 @@ export interface SubmitPayoutInput {
   project_id: string | null;
   description: string;
   amount: number; // in cents
-  invoice_file_url: string;
+  invoice_file_url: string | null;
   invoice_number: string;
   invoice_date: string;
   submitted_by: string;
+  // Payment preference
+  payment_preference: PaymentPreference;
+  // Wire transfer details (required if payment_preference = 'wire_transfer')
+  wire_details?: WireTransferDetails;
 }
 
 export interface PaymentDetails {
