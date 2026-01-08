@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { InstallPrompt } from "@/components/install-prompt";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "./globals.css";
 
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body
         className={`${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegister />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
