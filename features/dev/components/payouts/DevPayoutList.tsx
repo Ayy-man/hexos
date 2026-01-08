@@ -69,7 +69,7 @@ export function DevPayoutList({ payouts }: DevPayoutListProps) {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Pending</CardDescription>
@@ -103,22 +103,22 @@ export function DevPayoutList({ payouts }: DevPayoutListProps) {
               {payouts.map((payout) => (
                 <div
                   key={payout.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
+                  className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     {getStatusIcon(payout.status)}
-                    <div>
-                      <p className="font-medium">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">
                         {payout.project?.project_name || 'No project'}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground truncate">
                         {payout.description || 'Payment request'}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
+                  <div className="flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="sm:text-right">
                       <p className="font-medium">{formatCurrency(payout.amount)}</p>
                       <p className="text-xs text-muted-foreground">
                         {payout.submitted_at
@@ -127,12 +127,12 @@ export function DevPayoutList({ payouts }: DevPayoutListProps) {
                       </p>
                     </div>
 
-                    <Badge className={getPayoutStatusColor(payout.status)}>
+                    <Badge className={cn(getPayoutStatusColor(payout.status), 'shrink-0')}>
                       {formatPayoutStatus(payout.status)}
                     </Badge>
 
                     {payout.contractor_invoice_url && (
-                      <Button variant="ghost" size="icon" asChild>
+                      <Button variant="ghost" size="icon" asChild className="shrink-0">
                         <a
                           href={payout.contractor_invoice_url}
                           target="_blank"

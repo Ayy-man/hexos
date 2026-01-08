@@ -288,7 +288,7 @@ export function RetainerManagement({ retainers: initialRetainers, projects }: Re
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Active Retainers</CardDescription>
@@ -584,39 +584,39 @@ function RetainerRow({
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-3 sm:gap-4">
         <RefreshCw
           className={cn(
-            'h-5 w-5',
+            'h-5 w-5 shrink-0',
             retainer.status === 'active' && 'text-green-500',
             retainer.status === 'paused' && 'text-yellow-500',
             retainer.status === 'cancelled' && 'text-muted-foreground'
           )}
         />
-        <div>
-          <p className="font-medium">{retainer.client_name}</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="min-w-0">
+          <p className="font-medium truncate">{retainer.client_name}</p>
+          <p className="text-sm text-muted-foreground truncate">
             {retainer.description}
             {retainer.projects?.project_name && ` • ${retainer.projects.project_name}`}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="text-right">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="sm:text-right">
           <p className="font-medium">{formatCurrency(retainer.amount)}</p>
           <p className="text-xs text-muted-foreground">{FREQUENCY_LABELS[retainer.billing_frequency]}</p>
         </div>
 
         {retainer.status === 'active' && (
-          <div className="text-right">
+          <div className="hidden sm:block sm:text-right">
             <p className="text-sm text-muted-foreground">Next invoice</p>
             <p className="text-sm">{new Date(retainer.next_invoice_date).toLocaleDateString()}</p>
           </div>
         )}
 
-        <Badge className={statusColors[retainer.status]}>{retainer.status}</Badge>
+        <Badge className={cn(statusColors[retainer.status], 'shrink-0')}>{retainer.status}</Badge>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

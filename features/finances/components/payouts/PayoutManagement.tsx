@@ -203,7 +203,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Pending Review</CardDescription>
@@ -281,31 +281,31 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
 
                 return (
                   <div key={payout.id} className="rounded-lg border">
-                    <div className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary/10 shrink-0">
                           {payout.payment_preference === 'emailed_invoice' ? (
-                            <Mail className="h-5 w-5 text-primary" />
+                            <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                           ) : (
-                            <Building2 className="h-5 w-5 text-primary" />
+                            <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                           )}
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{payout.submitter?.name || 'Unknown Dev'}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {payout.payment_preference === 'emailed_invoice' ? 'Email Invoice' : 'Wire Transfer'}
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium truncate">{payout.submitter?.name || 'Unknown Dev'}</p>
+                            <Badge variant="outline" className="text-xs shrink-0">
+                              {payout.payment_preference === 'emailed_invoice' ? 'Email' : 'Wire'}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-muted-foreground truncate">
                             {payout.project?.project_name || 'No project'}
                             {payout.description && ` - ${payout.description}`}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
+                      <div className="flex items-center justify-between gap-2 sm:gap-4">
+                        <div className="sm:text-right">
                           <p className="font-medium">{formatCurrency(payout.amount)}</p>
                           <p className="text-xs text-muted-foreground">
                             {payout.submitted_at
@@ -314,7 +314,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
                           </p>
                         </div>
 
-                        <Badge className={getPayoutStatusColor(payout.status)}>
+                        <Badge className={cn(getPayoutStatusColor(payout.status), 'shrink-0')}>
                           {formatPayoutStatus(payout.status)}
                         </Badge>
 
@@ -322,6 +322,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="shrink-0"
                             onClick={() => setExpandedPayout(isExpanded ? null : payout.id)}
                           >
                             {isExpanded ? (

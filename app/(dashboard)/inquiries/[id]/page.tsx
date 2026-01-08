@@ -510,13 +510,15 @@ export default async function InquiryDetailPage({
       <Tabs defaultValue="overview" className="flex-1 flex flex-col min-h-0">
         <div className="flex-shrink-0 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           <TabsList className="w-max min-w-full md:w-auto">
-            <TabsTrigger value="overview" className="flex items-center gap-2 min-w-[100px]">
-              <FileText className="h-4 w-4" />
-              Overview
+            <TabsTrigger value="overview" className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
+              <FileText className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Info</span>
             </TabsTrigger>
-            <TabsTrigger value="document" className="flex items-center gap-2 min-w-[100px]">
-              <MessageSquare className="h-4 w-4" />
-              Document
+            <TabsTrigger value="document" className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
+              <MessageSquare className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Document</span>
+              <span className="sm:hidden">Doc</span>
               {(() => {
                 const unresolvedCount = [...internalComments, ...dfyComments].filter(c => !c.resolved && !c.parent_id).length
                 return unresolvedCount > 0 ? (
@@ -527,11 +529,11 @@ export default async function InquiryDetailPage({
               })()}
             </TabsTrigger>
             {showProposalTab && (
-              <TabsTrigger value="proposal" className="flex items-center gap-2 min-w-[100px]">
-                <Send className="h-4 w-4" />
+              <TabsTrigger value="proposal" className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
+                <Send className="h-4 w-4 shrink-0" />
                 Proposal
                 {proposalSubmitted && (
-                  <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
+                  <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800 hidden sm:inline-flex">
                     Sent
                   </Badge>
                 )}
@@ -546,17 +548,19 @@ export default async function InquiryDetailPage({
               </TabsTrigger>
             )}
             {showMyVersionTab && (
-              <TabsTrigger value="my-version" className="flex items-center gap-2 min-w-[100px]">
-                <Lock className="h-4 w-4" />
-                My Version
+              <TabsTrigger value="my-version" className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
+                <Lock className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">My Version</span>
+                <span className="sm:hidden">Mine</span>
               </TabsTrigger>
             )}
             {showDeliverablesTab && (
-              <TabsTrigger value="deliverables" className="flex items-center gap-2 min-w-[100px]">
-                <Package className="h-4 w-4" />
-                Deliverables
+              <TabsTrigger value="deliverables" className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
+                <Package className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">Deliverables</span>
+                <span className="sm:hidden">Items</span>
                 {deliverablesStatus === 'approved' && (
-                  <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800">
+                  <Badge variant="outline" className="ml-1 text-xs bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 border-green-200 dark:border-green-800 hidden sm:inline-flex">
                     Approved
                   </Badge>
                 )}

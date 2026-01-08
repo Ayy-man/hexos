@@ -96,9 +96,9 @@ export function ProjectTimeline({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="w-full py-6 overflow-x-auto">
+      <div className="w-full py-6 overflow-x-auto scrollbar-hide">
         {/* Timeline Container */}
-        <div className="relative flex items-start justify-between min-w-[600px] max-w-4xl mx-auto">
+        <div className="relative flex items-start justify-between min-w-max md:min-w-[600px] max-w-4xl mx-auto px-4 md:px-0 gap-2 md:gap-0">
           {/* Background connector line */}
           <div className="absolute top-4 left-0 right-0 h-[2px] bg-gradient-to-r from-muted via-muted to-muted/30" />
 
@@ -127,11 +127,11 @@ export function ProjectTimeline({
                       className={cn(
                         'relative flex items-center justify-center transition-all duration-300',
                         // Completed: subtle filled dot
-                        isCompleted && 'w-8 h-8',
+                        isCompleted && 'w-6 h-6 md:w-8 md:h-8',
                         // Current: larger with glow
-                        isCurrent && 'w-10 h-10',
+                        isCurrent && 'w-8 h-8 md:w-10 md:h-10',
                         // Upcoming: hollow dot
-                        isUpcoming && 'w-8 h-8'
+                        isUpcoming && 'w-6 h-6 md:w-8 md:h-8'
                       )}
                     >
                       {/* Glow effect for current */}
@@ -144,11 +144,11 @@ export function ProjectTimeline({
                         className={cn(
                           'relative rounded-full flex items-center justify-center transition-all duration-300',
                           // Completed: solid background with cyan tint (covers the line)
-                          isCompleted && 'w-6 h-6 bg-background border-2 border-cyan-500/50',
+                          isCompleted && 'w-5 h-5 md:w-6 md:h-6 bg-background border-2 border-cyan-500/50',
                           // Current: larger, glowing border
-                          isCurrent && 'w-8 h-8 bg-cyan-500 border-2 border-cyan-400 shadow-lg shadow-cyan-500/30',
+                          isCurrent && 'w-6 h-6 md:w-8 md:h-8 bg-cyan-500 border-2 border-cyan-400 shadow-lg shadow-cyan-500/30',
                           // Upcoming: hollow, dashed border
-                          isUpcoming && 'w-6 h-6 bg-background border-2 border-dashed border-muted-foreground/30'
+                          isUpcoming && 'w-5 h-5 md:w-6 md:h-6 bg-background border-2 border-dashed border-muted-foreground/30'
                         )}
                       >
                         {/* Checkmark for completed */}
@@ -174,10 +174,10 @@ export function ProjectTimeline({
                     </div>
 
                     {/* Label */}
-                    <div className="mt-3 flex flex-col items-center">
+                    <div className="mt-2 md:mt-3 flex flex-col items-center min-w-[50px] md:min-w-[70px]">
                       <span
                         className={cn(
-                          'text-xs font-medium transition-colors',
+                          'text-[10px] md:text-xs font-medium transition-colors text-center',
                           isCompleted && 'text-muted-foreground/60',
                           isCurrent && 'text-cyan-500 dark:text-cyan-400',
                           isUpcoming && 'text-muted-foreground/40'

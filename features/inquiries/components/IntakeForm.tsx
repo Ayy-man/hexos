@@ -209,9 +209,9 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex gap-6">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Form Panel */}
-        <div className={`flex-1 ${showCopilot ? 'max-w-[60%]' : 'max-w-2xl mx-auto'}`}>
+        <div className={`flex-1 ${showCopilot ? 'lg:max-w-[60%]' : 'max-w-2xl mx-auto'}`}>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -304,7 +304,7 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
 
         {/* AI Copilot Sidebar - only on detail pages */}
         {showCopilot && (
-          <div className="w-[40%] min-w-[350px]">
+          <div className="w-full lg:w-[40%] lg:min-w-[350px]">
             <AICopilotSidebar
               currentPath={currentPath}
               onSetField={handleSetField}
