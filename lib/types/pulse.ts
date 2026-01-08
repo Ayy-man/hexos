@@ -141,6 +141,7 @@ export interface UpdateTaskInput {
 
 export type PulseEventType =
   | 'task_completed'
+  | 'focus_completed'
   | 'linked_task_completed'
   | 'action_completed'
   | 'target_completed'
@@ -149,6 +150,7 @@ export type PulseEventType =
 
 export const PULSE_POINTS: Record<PulseEventType, number> = {
   task_completed: 3,
+  focus_completed: 10,
   linked_task_completed: 5,
   action_completed: 10,
   target_completed: 25,

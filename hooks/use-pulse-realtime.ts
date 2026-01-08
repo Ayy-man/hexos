@@ -45,7 +45,12 @@ export function usePulseRealtime({
     const todayTasks = taskList.filter(t => t.date === today)
     const completedTasks = todayTasks.filter(t => t.completed_at)
     const todayPoints = completedTasks.reduce((sum, t) => {
-      const points = t.linked_action_id ? PULSE_POINTS.linked_task_completed : PULSE_POINTS.task_completed
+      // Focus tasks = 10 pts, linked tasks = 5 pts, regular = 3 pts
+      const points = t.is_focus
+        ? 10
+        : t.linked_action_id
+          ? PULSE_POINTS.linked_task_completed
+          : PULSE_POINTS.task_completed
       return sum + points
     }, 0)
 

@@ -460,13 +460,8 @@ export async function completeFocusTask(
     return false
   }
 
-  // Log points - focus items get more points
-  // Using 'task_completed' event type for now (would ideally have 'focus_completed')
-  if (task?.linked_action_id) {
-    await logPulseEvent(userId, 'linked_task_completed', 'task', taskId)
-  } else {
-    await logPulseEvent(userId, 'task_completed', 'task', taskId)
-  }
+  // Log points - focus items get 10 pts
+  await logPulseEvent(userId, 'focus_completed', 'task', taskId)
 
   return true
 }

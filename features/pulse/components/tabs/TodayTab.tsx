@@ -44,8 +44,10 @@ export function TodayTab({
     setOptimisticPoints(0)
   }, [stats.todayPoints])
 
-  const completedTasks = tasks.filter((t) => t.completed_at).length
-  const remainingTasks = tasks.filter((t) => !t.completed_at).length
+  // Count ALL tasks (regular + focus)
+  const allTasks = [...tasks, ...focusTasks]
+  const completedTasks = allTasks.filter((t) => t.completed_at).length
+  const remainingTasks = allTasks.filter((t) => !t.completed_at).length
 
   // Wrap onCompleteFocus with optimistic update
   const handleCompleteFocus = useCallback(async (taskId: string) => {
