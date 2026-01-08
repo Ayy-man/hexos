@@ -37,6 +37,10 @@ import {
   Code,
   LayoutDashboard,
   Target,
+  Shield,
+  Building2,
+  Send,
+  ClipboardList,
 } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -125,6 +129,13 @@ function getQuickActions(role: UserRole): SearchResult[] {
         title: 'Case Studies',
         subtitle: 'Portfolio of work',
         link: '/case-studies',
+      },
+      {
+        id: 'nav-suggestions',
+        type: 'suggestion',
+        title: 'Suggestions',
+        subtitle: 'User and internal feedback',
+        link: '/suggestions',
       }
     )
   }
@@ -152,6 +163,81 @@ function getQuickActions(role: UserRole): SearchResult[] {
         title: 'Blockers',
         subtitle: 'Identify project bottlenecks',
         link: '/admin/blockers',
+      },
+      {
+        id: 'nav-time-reports',
+        type: 'report',
+        title: 'Time Reports',
+        subtitle: 'Tracked time and effort',
+        link: '/admin/time-reports',
+      },
+      {
+        id: 'nav-admin-devs',
+        type: 'team',
+        title: 'Developers',
+        subtitle: 'Manage developer network',
+        link: '/admin/devs',
+      },
+      {
+        id: 'nav-admin-ops',
+        type: 'opportunity',
+        title: 'Opportunities',
+        subtitle: 'Manage biddable tasks',
+        link: '/admin/opportunities',
+      }
+    )
+  }
+
+  // Admin Specific (Teams)
+  if (role === 'admin') {
+    actions.push(
+      {
+        id: 'nav-admin-team',
+        type: 'profile',
+        title: 'Hexona Team',
+        subtitle: 'Internal staff management',
+        link: '/admin/team',
+      },
+      {
+        id: 'nav-admin-partners',
+        type: 'partner',
+        title: 'DFY Partners',
+        subtitle: 'Manage agency partners',
+        link: '/admin/partners',
+      },
+      {
+        id: 'nav-admin-apps',
+        type: 'application',
+        title: 'Applications',
+        subtitle: 'Developer and partner signups',
+        link: '/admin/applications',
+      },
+      {
+        id: 'nav-admin-settings-team',
+        type: 'team',
+        title: 'Team Settings',
+        subtitle: 'Manage organization members',
+        link: '/settings/team',
+      }
+    )
+  }
+
+  // DFY Specific
+  if (role === 'dfy') {
+    actions.push(
+      {
+        id: 'nav-dfy-submit',
+        type: 'inquiry',
+        title: 'Submit Inquiry',
+        subtitle: 'Submit a new deal lead',
+        link: '/inquiries/new',
+      },
+      {
+        id: 'nav-dfy-settings-team',
+        type: 'team',
+        title: 'Team Settings',
+        subtitle: 'Manage your organization',
+        link: '/dashboard/dfy/settings/team',
       }
     )
   }
@@ -179,6 +265,13 @@ function getQuickActions(role: UserRole): SearchResult[] {
         title: 'My Profile',
         subtitle: 'Public developer profile',
         link: '/settings/developer',
+      },
+      {
+        id: 'nav-dev-settings-team',
+        type: 'team',
+        title: 'Team Settings',
+        subtitle: 'Manage your organization',
+        link: '/dashboard/dev/settings/team',
       }
     )
   }
@@ -213,6 +306,9 @@ const typeIcons: Record<SearchResult['type'], React.ReactNode> = {
   team: <Users className="h-4 w-4 text-blue-400" />,
   settings: <Settings className="h-4 w-4 text-slate-500" />,
   profile: <Code className="h-4 w-4 text-pink-500" />,
+  partner: <Building2 className="h-4 w-4 text-amber-600" />,
+  application: <ClipboardList className="h-4 w-4 text-blue-600" />,
+  report: <Clock className="h-4 w-4 text-indigo-400" />,
 }
 
 interface CommandPaletteProps {
@@ -262,7 +358,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
   useEffect(() => {
     let cancelled = false
 
-    if (!debouncedQuery.trim()) {
+    if (!debouncedQuery.trim() || actionState !== 'none') {
       setResults(null)
       setLoading(false)
       return

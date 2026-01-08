@@ -23,6 +23,9 @@ export interface SearchResult {
   | 'team'
   | 'settings'
   | 'profile'
+  | 'partner'
+  | 'application'
+  | 'report'
   title: string
   subtitle: string
   link: string
