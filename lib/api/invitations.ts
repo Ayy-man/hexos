@@ -95,24 +95,37 @@ export async function getOrganizationInvitations(
  * Get all pending admin/internal invitations (Hexona team)
  */
 export async function getHexonaTeamInvitations(): Promise<InvitationWithDetails[]> {
-  const supabase = await createAdminClient()
+  console.log('[getHexonaTeamInvitations] Starting fetch...')
 
-  const { data, error } = await supabase
-    .from('invitations')
-    .select(`
-      *,
-      inviter:profiles!invitations_invited_by_fkey(id, email, name)
-    `)
-    .in('type', ['admin', 'internal'])
-    .in('status', ['pending'])
-    .order('created_at', { ascending: false })
+  try {
+    const supabase = createAdminClient()
+    console.log('[getHexonaTeamInvitations] Admin client created')
 
-  if (error) {
-    console.error('[getHexonaTeamInvitations] Error:', error)
+    const { data, error } = await supabase
+      .from('invitations')
+      .select(`
+        *,
+        inviter:profiles!invitations_invited_by_fkey(id, email, name)
+      `)
+      .in('type', ['admin', 'internal'])
+      .in('status', ['pending'])
+      .order('created_at', { ascending: false })
+
+    console.log('[getHexonaTeamInvitations] Query result:', {
+      dataCount: data?.length ?? 0,
+      error: error?.message ?? null
+    })
+
+    if (error) {
+      console.error('[getHexonaTeamInvitations] Error:', error)
+      return []
+    }
+
+    return data as InvitationWithDetails[]
+  } catch (e) {
+    console.error('[getHexonaTeamInvitations] Exception:', e)
     return []
   }
-
-  return data as InvitationWithDetails[]
 }
 
 /**
