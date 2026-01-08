@@ -1,3 +1,49 @@
+'use client';
+
+import { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 import {
   FileText,
   Plus,
@@ -11,29 +57,510 @@ import {
   User,
   Receipt,
   Calendar,
+} from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
+  addInvoice,
+  editInvoice,
+  sendInvoiceToClient,
+  voidExistingInvoice,
+  removeInvoice,
+} from '@/features/admin/actions/financialActions';
+import { formatCurrency } from '@/lib/api/financial-metrics-utils';
+import type {
+  Invoice,
+  InvoiceWithProject,
+  InvoiceStatus,
+  InvoiceLineItem,
+} from '@/lib/types/invoices';
 
-// ... (keep existing imports)
+interface Project {
+  id: string;
+  name: string;
+}
 
-// ... (keep component logic)
+interface InvoiceManagementProps {
+  invoices: InvoiceWithProject[];
+  projects: Project[];
+}
 
-return (
-  <>
-    <Card>
-      {/* ... (keep existing Card content) ... */}
-    </Card>
+const STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  paid: 'Paid',
+  void: 'Void',
+  overdue: 'Overdue',
+};
 
+const STATUS_COLORS: Record<InvoiceStatus, string> = {
+  draft: 'bg-muted text-muted-foreground',
+  sent: 'bg-warning/10 text-warning',
+  paid: 'bg-success/10 text-success',
+  void: 'bg-muted text-muted-foreground line-through',
+  overdue: 'bg-error/10 text-error',
+};
+
+interface LineItemInput {
+  description: string;
+  quantity: number;
+  unit_price: number;
+}
+
+export function InvoiceManagement({
+  invoices,
+  projects,
+}: InvoiceManagementProps) {
+  const router = useRouter();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<InvoiceWithProject | null>(
+    null
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Filter state
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterProject, setFilterProject] = useState<string>('all');
+
+  // Form state
+  const [formData, setFormData] = useState({
+    client_name: '',
+    client_email: '',
+    client_company: '',
+    project_id: '',
+    due_date: '',
+    notes: '',
+    tax_rate: 0,
+  });
+
+  const [lineItems, setLineItems] = useState<LineItemInput[]>([
+    { description: '', quantity: 1, unit_price: 0 },
+  ]);
+
+  // Filter invoices
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((inv) => {
+      if (filterStatus !== 'all' && inv.status !== filterStatus) return false;
+      if (filterProject !== 'all' && inv.project_id !== filterProject)
+        return false;
+      return true;
+    });
+  }, [invoices, filterStatus, filterProject]);
+
+  // Stats
+  const stats = useMemo(() => {
+    const total = invoices.length;
+    const draft = invoices.filter((i) => i.status === 'draft').length;
+    const sent = invoices.filter((i) => i.status === 'sent').length;
+    const paid = invoices.filter((i) => i.status === 'paid').length;
+    const outstanding = invoices
+      .filter((i) => i.status === 'sent' || i.status === 'overdue')
+      .reduce((sum, i) => sum + i.total, 0);
+
+    return { total, draft, sent, paid, outstanding };
+  }, [invoices]);
+
+  const resetForm = useCallback(() => {
+    setFormData({
+      client_name: '',
+      client_email: '',
+      client_company: '',
+      project_id: '',
+      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
+      notes: '',
+      tax_rate: 0,
+    });
+    setLineItems([{ description: '', quantity: 1, unit_price: 0 }]);
+  }, []);
+
+  const handleOpenAdd = () => {
+    resetForm();
+    setEditingInvoice(null);
+    setIsAddDialogOpen(true);
+  };
+
+  const handleOpenEdit = (invoice: InvoiceWithProject) => {
+    if (invoice.status !== 'draft') {
+      toast.error('Can only edit draft invoices');
+      return;
+    }
+
+    setEditingInvoice(invoice);
+    setFormData({
+      client_name: invoice.client_name,
+      client_email: invoice.client_email,
+      client_company: invoice.client_company || '',
+      project_id: invoice.project_id || '',
+      due_date: invoice.due_date,
+      notes: invoice.notes || '',
+      tax_rate: invoice.tax_rate,
+    });
+    setLineItems(
+      invoice.line_items.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price / 100, // Convert from cents
+      }))
+    );
+    setIsAddDialogOpen(true);
+  };
+
+  const handleAddLineItem = () => {
+    setLineItems([...lineItems, { description: '', quantity: 1, unit_price: 0 }]);
+  };
+
+  const handleRemoveLineItem = (index: number) => {
+    if (lineItems.length === 1) return;
+    setLineItems(lineItems.filter((_, i) => i !== index));
+  };
+
+  const handleLineItemChange = (
+    index: number,
+    field: keyof LineItemInput,
+    value: string | number
+  ) => {
+    const updated = [...lineItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setLineItems(updated);
+  };
+
+  const subtotal = useMemo(() => {
+    return lineItems.reduce(
+      (sum, item) => sum + item.quantity * item.unit_price * 100,
+      0
+    );
+  }, [lineItems]);
+
+  const taxAmount = Math.round(subtotal * formData.tax_rate);
+  const total = subtotal + taxAmount;
+
+  const handleSubmit = async () => {
+    if (
+      !formData.client_name ||
+      !formData.client_email ||
+      !formData.due_date ||
+      lineItems.some((item) => !item.description || item.unit_price <= 0)
+    ) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const invoiceData = {
+        client_name: formData.client_name,
+        client_email: formData.client_email,
+        client_company: formData.client_company || null,
+        project_id: formData.project_id || null,
+        due_date: formData.due_date,
+        notes: formData.notes || null,
+        tax_rate: formData.tax_rate,
+        line_items: lineItems.map((item) => ({
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: Math.round(item.unit_price * 100), // Convert to cents
+        })),
+      };
+
+      if (editingInvoice) {
+        const result = await editInvoice(editingInvoice.id, invoiceData);
+        if (result.success) {
+          toast.success('Invoice updated');
+          setIsAddDialogOpen(false);
+          resetForm();
+          router.refresh();
+        } else {
+          toast.error(result.error || 'Failed to update invoice');
+        }
+      } else {
+        const result = await addInvoice(invoiceData);
+        if (result.success) {
+          toast.success('Invoice created');
+          setIsAddDialogOpen(false);
+          resetForm();
+          router.refresh();
+        } else {
+          toast.error(result.error || 'Failed to create invoice');
+        }
+      }
+    } catch (error) {
+      toast.error('An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSend = async (invoiceId: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await sendInvoiceToClient(invoiceId);
+      if (result.success) {
+        toast.success('Invoice sent to client');
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to send invoice');
+      }
+    } catch (error) {
+      toast.error('An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVoid = async (invoiceId: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await voidExistingInvoice(invoiceId);
+      if (result.success) {
+        toast.success('Invoice voided');
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to void invoice');
+      }
+    } catch (error) {
+      toast.error('An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (invoiceId: string) => {
+    setIsSubmitting(true);
+    try {
+      const result = await removeInvoice(invoiceId);
+      if (result.success) {
+        toast.success('Invoice deleted');
+        setIsAddDialogOpen(false);
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to delete invoice');
+      }
+    } catch (error) {
+      toast.error('An error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCopyPaymentLink = (invoice: InvoiceWithProject) => {
+    const payUrl = `${window.location.origin}/pay/${invoice.id}`;
+    navigator.clipboard.writeText(payUrl);
+    toast.success('Payment link copied');
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Invoice Management
+              </CardTitle>
+              <CardDescription>
+                Create and manage client invoices
+              </CardDescription>
+            </div>
+            <Button size="sm" onClick={handleOpenAdd}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Invoice
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+            </div>
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <div className="text-2xl font-bold">{stats.draft}</div>
+              <div className="text-xs text-muted-foreground">Drafts</div>
+            </div>
+            <div className="text-center p-3 bg-warning/10 rounded-lg">
+              <div className="text-2xl font-bold text-warning">{stats.sent}</div>
+              <div className="text-xs text-muted-foreground">Sent</div>
+            </div>
+            <div className="text-center p-3 bg-success/10 rounded-lg">
+              <div className="text-2xl font-bold text-success">
+                {formatCurrency(stats.outstanding / 100)}
+              </div>
+              <div className="text-xs text-muted-foreground">Outstanding</div>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex gap-4">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="sent">Sent</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="overdue">Overdue</SelectItem>
+                <SelectItem value="void">Void</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterProject} onValueChange={setFilterProject}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Projects" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Table */}
+          {filteredInvoices.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="font-mono text-sm">
+                      {invoice.invoice_number}
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{invoice.client_name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {invoice.client_email}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {invoice.project_name || (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={STATUS_COLORS[invoice.status]}>
+                        {STATUS_LABELS[invoice.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(invoice.due_date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(invoice.total / 100)}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {invoice.status === 'draft' && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => handleOpenEdit(invoice)}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleSend(invoice.id)}
+                              >
+                                <Send className="mr-2 h-4 w-4" />
+                                Send to Client
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-error"
+                                onClick={() => handleDelete(invoice.id)}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {invoice.status === 'sent' && (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => handleCopyPaymentLink(invoice)}
+                              >
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy Payment Link
+                              </DropdownMenuItem>
+                              {invoice.stripe_hosted_url && (
+                                <DropdownMenuItem asChild>
+                                  <a
+                                    href={invoice.stripe_hosted_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    View on Stripe
+                                  </a>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-error"
+                                onClick={() => handleVoid(invoice.id)}
+                              >
+                                <Ban className="mr-2 h-4 w-4" />
+                                Void Invoice
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {invoice.status === 'paid' && (
+                            <>
+                              {invoice.stripe_pdf_url && (
+                                <DropdownMenuItem asChild>
+                                  <a
+                                    href={invoice.stripe_pdf_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Download PDF
+                                  </a>
+                                </DropdownMenuItem>
+                              )}
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <FileText className="h-12 w-12 mb-4 opacity-50" />
+              <p>No invoices yet</p>
+              <Button variant="link" onClick={handleOpenAdd}>
+                Create your first invoice
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     {/* Add/Edit Invoice Sheet */}
     <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
       <SheetContent className="w-full sm:max-w-xl md:max-w-2xl px-0 sm:px-0">
@@ -313,6 +840,6 @@ return (
         </div>
       </SheetContent>
     </Sheet>
-  </>
-);
+</>
+  );
 }
