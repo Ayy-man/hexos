@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import type { PulseDailyTask, CreateTaskInput, UpdateTaskInput } from '@/lib/types/pulse'
-import { logPulseEvent } from './pulse'
+import { logPulseEvent, deletePulseEventsBySource } from './pulse'
 
 // ============================================================================
 // CRUD Operations
@@ -95,6 +95,9 @@ export async function updateTask(
 export async function deleteTask(taskId: string): Promise<boolean> {
   const supabase = await createClient()
 
+  // Delete associated pulse events first (reverses points)
+  await deletePulseEventsBySource('task', taskId)
+
   const { error } = await supabase
     .from('pulse_daily_tasks')
     .delete()
@@ -179,8 +182,8 @@ export async function uncompleteTask(taskId: string): Promise<PulseDailyTask | n
     return null
   }
 
-  // Note: We don't remove pulse events when uncompleting
-  // Points are earned, not unearned
+  // Delete pulse events to reverse points
+  await deletePulseEventsBySource('task', taskId)
 
   return data as PulseDailyTask
 }

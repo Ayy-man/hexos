@@ -1,9 +1,18 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { PulseDailyTask, PulseStats, DailyPointsMap } from '@/lib/types/pulse'
-import { PULSE_POINTS } from '@/lib/types/pulse'
+
+interface PulseEvent {
+  id: string
+  user_id: string
+  event_type: string
+  points: number
+  source_type: string
+  source_id: string | null
+  created_at: string
+}
 
 interface UsePulseRealtimeOptions {
   userId: string
@@ -14,7 +23,9 @@ interface UsePulseRealtimeOptions {
 }
 
 /**
- * Hook to subscribe to real-time pulse task updates via Supabase Realtime
+ * Hook to subscribe to real-time pulse updates via Supabase Realtime
+ * - Subscribes to pulse_daily_tasks for task UI state
+ * - Subscribes to pulse_events for points (source of truth)
  */
 export function usePulseRealtime({
   userId,
@@ -40,42 +51,15 @@ export function usePulseRealtime({
     setHeatmapData(initialHeatmapData)
   }, [initialHeatmapData])
 
-  // Calculate stats from tasks
-  const recalculateStats = useCallback((taskList: PulseDailyTask[]) => {
-    const todayTasks = taskList.filter(t => t.date === today)
-    const completedTasks = todayTasks.filter(t => t.completed_at)
-    const todayPoints = completedTasks.reduce((sum, t) => {
-      // Focus tasks = 10 pts, linked tasks = 5 pts, regular = 3 pts
-      const points = t.is_focus
-        ? 10
-        : t.linked_action_id
-          ? PULSE_POINTS.linked_task_completed
-          : PULSE_POINTS.task_completed
-      return sum + points
-    }, 0)
-
-    setStats(prev => ({
-      ...prev,
-      todayPoints,
-      streak: prev.streak, // Keep streak from server
-      weekPoints: prev.weekPoints, // Recalculated on refresh
-    }))
-
-    // Update heatmap for today
-    setHeatmapData(prev => ({
-      ...prev,
-      [today]: todayPoints,
-    }))
-  }, [today])
-
-  // Subscribe to realtime task changes
+  // Subscribe to realtime changes
   useEffect(() => {
     if (!userId) return
 
     const supabase = createClient()
 
     const channel = supabase
-      .channel(`pulse-tasks-${userId}`)
+      .channel(`pulse-${userId}`)
+      // Task changes (for UI state: checkboxes, titles, etc.)
       .on(
         'postgres_changes',
         {
@@ -87,14 +71,10 @@ export function usePulseRealtime({
         (payload) => {
           const newTask = payload.new as PulseDailyTask
           setTasks(prev => {
-            // Don't add if already exists (optimistic update already added it)
             if (prev.some(t => t.id === newTask.id)) {
-              // Replace the optimistic version with the real one
               return prev.map(t => t.id === newTask.id ? newTask : t)
             }
-            const updated = [...prev, newTask]
-            recalculateStats(updated)
-            return updated
+            return [...prev, newTask]
           })
         }
       )
@@ -108,11 +88,7 @@ export function usePulseRealtime({
         },
         (payload) => {
           const updatedTask = payload.new as PulseDailyTask
-          setTasks(prev => {
-            const updated = prev.map(t => t.id === updatedTask.id ? updatedTask : t)
-            recalculateStats(updated)
-            return updated
-          })
+          setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t))
         }
       )
       .on(
@@ -125,11 +101,64 @@ export function usePulseRealtime({
         },
         (payload) => {
           const deletedId = (payload.old as { id: string }).id
-          setTasks(prev => {
-            const updated = prev.filter(t => t.id !== deletedId)
-            recalculateStats(updated)
-            return updated
-          })
+          setTasks(prev => prev.filter(t => t.id !== deletedId))
+        }
+      )
+      // Event changes (for points - source of truth)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pulse_events',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const event = payload.new as PulseEvent
+          const eventDate = event.created_at.split('T')[0]
+
+          // Add points to stats
+          setStats(prev => ({
+            ...prev,
+            todayPoints: eventDate === today ? prev.todayPoints + event.points : prev.todayPoints,
+            weekPoints: prev.weekPoints + event.points,
+          }))
+
+          // Update heatmap
+          if (eventDate === today) {
+            setHeatmapData(prev => ({
+              ...prev,
+              [today]: (prev[today] || 0) + event.points,
+            }))
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'pulse_events',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const event = payload.old as PulseEvent
+          const eventDate = event.created_at.split('T')[0]
+
+          // Subtract points from stats
+          setStats(prev => ({
+            ...prev,
+            todayPoints: eventDate === today ? Math.max(0, prev.todayPoints - event.points) : prev.todayPoints,
+            weekPoints: Math.max(0, prev.weekPoints - event.points),
+          }))
+
+          // Update heatmap
+          if (eventDate === today) {
+            setHeatmapData(prev => ({
+              ...prev,
+              [today]: Math.max(0, (prev[today] || 0) - event.points),
+            }))
+          }
         }
       )
       .subscribe()
@@ -137,36 +166,11 @@ export function usePulseRealtime({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [userId, recalculateStats])
-
-  // Optimistic update helpers
-  const addOptimisticTask = useCallback((task: PulseDailyTask) => {
-    setTasks(prev => [...prev, task])
-    recalculateStats([...tasks, task])
-  }, [tasks, recalculateStats])
-
-  const updateOptimisticTask = useCallback((taskId: string, updates: Partial<PulseDailyTask>) => {
-    setTasks(prev => {
-      const updated = prev.map(t => t.id === taskId ? { ...t, ...updates } : t)
-      recalculateStats(updated)
-      return updated
-    })
-  }, [recalculateStats])
-
-  const removeOptimisticTask = useCallback((taskId: string) => {
-    setTasks(prev => {
-      const updated = prev.filter(t => t.id !== taskId)
-      recalculateStats(updated)
-      return updated
-    })
-  }, [recalculateStats])
+  }, [userId, today])
 
   return {
     tasks,
     stats,
     heatmapData,
-    addOptimisticTask,
-    updateOptimisticTask,
-    removeOptimisticTask,
   }
 }

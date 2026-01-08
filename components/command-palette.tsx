@@ -25,6 +25,18 @@ import {
   ArrowRight,
   Clock,
   Loader2,
+  Zap,
+  DollarSign,
+  BarChart3,
+  Wallet,
+  Briefcase,
+  Lightbulb,
+  AlertTriangle,
+  Users,
+  Settings,
+  Code,
+  LayoutDashboard,
+  Target,
 } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -37,73 +49,129 @@ const MAX_RECENT = 5
 
 // Quick actions based on role (defined locally since it's a pure function)
 function getQuickActions(role: UserRole): SearchResult[] {
-  const actions: SearchResult[] = [
+  const actions: SearchResult[] = []
+
+  // Shared Core Navigation
+  actions.push(
+    {
+      id: 'nav-dashboard',
+      type: 'action',
+      title: 'Dashboard',
+      subtitle: 'Go to your personalized overview',
+      link: role === 'dev' ? '/dashboard/dev' : role === 'admin' ? '/dashboard/admin' : role === 'client' ? '/dashboard/client' : '/dashboard',
+    },
+    {
+      id: 'nav-pulse',
+      type: 'pulse',
+      title: 'Pulse',
+      subtitle: 'Real-time performance metrics',
+      link: '/pulse',
+    },
     {
       id: 'nav-projects',
-      type: 'action',
-      title: 'Go to Projects',
-      subtitle: 'View all projects',
+      type: 'project',
+      title: 'Projects',
+      subtitle: 'Manage all active projects',
       link: '/projects',
     },
     {
       id: 'nav-conversations',
-      type: 'action',
-      title: 'Go to Conversations',
-      subtitle: 'View all messages',
+      type: 'conversation',
+      title: 'Conversations',
+      subtitle: 'Communication and messages',
       link: '/conversations',
-    },
-  ]
+    }
+  )
 
-  // Admin/Internal/DFY actions
+  // Admin / Internal / DFY
   if (['admin', 'internal', 'dfy'].includes(role)) {
     actions.push(
       {
         id: 'nav-inquiries',
-        type: 'action',
-        title: 'Go to Inquiries',
-        subtitle: 'View all submissions',
+        type: 'inquiry',
+        title: 'Inquiries',
+        subtitle: 'Deal submissions and pipeline',
         link: '/inquiries',
       },
       {
-        id: 'new-inquiry',
-        type: 'action',
-        title: 'New Inquiry',
-        subtitle: 'Submit a new deal',
-        link: '/inquiries/new',
-      }
-    )
-  }
-
-  // Blueprints/Case Studies
-  if (['admin', 'internal', 'dfy'].includes(role)) {
-    actions.push(
-      {
         id: 'nav-blueprints',
-        type: 'action',
-        title: 'Go to Blueprints',
-        subtitle: 'Browse automation solutions',
+        type: 'blueprint',
+        title: 'Blueprints',
+        subtitle: 'Automation solutions',
         link: '/blueprints',
       },
       {
         id: 'nav-case-studies',
-        type: 'action',
-        title: 'Go to Case Studies',
-        subtitle: 'View success stories',
+        type: 'case-study',
+        title: 'Case Studies',
+        subtitle: 'Portfolio of work',
         link: '/case-studies',
       }
     )
   }
 
-  // Admin-only actions
-  if (role === 'admin') {
-    actions.push({
-      id: 'nav-settings',
-      type: 'action',
-      title: 'Go to Settings',
-      subtitle: 'Manage account settings',
-      link: '/settings',
-    })
+  // Admin / Internal Management
+  if (['admin', 'internal'].includes(role)) {
+    actions.push(
+      {
+        id: 'nav-metrics',
+        type: 'metric',
+        title: 'Metrics',
+        subtitle: 'Operational and financial stats',
+        link: '/dashboard/admin/metrics',
+      },
+      {
+        id: 'nav-finances',
+        type: 'finance',
+        title: 'Finances',
+        subtitle: 'Revenue, costs, and budgets',
+        link: '/finances',
+      },
+      {
+        id: 'nav-blockers',
+        type: 'blocker',
+        title: 'Blockers',
+        subtitle: 'Identify project bottlenecks',
+        link: '/admin/blockers',
+      }
+    )
   }
+
+  // Developer Specific
+  if (role === 'dev') {
+    actions.push(
+      {
+        id: 'nav-dev-payouts',
+        type: 'payout',
+        title: 'Payouts',
+        subtitle: 'Earnings and payments',
+        link: '/dashboard/dev/payouts',
+      },
+      {
+        id: 'nav-dev-ops',
+        type: 'opportunity',
+        title: 'Opportunities',
+        subtitle: 'Available projects for bidding',
+        link: '/opportunities',
+      },
+      {
+        id: 'nav-dev-profile',
+        type: 'profile',
+        title: 'My Profile',
+        subtitle: 'Public developer profile',
+        link: '/settings/developer',
+      }
+    )
+  }
+
+  // Unified Settings
+  actions.push({
+    id: 'nav-settings',
+    type: 'settings',
+    title: 'Settings',
+    subtitle: 'Account and interface preferences',
+    link: '/settings',
+  })
 
   return actions
 }
@@ -116,6 +184,16 @@ const typeIcons: Record<SearchResult['type'], React.ReactNode> = {
   'case-study': <BookOpen className="h-4 w-4 text-green-500" />,
   conversation: <MessageSquare className="h-4 w-4 text-orange-500" />,
   action: <ArrowRight className="h-4 w-4 text-muted-foreground" />,
+  pulse: <Zap className="h-4 w-4 text-yellow-500" />,
+  finance: <DollarSign className="h-4 w-4 text-emerald-500" />,
+  metric: <BarChart3 className="h-4 w-4 text-indigo-500" />,
+  payout: <Wallet className="h-4 w-4 text-cyan-500" />,
+  opportunity: <Briefcase className="h-4 w-4 text-amber-500" />,
+  suggestion: <Lightbulb className="h-4 w-4 text-yellow-400" />,
+  blocker: <AlertTriangle className="h-4 w-4 text-red-500" />,
+  team: <Users className="h-4 w-4 text-blue-400" />,
+  settings: <Settings className="h-4 w-4 text-slate-500" />,
+  profile: <Code className="h-4 w-4 text-pink-500" />,
 }
 
 interface CommandPaletteProps {

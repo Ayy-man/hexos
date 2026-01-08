@@ -6,7 +6,23 @@ import type { UserRole } from '@/lib/auth/types'
 // Search result types
 export interface SearchResult {
   id: string
-  type: 'project' | 'inquiry' | 'blueprint' | 'case-study' | 'conversation' | 'action'
+  type:
+  | 'project'
+  | 'inquiry'
+  | 'blueprint'
+  | 'case-study'
+  | 'conversation'
+  | 'action'
+  | 'pulse'
+  | 'finance'
+  | 'metric'
+  | 'payout'
+  | 'opportunity'
+  | 'suggestion'
+  | 'blocker'
+  | 'team'
+  | 'settings'
+  | 'profile'
   title: string
   subtitle: string
   link: string
@@ -84,11 +100,11 @@ export async function globalSearch(
       // Inquiries: search prospect_company_name, partner_name (only for admin/internal/dfy)
       ['admin', 'internal', 'dfy'].includes(role)
         ? supabase
-            .from('inquiries')
-            .select('id, prospect_company_name, partner_name, proposal_stage')
-            .or(`prospect_company_name.ilike.${searchPattern},partner_name.ilike.${searchPattern}`)
-            .eq('is_deleted', false)
-            .limit(5)
+          .from('inquiries')
+          .select('id, prospect_company_name, partner_name, proposal_stage')
+          .or(`prospect_company_name.ilike.${searchPattern},partner_name.ilike.${searchPattern}`)
+          .eq('is_deleted', false)
+          .limit(5)
         : Promise.resolve({ data: [], error: null }),
 
       // Blueprints: search name, description

@@ -37,6 +37,29 @@ export async function logPulseEvent(
   return data as PulseEvent
 }
 
+/**
+ * Delete all pulse events for a given source (used when uncompleting/deleting tasks)
+ */
+export async function deletePulseEventsBySource(
+  sourceType: PulseSourceType,
+  sourceId: string
+): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('pulse_events')
+    .delete()
+    .eq('source_type', sourceType)
+    .eq('source_id', sourceId)
+
+  if (error) {
+    console.error('[Pulse] Failed to delete events:', error)
+    return false
+  }
+
+  return true
+}
+
 // ============================================================================
 // Stats Fetching
 // ============================================================================

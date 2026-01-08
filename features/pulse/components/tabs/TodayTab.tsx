@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
 import { DailyScore } from '../DailyScore'
 import { FocusPanel } from '../FocusPanel'
 import { TaskList } from '../TaskList'
@@ -20,10 +19,6 @@ interface TodayTabProps {
   onUpdate: () => void
 }
 
-// Points per task type
-const REGULAR_TASK_POINTS = 3
-const FOCUS_TASK_POINTS = 10
-
 export function TodayTab({
   stats,
   tasks,
@@ -36,50 +31,16 @@ export function TodayTab({
   onRenameFocus,
   onUpdate,
 }: TodayTabProps) {
-  // Optimistic points tracking
-  const [optimisticPoints, setOptimisticPoints] = useState(0)
-
-  // Reset optimistic points when stats update from server
-  useEffect(() => {
-    setOptimisticPoints(0)
-  }, [stats.todayPoints])
-
   // Count ALL tasks (regular + focus)
   const allTasks = [...tasks, ...focusTasks]
   const completedTasks = allTasks.filter((t) => t.completed_at).length
   const remainingTasks = allTasks.filter((t) => !t.completed_at).length
 
-  // Wrap onCompleteFocus with optimistic update
-  const handleCompleteFocus = useCallback(async (taskId: string) => {
-    setOptimisticPoints((prev) => prev + FOCUS_TASK_POINTS)
-    try {
-      await onCompleteFocus(taskId)
-    } catch {
-      setOptimisticPoints((prev) => prev - FOCUS_TASK_POINTS)
-    }
-  }, [onCompleteFocus])
-
-  // Wrap onUncompleteFocus with optimistic update
-  const handleUncompleteFocus = useCallback(async (taskId: string) => {
-    setOptimisticPoints((prev) => prev - FOCUS_TASK_POINTS)
-    try {
-      await onUncompleteFocus(taskId)
-    } catch {
-      setOptimisticPoints((prev) => prev + FOCUS_TASK_POINTS)
-    }
-  }, [onUncompleteFocus])
-
-  // Create optimistic stats
-  const optimisticStats = {
-    ...stats,
-    todayPoints: stats.todayPoints + optimisticPoints,
-  }
-
   return (
     <div className="space-y-6">
-      {/* Daily Score */}
+      {/* Daily Score - stats updated via realtime subscription to pulse_events */}
       <DailyScore
-        stats={optimisticStats}
+        stats={stats}
         dailyGoal={25}
         tasksCompleted={completedTasks}
         tasksRemaining={remainingTasks}
@@ -90,8 +51,8 @@ export function TodayTab({
         <FocusPanel
           focusTasks={focusTasks}
           onCreateFocus={onCreateFocus}
-          onCompleteFocus={handleCompleteFocus}
-          onUncompleteFocus={handleUncompleteFocus}
+          onCompleteFocus={onCompleteFocus}
+          onUncompleteFocus={onUncompleteFocus}
           onDeleteFocus={onDeleteFocus}
           onRenameFocus={onRenameFocus}
         />
