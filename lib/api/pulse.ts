@@ -1,15 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import type { PulseEvent, PulseEventType, PulseSourceType, PulseStats, DailyPointsMap, PulseSettings } from '@/lib/types/pulse'
+import { PULSE_POINTS } from '@/lib/types/pulse'
 
-// Point values for each event type
-export const PULSE_POINTS: Record<PulseEventType, number> = {
-  task_completed: 3,
-  linked_task_completed: 5,
-  action_completed: 10,
-  target_completed: 25,
-  deliverable_advanced: 8,
-  requirement_completed: 5,
-}
+
 
 // ============================================================================
 // Core Logging Function

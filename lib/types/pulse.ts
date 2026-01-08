@@ -147,6 +147,15 @@ export type PulseEventType =
   | 'deliverable_advanced'
   | 'requirement_completed'
 
+export const PULSE_POINTS: Record<PulseEventType, number> = {
+  task_completed: 3,
+  linked_task_completed: 5,
+  action_completed: 10,
+  target_completed: 25,
+  deliverable_advanced: 8,
+  requirement_completed: 5,
+}
+
 export type PulseSourceType =
   | 'task'
   | 'action'

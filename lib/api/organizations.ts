@@ -188,7 +188,7 @@ export async function getOrganizationMembers(
     .from('organization_members')
     .select(`
       *,
-      profile:profiles(id, email, name, avatar_url)
+      profile:profiles(id, email, name, avatar_url, last_seen_at)
     `)
     .eq('organization_id', organizationId)
     .order('role', { ascending: true }) // owner first, then admin, then member

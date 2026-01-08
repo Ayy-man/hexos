@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { PulseDailyTask, PulseStats, DailyPointsMap } from '@/lib/types/pulse'
+import { PULSE_POINTS } from '@/lib/types/pulse'
 
 interface UsePulseRealtimeOptions {
   userId: string
@@ -43,13 +44,16 @@ export function usePulseRealtime({
   const recalculateStats = useCallback((taskList: PulseDailyTask[]) => {
     const todayTasks = taskList.filter(t => t.date === today)
     const completedTasks = todayTasks.filter(t => t.completed_at)
-    const todayPoints = completedTasks.reduce((sum, t) => sum + (t.points || 0), 0)
+    const todayPoints = completedTasks.reduce((sum, t) => {
+      const points = t.linked_action_id ? PULSE_POINTS.linked_task_completed : PULSE_POINTS.task_completed
+      return sum + points
+    }, 0)
 
     setStats(prev => ({
       ...prev,
       todayPoints,
       streak: prev.streak, // Keep streak from server
-      weeklyTotal: prev.weeklyTotal, // Recalculated on refresh
+      weekPoints: prev.weekPoints, // Recalculated on refresh
     }))
 
     // Update heatmap for today

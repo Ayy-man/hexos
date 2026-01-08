@@ -47,6 +47,7 @@ export interface OrganizationMemberWithProfile extends OrganizationMember {
     email: string
     name: string | null
     avatar_url: string | null
+    last_seen_at: string | null
   }
 }
 

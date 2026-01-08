@@ -31,6 +31,9 @@ import {
 import { Building2, Users, UserPlus, Mail, MoreHorizontal, RefreshCw, X, Shield, User } from 'lucide-react'
 import { inviteTeamMemberAction, revokeInvitationAction, resendInvitationAction } from '@/features/organizations/actions/invitationActions'
 import { updateOrganizationAction, deactivateMemberAction, updateMemberRoleAction } from '@/features/organizations/actions/organizationActions'
+import { useOnlineUsers } from '@/hooks/use-presence'
+import { MemberStatusIndicator } from '@/components/member-status-indicator'
+import { InvitationStatusBadge } from '@/components/invitation-status-badge'
 import type { Organization, OrganizationMemberWithProfile, InvitationWithDetails, OrgMemberRole } from '@/lib/types/organization'
 
 interface TeamSettingsProps {
@@ -61,6 +64,9 @@ export function TeamSettings({
   const [inviteEmail, setInviteEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { onlineUsers } = useOnlineUsers()
+  const onlineUserIds = new Set(onlineUsers.map(u => u.id))
 
   const currentMember = members.find((m) => m.user_id === currentUserId)
   const isAdmin = currentMember?.role === 'owner' || currentMember?.role === 'admin'
@@ -254,6 +260,7 @@ export function TeamSettings({
               <TableRow>
                 <TableHead>Member</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
                 {isAdmin && <TableHead></TableHead>}
               </TableRow>
@@ -277,6 +284,13 @@ export function TeamSettings({
                       {member.role === 'owner' && <Shield className="h-3 w-3 mr-1" />}
                       {member.role}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <MemberStatusIndicator
+                      userId={member.user_id}
+                      lastSeenAt={member.profile.last_seen_at}
+                      onlineUserIds={onlineUserIds}
+                    />
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(member.joined_at).toLocaleDateString()}
@@ -335,11 +349,14 @@ export function TeamSettings({
                   key={inv.id}
                   className="flex items-center justify-between p-3 rounded-md bg-muted/50"
                 >
-                  <div>
+                  <div className="space-y-1">
                     <p className="font-medium">{inv.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Sent {new Date(inv.created_at).toLocaleDateString()} • Expires {new Date(inv.expires_at).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <InvitationStatusBadge status={inv.status} />
+                      <span className="text-xs text-muted-foreground">
+                        Sent {new Date(inv.created_at).toLocaleDateString()} • Expires {new Date(inv.expires_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" onClick={() => handleResend(inv.id)}>

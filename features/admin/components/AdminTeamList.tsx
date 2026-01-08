@@ -37,6 +37,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { inviteAdminUserAction, revokeInvitationAction, resendInvitationAction } from '@/features/organizations/actions/invitationActions'
+import { useOnlineUsers } from '@/hooks/use-presence'
+import { MemberStatusIndicator } from '@/components/member-status-indicator'
+import { InvitationStatusBadge } from '@/components/invitation-status-badge'
 import type { InvitationWithDetails } from '@/lib/types/organization'
 
 interface TeamMember {
@@ -45,6 +48,7 @@ interface TeamMember {
   name: string | null
   role: string
   created_at: string
+  last_seen_at: string | null
 }
 
 interface AdminTeamListProps {
@@ -59,6 +63,9 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
   const [inviteRole, setInviteRole] = useState<'admin' | 'internal'>('internal')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { onlineUsers } = useOnlineUsers()
+  const onlineUserIds = new Set(onlineUsers.map(u => u.id))
 
   // Filter team
   const filteredTeam = team.filter((m) => {
@@ -184,6 +191,7 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Joined</TableHead>
             </TableRow>
           </TableHeader>
@@ -200,6 +208,13 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
                   <Badge variant={member.role === 'admin' ? 'destructive' : 'secondary'}>
                     {member.role}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <MemberStatusIndicator
+                    userId={member.id}
+                    lastSeenAt={member.last_seen_at}
+                    onlineUserIds={onlineUserIds}
+                  />
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {new Date(member.created_at).toLocaleDateString()}
@@ -224,11 +239,14 @@ export function AdminTeamList({ team, pendingInvitations }: AdminTeamListProps) 
                   key={inv.id}
                   className="flex items-center justify-between p-3 rounded-md bg-muted/50"
                 >
-                  <div>
+                  <div className="space-y-1">
                     <p className="font-medium">{inv.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Invited as {inv.target_role} • Expires {new Date(inv.expires_at).toLocaleDateString()}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <InvitationStatusBadge status={inv.status} />
+                      <span className="text-xs text-muted-foreground">
+                        as {inv.target_role} • Expires {new Date(inv.expires_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
