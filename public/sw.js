@@ -196,8 +196,28 @@ async function syncPendingMutations() {
 // Install & Activate
 // ============================================================================
 
+// Pre-cache critical routes during install
+const PRECACHE_URLS = [
+  '/',
+  '/dashboard',
+  '/projects',
+  '/conversations',
+  '/pulse',
+  '/notifications',
+  '/offline.html', // Fallback page
+];
+
 self.addEventListener('install', (event) => {
   console.log('[SW] Service Worker installing...');
+  event.waitUntil(
+    caches.open('pages-cache-v1').then((cache) => {
+      console.log('[SW] Pre-caching critical routes');
+      return cache.addAll(PRECACHE_URLS).catch((err) => {
+        console.error('[SW] Pre-cache failed:', err);
+        // Continue even if some URLs fail
+      });
+    })
+  );
   self.skipWaiting();
 });
 

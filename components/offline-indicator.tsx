@@ -37,10 +37,10 @@ export function OfflineIndicator() {
     return unsubscribe;
   }, []);
 
-  // Show banner when offline or when there are pending changes
+  // Only show banner when there are pending changes (not just offline)
   useEffect(() => {
-    setShowBanner(!isOnline || pendingCount > 0);
-  }, [isOnline, pendingCount]);
+    setShowBanner(pendingCount > 0 || (!isOnline && isSyncing));
+  }, [isOnline, pendingCount, isSyncing]);
 
   // Auto-hide banner after 5 seconds when online with no pending changes
   useEffect(() => {
