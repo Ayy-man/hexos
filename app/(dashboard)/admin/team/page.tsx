@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge'
 import { Users, UserPlus, Mail, Shield, Briefcase } from 'lucide-react'
 import { AdminTeamList } from '@/features/admin/components/AdminTeamList'
 
+// Force dynamic rendering - no caching
+export const dynamic = 'force-dynamic'
+
 interface TeamMember {
   id: string
   email: string

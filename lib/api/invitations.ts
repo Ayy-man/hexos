@@ -101,6 +101,25 @@ export async function getHexonaTeamInvitations(): Promise<InvitationWithDetails[
     const supabase = createAdminClient()
     console.log('[getHexonaTeamInvitations] Admin client created')
 
+    // First, try a simple query without joins to isolate the issue
+    const { data: rawData, error: rawError } = await supabase
+      .from('invitations')
+      .select('*')
+      .in('type', ['admin', 'internal'])
+      .eq('status', 'pending')
+
+    console.log('[getHexonaTeamInvitations] Raw query result:', {
+      dataCount: rawData?.length ?? 0,
+      error: rawError?.message ?? null,
+      firstItem: rawData?.[0] ? { id: rawData[0].id, email: rawData[0].email, type: rawData[0].type } : null
+    })
+
+    if (rawError) {
+      console.error('[getHexonaTeamInvitations] Raw query error:', rawError)
+      return []
+    }
+
+    // If we got data, now try with the join
     const { data, error } = await supabase
       .from('invitations')
       .select(`
@@ -108,17 +127,18 @@ export async function getHexonaTeamInvitations(): Promise<InvitationWithDetails[
         inviter:profiles!invitations_invited_by_fkey(id, email, name)
       `)
       .in('type', ['admin', 'internal'])
-      .in('status', ['pending'])
+      .eq('status', 'pending')
       .order('created_at', { ascending: false })
 
-    console.log('[getHexonaTeamInvitations] Query result:', {
+    console.log('[getHexonaTeamInvitations] Full query result:', {
       dataCount: data?.length ?? 0,
       error: error?.message ?? null
     })
 
     if (error) {
-      console.error('[getHexonaTeamInvitations] Error:', error)
-      return []
+      console.error('[getHexonaTeamInvitations] Full query error:', error)
+      // Fall back to raw data without inviter details
+      return (rawData || []) as InvitationWithDetails[]
     }
 
     return data as InvitationWithDetails[]
