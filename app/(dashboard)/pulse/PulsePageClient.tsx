@@ -14,6 +14,8 @@ import {
   createFocusTaskAction,
   completeFocusTaskAction,
   uncompleteTaskAction,
+  deleteTaskAction,
+  updateTaskAction,
 } from '@/features/pulse/actions/taskActions'
 import { getTodayDate } from '@/lib/utils/pulseCalculations'
 import type {
@@ -108,6 +110,22 @@ export function PulsePageClient({
     handleUpdate()
   }, [handleUpdate])
 
+  const handleDeleteFocus = useCallback(async (taskId: string) => {
+    const result = await deleteTaskAction(taskId)
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to delete focus task')
+    }
+    handleUpdate()
+  }, [handleUpdate])
+
+  const handleRenameFocus = useCallback(async (taskId: string, newTitle: string) => {
+    const result = await updateTaskAction(taskId, { title: newTitle })
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to rename focus task')
+    }
+    handleUpdate()
+  }, [handleUpdate])
+
   return (
     <div className="space-y-6">
       {/* Persistent Header */}
@@ -126,6 +144,8 @@ export function PulsePageClient({
           onCreateFocus={handleCreateFocus}
           onCompleteFocus={handleCompleteFocus}
           onUncompleteFocus={handleUncompleteFocus}
+          onDeleteFocus={handleDeleteFocus}
+          onRenameFocus={handleRenameFocus}
           onUpdate={handleUpdate}
         />
       )}

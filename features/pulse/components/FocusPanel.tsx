@@ -1,10 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Target, Check } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Plus, Target, Check, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import type { PulseDailyTask } from '@/lib/types/pulse'
 
@@ -13,11 +19,13 @@ interface FocusPanelProps {
   onCreateFocus: (title: string) => Promise<void>
   onCompleteFocus: (taskId: string) => Promise<void>
   onUncompleteFocus: (taskId: string) => Promise<void>
+  onDeleteFocus: (taskId: string) => Promise<void>
+  onRenameFocus: (taskId: string, newTitle: string) => Promise<void>
 }
 
 const MAX_FOCUS_ITEMS = 3
 
-export function FocusPanel({ focusTasks, onCreateFocus, onCompleteFocus, onUncompleteFocus }: FocusPanelProps) {
+export function FocusPanel({ focusTasks, onCreateFocus, onCompleteFocus, onUncompleteFocus, onDeleteFocus, onRenameFocus }: FocusPanelProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -60,6 +68,8 @@ export function FocusPanel({ focusTasks, onCreateFocus, onCompleteFocus, onUncom
             task={task}
             onComplete={() => onCompleteFocus(task.id)}
             onUncomplete={() => onUncompleteFocus(task.id)}
+            onDelete={() => onDeleteFocus(task.id)}
+            onRename={(newTitle) => onRenameFocus(task.id, newTitle)}
           />
         ))}
 
@@ -120,17 +130,25 @@ function FocusCard({
   task,
   onComplete,
   onUncomplete,
+  onDelete,
+  onRename,
 }: {
   task: PulseDailyTask
   onComplete: () => void
   onUncomplete: () => void
+  onDelete: () => void
+  onRename: (newTitle: string) => void
 }) {
-  const [isToggling, setIsToggling] = useState(false)
+  // Use ref for synchronous toggle guard (prevents rapid clicks)
+  const isTogglingRef = useRef(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(task.title)
   const isCompleted = !!task.completed_at
 
   const handleClick = async () => {
-    if (isToggling) return
-    setIsToggling(true)
+    // Synchronous check prevents rapid clicks
+    if (isTogglingRef.current) return
+    isTogglingRef.current = true
     try {
       if (isCompleted) {
         await onUncomplete()
@@ -138,7 +156,22 @@ function FocusCard({
         await onComplete()
       }
     } finally {
-      setIsToggling(false)
+      isTogglingRef.current = false
+    }
+  }
+
+  const handleRename = () => {
+    if (editTitle.trim() && editTitle !== task.title) {
+      onRename(editTitle.trim())
+    }
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleRename()
+    if (e.key === 'Escape') {
+      setEditTitle(task.title)
+      setIsEditing(false)
     }
   }
 
@@ -153,14 +186,25 @@ function FocusCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3
-            className={cn(
-              'font-medium',
-              isCompleted && 'line-through text-muted-foreground'
-            )}
-          >
-            {task.title}
-          </h3>
+          {isEditing ? (
+            <Input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleRename}
+              className="h-8"
+              autoFocus
+            />
+          ) : (
+            <h3
+              className={cn(
+                'font-medium',
+                isCompleted && 'line-through text-muted-foreground'
+              )}
+            >
+              {task.title}
+            </h3>
+          )}
           {task.linked_action_id && (
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <Target className="h-3 w-3" />
@@ -170,18 +214,37 @@ function FocusCard({
           <p className="text-xs text-cyan-400 mt-1">⚡ 10 pts</p>
         </div>
 
-        <button
-          onClick={handleClick}
-          disabled={isToggling}
-          className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-md border transition-colors',
-            isCompleted
-              ? 'bg-cyan-400 border-cyan-400 text-cyan-950 hover:bg-cyan-500'
-              : 'hover:bg-muted border-muted-foreground/20'
-          )}
-        >
-          {isCompleted && <Check className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted">
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <button
+            onClick={handleClick}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-md border transition-colors',
+              isCompleted
+                ? 'bg-cyan-400 border-cyan-400 text-cyan-950 hover:bg-cyan-500'
+                : 'hover:bg-muted border-muted-foreground/20'
+            )}
+          >
+            {isCompleted && <Check className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
     </div>
   )

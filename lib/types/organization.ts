@@ -170,6 +170,10 @@ export interface CreateDevApplicationInput {
   bio?: string
 }
 
+export interface CreateDevInvitationInput {
+  email: string
+}
+
 // ============================================================================
 // API Response Types
 // ============================================================================

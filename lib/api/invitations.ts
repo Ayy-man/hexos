@@ -293,6 +293,60 @@ export async function createDevApplication(
   return data
 }
 
+/**
+ * Create dev invitation (admin directly invites developer)
+ */
+export async function createDevInvitation(
+  email: string,
+  invitedBy: string
+): Promise<Invitation | null> {
+  const supabase = await createAdminClient()
+
+  const { data, error } = await supabase
+    .from('invitations')
+    .insert({
+      type: 'dev_solo',
+      email: email.toLowerCase(),
+      target_role: 'dev',
+      status: 'pending', // Skip pending_approval since admin is inviting directly
+      invited_by: invitedBy,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[createDevInvitation] Error:', error)
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+/**
+ * Get all pending dev invitations (admin-invited, not applications)
+ */
+export async function getPendingDevInvitations(): Promise<InvitationWithDetails[]> {
+  const supabase = await createAdminClient()
+
+  const { data, error } = await supabase
+    .from('invitations')
+    .select(`
+      *,
+      inviter:profiles!invitations_invited_by_fkey(id, email, name)
+    `)
+    .eq('type', 'dev_solo')
+    .eq('status', 'pending')
+    .not('invited_by', 'is', null) // Only admin-invited, not approved applications
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('[getPendingDevInvitations] Error:', error)
+    return []
+  }
+
+  return data as InvitationWithDetails[]
+}
+
 // ============================================================================
 // Invitation Actions
 // ============================================================================

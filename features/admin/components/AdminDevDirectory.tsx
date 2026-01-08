@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -19,7 +21,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Search, Users, CheckCircle2, XCircle, Briefcase, Clock } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Search, Users, CheckCircle2, XCircle, Briefcase, Clock, UserPlus, Mail, RefreshCw, X } from 'lucide-react'
+import { inviteDevAction, revokeInvitationAction, resendInvitationAction } from '@/features/organizations/actions/invitationActions'
+import { InvitationStatusBadge } from '@/components/invitation-status-badge'
+import type { InvitationWithDetails } from '@/lib/types/organization'
 
 interface DevWithDetails {
   id: string
@@ -37,11 +50,41 @@ interface DevWithDetails {
 
 interface AdminDevDirectoryProps {
   devs: DevWithDetails[]
+  pendingInvitations: InvitationWithDetails[]
 }
 
-export function AdminDevDirectory({ devs }: AdminDevDirectoryProps) {
+export function AdminDevDirectory({ devs, pendingInvitations }: AdminDevDirectoryProps) {
   const [search, setSearch] = useState('')
   const [filterAvailability, setFilterAvailability] = useState<string>('all')
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleInvite = async () => {
+    setIsSubmitting(true)
+    setError(null)
+
+    const result = await inviteDevAction(inviteEmail)
+
+    setIsSubmitting(false)
+
+    if (!result.success) {
+      setError(result.error || 'Failed to send invitation')
+      return
+    }
+
+    setIsInviteOpen(false)
+    setInviteEmail('')
+  }
+
+  const handleRevoke = async (invitationId: string) => {
+    await revokeInvitationAction(invitationId)
+  }
+
+  const handleResend = async (invitationId: string) => {
+    await resendInvitationAction(invitationId)
+  }
 
   // Filter devs
   let filteredDevs = devs
@@ -66,26 +109,77 @@ export function AdminDevDirectory({ devs }: AdminDevDirectoryProps) {
       {/* Search and Filters */}
       <Card>
         <CardContent className="py-4">
-          <div className="flex flex-wrap gap-4">
-            <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, email, or skill..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex flex-wrap gap-4 flex-1">
+              <div className="relative flex-1 min-w-[200px] max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, email, or skill..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={filterAvailability} onValueChange={setFilterAvailability}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="unavailable">Unavailable</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={filterAvailability} onValueChange={setFilterAvailability}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Availability" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="unavailable">Unavailable</SelectItem>
-              </SelectContent>
-            </Select>
+
+            <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite Developer
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Invite Developer</DialogTitle>
+                  <DialogDescription>
+                    Send an invitation to join as a developer
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+                  {error && (
+                    <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="developer@example.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    They will receive an email invitation to join as a developer.
+                  </p>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleInvite} disabled={!inviteEmail || isSubmitting}>
+                    {isSubmitting ? 'Sending...' : 'Send Invitation'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>

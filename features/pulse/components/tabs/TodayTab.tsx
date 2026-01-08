@@ -15,6 +15,8 @@ interface TodayTabProps {
   onCreateFocus: (title: string) => Promise<void>
   onCompleteFocus: (taskId: string) => Promise<void>
   onUncompleteFocus: (taskId: string) => Promise<void>
+  onDeleteFocus: (taskId: string) => Promise<void>
+  onRenameFocus: (taskId: string, newTitle: string) => Promise<void>
   onUpdate: () => void
 }
 
@@ -30,6 +32,8 @@ export function TodayTab({
   onCreateFocus,
   onCompleteFocus,
   onUncompleteFocus,
+  onDeleteFocus,
+  onRenameFocus,
   onUpdate,
 }: TodayTabProps) {
   // Optimistic points tracking
@@ -86,6 +90,8 @@ export function TodayTab({
           onCreateFocus={onCreateFocus}
           onCompleteFocus={handleCompleteFocus}
           onUncompleteFocus={handleUncompleteFocus}
+          onDeleteFocus={onDeleteFocus}
+          onRenameFocus={onRenameFocus}
         />
         <TaskList
           tasks={tasks}

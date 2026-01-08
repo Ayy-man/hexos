@@ -1,6 +1,7 @@
 import { requireRole } from '@/lib/auth/guards'
 import { getAvailableDevs } from '@/lib/api/project-invitations'
 import { getAllDevs } from '@/lib/api/admin-reports'
+import { getPendingDevInvitations } from '@/lib/api/invitations'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -73,7 +74,10 @@ async function getDevsWithDetails(): Promise<DevWithDetails[]> {
 export default async function AdminDevsPage() {
   await requireRole(['admin', 'internal'])
 
-  const devs = await getDevsWithDetails().catch(() => [])
+  const [devs, pendingInvitations] = await Promise.all([
+    getDevsWithDetails().catch(() => []),
+    getPendingDevInvitations().catch(() => []),
+  ])
 
   const totalDevs = devs.length
   const availableDevs = devs.filter(d => d.availability?.is_available).length
@@ -137,7 +141,7 @@ export default async function AdminDevsPage() {
       </div>
 
       {/* Main Content */}
-      <AdminDevDirectory devs={devs} />
+      <AdminDevDirectory devs={devs} pendingInvitations={pendingInvitations} />
     </div>
   )
 }

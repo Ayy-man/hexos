@@ -7,6 +7,7 @@ import {
   createDfyFirstInvitation,
   createTeamInvitation,
   createDevApplication,
+  createDevInvitation,
   validateInvitation,
   acceptInvitation,
   revokeInvitation,
@@ -121,6 +122,58 @@ export async function inviteDfyAgencyAction(
     return { success: true, invitationId: invitation.id }
   } catch (error) {
     console.error('[inviteDfyAgencyAction] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create invitation',
+    }
+  }
+}
+
+// ============================================================================
+// Dev Invitation (Hexona invites developer directly)
+// ============================================================================
+
+/**
+ * Invite a developer directly (admin only, bypasses application)
+ */
+export async function inviteDevAction(
+  email: string
+): Promise<{ success: boolean; invitationId?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Not authenticated' }
+
+    // Check user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return { success: false, error: 'Only admins can invite developers' }
+    }
+
+    // Check if invitation already exists
+    const exists = await hasExistingInvitation(email)
+    if (exists) {
+      return { success: false, error: 'An invitation already exists for this email' }
+    }
+
+    const invitation = await createDevInvitation(email, user.id)
+
+    if (!invitation) {
+      return { success: false, error: 'Failed to create invitation' }
+    }
+
+    // TODO: Send invitation email via Resend
+
+    revalidatePath('/dashboard/admin/devs')
+
+    return { success: true, invitationId: invitation.id }
+  } catch (error) {
+    console.error('[inviteDevAction] Error:', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create invitation',
