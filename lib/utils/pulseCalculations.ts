@@ -311,8 +311,8 @@ export const DEFAULT_MIN_DAILY_PULSE = 10
 // ============================================================================
 
 export function formatPoints(points: number): string {
-  if (points === 1) return '1 pt'
-  return `${points} pts`
+  if (points === 1) return '1 point'
+  return `${points} points`
 }
 
 export function formatStreak(streak: number): string {

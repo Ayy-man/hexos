@@ -147,7 +147,7 @@ export function GitHubHeatmap({ dailyPoints }: GitHubHeatmapProps) {
                     <TooltipContent className="text-xs">
                       <div className="font-semibold">{format(day.dateObj, 'EEEE, MMMM do, yyyy')}</div>
                       <div className="text-muted-foreground">
-                        {day.points === 0 ? 'No activity' : `${day.points} contributions`}
+                        {day.points === 0 ? 'No activity' : `${day.points} ${day.points === 1 ? 'point' : 'points'}`}
                       </div>
                     </TooltipContent>
                   </Tooltip>
