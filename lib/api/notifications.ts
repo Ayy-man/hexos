@@ -1,43 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 
 // Types
-export type NotificationType =
-  | 'project_assigned'
-  | 'blocker_acknowledged'
-  | 'blocker_resolved'
-  | 'blocker_comment'
-  | 'admin_comment'
-  | 'mention'
-  | 'deadline_reminder'
-  | 'status_change'
-  | 'invoice_sent'
-  | 'invoice_paid'
-  | 'payout_submitted'
-  | 'payout_approved'
-  | 'payout_paid'
-  | 'payout_rejected'
+import {
+  getNotificationColor,
+  getNotificationIcon,
+  type Notification,
+  type NotificationType,
+} from './notifications-utils' // Import from utils
 
-export interface Notification {
-  id: string
-  user_id: string
-  type: NotificationType
-  title: string
-  message: string | null
-  project_id: string | null
-  deliverable_id: string | null
-  blocker_id: string | null
-  actor_id: string | null
-  read_at: string | null
-  created_at: string
-  actor?: {
-    id: string
-    name: string
-  }
-  project?: {
-    id: string
-    project_name: string
-  }
-}
+// Exports
+export type { Notification, NotificationType }
+export { getNotificationColor, getNotificationIcon }
 
 /**
  * Get notifications for current user
@@ -224,54 +197,7 @@ export async function getNotificationsGroupedByDay(limit: number = 100): Promise
   }
 }
 
-/**
- * Get notification icon based on type
- */
-export function getNotificationIcon(type: NotificationType): string {
-  switch (type) {
-    case 'project_assigned':
-      return 'folder'
-    case 'blocker_acknowledged':
-    case 'blocker_resolved':
-      return 'alert-circle'
-    case 'blocker_comment':
-    case 'admin_comment':
-      return 'message-circle'
-    case 'mention':
-      return 'at-sign'
-    case 'deadline_reminder':
-      return 'clock'
-    case 'status_change':
-      return 'refresh-cw'
-    default:
-      return 'bell'
-  }
-}
 
-/**
- * Get notification color based on type
- */
-export function getNotificationColor(type: NotificationType): string {
-  switch (type) {
-    case 'project_assigned':
-      return 'text-info'
-    case 'blocker_acknowledged':
-      return 'text-warning'
-    case 'blocker_resolved':
-      return 'text-success'
-    case 'blocker_comment':
-    case 'admin_comment':
-      return 'text-info'
-    case 'mention':
-      return 'text-primary'
-    case 'deadline_reminder':
-      return 'text-error'
-    case 'status_change':
-      return 'text-muted-foreground'
-    default:
-      return 'text-muted-foreground'
-  }
-}
 
 // Helper to normalize relations from Supabase array format
 function normalizeNotificationRelations(notification: Record<string, unknown>): Notification {

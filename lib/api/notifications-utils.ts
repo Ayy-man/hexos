@@ -12,6 +12,10 @@ export type NotificationType =
   | 'status_change'
   | 'invoice_sent'
   | 'invoice_paid'
+  | 'payout_submitted'
+  | 'payout_approved'
+  | 'payout_paid'
+  | 'payout_rejected'
 
 export interface Notification {
   id: string
@@ -58,6 +62,14 @@ export function getNotificationIcon(type: NotificationType): string {
       return 'file-text'
     case 'invoice_paid':
       return 'check-circle'
+    case 'payout_submitted':
+      return 'upload'
+    case 'payout_approved':
+      return 'check-circle'
+    case 'payout_paid':
+      return 'dollar-sign'
+    case 'payout_rejected':
+      return 'x-circle'
     default:
       return 'bell'
   }
@@ -87,6 +99,14 @@ export function getNotificationColor(type: NotificationType): string {
       return 'text-info'
     case 'invoice_paid':
       return 'text-success'
+    case 'payout_submitted':
+      return 'text-info'
+    case 'payout_approved':
+      return 'text-success'
+    case 'payout_paid':
+      return 'text-success'
+    case 'payout_rejected':
+      return 'text-error'
     default:
       return 'text-muted-foreground'
   }
@@ -118,6 +138,11 @@ export function getNotificationUrl(notification: Notification): string {
     case 'invoice_sent':
     case 'invoice_paid':
       return `/projects/${projectId}?tab=financials`
+    case 'payout_submitted':
+    case 'payout_approved':
+    case 'payout_paid':
+    case 'payout_rejected':
+      return `/finances/payouts`
     default:
       return `/projects/${projectId}`
   }

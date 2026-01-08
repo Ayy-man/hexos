@@ -89,12 +89,12 @@ export interface CashFlowMonth {
 
 export interface FinancialAction {
   id: string;
-  type: 'invoice_overdue' | 'milestone_due' | 'project_closed_unpaid' | 'invoice_draft';
+  type: 'invoice_overdue' | 'milestone_due' | 'project_closed_unpaid' | 'invoice_draft' | 'payout_pending' | 'payout_approved';
   severity: 'warning' | 'info';
   message: string;
   action: string;
   entityId: string;
-  entityType: 'invoice' | 'milestone' | 'project';
+  entityType: 'invoice' | 'milestone' | 'project' | 'payout';
 }
 
 export interface ActivityItem {
