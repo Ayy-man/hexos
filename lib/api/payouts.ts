@@ -35,13 +35,10 @@ import type {
 export async function getPayouts(filters?: PayoutFilters): Promise<PayoutWithDetails[]> {
   const supabase = createClient();
 
+  // First try simple query without joins to debug
   let query = supabase
     .from('payouts')
-    .select(`
-      *,
-      submitter:profiles!submitted_by(id, name, email),
-      project:projects!project_id(id, project_name, client_name)
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (filters?.status && filters.status !== 'all') {
@@ -58,12 +55,16 @@ export async function getPayouts(filters?: PayoutFilters): Promise<PayoutWithDet
 
   const { data, error } = await query;
 
+  console.log('[getPayouts] Query result:', { data, error, count: data?.length });
+
   if (error) {
-    console.error('Error fetching payouts:', error);
+    console.error('[getPayouts] Error fetching payouts:', error);
     return [];
   }
 
-  return (data || []).map(normalizePayoutRelations);
+  const normalized = (data || []).map(normalizePayoutRelations);
+  console.log('[getPayouts] Normalized payouts:', normalized.length);
+  return normalized;
 }
 
 export async function getPayout(id: string): Promise<PayoutWithDetails | null> {
