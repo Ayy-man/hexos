@@ -279,6 +279,53 @@ export function AdminDevDirectory({ devs, pendingInvitations }: AdminDevDirector
           )}
         </CardContent>
       </Card>
+
+      {/* Pending Invitations */}
+      {pendingInvitations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Pending Invitations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pendingInvitations.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="flex items-center justify-between p-3 rounded-md bg-muted/50"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">{inv.email}</p>
+                    <div className="flex items-center gap-2">
+                      <InvitationStatusBadge status={inv.status} />
+                      <span className="text-xs text-muted-foreground">
+                        Expires {new Date(inv.expires_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleResend(inv.id)}>
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Resend
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRevoke(inv.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Revoke
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
