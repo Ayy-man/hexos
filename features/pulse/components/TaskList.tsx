@@ -123,13 +123,12 @@ export function TaskList({ tasks, onCreateTask, onUpdate }: TaskListProps) {
       date: getTodayDate(),
       title,
       is_focus: false,
-      points: 3,
       completed_at: null,
-      completed_by: null,
       linked_action_id: null,
-      sort_order: orderedTasks.length,
+      rolled_from: null,
+      position: orderedTasks.length,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      times_rolled: 0,
     }
 
     setOrderedTasks(prev => [...prev, optimisticTask])
