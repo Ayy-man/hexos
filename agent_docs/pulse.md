@@ -142,18 +142,19 @@ features/pulse/
 │       ├── PersonalRecordsCard.tsx # Best day/week/month
 │       ├── TaskCompletionChart.tsx # Completion breakdown
 │       └── WeeklySummaryCard.tsx   # Week-over-week comparison
-├── actions/
-│   ├── taskActions.ts              # Task CRUD + focus tasks
-│   ├── targetActions.ts            # Target/action server actions
-│   ├── goalActions.ts              # Goal + settings server actions
-│   ├── reviewActions.ts            # Weekly/quarterly review actions
-│   └── insightsActions.ts          # Insights data fetching
-└── hooks/
-    └── (hooks if needed)
+└── actions/
+    ├── taskActions.ts              # Task CRUD + focus tasks
+    ├── targetActions.ts            # Target/action server actions
+    ├── goalActions.ts              # Goal + settings server actions
+    ├── reviewActions.ts            # Weekly/quarterly review actions
+    └── insightsActions.ts          # Insights data fetching
+
+hooks/
+└── use-pulse-realtime.ts           # Realtime subscriptions for tasks + events
 
 lib/api/
-├── pulse.ts                        # Core: logPulseEvent, getPulseStats
-├── pulse-tasks.ts                  # Daily + focus task operations
+├── pulse.ts                        # Core: logPulseEvent, deletePulseEventsBySource, getPulseStats
+├── pulse-tasks.ts                  # Daily + focus task operations (auto-deletes events on uncomplete/delete)
 ├── pulse-targets.ts                # Target/action operations
 ├── pulse-goals.ts                  # Goal operations
 ├── pulse-reviews.ts                # Weekly/quarterly reviews

@@ -64,6 +64,7 @@ Read relevant files in `agent_docs/` based on your task:
 | Real-time/notifications | `realtime.md` |
 | Deployment | `deployment.md` |
 | Custom components | `components.md` (request code from user) |
+| **Payouts/Finances** | `finances.md` |
 | **RLS/Security issues** | `security.md` (includes crisis lessons) |
 | **Database recovery** | `docs/DATABASE_RECOVERY_2026-01-05.md` |
 
