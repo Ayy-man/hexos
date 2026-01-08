@@ -55,16 +55,12 @@ export async function getPayouts(filters?: PayoutFilters): Promise<PayoutWithDet
 
   const { data, error } = await query;
 
-  console.log('[getPayouts] Query result:', { data, error, count: data?.length });
-
   if (error) {
-    console.error('[getPayouts] Error fetching payouts:', error);
+    console.error('Error fetching payouts:', error);
     return [];
   }
 
-  const normalized = (data || []).map(normalizePayoutRelations);
-  console.log('[getPayouts] Normalized payouts:', normalized.length);
-  return normalized;
+  return (data || []).map(normalizePayoutRelations);
 }
 
 export async function getPayout(id: string): Promise<PayoutWithDetails | null> {
@@ -72,11 +68,7 @@ export async function getPayout(id: string): Promise<PayoutWithDetails | null> {
 
   const { data, error } = await supabase
     .from('payouts')
-    .select(`
-      *,
-      submitter:profiles!submitted_by(id, name, email),
-      project:projects!project_id(id, project_name, client_name)
-    `)
+    .select('*')
     .eq('id', id)
     .single();
 
