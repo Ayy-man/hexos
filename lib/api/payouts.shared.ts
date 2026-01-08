@@ -16,7 +16,7 @@ export type PayoutStatus =
 
 export type PayoutType = 'commission' | 'dev_payment' | 'contractor' | 'reimbursement';
 
-export type PaymentMethod = 'bank_transfer' | 'paypal' | 'wise' | 'crypto' | 'other';
+export type PaymentMethod = 'wire_transfer' | 'bank_transfer' | 'paypal' | 'wise' | 'crypto' | 'other';
 
 export type PaymentPreference = 'wire_transfer' | 'emailed_invoice';
 

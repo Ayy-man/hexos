@@ -16,6 +16,8 @@ import {
   Mail,
   ChevronDown,
   ChevronUp,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,6 +70,32 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [loading, setLoading] = useState(false);
   const [expandedPayout, setExpandedPayout] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, fieldId: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(fieldId);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const CopyableField = ({ label, value, fieldId }: { label: string; value: string; fieldId: string }) => (
+    <div className="group">
+      <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+      <div className="flex items-center gap-2">
+        <p className="font-mono text-sm select-all">{value}</p>
+        <button
+          onClick={() => copyToClipboard(value, fieldId)}
+          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
+        >
+          {copiedField === fieldId ? (
+            <Check className="h-3 w-3 text-green-500" />
+          ) : (
+            <Copy className="h-3 w-3 text-muted-foreground" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
 
   // Dialogs
   const [rejectDialog, setRejectDialog] = useState<{ open: boolean; payout: PayoutWithDetails | null }>({
@@ -79,7 +107,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
     payout: null,
   });
   const [rejectReason, setRejectReason] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('wire_transfer');
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
 
@@ -357,51 +385,94 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
                     {/* Wire Transfer Details (Expanded) */}
                     {isExpanded && hasWireDetails && (
                       <div className="border-t bg-muted/30 p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-sm font-medium">Wire Transfer Details</p>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const allDetails = [
+                                  `Amount: ${formatCurrency(payout.amount)}`,
+                                  `Recipient: ${payout.wire_recipient_name}`,
+                                  `Country: ${payout.wire_recipient_country}`,
+                                  `SWIFT/BIC: ${payout.wire_swift_code}`,
+                                  `Account: ${payout.wire_account_number}`,
+                                  `Bank: ${payout.wire_bank_name}`,
+                                  payout.wire_bank_address ? `Bank Address: ${payout.wire_bank_address}` : '',
+                                  payout.wire_recipient_address ? `Recipient Address: ${payout.wire_recipient_address}` : '',
+                                ].filter(Boolean).join('\n');
+                                copyToClipboard(allDetails, `all-${payout.id}`);
+                              }}
+                            >
+                              {copiedField === `all-${payout.id}` ? (
+                                <>
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Copied
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="h-3 w-3 mr-1" />
+                                  Copy All
+                                </>
+                              )}
+                            </Button>
+                            {payout.status === 'pending' && (
+                              <Button
+                                size="sm"
+                                onClick={() => setPayDialog({ open: true, payout })}
+                              >
+                                <Send className="h-3 w-3 mr-1" />
+                                Mark as Sent
+                              </Button>
+                            )}
+                          </div>
+                        </div>
                         <div className="grid gap-4 md:grid-cols-2">
-                          <div>
-                            <p className="text-xs font-medium uppercase text-muted-foreground">
-                              Recipient Name
-                            </p>
-                            <p className="font-mono text-sm">{payout.wire_recipient_name}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium uppercase text-muted-foreground">
-                              Country
-                            </p>
-                            <p className="font-mono text-sm">{payout.wire_recipient_country}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium uppercase text-muted-foreground">
-                              SWIFT/BIC Code
-                            </p>
-                            <p className="font-mono text-sm">{payout.wire_swift_code}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium uppercase text-muted-foreground">
-                              IBAN / Account Number
-                            </p>
-                            <p className="font-mono text-sm">{payout.wire_account_number}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium uppercase text-muted-foreground">
-                              Bank Name
-                            </p>
-                            <p className="font-mono text-sm">{payout.wire_bank_name}</p>
-                          </div>
+                          <CopyableField
+                            label="Amount"
+                            value={formatCurrency(payout.amount)}
+                            fieldId={`amount-${payout.id}`}
+                          />
+                          <CopyableField
+                            label="Recipient Name"
+                            value={payout.wire_recipient_name || ''}
+                            fieldId={`recipient-${payout.id}`}
+                          />
+                          <CopyableField
+                            label="Country"
+                            value={payout.wire_recipient_country || ''}
+                            fieldId={`country-${payout.id}`}
+                          />
+                          <CopyableField
+                            label="SWIFT/BIC Code"
+                            value={payout.wire_swift_code || ''}
+                            fieldId={`swift-${payout.id}`}
+                          />
+                          <CopyableField
+                            label="IBAN / Account Number"
+                            value={payout.wire_account_number || ''}
+                            fieldId={`account-${payout.id}`}
+                          />
+                          <CopyableField
+                            label="Bank Name"
+                            value={payout.wire_bank_name || ''}
+                            fieldId={`bank-${payout.id}`}
+                          />
                           {payout.wire_bank_address && (
-                            <div>
-                              <p className="text-xs font-medium uppercase text-muted-foreground">
-                                Bank Address
-                              </p>
-                              <p className="font-mono text-sm">{payout.wire_bank_address}</p>
-                            </div>
+                            <CopyableField
+                              label="Bank Address"
+                              value={payout.wire_bank_address}
+                              fieldId={`bankaddr-${payout.id}`}
+                            />
                           )}
                           {payout.wire_recipient_address && (
                             <div className="md:col-span-2">
-                              <p className="text-xs font-medium uppercase text-muted-foreground">
-                                Recipient Address
-                              </p>
-                              <p className="font-mono text-sm">{payout.wire_recipient_address}</p>
+                              <CopyableField
+                                label="Recipient Address"
+                                value={payout.wire_recipient_address}
+                                fieldId={`recipientaddr-${payout.id}`}
+                              />
                             </div>
                           )}
                         </div>
@@ -466,9 +537,9 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
       <Dialog open={payDialog.open} onOpenChange={(open) => setPayDialog({ open, payout: null })}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
+            <DialogTitle>Mark as Sent</DialogTitle>
             <DialogDescription>
-              Record the payment details for this payout. An expense will be automatically created.
+              Record payment details after sending via Mercury. An expense will be automatically created.
             </DialogDescription>
           </DialogHeader>
 
@@ -487,6 +558,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="wire_transfer">Wire Transfer (Mercury)</SelectItem>
                   <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                   <SelectItem value="paypal">PayPal</SelectItem>
                   <SelectItem value="wise">Wise</SelectItem>
@@ -521,7 +593,7 @@ export function PayoutManagement({ payouts: initialPayouts, metrics }: PayoutMan
               Cancel
             </Button>
             <Button onClick={handlePay} disabled={loading || !paymentReference.trim()}>
-              {loading ? 'Processing...' : 'Mark as Paid'}
+              {loading ? 'Processing...' : 'Mark as Sent'}
             </Button>
           </DialogFooter>
         </DialogContent>

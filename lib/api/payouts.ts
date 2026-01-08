@@ -182,8 +182,8 @@ export async function markPayoutPaid(
     return { success: false, error: 'Payout not found' };
   }
 
-  if (payout.status !== 'approved') {
-    return { success: false, error: 'Can only mark approved payouts as paid' };
+  if (!['pending', 'approved'].includes(payout.status)) {
+    return { success: false, error: 'Can only mark pending or approved payouts as paid' };
   }
 
   // 1. Create expense record
