@@ -677,6 +677,92 @@ Stripe integration for invoice management and payment collection.
 - [ ] Client payment portal
 - [ ] Payment status visibility per role
 
+### Phase 7.5: Dev Payouts (Complete)
+
+Developer payment request system with wire transfer support.
+
+**Database (`20260109000010_payouts_dev_workflow.sql`, `20260109000012_payouts_payment_preferences.sql`):**
+- [x] `payouts` table with full lifecycle tracking
+- [x] Payment preference: `wire_transfer` or `emailed_invoice`
+- [x] Wire transfer fields: recipient_name, swift_code, account_number, bank_name, bank_address, recipient_address, recipient_country
+- [x] Invoice tracking: invoice_number, invoice_date, contractor_invoice_url
+- [x] Status workflow: pending → approved → paid (or rejected)
+- [x] Audit fields: submitted_by, submitted_at, approved_by, paid_by, rejected_by
+- [x] `payout-invoices` storage bucket (private)
+
+**Dev Payout Flow:**
+```
+Dev submits request → Chooses payment preference:
+  - Wire Transfer: Enters bank details (SWIFT, IBAN, bank name, etc.)
+  - Email Invoice: Instructions to email invoice to ayman@hexonasystems.com
+
+Admin reviews → Approves or Rejects
+  - If Wire: Copy bank details from expanded view, send via Mercury manually
+  - Click "Mark as Sent" with transaction reference
+
+Dev sees status updates in their dashboard
+```
+
+**API Layer (`/lib/api/payouts.ts`):**
+- [x] `getPayouts()` - Admin: all payouts with filters
+- [x] `getPayout()` - Single payout details
+- [x] `getMyPayouts()` - Dev: own payouts only
+- [x] `submitPayout()` - Dev submits request with wire/invoice preference
+- [x] `approvePayout()` - Admin approves (notifies dev)
+- [x] `rejectPayout()` - Admin rejects with reason (notifies dev)
+- [x] `markPayoutPaid()` - Admin marks sent, creates expense record
+- [x] `getPayoutMetrics()` - Dashboard stats
+
+**Types (`/lib/api/payouts.shared.ts`):**
+- [x] `PayoutStatus`: pending, approved, paid, rejected, + legacy statuses
+- [x] `PaymentPreference`: wire_transfer, emailed_invoice
+- [x] `PaymentMethod`: wire_transfer, bank_transfer, paypal, wise, crypto, other
+- [x] `WireTransferDetails` interface
+- [x] `PayoutWithDetails` with submitter/project relations
+
+**Server Actions (`/features/finances/actions/payoutActions.ts`):**
+- [x] `submitPayoutAction()` - Dev submit with file upload
+- [x] `approvePayoutAction()` - Admin approve
+- [x] `rejectPayoutAction()` - Admin reject with reason
+- [x] `markPayoutPaidAction()` - Admin mark sent
+
+**UI Components:**
+
+*Dev Side (`/features/dev/components/payouts/`):**
+- [x] `SubmitPayoutForm` - Two-option form (Wire Transfer / Email Invoice)
+  - Wire fields: recipient name, SWIFT/BIC, IBAN, bank name, country, addresses
+  - Invoice upload (optional)
+  - Project selection (optional)
+- [x] `PayoutHistory` - Dev's payout history with status badges
+
+*Admin Side (`/features/finances/components/payouts/`):**
+- [x] `PayoutManagement` - Full admin dashboard
+  - Metrics cards (pending, approved, paid this month, total)
+  - Tabbed filters (all, pending, approved, paid, rejected)
+  - Expandable wire details with copy buttons
+  - "Copy All" button for wire details
+  - "Mark as Sent" button (opens payment dialog)
+  - Approve/Reject via dropdown menu
+
+**Copy Features (Wire Details):**
+- [x] Individual field copy on hover (checkmark feedback)
+- [x] "Copy All" button formats all details as text
+- [x] Amount included in copy
+
+**Payment Recording:**
+- [x] Payment method selection (Wire Transfer (Mercury) default)
+- [x] Transaction reference/ID field
+- [x] Optional notes
+- [x] Auto-creates expense record on payment
+
+**Notifications:**
+- [x] Dev notified on approval/rejection/payment
+- [x] Admins notified on new payout submission
+
+**Navigation:**
+- [x] Dev sidebar: "Payouts" under dev section
+- [x] Admin sidebar: "Payouts" under Finances section
+
 ### Phase 7: Scope Monitoring
 
 - [ ] Scope baseline from deliverables

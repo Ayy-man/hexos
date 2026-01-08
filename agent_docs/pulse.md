@@ -16,11 +16,14 @@ Points earned through meaningful completions:
 | Action | Points | Event Type |
 |--------|--------|------------|
 | Complete daily task | 3 | `task_completed` |
-| Complete task linked to action | 5 | `linked_task_completed` |
+| Complete focus task | 10 | `focus_completed` |
+| Complete task linked to action | 5 + 10 | `linked_task_completed` + `action_completed` |
 | Complete action | 10 | `action_completed` |
 | Complete target | 25 | `target_completed` |
 | Advance deliverable to done | 8 | `deliverable_advanced` |
 | Complete onboarding requirement | 5 | `requirement_completed` |
+
+**Points Reversal:** Uncompleting or deleting a task removes its associated points (deletes the `pulse_event` record).
 
 ### Streak
 
@@ -115,15 +118,17 @@ features/pulse/
 │   ├── PulseHeader.tsx             # Streak hero + level system
 │   ├── PulseTabs.tsx               # Tab navigation with URL persistence
 │   ├── Heatmap.tsx                 # cal-heatmap 12-week contribution graph
+│   ├── GitHubHeatmap.tsx           # GitHub-style 365-day heatmap
 │   ├── WeekView.tsx                # 7-column week grid with navigation
 │   ├── DayColumn.tsx               # Single day column (compact mode)
-│   ├── TaskItem.tsx                # Task checkbox (supports compact)
+│   ├── TaskItem.tsx                # Task checkbox (supports compact, optimistic UI)
 │   ├── DailyScore.tsx              # Circular progress component
-│   ├── FocusPanel.tsx              # Top 3 focus items
-│   ├── TaskList.tsx                # Regular task list
+│   ├── FocusPanel.tsx              # Top 3 focus items (10 pts each, optimistic UI)
+│   ├── TaskList.tsx                # Regular task list with drag-and-drop
 │   ├── QuickCapture.tsx            # Cmd+K rapid task entry
 │   ├── WeeklyReview.tsx            # Monday reflection prompt
 │   ├── YearlyGoalCard.tsx          # Goal with progress bar
+│   ├── QuarterTargets.tsx          # Quarter section with targets
 │   ├── TargetCardEnhanced.tsx      # Target with health scores
 │   ├── GoalAndTargets.tsx          # (legacy)
 │   ├── TargetCard.tsx              # (legacy)
@@ -164,18 +169,59 @@ types/
 └── cal-heatmap.d.ts                # Type declarations for cal-heatmap
 ```
 
+## Real-time Architecture
+
+The pulse system uses Supabase Realtime for instant UI updates:
+
+### `usePulseRealtime` Hook (`hooks/use-pulse-realtime.ts`)
+
+Subscribes to two tables:
+
+1. **`pulse_daily_tasks`** — For task UI state (checkboxes, titles, positions)
+2. **`pulse_events`** — For points (INSERT = add points, DELETE = subtract points)
+
+```typescript
+// Points are calculated from events, NOT from task state
+// This ensures client always matches server
+channel
+  .on('postgres_changes', { table: 'pulse_events', event: 'INSERT' }, (payload) => {
+    setStats(prev => ({ ...prev, todayPoints: prev.todayPoints + payload.new.points }))
+  })
+  .on('postgres_changes', { table: 'pulse_events', event: 'DELETE' }, (payload) => {
+    setStats(prev => ({ ...prev, todayPoints: prev.todayPoints - payload.old.points }))
+  })
+```
+
+### Optimistic UI
+
+Task components use local optimistic state to prevent race conditions on rapid clicks:
+
+```typescript
+const [optimisticCompleted, setOptimisticCompleted] = useState<boolean | null>(null)
+const isCompleted = optimisticCompleted ?? !!task.completed_at
+
+// Block clicks while processing
+if (optimisticCompleted !== null) return
+```
+
 ## Key Functions
 
 ### Logging Pulse Events
 
 ```typescript
-import { logPulseEvent } from '@/lib/api/pulse'
+import { logPulseEvent, deletePulseEventsBySource } from '@/lib/api/pulse'
 
 // Log when task completed
 await logPulseEvent(userId, 'task_completed', 'task', taskId)
 
+// Log when focus task completed (10 pts)
+await logPulseEvent(userId, 'focus_completed', 'task', taskId)
+
 // Log when deliverable marked done
 await logPulseEvent(userId, 'deliverable_advanced', 'deliverable', deliverableId)
+
+// Delete events when uncompleting/deleting (reverses points)
+await deletePulseEventsBySource('task', taskId)
 ```
 
 ### Getting Stats
