@@ -236,6 +236,100 @@ For forms with many fields (like CustomProposal), use card-based sections:
 3. Group sections logically with Card + icon headers
 4. Use OptionCards for choices with descriptions, pills for simple yes/no
 
+## Mobile Responsive Patterns
+
+### Grid Layouts
+
+Always include mobile breakpoint for grids:
+
+```tsx
+// ❌ Bad - breaks on mobile
+<div className="grid grid-cols-3 gap-4">
+
+// ✅ Good - stacks on mobile
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+// ✅ Good - 4-column with intermediate breakpoint
+<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+```
+
+### Row Layouts (Cards, List Items)
+
+Use flex-col → flex-row pattern for rows with multiple sections:
+
+```tsx
+// ❌ Bad - doesn't stack on mobile
+<div className="flex items-center justify-between p-4">
+  <div>Left content</div>
+  <div>Right content</div>
+</div>
+
+// ✅ Good - stacks on mobile, horizontal on sm+
+<div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+  <div className="flex items-center gap-3 sm:gap-4">
+    <Icon className="shrink-0" />
+    <div className="min-w-0">
+      <p className="font-medium truncate">Title</p>
+      <p className="text-sm text-muted-foreground truncate">Description</p>
+    </div>
+  </div>
+  <div className="flex items-center justify-between gap-2 sm:gap-4">
+    <div className="sm:text-right">Amount</div>
+    <Badge className="shrink-0">Status</Badge>
+  </div>
+</div>
+```
+
+### Key Mobile Classes
+
+| Pattern | Use Case |
+|---------|----------|
+| `min-w-0` + `truncate` | Prevent text overflow in flex containers |
+| `shrink-0` | Keep icons/badges from shrinking |
+| `hidden sm:block` | Hide secondary info on mobile |
+| `gap-2 sm:gap-4` | Tighter spacing on mobile |
+| `text-[10px] md:text-xs` | Smaller text on mobile |
+| `w-full lg:w-[40%]` | Full width on mobile, sidebar on desktop |
+
+### Tabs with Many Items
+
+Use scrollable container with shortened labels:
+
+```tsx
+<div className="overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+  <TabsList className="w-max min-w-full md:w-auto">
+    <TabsTrigger className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="hidden sm:inline">Full Label</span>
+      <span className="sm:hidden">Short</span>
+    </TabsTrigger>
+  </TabsList>
+</div>
+```
+
+### Sidebar Layouts
+
+Stack vertically on mobile:
+
+```tsx
+<div className="flex flex-col lg:flex-row gap-6">
+  <div className="flex-1 lg:max-w-[60%]">Main content</div>
+  <div className="w-full lg:w-[40%] lg:min-w-[350px]">Sidebar</div>
+</div>
+```
+
+### Timeline/Progress Components
+
+Use horizontal scroll with padding instead of fixed min-width:
+
+```tsx
+<div className="overflow-x-auto scrollbar-hide">
+  <div className="min-w-max md:min-w-[600px] px-4 md:px-0">
+    {/* Timeline nodes */}
+  </div>
+</div>
+```
+
 ## Imports
 
 ```typescript
