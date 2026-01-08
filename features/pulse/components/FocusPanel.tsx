@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Plus, Target, Check, MoreHorizontal, Trash2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -139,22 +139,40 @@ function FocusCard({
   onDelete: () => void
   onRename: (newTitle: string) => void
 }) {
-  // Use ref for synchronous toggle guard (prevents rapid clicks)
+  // Track optimistic completion state locally to prevent race conditions
+  const [optimisticCompleted, setOptimisticCompleted] = useState<boolean | null>(null)
   const isTogglingRef = useRef(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(task.title)
-  const isCompleted = !!task.completed_at
+
+  // Use optimistic state if set, otherwise use server state
+  const isCompleted = optimisticCompleted !== null ? optimisticCompleted : !!task.completed_at
+
+  // Sync optimistic state when server state catches up
+  useEffect(() => {
+    if (optimisticCompleted !== null && !!task.completed_at === optimisticCompleted) {
+      setOptimisticCompleted(null) // Server caught up, clear optimistic state
+    }
+  }, [task.completed_at, optimisticCompleted])
 
   const handleClick = async () => {
-    // Synchronous check prevents rapid clicks
+    // Prevent rapid clicks
     if (isTogglingRef.current) return
     isTogglingRef.current = true
+
+    const wasCompleted = isCompleted
+    // Optimistically update immediately
+    setOptimisticCompleted(!wasCompleted)
+
     try {
-      if (isCompleted) {
+      if (wasCompleted) {
         await onUncomplete()
       } else {
         await onComplete()
       }
+    } catch {
+      // Revert on error
+      setOptimisticCompleted(wasCompleted)
     } finally {
       isTogglingRef.current = false
     }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Command,
@@ -43,6 +43,7 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { useModifierKey } from '@/hooks/use-platform'
 import { globalSearch, type SearchResult, type SearchResults } from '@/lib/search'
 import type { UserRole } from '@/lib/auth/types'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const STORAGE_KEY = 'hexos_recent_searches'
 const MAX_RECENT = 5
@@ -317,125 +318,152 @@ export function CommandPalette({ role }: CommandPaletteProps) {
       key={`${result.type}-${result.id}`}
       value={`${result.type}-${result.id}-${result.title}`}
       onSelect={() => handleSelect(result)}
-      className="flex items-center gap-3 py-3"
+      className="relative flex items-center gap-3 py-3 px-4 outline-none 
+                 data-[selected=true]:bg-cyan-500/10 data-[selected=true]:text-cyan-500
+                 hover:bg-cyan-500/5 transition-all duration-200 rounded-lg mx-1 group"
     >
       <span className="shrink-0">{typeIcons[result.type]}</span>
       <div className="flex-1 min-w-0">
-        <div className="font-medium truncate">{result.title}</div>
-        <div className="text-xs text-muted-foreground truncate">{result.subtitle}</div>
+        <div className="font-medium truncate text-foreground/90">{result.title}</div>
+        <div className="text-xs text-muted-foreground truncate group-data-[selected=true]:text-cyan-500/70">{result.subtitle}</div>
       </div>
     </CommandItem>
   )
 
+  // Filter navigation actions for the search
+  const filteredNavActions = useMemo(() => {
+    if (!query) return []
+    return quickActions.filter((action: SearchResult) =>
+      action.title.toLowerCase().includes(query.toLowerCase()) ||
+      action.subtitle.toLowerCase().includes(query.toLowerCase())
+    )
+  }, [query, quickActions])
+
   // Shared command content
   const commandContent = (
-    <>
-      <CommandInput
-        placeholder="Search projects, inquiries, blueprints..."
-        value={query}
-        onValueChange={setQuery}
-        className="h-12"
-      />
-      <CommandList className="max-h-[400px]">
+    <Command className="bg-transparent overflow-hidden">
+      <div className="flex items-center border-b px-3 bg-background/20 backdrop-blur-md">
+        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+        <CommandInput
+          placeholder="Search everything..."
+          value={query}
+          onValueChange={setQuery}
+          className="h-14 border-none bg-transparent focus:ring-0 text-md"
+        />
+      </div>
+      <CommandList className="max-h-[450px] overflow-y-auto p-2 scrollbar-hide">
         {loading && (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-cyan-500/50" />
           </div>
         )}
 
-        {!loading && query && !hasResults && (
-          <CommandEmpty>No results found for &quot;{query}&quot;</CommandEmpty>
+        {!loading && query && !hasResults && filteredNavActions.length === 0 && (
+          <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">
+            No results found for &quot;{query}&quot;
+          </CommandEmpty>
         )}
 
-        {/* Recent Searches */}
-        {!query && recentSearches.length > 0 && (
-          <CommandGroup heading="Recent">
-            {recentSearches.map((result) => (
-              <ResultItem key={`recent-${result.type}-${result.id}`} result={result} />
-            ))}
-            <CommandItem
-              onSelect={clearRecent}
-              className="text-xs text-muted-foreground justify-center py-2"
-            >
-              <Clock className="h-3 w-3 mr-1" />
-              Clear recent searches
-            </CommandItem>
-          </CommandGroup>
-        )}
+        <AnimatePresence mode="popLayout">
+          {/* Navigation Results (Always available if match) */}
+          {query && filteredNavActions.length > 0 && (
+            <CommandGroup heading="Navigation">
+              {filteredNavActions.map((action) => (
+                <ResultItem key={`nav-${action.id}`} result={action} />
+              ))}
+            </CommandGroup>
+          )}
 
-        {/* Quick Actions */}
-        {!query && (
-          <>
-            {recentSearches.length > 0 && <CommandSeparator />}
-            <CommandGroup heading="Quick Actions">
+          {/* Recent Searches */}
+          {!query && recentSearches.length > 0 && (
+            <CommandGroup heading="Recent">
+              {recentSearches.map((result) => (
+                <ResultItem key={`recent-${result.type}-${result.id}`} result={result} />
+              ))}
+              <div
+                onClick={clearRecent}
+                className="flex items-center justify-center gap-1.5 py-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <Clock className="h-3 w-3" />
+                Clear history
+              </div>
+            </CommandGroup>
+          )}
+
+          {/* Quick Actions / Suggestions */}
+          {!query && (
+            <CommandGroup heading="Quick Links">
               {quickActions.map((action) => (
                 <ResultItem key={action.id} result={action} />
               ))}
             </CommandGroup>
-          </>
-        )}
+          )}
 
-        {/* Search Results */}
-        {results && query && (
-          <>
-            {results.projects.length > 0 && (
-              <CommandGroup heading="Projects">
-                {results.projects.map((result) => (
-                  <ResultItem key={`project-${result.id}`} result={result} />
-                ))}
-              </CommandGroup>
-            )}
+          {/* Search Results */}
+          {results && query && (
+            <>
+              {results.projects.length > 0 && (
+                <CommandGroup heading="Projects">
+                  {results.projects.map((result) => (
+                    <ResultItem key={`project-${result.id}`} result={result} />
+                  ))}
+                </CommandGroup>
+              )}
 
-            {results.inquiries.length > 0 && (
-              <CommandGroup heading="Inquiries">
-                {results.inquiries.map((result) => (
-                  <ResultItem key={`inquiry-${result.id}`} result={result} />
-                ))}
-              </CommandGroup>
-            )}
+              {results.inquiries.length > 0 && (
+                <CommandGroup heading="Inquiries">
+                  {results.inquiries.map((result) => (
+                    <ResultItem key={`inquiry-${result.id}`} result={result} />
+                  ))}
+                </CommandGroup>
+              )}
 
-            {results.blueprints.length > 0 && (
-              <CommandGroup heading="Blueprints">
-                {results.blueprints.map((result) => (
-                  <ResultItem key={`blueprint-${result.id}`} result={result} />
-                ))}
-              </CommandGroup>
-            )}
+              {results.blueprints.length > 0 && (
+                <CommandGroup heading="Blueprints">
+                  {results.blueprints.map((result) => (
+                    <ResultItem key={`blueprint-${result.id}`} result={result} />
+                  ))}
+                </CommandGroup>
+              )}
 
-            {results.caseStudies.length > 0 && (
-              <CommandGroup heading="Case Studies">
-                {results.caseStudies.map((result) => (
-                  <ResultItem key={`case-study-${result.id}`} result={result} />
-                ))}
-              </CommandGroup>
-            )}
+              {results.caseStudies.length > 0 && (
+                <CommandGroup heading="Case Studies">
+                  {results.caseStudies.map((result) => (
+                    <ResultItem key={`case-study-${result.id}`} result={result} />
+                  ))}
+                </CommandGroup>
+              )}
 
-            {results.conversations.length > 0 && (
-              <CommandGroup heading="Conversations">
-                {results.conversations.map((result) => (
-                  <ResultItem key={`conversation-${result.id}`} result={result} />
-                ))}
-              </CommandGroup>
-            )}
-          </>
-        )}
+              {results.conversations.length > 0 && (
+                <CommandGroup heading="Conversations">
+                  {results.conversations.map((result) => (
+                    <ResultItem key={`conversation-${result.id}`} result={result} />
+                  ))}
+                </CommandGroup>
+              )}
+            </>
+          )}
+        </AnimatePresence>
       </CommandList>
 
       {/* Footer with keyboard hints */}
-      <div className="flex items-center justify-between border-t px-3 py-2 text-xs text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span>
-            <kbd className="rounded border bg-muted px-1">↵</kbd> select
+      <div className="flex items-center justify-between border-t bg-background/30 backdrop-blur-md px-4 py-3 text-[10px] font-medium text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <kbd className="flex h-5 items-center justify-center rounded border bg-muted/50 px-1.5 font-sans text-[11px]">↵</kbd>
+            Select
           </span>
-          <span>
-            <kbd className="rounded border bg-muted px-1">↑↓</kbd> navigate
+          <span className="flex items-center gap-1.5">
+            <kbd className="flex h-5 items-center justify-center rounded border bg-muted/50 px-1.5 font-sans text-[11px]">↑↓</kbd>
+            Navigate
           </span>
         </div>
-        <span>
-          <kbd className="rounded border bg-muted px-1">esc</kbd> close
+        <span className="flex items-center gap-1.5">
+          <kbd className="flex h-5 items-center justify-center rounded border bg-muted/50 px-1.5 font-sans text-[11px]">esc</kbd>
+          Dismiss
         </span>
       </div>
-    </>
+    </Command>
   )
 
   // Mobile: Full-screen sheet
@@ -444,14 +472,14 @@ export function CommandPalette({ role }: CommandPaletteProps) {
       <>
         <CommandPaletteTrigger onClick={() => setOpen(true)} modifierKey={modifierKey} isMobile />
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="top" className="h-[100dvh] p-0">
+          <SheetContent side="top" className="h-[100dvh] p-0 border-none bg-background/95 backdrop-blur-2xl">
             <VisuallyHidden>
               <SheetTitle>Search</SheetTitle>
               <SheetDescription>
                 Search for projects, inquiries, blueprints, and more
               </SheetDescription>
             </VisuallyHidden>
-            <Command className="h-full flex flex-col">{commandContent}</Command>
+            {commandContent}
           </SheetContent>
         </Sheet>
       </>
@@ -462,7 +490,11 @@ export function CommandPalette({ role }: CommandPaletteProps) {
   return (
     <>
       <CommandPaletteTrigger onClick={() => setOpen(true)} modifierKey={modifierKey} />
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        className="max-w-[650px] border-none bg-background/60 backdrop-blur-2xl shadow-2xl overflow-hidden ring-1 ring-white/10"
+      >
         {commandContent}
       </CommandDialog>
     </>

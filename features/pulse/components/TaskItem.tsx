@@ -34,11 +34,14 @@ export function TaskItem({ task, onUpdate, draggable = false, compact = false }:
   const isLinked = !!task.linked_action_id
 
   const handleToggle = async () => {
-    const newState = !isCompleted
-    setOptimisticCompleted(newState) // Instant visual feedback
+    // Prevent rapid clicks - if optimistic state is set, we're already processing
+    if (optimisticCompleted !== null) return
+
+    const wasCompleted = isCompleted
+    setOptimisticCompleted(!wasCompleted) // Instant visual feedback
 
     try {
-      if (task.completed_at) {
+      if (wasCompleted) {
         await uncompleteTaskAction(task.id)
       } else {
         await completeTaskAction(task.id)
@@ -46,6 +49,9 @@ export function TaskItem({ task, onUpdate, draggable = false, compact = false }:
       onUpdate?.()
     } catch {
       setOptimisticCompleted(null) // Revert on error
+    } finally {
+      // Clear optimistic state after server responds (realtime will update actual state)
+      setOptimisticCompleted(null)
     }
   }
 
