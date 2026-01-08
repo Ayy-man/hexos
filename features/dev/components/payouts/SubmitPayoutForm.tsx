@@ -144,7 +144,7 @@ export function SubmitPayoutForm({ projects }: SubmitPayoutFormProps) {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append('project_id', projectId || '');
+    formData.append('project_id', projectId === 'none' ? '' : projectId || '');
     formData.append('description', description);
     formData.append('amount', amount);
     formData.append('invoice_number', invoiceNumber);
@@ -202,7 +202,7 @@ export function SubmitPayoutForm({ projects }: SubmitPayoutFormProps) {
                   <SelectValue placeholder="Select a project (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No specific project</SelectItem>
+                  <SelectItem value="none">No specific project</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.project_name}
