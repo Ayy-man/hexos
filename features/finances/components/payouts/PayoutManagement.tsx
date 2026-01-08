@@ -44,8 +44,8 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { PayoutWithDetails, PayoutStatus, PayoutMetrics, PaymentMethod } from '@/lib/api/payouts';
-import { formatPayoutStatus, getPayoutStatusColor } from '@/lib/api/payouts';
+import type { PayoutWithDetails, PayoutStatus, PayoutMetrics, PaymentMethod } from '@/lib/api/payouts.shared';
+import { formatPayoutStatus, getPayoutStatusColor } from '@/lib/api/payouts.shared';
 import {
   approvePayoutAction,
   rejectPayoutAction,

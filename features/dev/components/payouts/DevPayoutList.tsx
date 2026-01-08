@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { PayoutWithDetails } from '@/lib/api/payouts';
-import { formatPayoutStatus, getPayoutStatusColor } from '@/lib/api/payouts';
+import type { PayoutWithDetails } from '@/lib/api/payouts.shared';
+import { formatPayoutStatus, getPayoutStatusColor } from '@/lib/api/payouts.shared';
 
 interface DevPayoutListProps {
   payouts: PayoutWithDetails[];

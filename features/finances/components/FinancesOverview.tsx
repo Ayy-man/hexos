@@ -37,7 +37,7 @@ import {
   Tooltip,
 } from 'recharts';
 import type { Invoice, Expense, PaymentMilestone, Project, FinancialAction } from '../types';
-import type { PayoutWithDetails } from '@/lib/api/payouts';
+import type { PayoutWithDetails } from '@/lib/api/payouts.shared';
 
 interface FinancesOverviewProps {
   invoices: Invoice[];
