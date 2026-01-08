@@ -39,9 +39,8 @@ export async function getPayouts(filters?: PayoutFilters): Promise<PayoutWithDet
     .from('payouts')
     .select(`
       *,
-      submitter:submitted_by(id, name, email),
-      project:project_id(id, project_name, client_name),
-      recipient:recipient_id(id, name, email, type)
+      submitter:profiles!submitted_by(id, name, email),
+      project:projects!project_id(id, project_name, client_name)
     `)
     .order('created_at', { ascending: false });
 
@@ -74,9 +73,8 @@ export async function getPayout(id: string): Promise<PayoutWithDetails | null> {
     .from('payouts')
     .select(`
       *,
-      submitter:submitted_by(id, name, email),
-      project:project_id(id, project_name, client_name),
-      recipient:recipient_id(id, name, email, type)
+      submitter:profiles!submitted_by(id, name, email),
+      project:projects!project_id(id, project_name, client_name)
     `)
     .eq('id', id)
     .single();
@@ -260,7 +258,7 @@ export async function getMyPayouts(userId: string): Promise<PayoutWithDetails[]>
     .from('payouts')
     .select(`
       *,
-      project:project_id(id, project_name, client_name)
+      project:projects!project_id(id, project_name, client_name)
     `)
     .eq('submitted_by', userId)
     .order('created_at', { ascending: false });
