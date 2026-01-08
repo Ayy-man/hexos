@@ -16,26 +16,56 @@ Supabase Auth integrates natively with RLS via `auth.uid()`.
 
 ## User Onboarding Flow
 
+### Invitation System
+
+All user onboarding goes through the `invitations` table. **Emails are NOT automatically sent** - admins must manually copy and share invite links.
+
+**Invitation Types:**
+| Type | Created By | Target Role | Has Org |
+|------|-----------|-------------|---------|
+| `admin` | Admin | admin | No |
+| `internal` | Admin | internal | No |
+| `dfy_first` | Admin | dfy | Creates new org |
+| `dfy_team` | DFY owner | dfy | Joins existing org |
+| `dev_solo` | Admin | dev | No |
+| `dev_team` | Dev owner | dev | Joins existing org |
+
+**Flow:**
+1. Admin clicks "Invite User" → creates invitation record with unique token
+2. UI shows success message and pending invitation in list
+3. Admin clicks "Copy Link" to get `/invite/{token}` URL
+4. Admin shares link manually (email, Slack, etc.)
+5. Invitee clicks link → `/invite/[token]` page validates and shows accept form
+6. Invitee signs up/logs in → invitation accepted, role assigned
+
+**Key Files:**
+- `lib/api/invitations.ts` - All invitation CRUD operations
+- `features/organizations/actions/invitationActions.ts` - Server actions
+- `app/invite/[token]/page.tsx` - Accept invitation page
+- `features/admin/components/AdminTeamList.tsx` - Pending invitations UI
+
 ### Admin/Internal
-1. Created directly in Supabase dashboard or via admin invite
-2. Role set manually
+1. Admin goes to `/admin/team` → clicks "Invite User"
+2. Selects role (admin or internal), enters email
+3. Copies invite link from pending invitations section
+4. Shares link with invitee
 
 ### Devs
-1. Admin creates account with role='dev'
-2. Dev receives email invite
-3. Dev sets password, logs in
-4. Sees only assigned projects
+1. Admin goes to `/admin/devs` → clicks "Invite Developer"
+2. Enters email, copies invite link
+3. Dev clicks link, creates account
+4. Dev sees only assigned projects
 
 ### DFY Partners
-1. Admin creates account with role='dfy'
-2. Partner receives email invite
-3. Partner sets password, logs in
-4. Can submit inquiries, see their deals
+1. Admin goes to `/admin/partners` → clicks "Invite Partner"
+2. Enters email + organization name
+3. Partner clicks link, creates account + org
+4. Can submit inquiries, manage their team
 
 ### Clients (if invited)
 1. DFY or Admin invites client to specific project
 2. Client account created with role='client', linked to project
-3. Client receives invite
+3. Client receives invite link
 4. Client sets password, sees only their project
 
 ## Auth Flow Code

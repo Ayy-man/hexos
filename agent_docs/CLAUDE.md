@@ -49,6 +49,31 @@ supabase/
 7. **RLS is ON** — Security at database level. Dev as admin role to see all data.
 8. **No recursive RLS functions** — NEVER create functions that query the same table they protect. See `security.md` for details.
 
+## Known Gotchas
+
+### Next.js Caching in Production
+
+**Problem:** Server components cache data aggressively. Pages may show stale/empty data even when database has correct data.
+
+**Symptoms:**
+- Data exists in DB (verified via SQL) but UI shows empty
+- Works locally, fails in production
+- Changes appear after redeployment but not navigation
+
+**Solution:** Add `export const dynamic = 'force-dynamic'` to pages with frequently-changing data:
+```tsx
+// app/(dashboard)/admin/team/page.tsx
+export const dynamic = 'force-dynamic'
+```
+
+**Already applied to:** `/admin/team`
+
+### Invitation System
+
+- **Emails are NOT sent automatically** — Admin must copy invite link and share manually
+- Pending invitations shown in admin pages with Copy Link / Resend / Revoke options
+- See `auth.md` for full invitation flow documentation
+
 ## Before Starting Work
 
 Read relevant files in `agent_docs/` based on your task:

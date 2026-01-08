@@ -73,6 +73,33 @@ export function ProjectStatusSelect({ project }) {
 - Browser APIs
 - Real-time subscriptions
 
+### Disabling Cache for Dynamic Data (IMPORTANT)
+
+**Next.js aggressively caches server component data in production.** Pages that fetch frequently-changing data will show stale data unless you disable caching.
+
+```tsx
+// app/(dashboard)/admin/team/page.tsx
+
+// Add this export to force fresh data on every request
+export const dynamic = 'force-dynamic'
+
+export default async function TeamPage() {
+  const invitations = await getInvitations() // Always fresh
+  // ...
+}
+```
+
+**When to use `force-dynamic`:**
+- Admin pages showing pending invitations, applications
+- Pages with data that changes frequently (not just via the current user)
+- Any page where stale data causes user confusion
+
+**Symptoms of caching issues:**
+- Data exists in database (verified via SQL or API route) but UI shows empty/old data
+- Changes don't appear until redeployment
+- Different results between local dev and production
+- Data appears after hard refresh but not on navigation
+
 ## API Abstraction
 
 **Never call Supabase from components directly.**
