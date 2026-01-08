@@ -44,6 +44,10 @@ import { useModifierKey } from '@/hooks/use-platform'
 import { globalSearch, type SearchResult, type SearchResults } from '@/lib/search'
 import type { UserRole } from '@/lib/auth/types'
 import { motion, AnimatePresence } from 'framer-motion'
+import { createTaskAction, createFocusTaskAction } from '@/features/pulse/actions/taskActions'
+import { getTodayDate } from '@/lib/utils/pulseCalculations'
+import { toast } from 'sonner'
+import { ChevronLeft } from 'lucide-react'
 
 const STORAGE_KEY = 'hexos_recent_searches'
 const MAX_RECENT = 5
@@ -60,6 +64,20 @@ function getQuickActions(role: UserRole): SearchResult[] {
       title: 'Dashboard',
       subtitle: 'Go to your personalized overview',
       link: role === 'dev' ? '/dashboard/dev' : role === 'admin' ? '/dashboard/admin' : role === 'client' ? '/dashboard/client' : '/dashboard',
+    },
+    {
+      id: 'quick-add-task',
+      type: 'pulse',
+      title: 'Quick Add Task',
+      subtitle: 'Capture a new task instantly',
+      link: '#',
+    },
+    {
+      id: 'add-focus-item',
+      type: 'profile',
+      title: 'Add Focus Item',
+      subtitle: 'Set a new priority for today',
+      link: '#',
     },
     {
       id: 'nav-pulse',
@@ -211,6 +229,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
   const [results, setResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)
   const [recentSearches, setRecentSearches] = useState<SearchResult[]>([])
+  const [actionState, setActionState] = useState<'none' | 'task' | 'focus'>('none')
 
   const debouncedQuery = useDebounce(query, 300)
 
@@ -263,19 +282,58 @@ export function CommandPalette({ role }: CommandPaletteProps) {
     }
   }, [debouncedQuery, role])
 
-  // Clear query when closing
+  // Clear query and reset state when closing
   useEffect(() => {
     if (!open) {
       setQuery('')
       setResults(null)
+      setActionState('none')
     }
   }, [open])
 
   // Handle result selection
   const handleSelect = useCallback(
-    (result: SearchResult) => {
+    async (result: SearchResult) => {
+      // Intercept Pulse Quick Actions
+      if (result.id === 'quick-add-task') {
+        setQuery('')
+        setActionState('task')
+        return
+      }
+      if (result.id === 'add-focus-item') {
+        setQuery('')
+        setActionState('focus')
+        return
+      }
+
+      // Handle Task/Focus submission if in an action state
+      if (actionState === 'task' || actionState === 'focus') {
+        if (!query.trim()) return
+
+        setLoading(true)
+        try {
+          if (actionState === 'task') {
+            await createTaskAction({
+              title: query.trim(),
+              date: getTodayDate(),
+            })
+            toast.success('Task added to Pulse')
+          } else {
+            await createFocusTaskAction(query.trim())
+            toast.success('Focus item set')
+          }
+          setOpen(false)
+        } catch (error) {
+          toast.error('Failed to save Pulse item')
+        } finally {
+          setLoading(false)
+          setActionState('none')
+        }
+        return
+      }
+
       // Save to recent searches (only for non-action results)
-      if (result.type !== 'action') {
+      if (result.type !== 'action' && result.id !== 'nav-dashboard') {
         const updated = [
           result,
           ...recentSearches.filter((r) => r.id !== result.id || r.type !== result.type),
@@ -332,11 +390,29 @@ export function CommandPalette({ role }: CommandPaletteProps) {
 
   // Shared command content
   const commandContent = (
-    <Command className="bg-transparent overflow-hidden" shouldFilter={true}>
+    <Command className="bg-transparent overflow-hidden" shouldFilter={actionState === 'none'}>
       <div className="flex items-center border-b px-3 bg-background/20 backdrop-blur-md">
-        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+        {actionState !== 'none' ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-2 h-8 w-8 hover:bg-white/5"
+            onClick={() => {
+              setActionState('none')
+              setQuery('')
+            }}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+        )}
         <CommandInput
-          placeholder="Search everything..."
+          placeholder={
+            actionState === 'task' ? "What task are you capturing?" :
+              actionState === 'focus' ? "What is your main focus now?" :
+                "Search everything..."
+          }
           value={query}
           onValueChange={setQuery}
           className="h-14 border-none bg-transparent focus:ring-0 text-md"
@@ -350,19 +426,58 @@ export function CommandPalette({ role }: CommandPaletteProps) {
         )}
 
         <CommandEmpty className="py-10 text-center text-sm text-muted-foreground">
-          {!loading && `No results found for "${query}"`}
+          {!loading && (
+            actionState !== 'none' ? (
+              query.trim() ? "Press Enter to save" : "Start typing to capture..."
+            ) : `No results found for "${query}"`
+          )}
         </CommandEmpty>
 
         <AnimatePresence mode="popLayout">
+          {/* Action Capture Mode */}
+          {actionState !== 'none' && !loading && (
+            <CommandGroup heading={actionState === 'task' ? "Pulse: New Task" : "Pulse: New Focus"}>
+              <CommandItem
+                onSelect={() => handleSelect({
+                  id: 'submit-action',
+                  type: 'action',
+                  title: query || 'Capture text...',
+                  subtitle: `Hit Enter to save as ${actionState}`,
+                  link: '#'
+                })}
+                className="relative flex items-center gap-3 py-4 px-4 outline-none 
+                           data-[selected=true]:bg-cyan-500/10 data-[selected=true]:text-cyan-500
+                           transition-all duration-200 rounded-lg mx-1 group"
+              >
+                <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-cyan-500/10 border border-cyan-500/20">
+                  {actionState === 'task' ? <Zap className="h-5 w-5" /> : <Target className="h-5 w-5" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-lg truncate text-foreground/90">
+                    {query || (actionState === 'task' ? "Enter task title..." : "Enter focus title...")}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {query ? `Save to Today's Pulse` : `Describe your work...`}
+                  </div>
+                </div>
+                <kbd className="hidden sm:flex h-6 items-center justify-center rounded border border-white/10 bg-muted/50 px-2 font-sans text-[10px] text-muted-foreground">
+                  ENTER
+                </kbd>
+              </CommandItem>
+            </CommandGroup>
+          )}
+
           {/* Static Navigation - Always searchable */}
-          <CommandGroup heading={query ? "Navigation" : "Quick Links"}>
-            {quickActions.map((action) => (
-              <ResultItem key={`nav-${action.id}`} result={action} />
-            ))}
-          </CommandGroup>
+          {actionState === 'none' && (
+            <CommandGroup heading={query ? "Navigation" : "Quick Links"}>
+              {quickActions.map((action) => (
+                <ResultItem key={`nav-${action.id}`} result={action} />
+              ))}
+            </CommandGroup>
+          )}
 
           {/* Recent Searches */}
-          {!query && recentSearches.length > 0 && (
+          {actionState === 'none' && !query && recentSearches.length > 0 && (
             <CommandGroup heading="Recent">
               {recentSearches.map((result) => (
                 <ResultItem key={`recent-${result.type}-${result.id}`} result={result} />
@@ -378,7 +493,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
           )}
 
           {/* Dynamic Search Results */}
-          {results && query && (
+          {actionState === 'none' && results && query && (
             <>
               {results.projects.length > 0 && (
                 <CommandGroup heading="Projects">
