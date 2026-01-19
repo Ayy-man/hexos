@@ -131,13 +131,17 @@ Plans:
 
 ### Phase 08: Testing Tab Polish
 **Goal:** Reliability and positioning improvements
-**Status:** Not started
+**Status:** Planned
+**Plans:** 1 plan
 
 Fix testing tab reliability issues, position it after Progress tab and before Files tab when enabled.
 
 **Delivers:**
 - Reliable testing queue loading
 - Correct tab positioning
+
+Plans:
+- [ ] 08-01-PLAN.md — Fix tab ordering, add project-scoped queue loading, add error handling UI
 
 ---
 
