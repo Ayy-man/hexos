@@ -40,7 +40,8 @@ Plans:
 
 ### Phase 03: Form Input Fixes
 **Goal:** Fix number input UX issues across the entire app
-**Status:** Not started
+**Status:** Planned
+**Plans:** 2 plans
 
 Fix blueprint pricing tier number inputs (0-prefix issue), add $50 step to price fields, fix textarea newline handling. Audit all number inputs app-wide for consistency.
 
@@ -49,6 +50,10 @@ Fix blueprint pricing tier number inputs (0-prefix issue), add $50 step to price
 - Price fields step by $50
 - Textarea accepts Enter for new lines
 - Consistent number input behavior
+
+Plans:
+- [ ] 03-01-PLAN.md — Fix critical blueprint form inputs (PricingTiersEditor + BlueprintForm)
+- [ ] 03-02-PLAN.md — App-wide currency input audit (10 files)
 
 ---
 
@@ -71,7 +76,8 @@ Plans:
 
 ### Phase 05: Sidebar & Dashboard Polish
 **Goal:** Improve navigation UX and data accuracy
-**Status:** Not started
+**Status:** Planned
+**Plans:** 3 plans
 
 Reorder sidebar (blockers higher), add hover tooltips with status counts to inquiries tab, sync DFY project cards to hill chart progress percentage.
 
@@ -79,6 +85,11 @@ Reorder sidebar (blockers higher), add hover tooltips with status counts to inqu
 - Better sidebar organization
 - At-a-glance inquiry status
 - Accurate DFY progress display
+
+Plans:
+- [ ] 05-01-PLAN.md — Reorder sidebar navigation (Blockers first in Admin group)
+- [ ] 05-02-PLAN.md — Sync DFY dashboard to hill chart progress
+- [ ] 05-03-PLAN.md — Add inquiry status tooltips to sidebar
 
 ---
 
@@ -97,7 +108,8 @@ Add Loom video URL fields to blueprints and case studies (conditional visibility
 
 ### Phase 07: Finance Tab Redesign
 **Goal:** Reduce cognitive load with better information hierarchy
-**Status:** Not started
+**Status:** Planned
+**Plans:** 2 plans
 
 Redesign metrics/finance tab with narrower cards, clear visual hierarchy, and logical groupings (Revenue, Costs, Timeline).
 
@@ -105,6 +117,10 @@ Redesign metrics/finance tab with narrower cards, clear visual hierarchy, and lo
 - Redesigned finance tab
 - Better visual hierarchy
 - Logical metric groupings
+
+Plans:
+- [ ] 07-01-PLAN.md — Restructure FinancialsTab into 3 sectioned groups (Revenue, Costs, Timeline)
+- [ ] 07-02-PLAN.md — Polish color coding, responsive layout, and visual verification
 
 ---
 
