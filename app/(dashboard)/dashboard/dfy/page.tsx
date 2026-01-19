@@ -25,6 +25,7 @@ import { InlineSparkline } from '@/components/shared/ActivitySparkline'
 import { StaleProposalsBanner } from '@/features/inquiries/components/StaleProposalsBanner'
 import { PendingExtensionsList } from '@/features/projects/components/delays/PendingExtensionsList'
 import { cn } from '@/lib/utils'
+import { calculateHillChartProgress } from '@/lib/utils/projectProgress'
 
 // DFY-visible stages (they don't see internal workflow stages)
 const DFY_VISIBLE_STAGES: ProposalStage[] = ['sent', 'closed', 'lost']
