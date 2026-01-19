@@ -32,7 +32,7 @@ interface DeliverablesTabProps {
   isAdmin: boolean
   isDfyOwner: boolean
   // Bound server actions
-  parseDeliverables: (content: unknown) => Promise<ProposalDeliverable[]>
+  parseDeliverables: (content: unknown) => Promise<{ deliverables?: ProposalDeliverable[]; error?: string }>
   createDeliverable: (name: string, description?: string) => Promise<void>
   addFromBlueprintTier: (
     blueprintId: string,
@@ -126,11 +126,22 @@ export function DeliverablesTab({
 
     setIsParsing(true)
     try {
-      await parseDeliverables(proposalContent)
-      toast.success('Deliverables extracted successfully')
+      const result = await parseDeliverables(proposalContent)
+
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+
+      if (result.deliverables && result.deliverables.length > 0) {
+        toast.success(`Extracted ${result.deliverables.length} deliverables`)
+      } else {
+        toast.info('No deliverables found in proposal. You can add them manually.')
+      }
     } catch (error) {
+      // Fallback for unexpected errors (network issues, etc.)
       console.error('Parse error:', error)
-      toast.error('Failed to extract deliverables')
+      toast.error('Failed to connect to server')
     } finally {
       setIsParsing(false)
     }

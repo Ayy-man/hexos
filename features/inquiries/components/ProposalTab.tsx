@@ -64,7 +64,7 @@ interface ProposalTabProps {
   addComment: (content: string, parentId?: string) => Promise<InquiryComment>
   resolveComment: (commentId: string, resolved: boolean) => Promise<void>
   deleteComment: (commentId: string) => Promise<void>
-  onStartNegotiation?: () => Promise<void>
+  onStartNegotiation?: () => Promise<{ deliverables?: unknown[]; error?: string }>
 }
 
 export function ProposalTab({
