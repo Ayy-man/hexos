@@ -172,12 +172,10 @@ export function useNotificationsRealtime({
             // Add to toast queue (max 5)
             setToastQueue(prev => [...prev, normalized].slice(-5))
             // Mark as toast-shown immediately (fire and forget)
-            supabase
+            void supabase
               .from('notifications')
               .update({ shown_as_toast_at: new Date().toISOString() })
               .eq('id', normalized.id)
-              .then(() => {})
-              .catch(console.error)
             onNewNotification?.(normalized)
           }
         }
