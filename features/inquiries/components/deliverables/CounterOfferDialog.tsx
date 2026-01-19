@@ -144,9 +144,10 @@ export function CounterOfferDialog({
               </span>
               <Input
                 id="counter-price"
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={counterPrice}
-                onChange={(e) => setCounterPrice(e.target.value)}
+                onChange={(e) => setCounterPrice(e.target.value.replace(/[^0-9.]/g, ''))}
                 placeholder="0.00"
                 className="pl-7"
               />

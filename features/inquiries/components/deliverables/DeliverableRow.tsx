@@ -253,9 +253,10 @@ export function DeliverableRow({
       <TableCell className="text-right">
         {isEditing ? (
           <Input
-            type="number"
+            type="text"
+            inputMode="decimal"
             value={editPrice}
-            onChange={(e) => setEditPrice(e.target.value)}
+            onChange={(e) => setEditPrice(e.target.value.replace(/[^0-9.]/g, ''))}
             className="h-8 w-24 text-right"
             placeholder="0.00"
           />

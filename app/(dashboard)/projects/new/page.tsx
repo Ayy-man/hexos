@@ -206,11 +206,10 @@ export default async function NewProjectPage() {
                 Client Price ($)
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 id="price_dfy"
                 name="price_dfy"
-                min="0"
-                step="0.01"
                 className="mt-1 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100"
               />
             </div>

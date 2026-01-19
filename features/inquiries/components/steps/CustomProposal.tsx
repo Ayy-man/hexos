@@ -361,9 +361,14 @@ export function CustomProposal() {
               </div>
               {watch('budget_indication') === 'specific_number' && (
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="Enter budget amount"
                   {...register('budget_amount')}
+                  onChange={(e) => {
+                    const sanitized = e.target.value.replace(/[^0-9.]/g, '')
+                    setValue('budget_amount', sanitized)
+                  }}
                   className="w-full"
                 />
               )}

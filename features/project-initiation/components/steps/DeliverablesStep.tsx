@@ -607,11 +607,11 @@ export function DeliverablesStep({
             <div className="space-y-2">
               <label className="text-sm font-medium">Price</label>
               <Input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/[^0-9.]/g, '') })}
                 placeholder="0"
-                min={0}
               />
             </div>
           </div>
@@ -725,11 +725,11 @@ function AddDeliverableDialog({
           <div className="space-y-2">
             <label className="text-sm font-medium">Price</label>
             <Input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value.replace(/[^0-9.]/g, '') })}
               placeholder="0"
-              min={0}
             />
           </div>
         </div>

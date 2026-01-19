@@ -194,9 +194,10 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                       <Input
                         id="price_dfy"
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={priceDfy}
-                        onChange={(e) => { setPriceDfy(e.target.value); markChanged() }}
+                        onChange={(e) => { setPriceDfy(e.target.value.replace(/[^0-9.]/g, '')); markChanged() }}
                         className="pl-7"
                         placeholder="0"
                       />
@@ -215,9 +216,10 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                           <Input
                             id="price_hexona"
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             value={priceHexona}
-                            onChange={(e) => { setPriceHexona(e.target.value); markChanged() }}
+                            onChange={(e) => { setPriceHexona(e.target.value.replace(/[^0-9.]/g, '')); markChanged() }}
                             className="pl-7"
                             placeholder="0"
                           />
@@ -234,9 +236,10 @@ export function ProjectInfoTab({ project, userRole }: ProjectInfoTabProps) {
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                           <Input
                             id="price_dev"
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             value={priceDev}
-                            onChange={(e) => { setPriceDev(e.target.value); markChanged() }}
+                            onChange={(e) => { setPriceDev(e.target.value.replace(/[^0-9.]/g, '')); markChanged() }}
                             className="pl-7"
                             placeholder="0"
                           />
