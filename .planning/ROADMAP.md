@@ -83,7 +83,8 @@ Plans:
 
 ### Phase 05: Sidebar & Dashboard Polish
 **Goal:** Improve navigation UX and data accuracy
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-01-20
 **Plans:** 3 plans
 
 Reorder sidebar (blockers higher), add hover tooltips with status counts to inquiries tab, sync DFY project cards to hill chart progress percentage.
@@ -94,9 +95,9 @@ Reorder sidebar (blockers higher), add hover tooltips with status counts to inqu
 - Accurate DFY progress display
 
 Plans:
-- [ ] 05-01-PLAN.md — Reorder sidebar navigation (Blockers first in Admin group)
-- [ ] 05-02-PLAN.md — Sync DFY dashboard to hill chart progress
-- [ ] 05-03-PLAN.md — Add inquiry status tooltips to sidebar
+- [x] 05-01-PLAN.md — Reorder sidebar navigation (Blockers first in Admin group)
+- [x] 05-02-PLAN.md — Sync DFY dashboard to hill chart progress
+- [x] 05-03-PLAN.md — Add inquiry status tooltips to sidebar
 
 ---
 
