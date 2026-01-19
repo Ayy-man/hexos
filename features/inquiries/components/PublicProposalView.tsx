@@ -174,13 +174,7 @@ export function PublicProposalView({ proposal }: PublicProposalViewProps) {
 
         {/* Footer */}
         <footer className="text-center text-sm text-muted-foreground">
-          {!partnerLogo && (
-            <p>
-              Powered by{' '}
-              <span className="font-semibold text-foreground">hexOS</span>
-            </p>
-          )}
-          <p className={partnerLogo ? '' : 'mt-1'}>
+          <p>
             Questions? Contact your representative: {proposal.partner_name}
           </p>
         </footer>
