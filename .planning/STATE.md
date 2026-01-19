@@ -11,15 +11,15 @@
 Phase: 11 of 12 (notification-system-audit)
 Plan: 01 of 2 (COMPLETE)
 Status: In progress
-Last activity: 2026-01-20 - Completed 11-01-PLAN.md (Toast notification tracking infrastructure)
+Last activity: 2026-01-20 - Completed 06-03-PLAN.md (Blueprint detail page enhancements)
 
-Progress: [=========================---------] 54%
+Progress: [==========================--------] 58%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
          Phase 04: 01 complete (verified)
          Phase 05: 01, 02, 03 complete
-         Phase 06: 01, 02 complete
+         Phase 06: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 07: 01 complete
          Phase 08: 01 complete (verified)
          Phase 11: 01 complete
@@ -39,6 +39,7 @@ Progress: [=========================---------] 54%
 | 05-sidebar-dashboard | 03 | Inquiry status tooltips for sidebar | bb65488 |
 | 06-blueprints-case-studies | 01 | Database & API foundation for Loom video support | 4f56c84, d21d847, 2ac867e |
 | 06-blueprints-case-studies | 02 | LoomVideoEmbed component and form integration | 5278d09, 0d6a1aa, fb4ede3 |
+| 06-blueprints-case-studies | 03 | RelatedCaseStudies component and blueprint detail page enhancements | 4b31039, b77400e |
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
@@ -58,6 +59,8 @@ Progress: [=========================---------] 54%
 | 06-02 | LoomVideoEmbed returns null for invalid URLs | Graceful degradation, no broken iframes |
 | 06-02 | 16:10 aspect ratio (paddingBottom 62.5%) | Matches Loom default video dimensions |
 | 06-02 | Live preview only when URL is non-empty AND valid | Clear feedback for user |
+| 06-03 | RelatedCaseStudies returns null when empty | No placeholder card, clean UI when no linked content |
+| 06-03 | Loom video in main content, related case studies in sidebar | Follows existing blueprint detail page layout patterns |
 | 07-01 | 5-column grid for Revenue, 4-column for Costs/Timeline | Match card count to grid columns |
 | 07-01 | Conditional color coding: green positive, red negative, orange warning | Clear financial status at a glance |
 | 07-01 | Compact card py-3 pattern | Consistent with admin page design system |
@@ -92,6 +95,8 @@ Progress: [=========================---------] 54%
 | Error state with retry | useState for error, clear before try, set in catch, Button to retry | 08-01 |
 | Responsive iframe embed | paddingBottom % on parent + absolute positioning on iframe | 06-02 |
 | Optional form validation | const isValid = !value \|\| validateFn(value) for optional fields | 06-02 |
+| Graceful empty state component | Return null instead of placeholder when no content | 06-03 |
+| Sidebar related content | Clickable cards with icon, name, subtitle, arrow navigation | 06-03 |
 | Structured server action results | Return { data?, error? } instead of throwing for user-facing errors | 01-02 |
 | White-label exports | Remove platform branding for client-facing outputs (PDF, web) | 04-01 |
 | Toast deduplication | Database-backed shown_as_toast_at column with partial index | 11-01 |
@@ -103,8 +108,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20T19:35:18Z
-Stopped at: Completed 11-01-PLAN.md (Toast notification tracking infrastructure)
+Last session: 2026-01-19T19:40:38Z
+Stopped at: Completed 06-03-PLAN.md (Blueprint detail page enhancements)
 Resume file: None
 
 ---
