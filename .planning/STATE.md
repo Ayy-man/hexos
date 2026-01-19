@@ -2,25 +2,26 @@
 
 **Milestone:** v1.0 Polish
 **Repository:** hexos-main
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-01-20
 
 ---
 
 ## Current Position
 
-Phase: 01 of 12 (critical-bugs)
-Plan: 02 of 2 (COMPLETE)
-Status: Phase complete
-Last activity: 2026-01-20 - Completed 01-01-PLAN.md (Storage RLS policies)
+Phase: 11 of 12 (notification-system-audit)
+Plan: 01 of 2 (COMPLETE)
+Status: In progress
+Last activity: 2026-01-20 - Completed 11-01-PLAN.md (Toast notification tracking infrastructure)
 
-Progress: [======================------------] 48%
-         Phase 01: 01, 02 complete ✓
-         Phase 02: 01 complete ✓
-         Phase 03: 01, 02 complete (verified) ✓
-         Phase 05: 01, 02, 03 complete ✓
+Progress: [=======================-----------] 52%
+         Phase 01: 01, 02 complete
+         Phase 02: 01 complete
+         Phase 03: 01, 02 complete (verified)
+         Phase 05: 01, 02, 03 complete
          Phase 06: 01, 02 complete
          Phase 07: 01 complete
-         Phase 08: 01 complete (verified) ✓
+         Phase 08: 01 complete (verified)
+         Phase 11: 01 complete
 
 ## Completed Work
 
@@ -38,6 +39,7 @@ Progress: [======================------------] 48%
 | 06-blueprints-case-studies | 02 | LoomVideoEmbed component and form integration | 5278d09, 0d6a1aa, fb4ede3 |
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
+| 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 
 ## Accumulated Decisions
 
@@ -66,6 +68,9 @@ Progress: [======================------------] 48%
 | 01-02 | Return { data?, error? } instead of throwing in server actions | Next.js production builds scrub error details from thrown exceptions |
 | 01-02 | Log full error details server-side before returning | Preserve stack traces for debugging while giving users clean messages |
 | 01-02 | Empty results are not errors | Return { deliverables: [] } and let UI show info toast |
+| 11-01 | Database-backed toast tracking over client-side storage | Ensures deduplication works across tabs and page refreshes |
+| 11-01 | Partial index with dual NULL filter | Optimal query performance for unread + unshown filtering |
+| 11-01 | 5-minute default window for initial toast display | Prevents showing old notifications as urgent toasts |
 
 ## Patterns Established
 
@@ -85,6 +90,8 @@ Progress: [======================------------] 48%
 | Responsive iframe embed | paddingBottom % on parent + absolute positioning on iframe | 06-02 |
 | Optional form validation | const isValid = !value \|\| validateFn(value) for optional fields | 06-02 |
 | Structured server action results | Return { data?, error? } instead of throwing for user-facing errors | 01-02 |
+| Toast deduplication | Database-backed shown_as_toast_at column with partial index | 11-01 |
+| Time-windowed initial queries | Use cutoff timestamp for recent-only filtering | 11-01 |
 
 ## Blockers/Concerns
 
@@ -92,8 +99,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T18:51:03Z
-Stopped at: Completed 01-02-PLAN.md (DFY error handling)
+Last session: 2026-01-20T19:35:18Z
+Stopped at: Completed 11-01-PLAN.md (Toast notification tracking infrastructure)
 Resume file: None
 
 ---
