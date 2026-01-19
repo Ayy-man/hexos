@@ -174,15 +174,26 @@ Plans:
 
 ### Phase 10: Opportunities Overhaul
 **Goal:** Developer bidding and AI-powered briefs
-**Status:** Not started
+**Status:** Planned
+**Plans:** 5 plans
 
-Change hours to weeks, add post-project opportunity creation with expiry, developer bidding system, pre-commitment tab, AI-generated redacted briefs with caching.
+Change hours to weeks, add developer bidding system, pre-commitment tab, AI-generated redacted briefs with caching.
 
 **Delivers:**
 - Bidding system for developers
 - Pre-commitment flow
 - AI redacted briefs
 - Cached extractions
+- Hours to weeks UI update
+
+**Dependencies:** Phase 06 (Blueprints/Case Studies for AI brief context)
+
+Plans:
+- [ ] 10-01-PLAN.md — Schema migration (bids, brief_extractions, weeks columns) and API modules
+- [ ] 10-02-PLAN.md — Bidding system UI (BidForm, BidList, BidCard) and server actions
+- [ ] 10-03-PLAN.md — AI brief generation endpoint, caching, and RedactedBriefCard
+- [ ] 10-04-PLAN.md — Pre-commitment workflow (API, actions, PreCommitmentTab)
+- [ ] 10-05-PLAN.md — Integration into admin/dev dashboards and weeks display
 
 ---
 
