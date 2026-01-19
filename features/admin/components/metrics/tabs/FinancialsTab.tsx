@@ -26,8 +26,12 @@ import {
   TrendingUp,
   Download,
   Clock,
+  Receipt,
+  Target,
+  Percent,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/api/financial-metrics-utils';
+import { cn } from '@/lib/utils';
 import type {
   FinancialHeroMetrics,
   OverduePayment,
@@ -139,68 +143,70 @@ export function FinancialsTab({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pending</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {financial ? formatCurrency(financial.pending_payments) : '$0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Across all projects
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className={overduePayments.length > 0 ? 'border-error/50 bg-error/5' : ''}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertTriangle className={`h-4 w-4 ${overduePayments.length > 0 ? 'text-error' : 'text-muted-foreground'}`} />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${overduePayments.length > 0 ? 'text-error' : ''}`}>
-              {formatCurrency(totalOverdue)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {overduePayments.length} overdue milestone{overduePayments.length !== 1 ? 's' : ''}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Due This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-warning" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">
-              {financial ? formatCurrency(financial.payable_this_month) : '$0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Expected collections
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Due Next Month</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {financial ? formatCurrency(financial.payable_next_month) : '$0'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Upcoming collections
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-6">
+      {/* Revenue Section */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <DollarSign className="h-4 w-4" />
+          <span>Revenue</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <Card className="py-3 border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/30">
+            <CardContent className="p-0 px-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-green-600 dark:text-green-400">Total Revenue</p>
+                <p className="text-xl font-bold text-green-600 tabular-nums">
+                  {formatCurrency(financial?.total_revenue || 0)}
+                </p>
+              </div>
+              <DollarSign className="h-5 w-5 text-green-500" />
+            </CardContent>
+          </Card>
+          <Card className="py-3">
+            <CardContent className="p-0 px-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">This Month</p>
+                <p className="text-xl font-bold tabular-nums">
+                  {formatCurrency(financial?.revenue_this_month || 0)}
+                </p>
+              </div>
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <Card className="py-3">
+            <CardContent className="p-0 px-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Projected</p>
+                <p className="text-xl font-bold tabular-nums">
+                  {formatCurrency(financial?.projected_revenue || 0)}
+                </p>
+              </div>
+              <Target className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <Card className="py-3">
+            <CardContent className="p-0 px-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Win Rate</p>
+                <p className="text-xl font-bold tabular-nums">
+                  {financial?.win_rate ? `${financial.win_rate}%` : '0%'}
+                </p>
+              </div>
+              <Percent className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <Card className="py-3">
+            <CardContent className="p-0 px-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground">Avg Ticket</p>
+                <p className="text-xl font-bold tabular-nums">
+                  {formatCurrency(financial?.avg_ticket_size || 0)}
+                </p>
+              </div>
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Charts Row */}
