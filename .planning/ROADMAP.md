@@ -153,7 +153,8 @@ Plans:
 
 ### Phase 09: Suggestion Box Expansion
 **Goal:** Full suggestion management for DFY/Dev users
-**Status:** Not started
+**Status:** Planned
+**Plans:** 3 plans
 
 Create suggestion list page for DFY/Dev, add conversation threads per suggestion with admin, trigger notifications without polluting general conversations.
 
@@ -161,6 +162,13 @@ Create suggestion list page for DFY/Dev, add conversation threads per suggestion
 - Suggestion list page
 - Per-suggestion conversations
 - Scoped notifications
+
+**Dependencies:** Phase 01 (suggestion box upload must work first)
+
+Plans:
+- [ ] 09-01-PLAN.md — Database migration for suggestion conversations (type, trigger, RLS, backfill)
+- [ ] 09-02-PLAN.md — API functions for suggestion conversations and notifications
+- [ ] 09-03-PLAN.md — My Suggestions page, components, and sidebar navigation
 
 ---
 
