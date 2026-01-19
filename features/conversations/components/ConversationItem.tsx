@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import type { Conversation, ConversationType } from '@/lib/api/conversations.shared'
 import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations.shared'
 import { UnreadBadge } from './UnreadBadge'
-import { Users, Briefcase, Handshake, MessageCircle, FileQuestion } from 'lucide-react'
+import { Users, Briefcase, Handshake, MessageCircle, FileQuestion, Lightbulb } from 'lucide-react'
 
 // Type badge configuration with colors and icons
 export const CONVERSATION_TYPE_CONFIG: Record<ConversationType, {
@@ -37,6 +37,11 @@ export const CONVERSATION_TYPE_CONFIG: Record<ConversationType, {
     icon: FileQuestion,
     color: 'text-green-600 dark:text-green-400',
     bgColor: 'bg-green-100 dark:bg-green-900/50',
+  },
+  suggestion: {
+    icon: Lightbulb,
+    color: 'text-yellow-600 dark:text-yellow-400',
+    bgColor: 'bg-yellow-100 dark:bg-yellow-900/50',
   },
 }
 

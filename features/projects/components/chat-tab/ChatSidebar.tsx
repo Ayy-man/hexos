@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MessageSquare, Briefcase, Handshake } from 'lucide-react'
+import { MessageSquare, Briefcase, Handshake, Lightbulb } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import type { Conversation, ConversationType } from '@/lib/api/conversations.shared'
@@ -53,6 +53,12 @@ const CONVERSATION_TYPE_CONFIG: Record<ConversationType, {
     label: 'Inquiry',
     description: 'Inquiry chat',
     color: 'text-green-500',
+  },
+  suggestion: {
+    icon: Lightbulb,
+    label: 'Suggestion',
+    description: 'Suggestion thread',
+    color: 'text-yellow-500',
   },
 }
 
