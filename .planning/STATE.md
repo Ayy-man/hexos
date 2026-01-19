@@ -2,7 +2,7 @@
 
 **Milestone:** v1.0 Polish
 **Repository:** hexos-main
-**Last Updated:** 2026-01-20
+**Last Updated:** 2026-01-19
 
 ---
 
@@ -11,9 +11,10 @@
 Phase: 06 of 12 (blueprints-case-studies)
 Plan: 02 of 3 (COMPLETE)
 Status: In progress
-Last activity: 2026-01-19 - Completed 06-02-PLAN.md
+Last activity: 2026-01-19 - Completed 01-02-PLAN.md (DFY error handling)
 
 Progress: [==================----------------] 58%
+         Phase 01: 02 complete (DFY error handling)
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
          Phase 05: 01, 02, 03 complete
@@ -25,6 +26,7 @@ Progress: [==================----------------] 58%
 
 | Phase | Plan | Summary | Commit |
 |-------|------|---------|--------|
+| 01-critical-bugs | 02 | DFY error handling - structured results for triggerParseDeliverablesAction | 951c17f, 9060c9b, 80f45ab |
 | 02-code-cleanup | 01 | Remove unused placeholder features (team, time reports) | 139abb8 |
 | 03-form-input-fixes | 01 | Blueprint form input fixes (pricing tiers, base price) | 4eff661 |
 | 03-form-input-fixes | 02 | Apply currency input pattern to all HIGH priority files | 829d929, 484e7b7 |
@@ -60,6 +62,9 @@ Progress: [==================----------------] 58%
 | 05-03 | Total excludes closed and lost | Active pipeline only for quick status check |
 | 08-01 | Server-side filtering over client-side | More efficient, reduces data transfer, prevents stale data |
 | 08-01 | Optional parameter for project-scoped queries | Maintains backward compatibility while enabling scoping |
+| 01-02 | Return { data?, error? } instead of throwing in server actions | Next.js production builds scrub error details from thrown exceptions |
+| 01-02 | Log full error details server-side before returning | Preserve stack traces for debugging while giving users clean messages |
+| 01-02 | Empty results are not errors | Return { deliverables: [] } and let UI show info toast |
 
 ## Patterns Established
 
@@ -78,6 +83,7 @@ Progress: [==================----------------] 58%
 | Error state with retry | useState for error, clear before try, set in catch, Button to retry | 08-01 |
 | Responsive iframe embed | paddingBottom % on parent + absolute positioning on iframe | 06-02 |
 | Optional form validation | const isValid = !value \|\| validateFn(value) for optional fields | 06-02 |
+| Structured server action results | Return { data?, error? } instead of throwing for user-facing errors | 01-02 |
 
 ## Blockers/Concerns
 
@@ -85,8 +91,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T18:42:43Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-01-19T18:51:03Z
+Stopped at: Completed 01-02-PLAN.md (DFY error handling)
 Resume file: None
 
 ---
