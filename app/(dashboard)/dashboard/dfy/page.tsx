@@ -252,9 +252,10 @@ export default async function DfyDashboard() {
                   const trendKey = `project:${project.id}`
                   const trend = activityTrends.get(trendKey) || []
                   const HealthIcon = HEALTH_CONFIG[project.health].icon
+                  const hillProgress = calculateHillChartProgress(project.deliverables)
+                  const progress = hillProgress?.averagePosition || 0
                   const done = project.deliverables?.filter(d => d.status === 'done').length || 0
                   const total = project.deliverables?.length || 0
-                  const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
                   return (
                     <Link
