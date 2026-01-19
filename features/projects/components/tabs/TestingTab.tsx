@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { CheckCircle2 } from 'lucide-react'
 import { TestingQueue } from '@/features/testing/components/TestingQueue'
 import { TestingModal } from '@/features/testing/components/TestingModal'
@@ -29,6 +30,7 @@ export function TestingTab({ project, userRole, userId }: TestingTabProps) {
     inProgress: [],
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedDeliverable, setSelectedDeliverable] = useState<DeliverableTestSummary | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -42,12 +44,14 @@ export function TestingTab({ project, userRole, userId }: TestingTabProps) {
 
   const loadQueue = async () => {
     setLoading(true)
+    setError(null)
     try {
       const data = await getTestingQueueAction(project.id)
       // No client-side filtering needed - server already filters by project
       setQueue(data)
-    } catch (error) {
-      console.error('Failed to load testing queue:', error)
+    } catch (err) {
+      console.error('Failed to load testing queue:', err)
+      setError('Failed to load testing queue. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -87,6 +91,27 @@ export function TestingTab({ project, userRole, userId }: TestingTabProps) {
       <div className="flex items-center justify-center py-12">
         <div className="text-muted-foreground">Loading testing queue...</div>
       </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Testing Queue</CardTitle>
+          <CardDescription>
+            Deliverables appear here when they reach 90% completion
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={loadQueue} variant="outline">
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
