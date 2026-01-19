@@ -111,7 +111,7 @@ CREATE INDEX idx_bids_pending ON dev_opportunity_bids(opportunity_id, status) WH
 -- Brief extractions indexes
 CREATE INDEX idx_brief_extractions_source ON brief_extractions(source_type, source_id);
 CREATE INDEX idx_brief_extractions_expires ON brief_extractions(expires_at);
-CREATE INDEX idx_brief_extractions_valid ON brief_extractions(source_type, source_id, expires_at) WHERE expires_at > NOW();
+-- REMOVED: idx_brief_extractions_valid - can't use NOW() in index predicate (not IMMUTABLE)
 
 -- ============================================================================
 -- ROW LEVEL SECURITY
