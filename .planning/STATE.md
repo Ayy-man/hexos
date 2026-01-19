@@ -8,12 +8,12 @@
 
 ## Current Position
 
-Phase: 07 of 12 (finance-tab-redesign)
-Plan: 02 of 2 (COMPLETE)
-Status: Phase complete
-Last activity: 2026-01-20 - Completed 07-02-PLAN.md (Polish color coding & visual verification)
+Phase: 10 of 12 (opportunities-overhaul)
+Plan: 01 of 3
+Status: In progress
+Last activity: 2026-01-20 - Completed 10-01-PLAN.md (Database & API Foundation)
 
-Progress: [============================------] 65%
+Progress: [==============================----] 68%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -22,6 +22,7 @@ Progress: [============================------] 65%
          Phase 06: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
+         Phase 10: 01 complete
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
 ## Completed Work
@@ -45,6 +46,7 @@ Progress: [============================------] 65%
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
+| 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
 
 ## Accumulated Decisions
 
@@ -82,6 +84,10 @@ Progress: [============================------] 65%
 | 11-02 | Client-side Supabase update for toast marking | Server functions can't be called from client components |
 | 11-02 | void keyword for fire-and-forget promises | TypeScript compatible pattern for PromiseLike types |
 | 11-02 | Triple filter for toast eligibility | !read_at && !shown_as_toast_at && recent ensures no duplicates |
+| 10-01 | DECIMAL(3,1) for weeks estimates | Allows half-week precision (e.g., 2.5 weeks) |
+| 10-01 | SHA256 input hash for brief cache | Detect when source data changes to invalidate stale cache |
+| 10-01 | 7-day default TTL for AI briefs | Balance cache freshness with AI cost savings |
+| 10-01 | Keep estimated_hours alongside weeks | Backward compatibility with existing opportunities |
 
 ## Patterns Established
 
@@ -107,6 +113,9 @@ Progress: [============================------] 65%
 | Toast deduplication | Database-backed shown_as_toast_at column with partial index | 11-01 |
 | Time-windowed initial queries | Use cutoff timestamp for recent-only filtering | 11-01 |
 | Fire-and-forget client updates | void supabase.update().eq() for non-blocking DB writes | 11-02 |
+| Bid normalization | normalizeBidRelations for joined dev/opportunity relations | 10-01 |
+| Cache expiry filter | expires_at with gt() filter for valid cached items | 10-01 |
+| Web Crypto SHA256 | crypto.subtle.digest for hash generation (Node 15+ compatible) | 10-01 |
 
 ## Blockers/Concerns
 
@@ -114,8 +123,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T19:40:41Z
-Stopped at: Completed 11-02-PLAN.md (Toast deduplication fix and trigger documentation)
+Last session: 2026-01-20T00:22:11+05:30
+Stopped at: Completed 10-01-PLAN.md (Database & API Foundation)
 Resume file: None
 
 ---
