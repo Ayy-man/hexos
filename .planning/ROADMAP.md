@@ -128,7 +128,9 @@ Plans:
 
 ### Phase 07: Finance Tab Redesign
 **Goal:** Reduce cognitive load with better information hierarchy
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-01-20
+**Verified:** 2026-01-20
 **Plans:** 2 plans
 
 Redesign metrics/finance tab with narrower cards, clear visual hierarchy, and logical groupings (Revenue, Costs, Timeline).
@@ -139,8 +141,8 @@ Redesign metrics/finance tab with narrower cards, clear visual hierarchy, and lo
 - Logical metric groupings
 
 Plans:
-- [ ] 07-01-PLAN.md — Restructure FinancialsTab into 3 sectioned groups (Revenue, Costs, Timeline)
-- [ ] 07-02-PLAN.md — Polish color coding, responsive layout, and visual verification
+- [x] 07-01-PLAN.md — Restructure FinancialsTab into 3 sectioned groups (Revenue, Costs, Timeline)
+- [x] 07-02-PLAN.md — Polish color coding, responsive layout, and visual verification
 
 ---
 
