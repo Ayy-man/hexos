@@ -8,17 +8,18 @@
 
 ## Current Position
 
-Phase: 06 of 12 (blueprints-case-studies)
-Plan: 01 of 3 (COMPLETE)
-Status: In progress
-Last activity: 2026-01-19 - Completed 05-03-PLAN.md
+Phase: 08 of 12 (testing-tab-polish)
+Plan: 01 of 1 (COMPLETE - Phase complete)
+Status: Phase complete
+Last activity: 2026-01-19 - Completed 08-01-PLAN.md
 
-Progress: [================------------------] 50%
+Progress: [==================----------------] 54%
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
          Phase 05: 01, 02, 03 complete
          Phase 06: 01 complete
          Phase 07: 01 complete
+         Phase 08: 01 complete
 
 ## Completed Work
 
@@ -32,6 +33,7 @@ Progress: [================------------------] 50%
 | 05-sidebar-dashboard | 03 | Inquiry status tooltips for sidebar | bb65488 |
 | 06-blueprints-case-studies | 01 | Database & API foundation for Loom video support | 4f56c84, d21d847, 2ac867e |
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
+| 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 
 ## Accumulated Decisions
 
@@ -52,6 +54,8 @@ Progress: [================------------------] 50%
 | 02-01 | Kept getAllDevs in admin-reports.ts | Function used by /admin/devs page |
 | 05-03 | Combined stages for tooltip: working = working + in_queue + admin_reviewed | Show active work in single "Working" count |
 | 05-03 | Total excludes closed and lost | Active pipeline only for quick status check |
+| 08-01 | Server-side filtering over client-side | More efficient, reduces data transfer, prevents stale data |
+| 08-01 | Optional parameter for project-scoped queries | Maintains backward compatibility while enabling scoping |
 
 ## Patterns Established
 
@@ -66,6 +70,8 @@ Progress: [================------------------] 50%
 | Loom URL validation | Regex pattern for share/embed URLs with optional params | 06-01 |
 | Rich sidebar tooltip | Custom tooltip content for sidebar items with additional data | 05-03 |
 | Conditional badge | Show badge only when count > 0 | 05-03 |
+| Project-scoped queries | Optional projectId parameter to filter at server level | 08-01 |
+| Error state with retry | useState for error, clear before try, set in catch, Button to retry | 08-01 |
 
 ## Blockers/Concerns
 
@@ -73,8 +79,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T18:13:00Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-01-19T18:33:51Z
+Stopped at: Completed 08-01-PLAN.md (Phase 08 complete)
 Resume file: None
 
 ---
