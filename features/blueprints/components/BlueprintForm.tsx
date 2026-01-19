@@ -117,11 +117,10 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
               <Label htmlFor="basePrice">Base Price ($)</Label>
               <Input
                 id="basePrice"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={basePrice}
-                onChange={(e) => setBasePrice(e.target.value)}
+                onChange={(e) => setBasePrice(e.target.value.replace(/[^0-9.]/g, ''))}
                 placeholder="500"
               />
             </div>
