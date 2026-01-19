@@ -10,7 +10,8 @@
 
 ### Phase 01: Critical Bugs - Storage & Server Actions
 **Goal:** Fix blocking production bugs preventing core workflows
-**Status:** Not started
+**Status:** Planned
+**Plans:** 2 plans
 
 Fix RLS policies for storage uploads (case study images, suggestion screenshots) and debug the DFY "suggest changes" server action that fails with "failed to extract deliverables".
 
@@ -18,6 +19,10 @@ Fix RLS policies for storage uploads (case study images, suggestion screenshots)
 - Working case study image upload
 - Working suggestion box upload + submit
 - Working DFY "suggest changes" with AI extraction
+
+Plans:
+- [ ] 01-01-PLAN.md — Storage RLS policies for general-purpose bucket
+- [ ] 01-02-PLAN.md — Server action error handling for deliverable extraction
 
 ---
 
