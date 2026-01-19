@@ -9,11 +9,11 @@
 ## Current Position
 
 Phase: 11 of 12 (notification-system-audit)
-Plan: 01 of 2 (COMPLETE)
-Status: In progress
-Last activity: 2026-01-20 - Completed 06-03-PLAN.md (Blueprint detail page enhancements)
+Plan: 02 of 2 (COMPLETE)
+Status: Phase complete
+Last activity: 2026-01-20 - Completed 11-02-PLAN.md (Toast deduplication fix and trigger documentation)
 
-Progress: [==========================--------] 58%
+Progress: [===========================-------] 60%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -22,7 +22,7 @@ Progress: [==========================--------] 58%
          Phase 06: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 07: 01 complete
          Phase 08: 01 complete (verified)
-         Phase 11: 01 complete
+         Phase 11: 01, 02 complete (PHASE COMPLETE)
 
 ## Completed Work
 
@@ -43,6 +43,7 @@ Progress: [==========================--------] 58%
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
+| 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
 
 ## Accumulated Decisions
 
@@ -77,6 +78,9 @@ Progress: [==========================--------] 58%
 | 11-01 | Database-backed toast tracking over client-side storage | Ensures deduplication works across tabs and page refreshes |
 | 11-01 | Partial index with dual NULL filter | Optimal query performance for unread + unshown filtering |
 | 11-01 | 5-minute default window for initial toast display | Prevents showing old notifications as urgent toasts |
+| 11-02 | Client-side Supabase update for toast marking | Server functions can't be called from client components |
+| 11-02 | void keyword for fire-and-forget promises | TypeScript compatible pattern for PromiseLike types |
+| 11-02 | Triple filter for toast eligibility | !read_at && !shown_as_toast_at && recent ensures no duplicates |
 
 ## Patterns Established
 
@@ -101,6 +105,7 @@ Progress: [==========================--------] 58%
 | White-label exports | Remove platform branding for client-facing outputs (PDF, web) | 04-01 |
 | Toast deduplication | Database-backed shown_as_toast_at column with partial index | 11-01 |
 | Time-windowed initial queries | Use cutoff timestamp for recent-only filtering | 11-01 |
+| Fire-and-forget client updates | void supabase.update().eq() for non-blocking DB writes | 11-02 |
 
 ## Blockers/Concerns
 
@@ -108,8 +113,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T19:40:38Z
-Stopped at: Completed 06-03-PLAN.md (Blueprint detail page enhancements)
+Last session: 2026-01-19T19:40:41Z
+Stopped at: Completed 11-02-PLAN.md (Toast deduplication fix and trigger documentation)
 Resume file: None
 
 ---
