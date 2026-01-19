@@ -8,15 +8,16 @@
 
 ## Current Position
 
-Phase: 07 of 11 (finance-tab-redesign)
-Plan: 01 of 2 (COMPLETE)
+Phase: 06 of 12 (blueprints-case-studies)
+Plan: 01 of 3 (COMPLETE)
 Status: In progress
-Last activity: 2026-01-19 - Completed 07-01-PLAN.md
+Last activity: 2026-01-19 - Completed 06-01-PLAN.md
 
-Progress: [==============--------------------] 43%
+Progress: [===============-------------------] 46%
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
          Phase 05: 01, 02 complete
+         Phase 06: 01 complete
          Phase 07: 01 complete
 
 ## Completed Work
@@ -28,6 +29,7 @@ Progress: [==============--------------------] 43%
 | 03-form-input-fixes | 02 | Apply currency input pattern to all HIGH priority files | 829d929, 484e7b7 |
 | 05-sidebar-dashboard | 01 | Reorder sidebar navigation (Blockers first) | 042c80d |
 | 05-sidebar-dashboard | 02 | Sync DFY dashboard to hill chart progress | 32ed350 |
+| 06-blueprints-case-studies | 01 | Database & API foundation for Loom video support | 4f56c84, d21d847, 2ac867e |
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 
 ## Accumulated Decisions
@@ -40,6 +42,8 @@ Progress: [==============--------------------] 43%
 | 03-02 | Keep qty input as type="number" | Small integers don't have leading zero issues |
 | 05-01 | Blockers first in Admin group | High-priority items should be visible first |
 | 05-02 | Import calculateHillChartProgress from projects feature | Reuse existing hill chart calculation logic |
+| 06-01 | Manual type definitions in API layer | Project pattern - no generated Supabase types |
+| 06-01 | Empty string valid for isValidLoomUrl | Optional field handling |
 | 07-01 | 5-column grid for Revenue, 4-column for Costs/Timeline | Match card count to grid columns |
 | 07-01 | Conditional color coding: green positive, red negative, orange warning | Clear financial status at a glance |
 | 07-01 | Compact card py-3 pattern | Consistent with admin page design system |
@@ -56,6 +60,7 @@ Progress: [==============--------------------] 43%
 | Compact stat card | Card className="py-3" with p-0 px-4 CardContent | 07-01 |
 | Conditional color styling | cn() with ternary for green/red/orange variants | 07-01 |
 | Dead route cleanup | When removing routes, also clean navigation, command palette, breadcrumbs, revalidatePath | 02-01 |
+| Loom URL validation | Regex pattern for share/embed URLs with optional params | 06-01 |
 
 ## Blockers/Concerns
 
@@ -63,9 +68,9 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T18:20:34Z
-Stopped at: Completed 07-01-PLAN.md
-Resume file: .planning/phases/07-finance-tab-redesign/07-02-PLAN.md
+Last session: 2026-01-19T18:29:24Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: .planning/phases/06-blueprints-case-studies/06-02-PLAN.md
 
 ---
 
