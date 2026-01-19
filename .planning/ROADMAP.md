@@ -23,7 +23,8 @@ Fix RLS policies for storage uploads (case study images, suggestion screenshots)
 
 ### Phase 02: Code Cleanup
 **Goal:** Remove unused placeholder features to reduce maintenance burden
-**Status:** Not started
+**Status:** Planned
+**Plans:** 1 plan
 
 Remove team section (placeholder) and time reports section (unused). Clean up navigation, API functions, and any related code.
 
@@ -31,6 +32,9 @@ Remove team section (placeholder) and time reports section (unused). Clean up na
 - Team section removed from codebase
 - Time reports section removed from codebase
 - Cleaner navigation
+
+Plans:
+- [ ] 02-01-PLAN.md — Delete unused pages, update navigation, clean API functions
 
 ---
 
