@@ -210,9 +210,11 @@ export function ProposalPDF({ proposal, documentContent }: ProposalPDFProps) {
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>
-            Powered by <Text style={styles.footerBrand}>hexOS</Text>
-          </Text>
+          {!proposal.partnerLogo && (
+            <Text style={styles.footerText}>
+              Powered by <Text style={styles.footerBrand}>hexOS</Text>
+            </Text>
+          )}
           <Text style={styles.footerText}>
             Contact: {proposal.partner_name}
           </Text>
