@@ -684,8 +684,8 @@ export function InvoiceManagement({
                             <div className="relative flex-1">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">$</span>
                               <Input
-                                type="number"
-                                step="0.01"
+                                type="text"
+                                inputMode="decimal"
                                 placeholder="Price"
                                 className="pl-6 bg-background"
                                 value={item.unit_price || ''}
@@ -693,7 +693,7 @@ export function InvoiceManagement({
                                   handleLineItemChange(
                                     index,
                                     'unit_price',
-                                    parseFloat(e.target.value) || 0
+                                    parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0
                                   )
                                 }
                               />
@@ -740,14 +740,14 @@ export function InvoiceManagement({
                     <span className="text-muted-foreground">Tax Rate</span>
                     <div className="flex items-center gap-2">
                       <Input
-                        type="number"
-                        step="0.01"
+                        type="text"
+                        inputMode="decimal"
                         className="w-16 h-7 text-right bg-background"
                         value={formData.tax_rate * 100 || ''}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            tax_rate: (parseFloat(e.target.value) || 0) / 100,
+                            tax_rate: (parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0) / 100,
                           })
                         }
                       />

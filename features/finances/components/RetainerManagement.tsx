@@ -452,12 +452,11 @@ export function RetainerManagement({ retainers: initialRetainers, projects }: Re
               <div className="grid gap-2">
                 <Label>Amount *</Label>
                 <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.amount || ''}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, amount: parseFloat(e.target.value) || 0 }))
+                    setFormData((prev) => ({ ...prev, amount: parseFloat(e.target.value.replace(/[^0-9.]/g, '')) || 0 }))
                   }
                   placeholder="0.00"
                 />
