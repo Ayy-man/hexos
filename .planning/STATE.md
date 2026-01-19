@@ -8,16 +8,16 @@
 
 ## Current Position
 
-Phase: 08 of 12 (testing-tab-polish) - VERIFIED ✓
-Plan: 01 of 1 (COMPLETE)
-Status: Phase complete and verified
-Last activity: 2026-01-20 - Phase 08 verified
+Phase: 06 of 12 (blueprints-case-studies)
+Plan: 02 of 3 (COMPLETE)
+Status: In progress
+Last activity: 2026-01-19 - Completed 06-02-PLAN.md
 
-Progress: [==================----------------] 54%
+Progress: [==================----------------] 58%
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
          Phase 05: 01, 02, 03 complete
-         Phase 06: 01 complete
+         Phase 06: 01, 02 complete
          Phase 07: 01 complete
          Phase 08: 01 complete (verified)
 
@@ -32,6 +32,7 @@ Progress: [==================----------------] 54%
 | 05-sidebar-dashboard | 02 | Sync DFY dashboard to hill chart progress | 32ed350 |
 | 05-sidebar-dashboard | 03 | Inquiry status tooltips for sidebar | bb65488 |
 | 06-blueprints-case-studies | 01 | Database & API foundation for Loom video support | 4f56c84, d21d847, 2ac867e |
+| 06-blueprints-case-studies | 02 | LoomVideoEmbed component and form integration | 5278d09, 0d6a1aa, fb4ede3 |
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 
@@ -47,6 +48,9 @@ Progress: [==================----------------] 54%
 | 05-02 | Import calculateHillChartProgress from projects feature | Reuse existing hill chart calculation logic |
 | 06-01 | Manual type definitions in API layer | Project pattern - no generated Supabase types |
 | 06-01 | Empty string valid for isValidLoomUrl | Optional field handling |
+| 06-02 | LoomVideoEmbed returns null for invalid URLs | Graceful degradation, no broken iframes |
+| 06-02 | 16:10 aspect ratio (paddingBottom 62.5%) | Matches Loom default video dimensions |
+| 06-02 | Live preview only when URL is non-empty AND valid | Clear feedback for user |
 | 07-01 | 5-column grid for Revenue, 4-column for Costs/Timeline | Match card count to grid columns |
 | 07-01 | Conditional color coding: green positive, red negative, orange warning | Clear financial status at a glance |
 | 07-01 | Compact card py-3 pattern | Consistent with admin page design system |
@@ -72,6 +76,8 @@ Progress: [==================----------------] 54%
 | Conditional badge | Show badge only when count > 0 | 05-03 |
 | Project-scoped queries | Optional projectId parameter to filter at server level | 08-01 |
 | Error state with retry | useState for error, clear before try, set in catch, Button to retry | 08-01 |
+| Responsive iframe embed | paddingBottom % on parent + absolute positioning on iframe | 06-02 |
+| Optional form validation | const isValid = !value \|\| validateFn(value) for optional fields | 06-02 |
 
 ## Blockers/Concerns
 
@@ -79,8 +85,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20
-Stopped at: Phase 08 verified - ready for next phase
+Last session: 2026-01-19T18:42:43Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
 
 ---
