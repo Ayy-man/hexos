@@ -67,18 +67,21 @@ Plans:
 
 ### Phase 04: Branding & PDF Polish
 **Goal:** White-label ready proposal exports
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-01-20
+**Verified:** 2026-01-20
 **Plans:** 1 plan
 
-Remove hexOS branding from PDF exports (conditional on partner logo), move "Mark as closed" button to prominent position in header, and verify role-appropriate pricing visibility.
+Remove all hexOS branding from PDF exports and public proposal web view, move "Mark as closed" button to prominent position in header, and verify role-appropriate pricing visibility.
 
 **Delivers:**
-- Clean PDF exports without branding (when partner has logo)
+- Clean PDF exports without hexOS branding
+- Clean web view without hexOS branding
 - Better proposal action placement
 - Role-appropriate pricing visibility
 
 Plans:
-- [ ] 04-01-PLAN.md — Conditional PDF/web branding and Mark as Closed button relocation
+- [x] 04-01-PLAN.md — Remove hexOS branding and Mark as Closed button relocation
 
 ---
 
