@@ -11,12 +11,12 @@
 Phase: 06 of 12 (blueprints-case-studies)
 Plan: 01 of 3 (COMPLETE)
 Status: In progress
-Last activity: 2026-01-19 - Completed 06-01-PLAN.md
+Last activity: 2026-01-19 - Completed 05-03-PLAN.md
 
-Progress: [===============-------------------] 46%
+Progress: [================------------------] 50%
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
-         Phase 05: 01, 02 complete
+         Phase 05: 01, 02, 03 complete
          Phase 06: 01 complete
          Phase 07: 01 complete
 
@@ -29,6 +29,7 @@ Progress: [===============-------------------] 46%
 | 03-form-input-fixes | 02 | Apply currency input pattern to all HIGH priority files | 829d929, 484e7b7 |
 | 05-sidebar-dashboard | 01 | Reorder sidebar navigation (Blockers first) | 042c80d |
 | 05-sidebar-dashboard | 02 | Sync DFY dashboard to hill chart progress | 32ed350 |
+| 05-sidebar-dashboard | 03 | Inquiry status tooltips for sidebar | bb65488 |
 | 06-blueprints-case-studies | 01 | Database & API foundation for Loom video support | 4f56c84, d21d847, 2ac867e |
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 
@@ -49,6 +50,8 @@ Progress: [===============-------------------] 46%
 | 07-01 | Compact card py-3 pattern | Consistent with admin page design system |
 | 02-01 | Combined 3 tasks into single commit | Tasks form cohesive dead code removal |
 | 02-01 | Kept getAllDevs in admin-reports.ts | Function used by /admin/devs page |
+| 05-03 | Combined stages for tooltip: working = working + in_queue + admin_reviewed | Show active work in single "Working" count |
+| 05-03 | Total excludes closed and lost | Active pipeline only for quick status check |
 
 ## Patterns Established
 
@@ -61,6 +64,8 @@ Progress: [===============-------------------] 46%
 | Conditional color styling | cn() with ternary for green/red/orange variants | 07-01 |
 | Dead route cleanup | When removing routes, also clean navigation, command palette, breadcrumbs, revalidatePath | 02-01 |
 | Loom URL validation | Regex pattern for share/embed URLs with optional params | 06-01 |
+| Rich sidebar tooltip | Custom tooltip content for sidebar items with additional data | 05-03 |
+| Conditional badge | Show badge only when count > 0 | 05-03 |
 
 ## Blockers/Concerns
 
@@ -68,9 +73,9 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-19T18:29:24Z
-Stopped at: Completed 06-01-PLAN.md
-Resume file: .planning/phases/06-blueprints-case-studies/06-02-PLAN.md
+Last session: 2026-01-19T18:13:00Z
+Stopped at: Completed 05-03-PLAN.md
+Resume file: None
 
 ---
 
