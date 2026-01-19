@@ -8,12 +8,12 @@
 
 ## Current Position
 
-Phase: 10 of 12 (opportunities-overhaul)
+Phase: 09 of 12 (suggestion-box-expansion)
 Plan: 01 of 3
 Status: In progress
-Last activity: 2026-01-20 - Completed 10-01-PLAN.md (Database & API Foundation)
+Last activity: 2026-01-20 - Completed 09-01-PLAN.md (Suggestion conversation infrastructure)
 
-Progress: [==============================----] 68%
+Progress: [==============================----] 71%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -22,6 +22,7 @@ Progress: [==============================----] 68%
          Phase 06: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
+         Phase 09: 01 complete
          Phase 10: 01 complete
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
@@ -44,9 +45,10 @@ Progress: [==============================----] 68%
 | 07-finance-tab-redesign | 01 | Finance tab 3-section layout with compact cards | 044497d, 2d479a5 |
 | 07-finance-tab-redesign | 02 | Polish color coding & visual verification | N/A (verification only) |
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
+| 09-suggestion-box-expansion | 01 | Suggestion conversation infrastructure (trigger, RLS, types) | 91f1d4a, 7e9eac0 |
+| 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
-| 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
 
 ## Accumulated Decisions
 
@@ -84,6 +86,9 @@ Progress: [==============================----] 68%
 | 11-02 | Client-side Supabase update for toast marking | Server functions can't be called from client components |
 | 11-02 | void keyword for fire-and-forget promises | TypeScript compatible pattern for PromiseLike types |
 | 11-02 | Triple filter for toast eligibility | !read_at && !shown_as_toast_at && recent ensures no duplicates |
+| 09-01 | Follow inquiry conversation pattern exactly | Ensures consistency with existing codebase patterns |
+| 09-01 | Place suggestion RLS check before project logic | Suggestion conversations have null project_id |
+| 09-01 | Route suggestion notifications to /my-suggestions | Dedicated URL for suggestion notifications |
 | 10-01 | DECIMAL(3,1) for weeks estimates | Allows half-week precision (e.g., 2.5 weeks) |
 | 10-01 | SHA256 input hash for brief cache | Detect when source data changes to invalidate stale cache |
 | 10-01 | 7-day default TTL for AI briefs | Balance cache freshness with AI cost savings |
@@ -113,6 +118,8 @@ Progress: [==============================----] 68%
 | Toast deduplication | Database-backed shown_as_toast_at column with partial index | 11-01 |
 | Time-windowed initial queries | Use cutoff timestamp for recent-only filtering | 11-01 |
 | Fire-and-forget client updates | void supabase.update().eq() for non-blocking DB writes | 11-02 |
+| Conversation type extension | ALTER TYPE + column + unique index + trigger + RLS function update + backfill | 09-01 |
+| Notification type extension | type union + getNotificationIcon() + getNotificationColor() + getNotificationUrl() | 09-01 |
 | Bid normalization | normalizeBidRelations for joined dev/opportunity relations | 10-01 |
 | Cache expiry filter | expires_at with gt() filter for valid cached items | 10-01 |
 | Web Crypto SHA256 | crypto.subtle.digest for hash generation (Node 15+ compatible) | 10-01 |
@@ -123,8 +130,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20T00:22:11+05:30
-Stopped at: Completed 10-01-PLAN.md (Database & API Foundation)
+Last session: 2026-01-20T02:00:00Z
+Stopped at: Completed 09-01-PLAN.md (Suggestion conversation infrastructure)
 Resume file: None
 
 ---
