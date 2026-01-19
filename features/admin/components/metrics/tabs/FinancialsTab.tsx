@@ -584,7 +584,7 @@ export function FinancialsTab({
               {pendingByProject.map((project, index) => (
                 <TableRow key={project.id}>
                   <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                  <TableCell className="font-medium">{project.project_name}</TableCell>
+                  <TableCell className="font-medium max-w-[200px] truncate">{project.project_name}</TableCell>
                   <TableCell>{project.client_name}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="font-mono text-xs">
@@ -650,7 +650,7 @@ export function FinancialsTab({
               <TableBody>
                 {overduePayments.map((payment) => (
                   <TableRow key={payment.milestone_id} className="bg-error/5">
-                    <TableCell className="font-medium">{payment.project_name}</TableCell>
+                    <TableCell className="font-medium max-w-[200px] truncate">{payment.project_name}</TableCell>
                     <TableCell>{payment.client_name}</TableCell>
                     <TableCell>{payment.milestone_label}</TableCell>
                     <TableCell className="text-right font-medium text-error">
