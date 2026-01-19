@@ -36,10 +36,10 @@ const adminNav: NavGroup[] = [
   {
     label: 'Admin',
     items: [
+      { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
       { title: 'Metrics', url: '/dashboard/admin/metrics', icon: 'BarChart3' },
       { title: 'Finances', url: '/finances', icon: 'DollarSign' },
       { title: 'Time Reports', url: '/admin/time-reports', icon: 'Clock' },
-      { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
       { title: 'Developers', url: '/admin/devs', icon: 'Users' },
       { title: 'Opportunities', url: '/admin/opportunities', icon: 'Briefcase' },
     ],
@@ -82,10 +82,10 @@ const internalNav: NavGroup[] = [
   {
     label: 'Admin',
     items: [
+      { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
       { title: 'Metrics', url: '/dashboard/admin/metrics', icon: 'BarChart3' },
       { title: 'Finances', url: '/finances', icon: 'DollarSign' },
       { title: 'Time Reports', url: '/admin/time-reports', icon: 'Clock' },
-      { title: 'Blockers', url: '/admin/blockers', icon: 'AlertTriangle' },
       { title: 'Developers', url: '/admin/devs', icon: 'Users' },
       { title: 'Opportunities', url: '/admin/opportunities', icon: 'Briefcase' },
     ],
