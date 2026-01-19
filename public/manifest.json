@@ -1,0 +1,68 @@
+{
+  "name": "hexOS - Project Management Portal",
+  "short_name": "hexOS",
+  "description": "Project management portal for Hexona",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8860d0",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/manifest-icon-192.maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/manifest-icon-512.maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/manifest-icon-192.maskable.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Projects",
+      "short_name": "Projects",
+      "description": "View all projects",
+      "url": "/projects",
+      "icons": [{ "src": "/manifest-icon-192.maskable.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Conversations",
+      "short_name": "Chat",
+      "description": "View conversations",
+      "url": "/conversations",
+      "icons": [{ "src": "/manifest-icon-192.maskable.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Pulse",
+      "short_name": "Pulse",
+      "description": "View daily tasks",
+      "url": "/pulse",
+      "icons": [{ "src": "/manifest-icon-192.maskable.png", "sizes": "192x192" }]
+    }
+  ]
+}

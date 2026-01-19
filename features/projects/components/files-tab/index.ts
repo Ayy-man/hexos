@@ -1,0 +1,6 @@
+export { CollapsedHeader } from './CollapsedHeader'
+export { FileSidebar } from './FileSidebar'
+export { DocumentEditorFullscreen } from './DocumentEditorFullscreen'
+export { FilesTabContainer } from './FilesTabContainer'
+export { useFilesTabState } from './useFilesTabState'
+export type { FilesTabState, SelectedFileType } from './useFilesTabState'
