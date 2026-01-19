@@ -23,13 +23,13 @@ Removed hexOS branding from PDF exports and public proposal web views to enable 
 
 | Task | Commit | Description |
 |------|--------|-------------|
-| Remove hexOS branding | 3a29adc | Remove "Powered by hexOS" from PDF and web footers |
+| Remove hexOS branding | 3a29adc | Remove Powered by hexOS from PDF and web footers |
 
 ## Decisions
 
 | Decision | Rationale |
 |----------|-----------|
-| Remove branding entirely (not conditional) | User feedback during checkpoint: don't want hexOS branding shown at all, regardless of partner logo status |
+| Remove branding entirely (not conditional) | User feedback during checkpoint: do not want hexOS branding shown at all, regardless of partner logo status |
 | Keep only contact info in footer | Minimal footer with just partner contact preserves white-label appearance |
 
 ## Deviations

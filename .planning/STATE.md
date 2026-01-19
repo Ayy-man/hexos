@@ -13,10 +13,11 @@ Plan: 01 of 2 (COMPLETE)
 Status: In progress
 Last activity: 2026-01-20 - Completed 11-01-PLAN.md (Toast notification tracking infrastructure)
 
-Progress: [=======================-----------] 52%
+Progress: [=========================---------] 54%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
+         Phase 04: 01 complete (verified)
          Phase 05: 01, 02, 03 complete
          Phase 06: 01, 02 complete
          Phase 07: 01 complete
@@ -32,6 +33,7 @@ Progress: [=======================-----------] 52%
 | 02-code-cleanup | 01 | Remove unused placeholder features (team, time reports) | 139abb8 |
 | 03-form-input-fixes | 01 | Blueprint form input fixes (pricing tiers, base price) | 4eff661 |
 | 03-form-input-fixes | 02 | Apply currency input pattern to all HIGH priority files | 829d929, 484e7b7 |
+| 04-branding-pdf-polish | 01 | Remove hexOS branding from PDF/web, verify button/pricing | 3a29adc |
 | 05-sidebar-dashboard | 01 | Reorder sidebar navigation (Blockers first) | 042c80d |
 | 05-sidebar-dashboard | 02 | Sync DFY dashboard to hill chart progress | 32ed350 |
 | 05-sidebar-dashboard | 03 | Inquiry status tooltips for sidebar | bb65488 |
@@ -68,6 +70,7 @@ Progress: [=======================-----------] 52%
 | 01-02 | Return { data?, error? } instead of throwing in server actions | Next.js production builds scrub error details from thrown exceptions |
 | 01-02 | Log full error details server-side before returning | Preserve stack traces for debugging while giving users clean messages |
 | 01-02 | Empty results are not errors | Return { deliverables: [] } and let UI show info toast |
+| 04-01 | Remove all hexOS branding (not conditional) | User preference: fully white-labeled exports regardless of partner logo |
 | 11-01 | Database-backed toast tracking over client-side storage | Ensures deduplication works across tabs and page refreshes |
 | 11-01 | Partial index with dual NULL filter | Optimal query performance for unread + unshown filtering |
 | 11-01 | 5-minute default window for initial toast display | Prevents showing old notifications as urgent toasts |
@@ -90,6 +93,7 @@ Progress: [=======================-----------] 52%
 | Responsive iframe embed | paddingBottom % on parent + absolute positioning on iframe | 06-02 |
 | Optional form validation | const isValid = !value \|\| validateFn(value) for optional fields | 06-02 |
 | Structured server action results | Return { data?, error? } instead of throwing for user-facing errors | 01-02 |
+| White-label exports | Remove platform branding for client-facing outputs (PDF, web) | 04-01 |
 | Toast deduplication | Database-backed shown_as_toast_at column with partial index | 11-01 |
 | Time-windowed initial queries | Use cutoff timestamp for recent-only filtering | 11-01 |
 
