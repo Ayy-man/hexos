@@ -107,7 +107,9 @@ Plans:
 
 ### Phase 06: Blueprints & Case Studies
 **Goal:** Add Loom support and bidirectional relationships
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-01-20
+**Verified:** 2026-01-20
 **Plans:** 3 plans
 
 Add Loom video URL fields to blueprints and case studies (conditional visibility), show related case studies on blueprint pages.
@@ -118,9 +120,9 @@ Add Loom video URL fields to blueprints and case studies (conditional visibility
 - Related case studies section on blueprints
 
 Plans:
-- [ ] 06-01-PLAN.md — Database migration, API layer, and Loom utilities
-- [ ] 06-02-PLAN.md — LoomVideoEmbed component and form updates
-- [ ] 06-03-PLAN.md — RelatedCaseStudies component and blueprint page integration
+- [x] 06-01-PLAN.md — Database migration, API layer, and Loom utilities
+- [x] 06-02-PLAN.md — LoomVideoEmbed component and form updates
+- [x] 06-03-PLAN.md — RelatedCaseStudies component and blueprint page integration
 
 ---
 
