@@ -162,15 +162,27 @@ export function FinancialsTab({
               <DollarSign className="h-5 w-5 text-green-500" />
             </CardContent>
           </Card>
-          <Card className="py-3">
+          <Card className={cn(
+            "py-3",
+            (financial?.revenue_this_month || 0) > 0 && "border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/30"
+          )}>
             <CardContent className="p-0 px-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">This Month</p>
-                <p className="text-xl font-bold tabular-nums">
+                <p className={cn(
+                  "text-xs",
+                  (financial?.revenue_this_month || 0) > 0 ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                )}>This Month</p>
+                <p className={cn(
+                  "text-xl font-bold tabular-nums",
+                  (financial?.revenue_this_month || 0) > 0 && "text-green-600"
+                )}>
                   {formatCurrency(financial?.revenue_this_month || 0)}
                 </p>
               </div>
-              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <Calendar className={cn(
+                "h-5 w-5",
+                (financial?.revenue_this_month || 0) > 0 ? "text-green-500" : "text-muted-foreground"
+              )} />
             </CardContent>
           </Card>
           <Card className="py-3">
@@ -184,15 +196,27 @@ export function FinancialsTab({
               <Target className="h-5 w-5 text-muted-foreground" />
             </CardContent>
           </Card>
-          <Card className="py-3">
+          <Card className={cn(
+            "py-3",
+            (financial?.win_rate || 0) >= 50 && "border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/30"
+          )}>
             <CardContent className="p-0 px-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Win Rate</p>
-                <p className="text-xl font-bold tabular-nums">
+                <p className={cn(
+                  "text-xs",
+                  (financial?.win_rate || 0) >= 50 ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
+                )}>Win Rate</p>
+                <p className={cn(
+                  "text-xl font-bold tabular-nums",
+                  (financial?.win_rate || 0) >= 50 && "text-green-600"
+                )}>
                   {financial?.win_rate ? `${financial.win_rate}%` : '0%'}
                 </p>
               </div>
-              <Percent className="h-5 w-5 text-muted-foreground" />
+              <Percent className={cn(
+                "h-5 w-5",
+                (financial?.win_rate || 0) >= 50 ? "text-green-500" : "text-muted-foreground"
+              )} />
             </CardContent>
           </Card>
           <Card className="py-3">
@@ -239,15 +263,27 @@ export function FinancialsTab({
               )} />
             </CardContent>
           </Card>
-          <Card className="py-3">
+          <Card className={cn(
+            "py-3",
+            (financial?.expenses_this_month || 0) > 0 && "border-red-200 bg-red-50/30 dark:border-red-900 dark:bg-red-950/30"
+          )}>
             <CardContent className="p-0 px-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">This Month</p>
-                <p className="text-xl font-bold tabular-nums">
+                <p className={cn(
+                  "text-xs",
+                  (financial?.expenses_this_month || 0) > 0 ? "text-red-600 dark:text-red-400" : "text-muted-foreground"
+                )}>This Month</p>
+                <p className={cn(
+                  "text-xl font-bold tabular-nums",
+                  (financial?.expenses_this_month || 0) > 0 && "text-red-600"
+                )}>
                   {formatCurrency(financial?.expenses_this_month || 0)}
                 </p>
               </div>
-              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <Calendar className={cn(
+                "h-5 w-5",
+                (financial?.expenses_this_month || 0) > 0 ? "text-red-500" : "text-muted-foreground"
+              )} />
             </CardContent>
           </Card>
           <Card className={cn(
@@ -289,15 +325,51 @@ export function FinancialsTab({
               )} />
             </CardContent>
           </Card>
-          <Card className="py-3">
+          <Card className={cn(
+            "py-3",
+            (financial?.profit_margin || 0) >= 20
+              ? "border-green-200 bg-green-50/30 dark:border-green-900 dark:bg-green-950/30"
+              : (financial?.profit_margin || 0) >= 10
+                ? "border-yellow-200 bg-yellow-50/30 dark:border-yellow-900 dark:bg-yellow-950/30"
+                : (financial?.profit_margin || 0) > 0
+                  ? "border-red-200 bg-red-50/30 dark:border-red-900 dark:bg-red-950/30"
+                  : ""
+          )}>
             <CardContent className="p-0 px-4 flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Profit Margin</p>
-                <p className="text-xl font-bold tabular-nums">
+                <p className={cn(
+                  "text-xs",
+                  (financial?.profit_margin || 0) >= 20
+                    ? "text-green-600 dark:text-green-400"
+                    : (financial?.profit_margin || 0) >= 10
+                      ? "text-yellow-600 dark:text-yellow-400"
+                      : (financial?.profit_margin || 0) > 0
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-muted-foreground"
+                )}>Profit Margin</p>
+                <p className={cn(
+                  "text-xl font-bold tabular-nums",
+                  (financial?.profit_margin || 0) >= 20
+                    ? "text-green-600"
+                    : (financial?.profit_margin || 0) >= 10
+                      ? "text-yellow-600"
+                      : (financial?.profit_margin || 0) > 0
+                        ? "text-red-600"
+                        : ""
+                )}>
                   {financial?.profit_margin ? `${financial.profit_margin}%` : '0%'}
                 </p>
               </div>
-              <Percent className="h-5 w-5 text-muted-foreground" />
+              <Percent className={cn(
+                "h-5 w-5",
+                (financial?.profit_margin || 0) >= 20
+                  ? "text-green-500"
+                  : (financial?.profit_margin || 0) >= 10
+                    ? "text-yellow-500"
+                    : (financial?.profit_margin || 0) > 0
+                      ? "text-red-500"
+                      : "text-muted-foreground"
+              )} />
             </CardContent>
           </Card>
         </div>
