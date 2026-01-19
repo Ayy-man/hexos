@@ -516,7 +516,7 @@ export default async function InquiryDetailPage({
   // Bound server action for starting negotiation (DFY initiates)
   const boundStartNegotiation = async () => {
     'use server'
-    await triggerParseDeliverablesAction(id, inquiry.proposal_content)
+    return triggerParseDeliverablesAction(id, inquiry.proposal_content)
   }
 
   return (
