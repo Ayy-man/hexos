@@ -95,12 +95,13 @@ export function PricingTiersEditor({ value, onChange }: PricingTiersEditorProps)
                     <Label htmlFor={`tier-setup-${index}`}>Setup Price ($)</Label>
                     <Input
                       id={`tier-setup-${index}`}
-                      type="number"
-                      min="0"
-                      value={tier.setup_price}
-                      onChange={(e) =>
-                        updateTier(index, { setup_price: parseFloat(e.target.value) || 0 })
-                      }
+                      type="text"
+                      inputMode="decimal"
+                      value={tier.setup_price === 0 ? '' : tier.setup_price.toString()}
+                      onChange={(e) => {
+                        const sanitized = e.target.value.replace(/[^0-9.]/g, '')
+                        updateTier(index, { setup_price: sanitized ? parseFloat(sanitized) : 0 })
+                      }}
                       placeholder="500"
                     />
                   </div>
@@ -108,12 +109,13 @@ export function PricingTiersEditor({ value, onChange }: PricingTiersEditorProps)
                     <Label htmlFor={`tier-monthly-${index}`}>Monthly Price ($)</Label>
                     <Input
                       id={`tier-monthly-${index}`}
-                      type="number"
-                      min="0"
-                      value={tier.monthly_price}
-                      onChange={(e) =>
-                        updateTier(index, { monthly_price: parseFloat(e.target.value) || 0 })
-                      }
+                      type="text"
+                      inputMode="decimal"
+                      value={tier.monthly_price === 0 ? '' : tier.monthly_price.toString()}
+                      onChange={(e) => {
+                        const sanitized = e.target.value.replace(/[^0-9.]/g, '')
+                        updateTier(index, { monthly_price: sanitized ? parseFloat(sanitized) : 0 })
+                      }}
                       placeholder="100"
                     />
                   </div>
@@ -124,6 +126,11 @@ export function PricingTiersEditor({ value, onChange }: PricingTiersEditorProps)
                     id={`tier-features-${index}`}
                     value={tier.features.join('\n')}
                     onChange={(e) => updateFeatures(index, e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.stopPropagation()
+                      }
+                    }}
                     placeholder="Automated keyword triggers&#10;Captures lead details&#10;Basic CRM integration"
                     rows={4}
                   />
