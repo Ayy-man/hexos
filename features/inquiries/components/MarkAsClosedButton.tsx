@@ -33,16 +33,14 @@ export function MarkAsClosedButton({
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [notes, setNotes] = useState('')
-  const [clientEmail, setClientEmail] = useState('')
 
   const handleMarkAsClosed = () => {
     startTransition(async () => {
       try {
-        await onMarkAsClosed(notes || undefined, clientEmail || undefined)
+        await onMarkAsClosed(notes || undefined)
         toast.success('Deal marked as closed!')
         setOpen(false)
         setNotes('')
-        setClientEmail('')
       } catch (error) {
         console.error('Error marking as closed:', error)
         toast.error('Failed to mark as closed')
@@ -125,20 +123,6 @@ export function MarkAsClosedButton({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Client email (optional)</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="client@example.com"
-                value={clientEmail}
-                onChange={(e) => setClientEmail(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                We&apos;ll use this to invite the client to the portal once the
-                project is set up.
-              </p>
-            </div>
           </div>
 
           <DialogFooter>

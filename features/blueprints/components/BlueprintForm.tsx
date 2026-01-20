@@ -47,6 +47,12 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Clean up pricing tiers - filter out empty features before saving
+    const cleanedPricingTiers = pricingTiers.map((tier) => ({
+      ...tier,
+      features: tier.features.map((f) => f.trim()).filter((f) => f.length > 0),
+    }))
+
     const data: CreateBlueprintInput = {
       name,
       description: description || undefined,
@@ -54,7 +60,7 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
       estimated_hours: estimatedHours ? parseInt(estimatedHours) : undefined,
       base_price: basePrice ? parseFloat(basePrice) : undefined,
       tags,
-      pricing_tiers: pricingTiers,
+      pricing_tiers: cleanedPricingTiers,
       status: isPublished ? 'published' : 'draft',
       loom_video_url: loomUrl || undefined,
     }

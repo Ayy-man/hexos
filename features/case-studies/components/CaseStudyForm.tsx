@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, Save, Upload, X, ImageIcon, Video } from 'lucide-react'
+import { Loader2, Save, Upload, X, ImageIcon, Video, Info } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Select,
   SelectContent,
@@ -107,6 +108,7 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
         await createCaseStudyAction(data)
       } else if (caseStudy) {
         await updateCaseStudyAction(caseStudy.id, data)
+        toast.success('Case study saved!')
         router.refresh()
       }
     })
@@ -192,7 +194,13 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
       <Card>
         <CardHeader>
           <CardTitle>Cover Image</CardTitle>
-          <CardDescription>Add a featured image for this case study</CardDescription>
+          <CardDescription className="flex items-center gap-1">
+            Add a featured image for this case study
+            <span className="inline-flex items-center gap-1 text-xs bg-muted px-1.5 py-0.5 rounded">
+              <Info className="h-3 w-3" />
+              16:9 aspect ratio recommended
+            </span>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <input
@@ -327,9 +335,11 @@ export function CaseStudyForm({ caseStudy, mode, blueprints = [] }: CaseStudyFor
             <SelectContent>
               <SelectItem value="none">No blueprint linked</SelectItem>
               {blueprints.map((bp) => (
-                <SelectItem key={bp.id} value={bp.id}>
-                  {bp.icon && <span className="mr-2">{bp.icon}</span>}
-                  {bp.name}
+                <SelectItem key={bp.id} value={bp.id} className="max-w-[300px]">
+                  <span className="flex items-center gap-2 truncate">
+                    {bp.icon && <span className="shrink-0">{bp.icon}</span>}
+                    <span className="truncate">{bp.name}</span>
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>

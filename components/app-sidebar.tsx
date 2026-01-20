@@ -210,7 +210,7 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
-        <SuggestionBox />
+        <SuggestionBox userRole={profile.role} />
         <SidebarSeparator />
         {['admin', 'internal'].includes(profile.role) && <TeamPresence />}
         <NavUser profile={profile} />

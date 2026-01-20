@@ -99,8 +99,8 @@ async function parseDeliverablesWithAI(proposalContent: unknown): Promise<Parsed
     headers: {
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://hexos.app',
-      'X-Title': 'hexOS Deliverables Parser',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://app.example.com',
+      'X-Title': 'Deliverables Parser',
     },
     body: JSON.stringify({
       model: 'anthropic/claude-3.5-haiku',

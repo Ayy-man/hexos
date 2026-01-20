@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Lightbulb, ImagePlus, X, Trash2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,14 +27,20 @@ import {
 import { useImageUpload } from '@/components/hooks/use-image-upload'
 import { createSuggestionAction, uploadSuggestionImageAction } from '@/lib/actions/suggestions'
 import { cn } from '@/lib/utils'
+import type { UserRole } from '@/lib/auth/types'
 
-export function SuggestionBox() {
+interface SuggestionBoxProps {
+  userRole: UserRole
+}
+
+export function SuggestionBox({ userRole }: SuggestionBoxProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const { state } = useSidebar()
+  const pathname = usePathname()
   const isCollapsed = state === 'collapsed'
 
   const {
@@ -141,6 +149,32 @@ export function SuggestionBox() {
   // Hide when sidebar is collapsed
   if (isCollapsed) return null
 
+  // DFY and Dev users navigate to the My Suggestions page
+  const shouldNavigate = ['dfy', 'dev'].includes(userRole)
+  const isActive = pathname === '/my-suggestions'
+
+  if (shouldNavigate) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            size="lg"
+            isActive={isActive}
+            tooltip="My Suggestions"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Link href="/my-suggestions">
+              <Lightbulb className="h-4 w-4" />
+              <span>My Suggestions</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
+  // Admin/Internal/Client users get the dialog popup
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -163,7 +197,7 @@ export function SuggestionBox() {
                   Submit a Suggestion
                 </DialogTitle>
                 <DialogDescription>
-                  Share your ideas to help improve hexOS. We review all suggestions!
+                  Share your ideas to help improve the platform. We review all suggestions!
                 </DialogDescription>
               </DialogHeader>
 

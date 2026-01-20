@@ -111,7 +111,7 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
                 <DialogHeader>
                   <DialogTitle>Invite DFY Agency</DialogTitle>
                   <DialogDescription>
-                    Invite a new DFY partner to create their agency on hexOS
+                    Invite a new DFY partner to create their agency on the platform
                   </DialogDescription>
                 </DialogHeader>
 

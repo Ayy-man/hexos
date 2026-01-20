@@ -24,6 +24,7 @@ import { DeliverablesTab } from '@/features/inquiries/components/deliverables'
 import { MarkAsClosedButton } from '@/features/inquiries/components/MarkAsClosedButton'
 import { ConvertToProjectButton } from '@/features/inquiries/components/conversion'
 import { ReopenInquiryButton } from '@/features/inquiries/components/ReopenInquiryButton'
+import { CreateOpportunityButton } from '@/features/inquiries/components/CreateOpportunityButton'
 import type { ProposalStage } from '@/lib/api/inquiries'
 import { isNotFoundError } from '@/lib/errors'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
@@ -851,6 +852,16 @@ export default async function InquiryDetailPage({
                             Convert to Project
                           </Link>
                         </Button>
+                      )}
+
+                      {/* Admin: Create Opportunity - available after proposal sent */}
+                      {isAdmin && proposalSubmitted && (
+                        <CreateOpportunityButton
+                          inquiryId={id}
+                          prospectName={inquiry.prospect_company_name || 'Unnamed'}
+                          blueprintName={inquiry.blueprint?.name}
+                          industry={inquiry.industry || undefined}
+                        />
                       )}
 
                       {/* Waiting state */}

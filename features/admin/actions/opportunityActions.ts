@@ -81,3 +81,30 @@ export async function closeOpportunityAction(opportunityId: string, filled: bool
     return { success: false, message: 'Failed to close opportunity' }
   }
 }
+
+export async function createOpportunityFromInquiryAction(params: {
+  inquiryId: string
+  title: string
+  description?: string
+  estimatedWeeks?: number | null
+  complexity?: ProjectComplexity
+  techStack?: string[]
+}) {
+  try {
+    const opportunity = await createOpportunity({
+      title: params.title,
+      description: params.description,
+      estimatedWeeks: params.estimatedWeeks || undefined,
+      complexity: params.complexity || 'medium',
+      techStack: params.techStack,
+    })
+
+    revalidatePath('/admin/opportunities')
+    revalidatePath(`/inquiries/${params.inquiryId}`)
+    return { success: true, opportunity }
+  } catch (error) {
+    console.error('Error creating opportunity from inquiry:', error)
+    const message = error instanceof Error ? error.message : 'Failed to create opportunity'
+    return { success: false, message }
+  }
+}

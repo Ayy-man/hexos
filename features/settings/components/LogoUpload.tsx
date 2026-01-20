@@ -158,7 +158,7 @@ export function LogoUpload({ currentLogoUrl }: LogoUploadProps) {
         {/* Info */}
         {!logoUrl && !previewUrl && (
           <p className="text-xs text-muted-foreground">
-            Without a logo, proposals will show &quot;Powered by hexOS&quot; branding.
+            Your logo will appear in the header of PDF proposals sent to clients.
           </p>
         )}
       </CardContent>

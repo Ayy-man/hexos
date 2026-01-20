@@ -67,9 +67,9 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
                 <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-2">
                         <div className="bg-primary p-2 rounded-lg">
-                            <Globe className="h-6 w-6 text-primary-foreground" />
+                            <FileText className="h-6 w-6 text-primary-foreground" />
                         </div>
-                        <span className="text-2xl font-bold tracking-tight">hexOS</span>
+                        <span className="text-2xl font-bold tracking-tight">Invoice</span>
                     </div>
                     {invoice.status === 'paid' && (
                         <div className="flex items-center gap-2 text-green-600 font-medium">

@@ -6,8 +6,8 @@ export const onboardingTours: Tour[] = [
         steps: [
             {
                 icon: '👋',
-                title: 'hexOS Command Center',
-                content: 'Welcome to hexOS. This sidebar is your mission control. From here, you can access every aspect of your agency\'s operations, from pipeline management to financial oversight.',
+                title: 'Command Center',
+                content: 'Welcome! This sidebar is your mission control. From here, you can access every aspect of your agency\'s operations, from pipeline management to financial oversight.',
                 selector: '#sidebar-trigger',
                 side: 'right',
             },

@@ -38,10 +38,9 @@ export function PricingTiersEditor({ value, onChange }: PricingTiersEditorProps)
   }
 
   const updateFeatures = (index: number, featuresText: string) => {
-    const features = featuresText
-      .split('\n')
-      .map((f) => f.trim())
-      .filter((f) => f.length > 0)
+    // Don't filter empty lines during editing - this allows Enter to create new lines
+    // Empty lines will be filtered out when the form is submitted
+    const features = featuresText.split('\n')
     updateTier(index, { features })
   }
 
@@ -126,11 +125,6 @@ export function PricingTiersEditor({ value, onChange }: PricingTiersEditorProps)
                     id={`tier-features-${index}`}
                     value={tier.features.join('\n')}
                     onChange={(e) => updateFeatures(index, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.stopPropagation()
-                      }
-                    }}
                     placeholder="Automated keyword triggers&#10;Captures lead details&#10;Basic CRM integration"
                     rows={4}
                   />
