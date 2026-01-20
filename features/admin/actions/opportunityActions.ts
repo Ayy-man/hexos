@@ -14,6 +14,7 @@ export async function createOpportunityAction(params: {
   description?: string
   projectId?: string | null
   estimatedHours?: number | null
+  estimatedWeeks?: number | null
   complexity?: ProjectComplexity
   expiresAt?: string
 }) {
@@ -23,6 +24,7 @@ export async function createOpportunityAction(params: {
       description: params.description,
       projectId: params.projectId || undefined,
       estimatedHours: params.estimatedHours || undefined,
+      estimatedWeeks: params.estimatedWeeks || undefined,
       complexity: params.complexity || 'medium',
       expiresAt: params.expiresAt,
     })

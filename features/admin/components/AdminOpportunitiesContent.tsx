@@ -107,6 +107,7 @@ export function AdminOpportunitiesContent({
   const [newDescription, setNewDescription] = useState('')
   const [newProjectId, setNewProjectId] = useState<string>('')
   const [newEstimatedHours, setNewEstimatedHours] = useState('')
+  const [newEstimatedWeeks, setNewEstimatedWeeks] = useState('')
   const [newComplexity, setNewComplexity] = useState<ProjectComplexity>('medium')
   const [newExpiresAt, setNewExpiresAt] = useState('')
 
@@ -134,6 +135,7 @@ export function AdminOpportunitiesContent({
         description: newDescription || undefined,
         projectId: newProjectId && newProjectId !== '_none' ? newProjectId : null,
         estimatedHours: newEstimatedHours ? parseInt(newEstimatedHours) : null,
+        estimatedWeeks: newEstimatedWeeks ? parseFloat(newEstimatedWeeks) : null,
         complexity: newComplexity,
         expiresAt: newExpiresAt || undefined,
       })
@@ -197,6 +199,7 @@ export function AdminOpportunitiesContent({
     setNewDescription('')
     setNewProjectId('')
     setNewEstimatedHours('')
+    setNewEstimatedWeeks('')
     setNewComplexity('medium')
     setNewExpiresAt('')
   }
@@ -273,9 +276,22 @@ export function AdminOpportunitiesContent({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="hours">Estimated Hours</Label>
+                  <Label htmlFor="weeks">Estimated Weeks</Label>
+                  <Input
+                    id="weeks"
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    placeholder="4"
+                    value={newEstimatedWeeks}
+                    onChange={(e) => setNewEstimatedWeeks(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">Primary duration</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hours">Hours (optional)</Label>
                   <Input
                     id="hours"
                     type="number"
@@ -283,6 +299,7 @@ export function AdminOpportunitiesContent({
                     value={newEstimatedHours}
                     onChange={(e) => setNewEstimatedHours(e.target.value)}
                   />
+                  <p className="text-xs text-muted-foreground">Fallback estimate</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="complexity">Complexity</Label>

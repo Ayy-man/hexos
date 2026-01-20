@@ -204,6 +204,9 @@ export async function createOpportunity(params: {
   description?: string
   requirements?: string
   estimatedHours?: number
+  estimatedWeeks?: number
+  estimatedHoursMin?: number
+  estimatedHoursMax?: number
   techStack?: string[]
   complexity?: ProjectComplexity
   deadline?: string
@@ -224,6 +227,9 @@ export async function createOpportunity(params: {
       description: params.description || null,
       requirements: params.requirements || null,
       estimated_hours: params.estimatedHours || null,
+      estimated_weeks: params.estimatedWeeks || null,
+      estimated_hours_min: params.estimatedHoursMin || null,
+      estimated_hours_max: params.estimatedHoursMax || null,
       tech_stack: params.techStack || [],
       complexity: params.complexity || 'medium',
       deadline: params.deadline || null,
