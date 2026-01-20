@@ -10,10 +10,10 @@
 
 Phase: 10 of 12 (opportunities-overhaul)
 Plan: 05 of 5
-Status: In progress
-Last activity: 2026-01-20 - Completed 10-03-PLAN.md (AI brief generation)
+Status: PHASE COMPLETE
+Last activity: 2026-01-20 - Completed 10-05-PLAN.md (Dashboard Integration)
 
-Progress: [==================================-] 83%
+Progress: [====================================] 87%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -22,8 +22,8 @@ Progress: [==================================-] 83%
          Phase 06: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
-         Phase 09: 01, 02 complete
-         Phase 10: 01, 02, 03, 04 complete
+         Phase 09: 01, 02, 03 complete (PHASE COMPLETE)
+         Phase 10: 01, 02, 03, 04, 05 complete (PHASE COMPLETE)
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
 ## Completed Work
@@ -47,10 +47,12 @@ Progress: [==================================-] 83%
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 | 09-suggestion-box-expansion | 01 | Suggestion conversation infrastructure (trigger, RLS, types) | 91f1d4a, 7e9eac0 |
 | 09-suggestion-box-expansion | 02 | Suggestion conversation API functions and status notifications | f5d8678, adf98f3 |
+| 09-suggestion-box-expansion | 03 | My Suggestions page and sidebar link | 2260e0f |
 | 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
 | 10-opportunities-overhaul | 02 | Bidding UI & actions (BidForm, BidCard, BidList) | 37d7376, 6579d73, 4fac77d |
 | 10-opportunities-overhaul | 03 | AI brief generation endpoint, actions, RedactedBriefCard | 1e75c29, 791fc0a, 34821cb |
 | 10-opportunities-overhaul | 04 | Pre-commitment API, actions, and UI components | 5588d45, 1789395, 66ce2c1 |
+| 10-opportunities-overhaul | 05 | Dashboard integration (weeks display, bid counts, admin tabs) | 7590abe, 3b5fbd0, 34a711e, 628bf5c |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
 
@@ -110,6 +112,9 @@ Progress: [==================================-] 83%
 | 10-03 | Keep industry, problem type, tech stack | Developers need this info to evaluate opportunity fit |
 | 10-03 | Hash comparison for cache validity | Detect source data changes without regenerating every time |
 | 10-03 | Return null on error in getBriefForOpportunityAction | Graceful degradation, UI can show fallback |
+| 10-05 | Extended existing OpportunityCard instead of creating new DevOpportunityCard | Kept codebase DRY since card structure was already good |
+| 10-05 | Lazy loading for admin tabs | Prevents loading bids/briefs/committed devs until user clicks tab |
+| 10-05 | formatDuration priority: weeks > hour range > single hours > TBD | Clear fallback chain for duration display |
 
 ## Patterns Established
 
@@ -149,6 +154,8 @@ Progress: [==================================-] 83%
 | Sorted list with useMemo | useMemo for computed sorted arrays with sort option state | 10-02 |
 | AI brief generation | OpenRouter + Claude 3.5 Haiku with structured tool calling | 10-03 |
 | Complexity color coding | emerald/amber/red for low/medium/high complexity | 10-03 |
+| Lazy tab data loading | Load data only when tab is activated via useEffect | 10-05 |
+| formatDuration helper | Centralized duration display with weeks/hours fallback | 10-05 |
 
 ## Blockers/Concerns
 
@@ -156,8 +163,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20T02:53:52Z
-Stopped at: Completed 10-03-PLAN.md (AI brief generation)
+Last session: 2026-01-20T03:09:05Z
+Stopped at: Completed 10-05-PLAN.md (Dashboard Integration)
 Resume file: None
 
 ---
