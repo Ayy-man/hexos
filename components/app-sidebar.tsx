@@ -20,6 +20,10 @@ import {
   Zap,
   BarChart3,
   Code,
+  Wallet,
+  Shield,
+  Building2,
+  DollarSign,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -67,6 +71,10 @@ const iconMap: Record<string, LucideIcon> = {
   Zap,
   BarChart3,
   Code,
+  Wallet,
+  Shield,
+  Building2,
+  DollarSign,
 }
 
 function InquiryTooltipContent({ counts }: { counts: { unopened: number; working: number; ready: number; total: number } }) {

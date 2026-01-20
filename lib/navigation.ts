@@ -123,6 +123,7 @@ const devNav: NavGroup[] = [
       { title: 'Opportunities', url: '/opportunities', icon: 'Briefcase' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
       { title: 'Payouts', url: '/dashboard/dev/payouts', icon: 'Wallet' },
+      { title: 'My Suggestions', url: '/my-suggestions', icon: 'Lightbulb' },
     ],
   },
   {
@@ -150,6 +151,7 @@ const dfyNav: NavGroup[] = [
       { title: 'My Deals', url: '/projects', icon: 'Briefcase' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
       { title: 'Submit Inquiry', url: '/inquiries/new', icon: 'Send' },
+      { title: 'My Suggestions', url: '/my-suggestions', icon: 'Lightbulb' },
     ],
   },
   {
