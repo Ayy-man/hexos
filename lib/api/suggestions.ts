@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import type { Conversation } from './conversations.shared'
 
 export interface Suggestion {
   id: string
@@ -140,6 +141,46 @@ export async function getMySuggestions(): Promise<Suggestion[]> {
   }
 
   return (data || []) as Suggestion[]
+}
+
+/**
+ * Get the conversation thread for a suggestion
+ */
+export async function getSuggestionConversation(suggestionId: string): Promise<{
+  conversation: Conversation | null
+  suggestion: Suggestion | null
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Get the suggestion first to verify access
+  const { data: suggestion, error: suggestionError } = await supabase
+    .from('suggestions')
+    .select('*')
+    .eq('id', suggestionId)
+    .single()
+
+  if (suggestionError) {
+    if (suggestionError.code === 'PGRST116') return { conversation: null, suggestion: null }
+    throw suggestionError
+  }
+
+  // Get the associated conversation
+  const { data: conversation, error: convError } = await supabase
+    .from('conversations')
+    .select('*')
+    .eq('suggestion_id', suggestionId)
+    .eq('type', 'suggestion')
+    .single()
+
+  if (convError) {
+    if (convError.code === 'PGRST116') return { conversation: null, suggestion: suggestion as Suggestion }
+    throw convError
+  }
+
+  return { conversation: conversation as Conversation, suggestion: suggestion as Suggestion }
 }
 
 // Update suggestion (admin only)

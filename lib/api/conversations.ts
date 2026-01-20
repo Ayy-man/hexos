@@ -211,6 +211,45 @@ export async function getInquiryConversations(): Promise<Conversation[]> {
 }
 
 /**
+ * Get suggestion conversations for current user
+ * For DFY/Dev: returns conversations for their own suggestions
+ * For Admin/Internal: returns all suggestion conversations
+ */
+export async function getSuggestionConversations(): Promise<Conversation[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .select(`
+      *,
+      suggestion:suggestions!suggestion_id(id, title, status, user_id)
+    `)
+    .eq('type', 'suggestion')
+    .not('suggestion_id', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+
+  // Get unread counts and last messages
+  const conversationsWithData = await Promise.all(
+    (data || []).map(async (conv) => {
+      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
+      const lastMessage = await getLastMessage(conv.id)
+      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
+    })
+  )
+
+  return conversationsWithData.sort((a, b) => {
+    const aDate = a.last_message?.created_at || a.created_at
+    const bDate = b.last_message?.created_at || b.created_at
+    return new Date(bDate).getTime() - new Date(aDate).getTime()
+  })
+}
+
+/**
  * Get project conversations only (excludes direct and inquiry)
  */
 export async function getProjectConversationsOnly(): Promise<Conversation[]> {

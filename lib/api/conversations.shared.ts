@@ -23,6 +23,12 @@ export interface Conversation {
     client_name: string
     status: string
   } | null
+  suggestion?: {
+    id: string
+    title: string
+    status: string
+    user_id: string
+  } | null
   participants?: DirectConversationParticipant[]
   unread_count?: number
   last_message?: Message | null
