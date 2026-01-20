@@ -23,7 +23,7 @@ Progress: [================================--] 77%
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
          Phase 09: 01, 02 complete
-         Phase 10: 01, 04 complete
+         Phase 10: 01, 02, 04 complete
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
 ## Completed Work
@@ -48,6 +48,7 @@ Progress: [================================--] 77%
 | 09-suggestion-box-expansion | 01 | Suggestion conversation infrastructure (trigger, RLS, types) | 91f1d4a, 7e9eac0 |
 | 09-suggestion-box-expansion | 02 | Suggestion conversation API functions and status notifications | f5d8678, adf98f3 |
 | 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
+| 10-opportunities-overhaul | 02 | Bidding UI & actions (BidForm, BidCard, BidList) | 37d7376, 6579d73, 4fac77d |
 | 10-opportunities-overhaul | 04 | Pre-commitment API, actions, and UI components | 5588d45, 1789395, 66ce2c1 |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
@@ -101,6 +102,9 @@ Progress: [================================--] 77%
 | 10-04 | committed_at only set when status is 'committed' | Tracks when actual commitment happened |
 | 10-04 | toggleInterestAction prevents toggling committed status | Prevents accidental uncommit via quick toggle |
 | 10-04 | Note field only shown for interested/committed states | No need to explain why not interested |
+| 10-02 | Dropdown menu for admin bid actions | Compact UI, clear action hierarchy |
+| 10-02 | Color-coded weeks difference | Quick visual feedback on timeline proposals |
+| 10-02 | Optimistic updates with rollback | Better UX, immediate feedback |
 
 ## Patterns Established
 
@@ -135,6 +139,9 @@ Progress: [================================--] 77%
 | Commitment upsert | Check existing preference, update or insert accordingly | 10-04 |
 | Status badge with config | statusConfig object mapping status to icon/label/className | 10-04 |
 | RadioGroup with descriptions | Radio options with title and description text | 10-04 |
+| Optimistic UI with rollback | useState for local state, update optimistically, revert on error | 10-02 |
+| Collapsible long content | Collapsible component for text > threshold characters | 10-02 |
+| Sorted list with useMemo | useMemo for computed sorted arrays with sort option state | 10-02 |
 
 ## Blockers/Concerns
 
