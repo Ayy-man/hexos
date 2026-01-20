@@ -9,11 +9,11 @@
 ## Current Position
 
 Phase: 09 of 12 (suggestion-box-expansion)
-Plan: 01 of 3
+Plan: 02 of 3
 Status: In progress
-Last activity: 2026-01-20 - Completed 09-01-PLAN.md (Suggestion conversation infrastructure)
+Last activity: 2026-01-20 - Completed 09-02-PLAN.md (Suggestion conversation API)
 
-Progress: [==============================----] 71%
+Progress: [===============================---] 74%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -22,7 +22,7 @@ Progress: [==============================----] 71%
          Phase 06: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
-         Phase 09: 01 complete
+         Phase 09: 01, 02 complete
          Phase 10: 01 complete
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
@@ -46,6 +46,7 @@ Progress: [==============================----] 71%
 | 07-finance-tab-redesign | 02 | Polish color coding & visual verification | N/A (verification only) |
 | 08-testing-tab-polish | 01 | Testing tab reorder, project-scoped queue, error UI | b3157c5, 9fac606 |
 | 09-suggestion-box-expansion | 01 | Suggestion conversation infrastructure (trigger, RLS, types) | 91f1d4a, 7e9eac0 |
+| 09-suggestion-box-expansion | 02 | Suggestion conversation API functions and status notifications | f5d8678, adf98f3 |
 | 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
@@ -93,6 +94,8 @@ Progress: [==============================----] 71%
 | 10-01 | SHA256 input hash for brief cache | Detect when source data changes to invalidate stale cache |
 | 10-01 | 7-day default TTL for AI briefs | Balance cache freshness with AI cost savings |
 | 10-01 | Keep estimated_hours alongside weeks | Backward compatibility with existing opportunities |
+| 09-02 | Follow getInquiryConversations pattern for getSuggestionConversations | Consistency with codebase patterns |
+| 09-02 | Trigger notification only when status field is in update input | Prevents duplicate notifications on admin_notes-only updates |
 
 ## Patterns Established
 
@@ -123,6 +126,7 @@ Progress: [==============================----] 71%
 | Bid normalization | normalizeBidRelations for joined dev/opportunity relations | 10-01 |
 | Cache expiry filter | expires_at with gt() filter for valid cached items | 10-01 |
 | Web Crypto SHA256 | crypto.subtle.digest for hash generation (Node 15+ compatible) | 10-01 |
+| Status-change notification | Conditional notification trigger when status field changes | 09-02 |
 
 ## Blockers/Concerns
 
@@ -130,8 +134,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20T02:00:00Z
-Stopped at: Completed 09-01-PLAN.md (Suggestion conversation infrastructure)
+Last session: 2026-01-20T03:00:00Z
+Stopped at: Completed 09-02-PLAN.md (Suggestion conversation API)
 Resume file: None
 
 ---
