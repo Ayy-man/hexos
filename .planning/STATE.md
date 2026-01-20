@@ -8,12 +8,12 @@
 
 ## Current Position
 
-Phase: 09 of 12 (suggestion-box-expansion)
-Plan: 02 of 3
+Phase: 10 of 12 (opportunities-overhaul)
+Plan: 04 of 5
 Status: In progress
-Last activity: 2026-01-20 - Completed 09-02-PLAN.md (Suggestion conversation API)
+Last activity: 2026-01-20 - Completed 10-04-PLAN.md (Pre-commitment workflow)
 
-Progress: [===============================---] 74%
+Progress: [================================--] 77%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -23,7 +23,7 @@ Progress: [===============================---] 74%
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
          Phase 09: 01, 02 complete
-         Phase 10: 01 complete
+         Phase 10: 01, 04 complete
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
 ## Completed Work
@@ -48,6 +48,7 @@ Progress: [===============================---] 74%
 | 09-suggestion-box-expansion | 01 | Suggestion conversation infrastructure (trigger, RLS, types) | 91f1d4a, 7e9eac0 |
 | 09-suggestion-box-expansion | 02 | Suggestion conversation API functions and status notifications | f5d8678, adf98f3 |
 | 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
+| 10-opportunities-overhaul | 04 | Pre-commitment API, actions, and UI components | 5588d45, 1789395, 66ce2c1 |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
 
@@ -96,6 +97,10 @@ Progress: [===============================---] 74%
 | 10-01 | Keep estimated_hours alongside weeks | Backward compatibility with existing opportunities |
 | 09-02 | Follow getInquiryConversations pattern for getSuggestionConversations | Consistency with codebase patterns |
 | 09-02 | Trigger notification only when status field is in update input | Prevents duplicate notifications on admin_notes-only updates |
+| 10-04 | CommitmentStatus type includes null as explicit value | Explicit null vs undefined for DB compatibility |
+| 10-04 | committed_at only set when status is 'committed' | Tracks when actual commitment happened |
+| 10-04 | toggleInterestAction prevents toggling committed status | Prevents accidental uncommit via quick toggle |
+| 10-04 | Note field only shown for interested/committed states | No need to explain why not interested |
 
 ## Patterns Established
 
@@ -127,6 +132,9 @@ Progress: [===============================---] 74%
 | Cache expiry filter | expires_at with gt() filter for valid cached items | 10-01 |
 | Web Crypto SHA256 | crypto.subtle.digest for hash generation (Node 15+ compatible) | 10-01 |
 | Status-change notification | Conditional notification trigger when status field changes | 09-02 |
+| Commitment upsert | Check existing preference, update or insert accordingly | 10-04 |
+| Status badge with config | statusConfig object mapping status to icon/label/className | 10-04 |
+| RadioGroup with descriptions | Radio options with title and description text | 10-04 |
 
 ## Blockers/Concerns
 
@@ -134,8 +142,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20T03:00:00Z
-Stopped at: Completed 09-02-PLAN.md (Suggestion conversation API)
+Last session: 2026-01-20T02:53:05Z
+Stopped at: Completed 10-04-PLAN.md (Pre-commitment workflow)
 Resume file: None
 
 ---
