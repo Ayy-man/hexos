@@ -5,6 +5,7 @@ export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'expired' |
 export type OpportunityStatus = 'draft' | 'open' | 'filled' | 'closed'
 export type ApplicationStatus = 'pending' | 'shortlisted' | 'accepted' | 'rejected'
 export type ProjectComplexity = 'low' | 'medium' | 'high'
+export type CommitmentStatus = 'interested' | 'committed' | 'declined' | null
 
 export interface ProjectOpportunity {
   id: string
@@ -41,6 +42,9 @@ export interface DevOpportunityPreference {
   opportunity_id: string
   is_starred: boolean
   is_hidden: boolean
+  commitment_status: CommitmentStatus
+  committed_at: string | null
+  commitment_note: string | null
   created_at: string
   updated_at: string
 }
@@ -49,6 +53,9 @@ export interface OpportunityWithPrefs extends ProjectOpportunity {
   preference?: DevOpportunityPreference | null
   is_starred?: boolean
   is_hidden?: boolean
+  commitment_status?: CommitmentStatus
+  committed_at?: string | null
+  commitment_note?: string | null
 }
 
 export interface ProjectInvitation {
@@ -615,6 +622,9 @@ export async function getOpportunitiesForDev(): Promise<OpportunityWithPrefs[]> 
       preference: pref || null,
       is_starred: pref?.is_starred || false,
       is_hidden: pref?.is_hidden || false,
+      commitment_status: pref?.commitment_status || null,
+      committed_at: pref?.committed_at || null,
+      commitment_note: pref?.commitment_note || null,
     } as OpportunityWithPrefs
   })
 }
@@ -701,6 +711,134 @@ export async function toggleOpportunityHide(opportunityId: string): Promise<bool
     if (error) throw error
     return true
   }
+}
+
+// ============================================================================
+// COMMITMENT STATUS
+// ============================================================================
+
+/**
+ * Update commitment status for an opportunity
+ */
+export async function updateCommitmentStatus(
+  opportunityId: string,
+  status: CommitmentStatus,
+  note?: string
+): Promise<DevOpportunityPreference> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  // Check if preference exists
+  const { data: existing } = await supabase
+    .from('dev_opportunity_preferences')
+    .select('*')
+    .eq('dev_id', user.id)
+    .eq('opportunity_id', opportunityId)
+    .single()
+
+  const updateData = {
+    commitment_status: status,
+    commitment_note: note || null,
+    committed_at: status === 'committed' ? new Date().toISOString() : null,
+  }
+
+  if (existing) {
+    // Update existing
+    const { data, error } = await supabase
+      .from('dev_opportunity_preferences')
+      .update(updateData)
+      .eq('id', existing.id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as DevOpportunityPreference
+  } else {
+    // Create new with commitment
+    const { data, error } = await supabase
+      .from('dev_opportunity_preferences')
+      .insert({
+        dev_id: user.id,
+        opportunity_id: opportunityId,
+        is_starred: false,
+        is_hidden: false,
+        ...updateData,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return data as DevOpportunityPreference
+  }
+}
+
+/**
+ * Remove commitment from an opportunity
+ */
+export async function removeCommitment(
+  opportunityId: string
+): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('dev_opportunity_preferences')
+    .update({
+      commitment_status: null,
+      commitment_note: null,
+      committed_at: null,
+    })
+    .eq('dev_id', user.id)
+    .eq('opportunity_id', opportunityId)
+
+  if (error) throw error
+}
+
+/**
+ * Get devs who have committed to an opportunity (admin)
+ */
+export async function getCommittedDevs(
+  opportunityId: string
+): Promise<Array<{
+  dev_id: string
+  name: string
+  email: string
+  commitment_status: CommitmentStatus
+  commitment_note: string | null
+  committed_at: string | null
+}>> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('dev_opportunity_preferences')
+    .select(`
+      dev_id,
+      commitment_status,
+      commitment_note,
+      committed_at,
+      profile:profiles!dev_id(id, name, email)
+    `)
+    .eq('opportunity_id', opportunityId)
+    .in('commitment_status', ['interested', 'committed'])
+    .order('committed_at', { ascending: false, nullsFirst: false })
+
+  if (error) throw error
+
+  return (data || []).map(item => {
+    const profile = Array.isArray(item.profile) ? item.profile[0] : item.profile
+    return {
+      dev_id: item.dev_id,
+      name: profile?.name || 'Unknown',
+      email: profile?.email || '',
+      commitment_status: item.commitment_status as CommitmentStatus,
+      commitment_note: item.commitment_note,
+      committed_at: item.committed_at,
+    }
+  })
 }
 
 // ============================================================================
