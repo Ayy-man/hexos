@@ -9,6 +9,7 @@ import {
   type CreateSuggestionInput,
   type UpdateSuggestionInput,
 } from '@/lib/api/suggestions'
+import { createNotification } from '@/lib/api/notifications'
 
 // Upload image to storage (server action)
 export async function uploadSuggestionImageAction(formData: FormData) {
@@ -63,6 +64,40 @@ export async function updateSuggestionAction(id: string, input: UpdateSuggestion
   try {
     const suggestion = await updateSuggestion(id, input)
     revalidatePath('/suggestions')
+
+    // Notify suggestion author on status change
+    if (input.status && suggestion) {
+      const supabase = await createClient()
+
+      // Get the full suggestion details to access user_id and title
+      const { data: suggestionDetails } = await supabase
+        .from('suggestions')
+        .select('user_id, title')
+        .eq('id', id)
+        .single()
+
+      if (suggestionDetails && suggestionDetails.user_id) {
+        // Get current user (admin who made the change)
+        const { data: { user } } = await supabase.auth.getUser()
+
+        const statusLabels: Record<string, string> = {
+          reviewed: 'marked as reviewed',
+          implemented: 'marked as implemented',
+          declined: 'declined'
+        }
+
+        const statusLabel = statusLabels[input.status] || 'updated'
+
+        await createNotification({
+          userId: suggestionDetails.user_id,
+          type: 'suggestion_status_change',
+          title: `Suggestion ${statusLabel}`,
+          message: `Your suggestion "${suggestionDetails.title}" has been ${statusLabel}`,
+          actorId: user?.id,
+        })
+      }
+    }
+
     return { success: true, suggestion }
   } catch (error) {
     console.error('Update suggestion action error:', error)
