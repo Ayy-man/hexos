@@ -1,12 +1,13 @@
 'use client'
 
 import { formatDistanceToNow, isPast } from 'date-fns'
-import { Star, EyeOff, Clock, AlertCircle } from 'lucide-react'
+import { Star, EyeOff, Clock, AlertCircle, Users } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { OpportunityWithPrefs, ProjectComplexity } from '@/lib/api/project-invitations'
+import { formatDuration, type OpportunityWithPrefs, type ProjectComplexity } from '@/lib/api/project-invitations'
+import { CommitmentStatusBadge } from '@/features/opportunities/components/CommitmentStatusBadge'
 
 interface OpportunityCardProps {
   opportunity: OpportunityWithPrefs
@@ -15,6 +16,7 @@ interface OpportunityCardProps {
   onToggleHide: () => void
   isStarring?: boolean
   isHiding?: boolean
+  hasExistingBid?: boolean
 }
 
 const complexityColors: Record<ProjectComplexity, string> = {
@@ -30,6 +32,7 @@ export function OpportunityCard({
   onToggleHide,
   isStarring,
   isHiding,
+  hasExistingBid,
 }: OpportunityCardProps) {
   const isExpired = opportunity.expires_at && isPast(new Date(opportunity.expires_at))
   const expiresIn = opportunity.expires_at
@@ -98,12 +101,35 @@ export function OpportunityCard({
           </div>
         </div>
 
-        {/* Hours - prominent */}
-        <div className="flex items-baseline gap-1 mb-3">
-          <span className="text-2xl font-bold">
-            {opportunity.estimated_hours || '—'}
-          </span>
-          <span className="text-sm text-muted-foreground">hours</span>
+        {/* Duration - prominent */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold">
+              {formatDuration(opportunity).split(' ')[0]}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {formatDuration(opportunity).split(' ').slice(1).join(' ')}
+            </span>
+          </div>
+          {/* Commitment status */}
+          {opportunity.commitment_status && (
+            <CommitmentStatusBadge status={opportunity.commitment_status} size="sm" />
+          )}
+        </div>
+
+        {/* Bid info row */}
+        <div className="flex items-center gap-3 mb-3 text-xs text-muted-foreground">
+          {opportunity.bids_count !== undefined && opportunity.bids_count > 0 && (
+            <span className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {opportunity.bids_count} bid{opportunity.bids_count !== 1 ? 's' : ''}
+            </span>
+          )}
+          {hasExistingBid && (
+            <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+              Bid submitted
+            </Badge>
+          )}
         </div>
 
         {/* Tags row */}
