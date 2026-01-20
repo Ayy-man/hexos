@@ -41,13 +41,15 @@ import {
   Briefcase,
   AlertCircle,
   Calendar,
+  Eye,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   createOpportunityAction,
   sendInvitationAction,
 } from '@/features/admin/actions/opportunityActions'
-import type { ProjectOpportunity, DevAvailability, OpportunityStatus, ProjectComplexity } from '@/lib/api/project-invitations'
+import { OpportunityDetailModal } from '@/features/dev/components/OpportunityDetailModal'
+import { formatDuration, type ProjectOpportunity, type DevAvailability, type OpportunityStatus, type ProjectComplexity, type OpportunityWithPrefs } from '@/lib/api/project-invitations'
 
 interface Project {
   id: string
@@ -97,6 +99,8 @@ export function AdminOpportunitiesContent({
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [selectedOpportunity, setSelectedOpportunity] = useState<ProjectOpportunity | null>(null)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [detailOpportunity, setDetailOpportunity] = useState<ProjectOpportunity | null>(null)
 
   // New opportunity form state
   const [newTitle, setNewTitle] = useState('')
@@ -363,6 +367,15 @@ export function AdminOpportunitiesContent({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => {
+                            setDetailOpportunity(opportunity)
+                            setDetailModalOpen(true)
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
                             setSelectedOpportunity(opportunity)
                             setInviteDialogOpen(true)
                           }}
@@ -387,10 +400,16 @@ export function AdminOpportunitiesContent({
                 )}
 
                 <div className="flex flex-wrap gap-2 text-xs">
-                  {opportunity.estimated_hours && (
-                    <Badge variant="outline" className="gap-1">
-                      <Clock className="h-3 w-3" />
-                      {opportunity.estimated_hours}h
+                  {/* Duration - uses formatDuration */}
+                  <Badge variant="outline" className="gap-1">
+                    <Clock className="h-3 w-3" />
+                    {formatDuration(opportunity)}
+                  </Badge>
+                  {/* Bid count */}
+                  {opportunity.bids_count !== undefined && opportunity.bids_count > 0 && (
+                    <Badge variant="outline" className="gap-1 bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                      <Users className="h-3 w-3" />
+                      {opportunity.bids_count} bid{opportunity.bids_count !== 1 ? 's' : ''}
                     </Badge>
                   )}
                   <Badge variant="outline" className={complexityConfig[opportunity.complexity].className}>
@@ -482,6 +501,17 @@ export function AdminOpportunitiesContent({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Opportunity Detail Modal (Admin view with tabs) */}
+      <OpportunityDetailModal
+        opportunity={detailOpportunity as OpportunityWithPrefs | null}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        onApply={() => {}} // Admin doesn't apply
+        onToggleStar={() => {}} // Admin doesn't star
+        onToggleHide={() => {}} // Admin doesn't hide
+        isAdmin={true}
+      />
     </div>
   )
 }
