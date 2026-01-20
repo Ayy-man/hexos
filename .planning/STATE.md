@@ -9,11 +9,11 @@
 ## Current Position
 
 Phase: 10 of 12 (opportunities-overhaul)
-Plan: 04 of 5
+Plan: 05 of 5
 Status: In progress
-Last activity: 2026-01-20 - Completed 10-04-PLAN.md (Pre-commitment workflow)
+Last activity: 2026-01-20 - Completed 10-03-PLAN.md (AI brief generation)
 
-Progress: [================================--] 77%
+Progress: [==================================-] 83%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -23,7 +23,7 @@ Progress: [================================--] 77%
          Phase 07: 01, 02 complete (PHASE COMPLETE)
          Phase 08: 01 complete (verified)
          Phase 09: 01, 02 complete
-         Phase 10: 01, 02, 04 complete
+         Phase 10: 01, 02, 03, 04 complete
          Phase 11: 01, 02 complete (PHASE COMPLETE)
 
 ## Completed Work
@@ -49,6 +49,7 @@ Progress: [================================--] 77%
 | 09-suggestion-box-expansion | 02 | Suggestion conversation API functions and status notifications | f5d8678, adf98f3 |
 | 10-opportunities-overhaul | 01 | Bidding system tables, brief cache, API modules | 66d71a7, d81ee92, b929b4b |
 | 10-opportunities-overhaul | 02 | Bidding UI & actions (BidForm, BidCard, BidList) | 37d7376, 6579d73, 4fac77d |
+| 10-opportunities-overhaul | 03 | AI brief generation endpoint, actions, RedactedBriefCard | 1e75c29, 791fc0a, 34821cb |
 | 10-opportunities-overhaul | 04 | Pre-commitment API, actions, and UI components | 5588d45, 1789395, 66ce2c1 |
 | 11-notification-system-audit | 01 | Toast notification deduplication infrastructure | b683ebc, aca4655 |
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
@@ -105,6 +106,10 @@ Progress: [================================--] 77%
 | 10-02 | Dropdown menu for admin bid actions | Compact UI, clear action hierarchy |
 | 10-02 | Color-coded weeks difference | Quick visual feedback on timeline proposals |
 | 10-02 | Optimistic updates with rollback | Better UX, immediate feedback |
+| 10-03 | Redact client names, prices, URLs, addresses | Protect sensitive client info from developers |
+| 10-03 | Keep industry, problem type, tech stack | Developers need this info to evaluate opportunity fit |
+| 10-03 | Hash comparison for cache validity | Detect source data changes without regenerating every time |
+| 10-03 | Return null on error in getBriefForOpportunityAction | Graceful degradation, UI can show fallback |
 
 ## Patterns Established
 
@@ -142,6 +147,8 @@ Progress: [================================--] 77%
 | Optimistic UI with rollback | useState for local state, update optimistically, revert on error | 10-02 |
 | Collapsible long content | Collapsible component for text > threshold characters | 10-02 |
 | Sorted list with useMemo | useMemo for computed sorted arrays with sort option state | 10-02 |
+| AI brief generation | OpenRouter + Claude 3.5 Haiku with structured tool calling | 10-03 |
+| Complexity color coding | emerald/amber/red for low/medium/high complexity | 10-03 |
 
 ## Blockers/Concerns
 
@@ -149,8 +156,8 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-01-20T02:53:05Z
-Stopped at: Completed 10-04-PLAN.md (Pre-commitment workflow)
+Last session: 2026-01-20T02:53:52Z
+Stopped at: Completed 10-03-PLAN.md (AI brief generation)
 Resume file: None
 
 ---
