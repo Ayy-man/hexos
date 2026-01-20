@@ -14,6 +14,9 @@ export interface ProjectOpportunity {
   description: string | null
   requirements: string | null
   estimated_hours: number | null
+  estimated_weeks: number | null
+  estimated_hours_min: number | null
+  estimated_hours_max: number | null
   tech_stack: string[]
   complexity: ProjectComplexity
   deadline: string | null
@@ -34,6 +37,7 @@ export interface ProjectOpportunity {
     name: string
   }
   applications_count?: number
+  bids_count?: number
 }
 
 export interface DevOpportunityPreference {
@@ -137,7 +141,8 @@ export async function getPublicOpportunities(): Promise<ProjectOpportunity[]> {
     .select(`
       *,
       project:projects(id, project_name, client_name),
-      creator:profiles!created_by(id, name)
+      creator:profiles!created_by(id, name),
+      bids:dev_opportunity_bids(count)
     `)
     .eq('is_public', true)
     .eq('status', 'open')
@@ -158,7 +163,8 @@ export async function getAllOpportunities(): Promise<ProjectOpportunity[]> {
     .select(`
       *,
       project:projects(id, project_name, client_name),
-      creator:profiles!created_by(id, name)
+      creator:profiles!created_by(id, name),
+      bids:dev_opportunity_bids(count)
     `)
     .order('created_at', { ascending: false })
 
@@ -177,7 +183,8 @@ export async function getOpportunity(opportunityId: string): Promise<ProjectOppo
     .select(`
       *,
       project:projects(id, project_name, client_name),
-      creator:profiles!created_by(id, name)
+      creator:profiles!created_by(id, name),
+      bids:dev_opportunity_bids(count)
     `)
     .eq('id', opportunityId)
     .single()
@@ -596,7 +603,8 @@ export async function getOpportunitiesForDev(): Promise<OpportunityWithPrefs[]> 
     .select(`
       *,
       project:projects(id, project_name, client_name),
-      creator:profiles!created_by(id, name)
+      creator:profiles!created_by(id, name),
+      bids:dev_opportunity_bids(count)
     `)
     .eq('status', 'open')
     .order('created_at', { ascending: false })
@@ -849,7 +857,16 @@ function normalizeOpportunityRelations(opp: Record<string, unknown>): ProjectOpp
   const project = Array.isArray(opp.project) ? opp.project[0] : opp.project
   const creator = Array.isArray(opp.creator) ? opp.creator[0] : opp.creator
 
-  return { ...opp, project, creator } as ProjectOpportunity
+  // Extract bid count from aggregation
+  const bidsCount = Array.isArray(opp.bids) && opp.bids[0]
+    ? (opp.bids[0] as { count: number }).count
+    : 0
+
+  // Remove the raw bids array and add the normalized count
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { bids, ...rest } = opp
+
+  return { ...rest, project, creator, bids_count: bidsCount } as ProjectOpportunity
 }
 
 function normalizeInvitationRelations(inv: Record<string, unknown>): ProjectInvitation {
@@ -871,4 +888,31 @@ function normalizeAvailabilityRelations(avail: Record<string, unknown>): DevAvai
   const profile = Array.isArray(avail.profile) ? avail.profile[0] : avail.profile
 
   return { ...avail, profile } as DevAvailability
+}
+
+// ============================================================================
+// DURATION FORMATTING
+// ============================================================================
+
+/**
+ * Format opportunity duration in a human-readable way.
+ * Prefers weeks if available, falls back to hour range, then single hours.
+ */
+export function formatDuration(opportunity: ProjectOpportunity): string {
+  // Prefer weeks-based estimate
+  if (opportunity.estimated_weeks) {
+    return `${opportunity.estimated_weeks} week${opportunity.estimated_weeks !== 1 ? 's' : ''}`
+  }
+
+  // Fall back to hour range
+  if (opportunity.estimated_hours_min && opportunity.estimated_hours_max) {
+    return `${opportunity.estimated_hours_min}-${opportunity.estimated_hours_max} hours`
+  }
+
+  // Fall back to single hours estimate
+  if (opportunity.estimated_hours) {
+    return `${opportunity.estimated_hours} hours`
+  }
+
+  return 'TBD'
 }
