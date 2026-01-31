@@ -75,10 +75,10 @@ Current scope for this milestone:
 - Conversations bidirectional sync implemented
 
 **Known Issues:**
-- DFY invoice query broken with FK alias (PGRST error)
-- AI Copilot form state sync broken (fields don't visually update)
-- Admin metrics SQL functions use invalid enum value
-- Authorization bypass in payout admin functions (missing role check)
+- ~~DFY invoice query broken with FK alias (PGRST error)~~ — FIXED: uses proper PostgREST syntax
+- ~~Admin metrics SQL functions use invalid enum value~~ — FIXED: enum values are correct
+- AI Copilot form state sync (fields may not visually update) — needs testing, may be edge case
+- Payout admin actions missing role check — mitigated by layout protection, actions should add `requireRole()`
 
 ## Constraints
 
@@ -99,4 +99,4 @@ Current scope for this milestone:
 | Remove Pulse/time tracking | Overengineered, will return redesigned | — Pending |
 
 ---
-*Last updated: 2026-01-19 after GSD initialization*
+*Last updated: 2026-01-31 after code-level issue verification*
