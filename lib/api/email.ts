@@ -1,9 +1,8 @@
 /**
- * Email utility for sending transactional emails
- *
- * TODO: Install Resend and implement email sending
- * npm install resend @react-email/components
+ * Email utility for sending transactional emails via Resend
  */
+
+import { resend, EMAIL_FROM } from '@/lib/email/resend'
 
 export type EmailTemplate =
   | 'invitation'
@@ -19,28 +18,44 @@ export interface SendEmailParams {
 }
 
 /**
- * Send an email using the configured email provider
- *
- * Currently logs to console - implement with Resend when ready
+ * Generate HTML content for email templates
+ * Temporary placeholder - will be replaced with React Email components in plan 02
+ */
+function getEmailHtml(template: EmailTemplate, data: Record<string, unknown>): string {
+  switch (template) {
+    case 'invitation':
+      return `<p>You've been invited to join hexOS. <a href="${data.inviteUrl}">Accept invitation</a></p>`
+    case 'application-received':
+      return `<p>Hi ${data.name}, we received your application. We'll be in touch soon.</p>`
+    case 'application-approved':
+      return `<p>Hi ${data.name}, your application has been approved! <a href="${data.inviteUrl}">Get started</a></p>`
+    case 'application-rejected':
+      return `<p>Hi ${data.name}, unfortunately we couldn't approve your application at this time.</p>`
+    default:
+      return '<p>hexOS notification</p>'
+  }
+}
+
+/**
+ * Send an email using Resend
  */
 export async function sendEmail(params: SendEmailParams): Promise<boolean> {
-  // TODO: Implement with Resend
-  // const resend = new Resend(process.env.RESEND_API_KEY)
-  // await resend.emails.send({
-  //   from: 'hexOS <noreply@hexona.io>',
-  //   to: params.to,
-  //   subject: params.subject,
-  //   react: getEmailTemplate(params.template, params.data),
-  // })
+  const { to, subject, template, data } = params
 
-  console.log('[EMAIL] Would send email:', {
-    to: params.to,
-    subject: params.subject,
-    template: params.template,
-    data: params.data,
-  })
+  try {
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to,
+      subject,
+      html: getEmailHtml(template, data),
+    })
 
-  return true
+    console.log('[EMAIL] Sent:', { to, subject, template })
+    return true
+  } catch (error) {
+    console.error('[EMAIL] Failed to send:', { to, subject, template, error })
+    return false
+  }
 }
 
 /**
@@ -108,5 +123,20 @@ export async function sendApplicationApprovedEmail(
       name,
       inviteUrl,
     },
+  })
+}
+
+/**
+ * Send dev application rejected email
+ */
+export async function sendApplicationRejectedEmail(
+  email: string,
+  name: string
+): Promise<boolean> {
+  return sendEmail({
+    to: email,
+    subject: 'Update on your hexOS developer application',
+    template: 'application-rejected',
+    data: { name },
   })
 }
