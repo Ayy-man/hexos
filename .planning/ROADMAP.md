@@ -241,6 +241,29 @@ Brainstorm and document what happens after a project is marked complete. Design 
 
 ---
 
+### Phase 13: Email Delivery with Resend
+**Goal:** Enable actual email delivery for all transactional emails
+**Status:** Complete ✓
+**Completed:** 2026-02-01
+**Priority:** CRITICAL (Launch blocker)
+
+Implement Resend integration to replace console.log stubs in `lib/api/email.ts`. Create email templates for invitations, application notifications, and core transactional emails.
+
+**Delivers:**
+- Working Resend integration
+- Invitation email templates (admin, internal, dev, dfy)
+- Application email templates (received, approved, rejected)
+- Environment variable setup
+- Email sending verified in production
+
+**Dependencies:** None
+
+Plans:
+- [x] 13-01-PLAN.md — Resend integration and base email infrastructure
+- [x] 13-02-PLAN.md — Email templates for invitations and applications
+
+---
+
 ## Summary
 
 | Phase | Name | Complexity | Dependencies |
@@ -257,7 +280,8 @@ Brainstorm and document what happens after a project is marked complete. Design 
 | 10 | Opportunities | Complex | Phase 06 |
 | 11 | Notifications | Moderate | Phase 05 |
 | 12 | Offboarding | Design | None |
+| 13 | Email Delivery | Moderate | None |
 
 ---
 
-*12 phases for v1.0 polish milestone*
+*13 phases for v1.0 polish milestone*
