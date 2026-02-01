@@ -17,6 +17,12 @@ import {
   hasExistingInvitation,
 } from '@/lib/api/invitations'
 import { hasAvailableSeats } from '@/lib/api/organizations'
+import {
+  sendInvitationEmail,
+  sendApplicationReceivedEmail,
+  sendApplicationApprovedEmail,
+  sendApplicationRejectedEmail,
+} from '@/lib/api/email'
 import type {
   CreateAdminInvitationInput,
   CreateDfyFirstInvitationInput,
@@ -63,7 +69,20 @@ export async function inviteAdminUserAction(
       return { success: false, error: 'Invitation creation returned null' }
     }
 
-    // TODO: Send invitation email via Resend
+    // Get inviter name for email
+    const { data: inviterProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+
+    await sendInvitationEmail(
+      input.email,
+      inviterProfile?.name || 'A hexOS admin',
+      input.target_role,
+      null,
+      invitation.token
+    )
 
     revalidatePath('/dashboard/admin/team')
 
@@ -115,7 +134,20 @@ export async function inviteDfyAgencyAction(
       return { success: false, error: 'Failed to create invitation' }
     }
 
-    // TODO: Send invitation email via Resend
+    // Get inviter name for email
+    const { data: inviterProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+
+    await sendInvitationEmail(
+      input.email,
+      inviterProfile?.name || 'A hexOS admin',
+      'dfy_first',
+      input.organization_name,
+      invitation.token
+    )
 
     revalidatePath('/dashboard/admin/partners')
 
@@ -167,7 +199,20 @@ export async function inviteDevAction(
       return { success: false, error: 'Failed to create invitation' }
     }
 
-    // TODO: Send invitation email via Resend
+    // Get inviter name for email
+    const { data: inviterProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+
+    await sendInvitationEmail(
+      email,
+      inviterProfile?.name || 'A hexOS admin',
+      'dev',
+      null,
+      invitation.token
+    )
 
     revalidatePath('/dashboard/admin/devs')
 
@@ -215,7 +260,26 @@ export async function inviteTeamMemberAction(
       return { success: false, error: 'Failed to create invitation' }
     }
 
-    // TODO: Send invitation email via Resend
+    // Get inviter name and org name for email
+    const { data: inviterProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', input.organization_id)
+      .single()
+
+    await sendInvitationEmail(
+      input.email,
+      inviterProfile?.name || 'Your team',
+      type,
+      org?.name || null,
+      invitation.token
+    )
 
     return { success: true, invitationId: invitation.id }
   } catch (error) {
@@ -250,8 +314,8 @@ export async function submitDevApplicationAction(
       return { success: false, error: 'Failed to submit application' }
     }
 
-    // TODO: Send confirmation email to applicant
-    // TODO: Notify admins of new application
+    // Send confirmation email to applicant
+    await sendApplicationReceivedEmail(input.email, input.name)
 
     return { success: true }
   } catch (error) {
@@ -285,13 +349,28 @@ export async function approveDevApplicationAction(
       return { success: false, error: 'Only admins can approve applications' }
     }
 
+    // Get invitation details for email before approval
+    const { data: invitation } = await supabase
+      .from('invitations')
+      .select('email, token, metadata')
+      .eq('id', invitationId)
+      .single()
+
     const success = await approveDevApplication(invitationId)
 
     if (!success) {
       return { success: false, error: 'Failed to approve application' }
     }
 
-    // TODO: Send approval email with invitation link
+    // Send approval email
+    if (invitation) {
+      const applicantName = (invitation.metadata as { name?: string })?.name || 'Developer'
+      await sendApplicationApprovedEmail(
+        invitation.email,
+        applicantName,
+        invitation.token
+      )
+    }
 
     revalidatePath('/dashboard/admin/applications')
 
@@ -327,13 +406,24 @@ export async function rejectDevApplicationAction(
       return { success: false, error: 'Only admins can reject applications' }
     }
 
+    // Get invitation details for email before rejection
+    const { data: invitation } = await supabase
+      .from('invitations')
+      .select('email, metadata')
+      .eq('id', invitationId)
+      .single()
+
     const success = await rejectDevApplication(invitationId)
 
     if (!success) {
       return { success: false, error: 'Failed to reject application' }
     }
 
-    // TODO: Send rejection email (optional)
+    // Send rejection email
+    if (invitation) {
+      const applicantName = (invitation.metadata as { name?: string })?.name || 'Developer'
+      await sendApplicationRejectedEmail(invitation.email, applicantName)
+    }
 
     revalidatePath('/dashboard/admin/applications')
 
@@ -448,13 +538,41 @@ export async function resendInvitationAction(
   invitationId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const supabase = await createClient()
     const invitation = await resendInvitation(invitationId)
 
     if (!invitation) {
       return { success: false, error: 'Failed to resend invitation' }
     }
 
-    // TODO: Send email with new invitation link
+    // Get full invitation details for email
+    const { data: fullInvitation } = await supabase
+      .from('invitations')
+      .select(`
+        email,
+        token,
+        type,
+        organization:organizations(name),
+        inviter:profiles!invitations_invited_by_fkey(name)
+      `)
+      .eq('id', invitationId)
+      .single()
+
+    if (fullInvitation) {
+      // Handle join results - inviter and organization may be object or array depending on query
+      const inviterData = fullInvitation.inviter as { name: string } | { name: string }[] | null
+      const orgData = fullInvitation.organization as { name: string } | { name: string }[] | null
+      const inviterName = Array.isArray(inviterData) ? inviterData[0]?.name : inviterData?.name
+      const orgName = Array.isArray(orgData) ? orgData[0]?.name : orgData?.name
+
+      await sendInvitationEmail(
+        fullInvitation.email,
+        inviterName || 'hexOS',
+        fullInvitation.type,
+        orgName || null,
+        fullInvitation.token
+      )
+    }
 
     revalidatePath('/dashboard/admin/team')
     revalidatePath('/dashboard/admin/partners')
