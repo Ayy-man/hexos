@@ -2,7 +2,14 @@
  * Email utility for sending transactional emails via Resend
  */
 
+import { render } from '@react-email/components'
 import { resend, EMAIL_FROM } from '@/lib/email/resend'
+import {
+  InvitationEmail,
+  ApplicationReceivedEmail,
+  ApplicationApprovedEmail,
+  ApplicationRejectedEmail,
+} from '@/lib/email/templates'
 
 export type EmailTemplate =
   | 'invitation'
@@ -18,21 +25,43 @@ export interface SendEmailParams {
 }
 
 /**
- * Generate HTML content for email templates
- * Temporary placeholder - will be replaced with React Email components in plan 02
+ * Render React Email template to HTML string
  */
-function getEmailHtml(template: EmailTemplate, data: Record<string, unknown>): string {
+async function renderEmailTemplate(
+  template: EmailTemplate,
+  data: Record<string, unknown>
+): Promise<string> {
   switch (template) {
     case 'invitation':
-      return `<p>You've been invited to join hexOS. <a href="${data.inviteUrl}">Accept invitation</a></p>`
+      return await render(
+        InvitationEmail({
+          inviterName: data.inviterName as string,
+          inviteType: data.inviteType as string,
+          organizationName: data.organizationName as string | null,
+          inviteUrl: data.inviteUrl as string,
+        })
+      )
     case 'application-received':
-      return `<p>Hi ${data.name}, we received your application. We'll be in touch soon.</p>`
+      return await render(
+        ApplicationReceivedEmail({
+          name: data.name as string,
+        })
+      )
     case 'application-approved':
-      return `<p>Hi ${data.name}, your application has been approved! <a href="${data.inviteUrl}">Get started</a></p>`
+      return await render(
+        ApplicationApprovedEmail({
+          name: data.name as string,
+          inviteUrl: data.inviteUrl as string,
+        })
+      )
     case 'application-rejected':
-      return `<p>Hi ${data.name}, unfortunately we couldn't approve your application at this time.</p>`
+      return await render(
+        ApplicationRejectedEmail({
+          name: data.name as string,
+        })
+      )
     default:
-      return '<p>hexOS notification</p>'
+      throw new Error(`Unknown email template: ${template}`)
   }
 }
 
@@ -47,7 +76,7 @@ export async function sendEmail(params: SendEmailParams): Promise<boolean> {
       from: EMAIL_FROM,
       to,
       subject,
-      html: getEmailHtml(template, data),
+      html: await renderEmailTemplate(template, data),
     })
 
     console.log('[EMAIL] Sent:', { to, subject, template })
