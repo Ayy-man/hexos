@@ -33,23 +33,30 @@ These capabilities are already shipped and working:
 - ✓ DFY proposal reminders with snooze system — existing
 - ✓ Command palette (Cmd+K) global search — existing
 - ✓ Mobile responsive layouts — existing
+- ✓ Email delivery for invitations (Resend) — 2026-02-01
+- ✓ React Email templates (invitation, application received/approved/rejected) — 2026-02-01
+- ✓ Notification center UI (bell icon, popover, realtime, full page) — existing
 
 ### Active
 
-Current scope for this milestone:
+Current scope for launch readiness:
 
-- [ ] Email delivery for invitations (Resend integration)
-- [ ] Notification center (in-app notification UI)
+**No critical blockers remaining.** Ready for soft launch.
+
+**Polish (can launch without):**
 - [ ] Email notifications (stage changes, reminders)
-- [ ] Invoice management UI (admin dashboard)
 - [ ] Gantt view for deliverables
 - [ ] Scope monitoring system (baseline, change detection, approval)
 - [ ] External portals polish (dev/DFY/client experience)
 - [ ] RequirementsTab migration to onboarding_requirements table
 - [ ] Deliverables sign-off flow
+- [ ] Invoice management UI improvements
 
 ### Out of Scope
 
+- Client invitation flow — deprioritized for v1
+- Mercury payout execution — deprioritized for v1
+- Public invoice payment page — deprioritized for v1
 - A2UI agent-generated UIs — future iteration
 - Interactive proposal builder (client-facing) — future iteration
 - BaigWork marketplace — future iteration
@@ -69,10 +76,12 @@ Current scope for this milestone:
 - Deployed on Vercel, no localhost testing
 
 **Recent History:**
+- Critical blockers cleared (2026-02-02) — notification UI already exists, other blockers deprioritized
+- Email delivery with Resend completed (2026-02-01) — invitations now send real emails
+- Opportunities overhaul completed (2026-01-20) — bidding, AI briefs, pre-commitment
+- Notification toast deduplication (2026-01-20) — no more duplicate popups
 - Database recovered from RLS crisis (2026-01-03) — safe functions documented
 - Pulse system and time tracking removed (Jan 2026)
-- Dev skills/gamification system completed
-- Conversations bidirectional sync implemented
 
 **Known Issues:**
 - ~~DFY invoice query broken with FK alias (PGRST error)~~ — FIXED: uses proper PostgREST syntax
@@ -99,4 +108,4 @@ Current scope for this milestone:
 | Remove Pulse/time tracking | Overengineered, will return redesigned | — Pending |
 
 ---
-*Last updated: 2026-01-31 after code-level issue verification*
+*Last updated: 2026-02-02 — no critical blockers, ready for soft launch*

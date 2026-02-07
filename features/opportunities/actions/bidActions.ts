@@ -5,6 +5,7 @@ import {
   submitBid,
   withdrawBid,
   updateBidStatus,
+  getBidsForOpportunity,
   type BidStatus,
   type DevOpportunityBid,
 } from '@/lib/api/bids'
@@ -81,6 +82,21 @@ export async function updateBidStatusAction(
     return bid
   } catch (error) {
     console.error('[updateBidStatusAction] Error:', error)
+    throw error
+  }
+}
+
+// ============================================
+// Bid Query Actions
+// ============================================
+
+export async function getBidsForOpportunityAction(
+  opportunityId: string
+): Promise<DevOpportunityBid[]> {
+  try {
+    return await getBidsForOpportunity(opportunityId)
+  } catch (error) {
+    console.error('[getBidsForOpportunityAction] Error:', error)
     throw error
   }
 }

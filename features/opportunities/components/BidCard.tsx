@@ -28,7 +28,7 @@ import {
   User,
   Mail,
 } from 'lucide-react'
-import type { DevOpportunityBid, BidStatus } from '@/lib/api/bids'
+import type { DevOpportunityBid, BidStatus } from '@/lib/api/bid-types'
 
 interface BidCardProps {
   bid: DevOpportunityBid

@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Heart, HeartHandshake, HeartOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { CommitmentStatus } from '@/lib/api/project-invitations'
+import type { CommitmentStatus } from '@/lib/api/opportunity-types'
 
 interface CommitmentStatusBadgeProps {
   status: CommitmentStatus

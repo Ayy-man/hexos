@@ -3,7 +3,7 @@
 import { Send, Clock, CheckCircle2, XCircle, Star } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import type { ProjectApplication } from '@/lib/api/project-invitations'
+import type { ProjectApplication } from '@/lib/api/opportunity-types'
 
 interface ApplicationListProps {
   applications: ProjectApplication[]

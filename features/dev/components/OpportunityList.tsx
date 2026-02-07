@@ -14,7 +14,7 @@ import {
   toggleStarAction,
   toggleHideAction,
 } from '@/features/dev/actions/opportunityPrefsActions'
-import type { OpportunityWithPrefs } from '@/lib/api/project-invitations'
+import type { OpportunityWithPrefs } from '@/lib/api/opportunity-types'
 
 interface OpportunityListProps {
   opportunities: OpportunityWithPrefs[]

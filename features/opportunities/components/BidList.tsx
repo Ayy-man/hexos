@@ -13,7 +13,7 @@ import {
 import { Inbox, ArrowUpDown, Loader2 } from 'lucide-react'
 import { BidCard } from './BidCard'
 import { updateBidStatusAction } from '../actions/bidActions'
-import type { DevOpportunityBid, BidStatus } from '@/lib/api/bids'
+import type { DevOpportunityBid, BidStatus } from '@/lib/api/bid-types'
 
 interface BidListProps {
   opportunityId: string

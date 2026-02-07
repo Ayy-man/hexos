@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import type { RedactedBrief, BriefExtraction } from '@/lib/api/brief-extractions'
-import type { BriefSourceType } from '@/lib/api/brief-extractions'
+import type { RedactedBrief, BriefExtraction, BriefSourceType } from '@/lib/api/brief-extraction-types'
 import { regenerateBriefAction } from '../actions/briefActions'
 
 interface RedactedBriefCardProps {

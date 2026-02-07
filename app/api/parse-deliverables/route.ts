@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { extractDeliverablesSection } from '@/features/inquiries/utils/plateToText'
 
 const SYSTEM_PROMPT = `You are an AI assistant that extracts deliverables from automation project proposals.
@@ -51,6 +52,15 @@ interface ParsedDeliverable {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const { proposalContent } = await req.json()
 
     if (!process.env.OPENROUTER_API_KEY) {

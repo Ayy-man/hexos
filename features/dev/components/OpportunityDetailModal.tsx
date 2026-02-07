@@ -31,13 +31,14 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { formatDuration, type OpportunityWithPrefs, type ProjectComplexity, type CommitmentStatus } from '@/lib/api/project-invitations'
+import { formatDuration, type OpportunityWithPrefs, type ProjectComplexity, type CommitmentStatus } from '@/lib/api/opportunity-types'
 import { BidList } from '@/features/opportunities/components/BidList'
 import { RedactedBriefCard } from '@/features/opportunities/components/RedactedBriefCard'
-import { getBidsForOpportunity, type DevOpportunityBid } from '@/lib/api/bids'
+import { getBidsForOpportunityAction } from '@/features/opportunities/actions/bidActions'
 import { getBriefForOpportunityAction } from '@/features/opportunities/actions/briefActions'
-import { getCommittedDevs } from '@/lib/api/project-invitations'
-import type { BriefExtraction } from '@/lib/api/brief-extractions'
+import { getCommittedDevsAction } from '@/features/opportunities/actions/preCommitmentActions'
+import type { DevOpportunityBid } from '@/lib/api/bid-types'
+import type { BriefExtraction } from '@/lib/api/brief-extraction-types'
 
 interface CommittedDev {
   dev_id: string
@@ -97,7 +98,7 @@ export function OpportunityDetailModal({
 
     if (activeTab === 'bids' && bids.length === 0 && !isLoadingBids) {
       setIsLoadingBids(true)
-      getBidsForOpportunity(opportunity.id)
+      getBidsForOpportunityAction(opportunity.id)
         .then(setBids)
         .catch(console.error)
         .finally(() => setIsLoadingBids(false))
@@ -113,7 +114,7 @@ export function OpportunityDetailModal({
 
     if (activeTab === 'committed' && committedDevs.length === 0 && !isLoadingCommitted) {
       setIsLoadingCommitted(true)
-      getCommittedDevs(opportunity.id)
+      getCommittedDevsAction(opportunity.id)
         .then(setCommittedDevs)
         .catch(console.error)
         .finally(() => setIsLoadingCommitted(false))

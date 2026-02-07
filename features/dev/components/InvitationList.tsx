@@ -34,7 +34,7 @@ import {
   acceptInvitationAction,
   declineInvitationAction,
 } from '@/features/dev/actions/invitationActions'
-import type { ProjectInvitation, ProjectComplexity } from '@/lib/api/project-invitations'
+import type { ProjectInvitation, ProjectComplexity } from '@/lib/api/opportunity-types'
 
 interface InvitationListProps {
   invitations: ProjectInvitation[]

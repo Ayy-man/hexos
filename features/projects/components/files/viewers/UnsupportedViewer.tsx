@@ -1,8 +1,8 @@
 'use client'
 
-import { FileQuestion, Download } from 'lucide-react'
+import { FileIcon, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getFileExtension, formatFileSize } from '@/lib/file-types'
+import { formatFileSize } from '@/lib/file-types'
 
 interface UnsupportedViewerProps {
   url: string
@@ -12,35 +12,21 @@ interface UnsupportedViewerProps {
 }
 
 export function UnsupportedViewer({ filename, fileSize, onDownload }: UnsupportedViewerProps) {
-  const extension = getFileExtension(filename)
-
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
-      {/* Large file icon */}
-      <div className="w-32 h-32 rounded-2xl bg-muted/50 flex items-center justify-center">
-        <FileQuestion className="h-16 w-16 text-muted-foreground" />
+    <div className="flex-1 flex flex-col items-center justify-center gap-6 p-4">
+      <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center">
+        <FileIcon className="h-12 w-12 text-muted-foreground" />
       </div>
-
-      {/* Message */}
-      <div className="text-center space-y-2">
-        <h3 className="text-lg font-medium">Preview not available</h3>
-        <p className="text-muted-foreground">
-          {extension ? (
-            <>
-              <span className="font-mono text-sm uppercase">.{extension}</span> files cannot be
-              previewed in the browser.
-            </>
-          ) : (
-            'This file type cannot be previewed in the browser.'
-          )}
+      <div className="text-center">
+        <p className="font-medium">{filename}</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {formatFileSize(fileSize)}
         </p>
-        {fileSize && (
-          <p className="text-sm text-muted-foreground">{formatFileSize(fileSize)}</p>
-        )}
       </div>
-
-      {/* Download button */}
-      <Button onClick={onDownload} size="lg" className="gap-2">
+      <p className="text-sm text-muted-foreground">
+        Preview not available for this file type
+      </p>
+      <Button onClick={onDownload} className="gap-2">
         <Download className="h-4 w-4" />
         Download File
       </Button>

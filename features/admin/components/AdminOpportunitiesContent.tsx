@@ -49,7 +49,7 @@ import {
   sendInvitationAction,
 } from '@/features/admin/actions/opportunityActions'
 import { OpportunityDetailModal } from '@/features/dev/components/OpportunityDetailModal'
-import { formatDuration, type ProjectOpportunity, type DevAvailability, type OpportunityStatus, type ProjectComplexity, type OpportunityWithPrefs } from '@/lib/api/project-invitations'
+import { formatDuration, type ProjectOpportunity, type DevAvailability, type OpportunityStatus, type ProjectComplexity, type OpportunityWithPrefs } from '@/lib/api/opportunity-types'
 
 interface Project {
   id: string

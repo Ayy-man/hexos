@@ -11,7 +11,7 @@ import { Heart, HeartHandshake, HeartOff, X, Loader2 } from 'lucide-react'
 import { setCommitmentStatusAction, removeCommitmentAction } from '../actions/preCommitmentActions'
 import { CommitmentStatusBadge } from './CommitmentStatusBadge'
 import { formatDistanceToNow } from 'date-fns'
-import type { CommitmentStatus } from '@/lib/api/project-invitations'
+import type { CommitmentStatus } from '@/lib/api/opportunity-types'
 
 interface PreCommitmentTabProps {
   opportunityId: string

@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { formatDuration, type OpportunityWithPrefs, type ProjectComplexity } from '@/lib/api/project-invitations'
+import { formatDuration, type OpportunityWithPrefs, type ProjectComplexity } from '@/lib/api/opportunity-types'
 import { CommitmentStatusBadge } from '@/features/opportunities/components/CommitmentStatusBadge'
 
 interface OpportunityCardProps {

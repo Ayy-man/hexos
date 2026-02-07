@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 const SYSTEM_PROMPT = `You are an AI assistant that creates redacted project briefs for developer opportunities.
 
@@ -117,6 +118,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GenerateBrief
   const startTime = Date.now()
 
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const body = (await req.json()) as GenerateBriefRequest
 
     if (!process.env.OPENROUTER_API_KEY) {

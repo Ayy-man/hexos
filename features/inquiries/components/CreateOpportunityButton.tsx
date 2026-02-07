@@ -25,7 +25,7 @@ import {
 import { Briefcase, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createOpportunityFromInquiryAction } from '@/features/admin/actions/opportunityActions'
-import type { ProjectComplexity } from '@/lib/api/project-invitations'
+import type { ProjectComplexity } from '@/lib/api/opportunity-types'
 
 interface CreateOpportunityButtonProps {
   inquiryId: string

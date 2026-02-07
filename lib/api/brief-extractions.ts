@@ -1,33 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 
-// Types
-export type BriefSourceType = 'project' | 'inquiry' | 'blueprint' | 'case_study' | 'opportunity'
-
-export interface RedactedBrief {
-  industry: string
-  problem_type: string
-  scope_summary: string
-  tech_stack: string[]
-  complexity: 'low' | 'medium' | 'high'
-  estimated_duration: string
-  deliverables_overview: string[]
-  special_requirements?: string
-  redacted_fields: string[]
-}
-
-export interface BriefExtraction {
-  id: string
-  source_type: BriefSourceType
-  source_id: string
-  brief_content: RedactedBrief
-  redacted_brief: string
-  model_used: string
-  input_hash: string | null
-  tokens_used: number | null
-  generation_time_ms: number | null
-  created_at: string
-  expires_at: string | null
-}
+// Re-export types from client-safe module
+export type { BriefSourceType, RedactedBrief, BriefExtraction } from './brief-extraction-types'
+import type { BriefSourceType, RedactedBrief, BriefExtraction } from './brief-extraction-types'
 
 // ============================================================================
 // BRIEF EXTRACTION CACHING

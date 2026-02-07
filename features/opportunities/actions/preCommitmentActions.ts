@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import {
   updateCommitmentStatus,
   removeCommitment,
+  getCommittedDevs,
   type CommitmentStatus,
   type DevOpportunityPreference,
 } from '@/lib/api/project-invitations'
@@ -97,5 +98,26 @@ export async function toggleInterestAction(
   } catch (error) {
     console.error('Error toggling interest:', error)
     return { success: false, message: 'Failed to toggle interest' }
+  }
+}
+
+/**
+ * Get committed devs for an opportunity (admin query)
+ */
+export async function getCommittedDevsAction(
+  opportunityId: string
+): Promise<Array<{
+  dev_id: string
+  name: string
+  email: string
+  commitment_status: CommitmentStatus
+  commitment_note: string | null
+  committed_at: string | null
+}>> {
+  try {
+    return await getCommittedDevs(opportunityId)
+  } catch (error) {
+    console.error('Error fetching committed devs:', error)
+    throw error
   }
 }
