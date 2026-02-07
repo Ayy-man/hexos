@@ -166,7 +166,8 @@ Plans:
 
 ### Phase 09: Suggestion Box Expansion
 **Goal:** Full suggestion management for DFY/Dev users
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-01-31
 **Plans:** 3 plans
 
 Create suggestion list page for DFY/Dev, add conversation threads per suggestion with admin, trigger notifications without polluting general conversations.
@@ -179,15 +180,16 @@ Create suggestion list page for DFY/Dev, add conversation threads per suggestion
 **Dependencies:** Phase 01 (suggestion box upload must work first)
 
 Plans:
-- [ ] 09-01-PLAN.md — Database migration for suggestion conversations (type, trigger, RLS, backfill)
-- [ ] 09-02-PLAN.md — API functions for suggestion conversations and notifications
-- [ ] 09-03-PLAN.md — My Suggestions page, components, and sidebar navigation
+- [x] 09-01-PLAN.md — Database migration for suggestion conversations (type, trigger, RLS, backfill)
+- [x] 09-02-PLAN.md — API functions for suggestion conversations and notifications
+- [x] 09-03-PLAN.md — My Suggestions page, components, and sidebar navigation
 
 ---
 
 ### Phase 10: Opportunities Overhaul
 **Goal:** Developer bidding and AI-powered briefs
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-01-20
 **Plans:** 5 plans
 
 Change hours to weeks, add developer bidding system, pre-commitment tab, AI-generated redacted briefs with caching.
@@ -202,11 +204,11 @@ Change hours to weeks, add developer bidding system, pre-commitment tab, AI-gene
 **Dependencies:** Phase 06 (Blueprints/Case Studies for AI brief context)
 
 Plans:
-- [ ] 10-01-PLAN.md — Schema migration (bids, brief_extractions, weeks columns) and API modules
-- [ ] 10-02-PLAN.md — Bidding system UI (BidForm, BidList, BidCard) and server actions
-- [ ] 10-03-PLAN.md — AI brief generation endpoint, caching, and RedactedBriefCard
-- [ ] 10-04-PLAN.md — Pre-commitment workflow (API, actions, PreCommitmentTab)
-- [ ] 10-05-PLAN.md — Integration into admin/dev dashboards and weeks display
+- [x] 10-01-PLAN.md — Schema migration (bids, brief_extractions, weeks columns) and API modules
+- [x] 10-02-PLAN.md — Bidding system UI (BidForm, BidList, BidCard) and server actions
+- [x] 10-03-PLAN.md — AI brief generation endpoint, caching, and RedactedBriefCard
+- [x] 10-04-PLAN.md — Pre-commitment workflow (API, actions, PreCommitmentTab)
+- [x] 10-05-PLAN.md — Integration into admin/dev dashboards and weeks display
 
 ---
 
