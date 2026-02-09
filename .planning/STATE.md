@@ -8,12 +8,12 @@
 
 ## Current Position
 
-Phase: 15 of 15 (meeting-assistant)
-Plan: 06 of TBD
+Phase: 14 of 15 (offboarding-retainer-system)
+Plan: 01 of TBD
 Status: In progress
-Last activity: 2026-02-09 - Completed 15-06-PLAN.md
+Last activity: 2026-02-09 - Completed 14-01-PLAN.md
 
-Progress: [======================================..] 96%
+Progress: [======================================..] 97%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -27,7 +27,7 @@ Progress: [======================================..] 96%
          Phase 11: 01, 02 complete (PHASE COMPLETE)
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
-         Phase 14: not planned
+         Phase 14: 01 complete
          Phase 15: 01, 02, 03, 04, 05, 06 complete
 
 ## Completed Work
@@ -67,6 +67,7 @@ Progress: [======================================..] 96%
 | 15-meeting-assistant | 04 | Meeting task CRUD API with CSV import/export and task-to-deliverable conversion | 20473cb, ddbbf90 |
 | 15-meeting-assistant | 06 | Tabbed meeting detail interface with AI summary, searchable transcript, video playback, and link management | 4e8a10b |
 | 15-meeting-assistant | 05 | Meetings list page with status filters, create dialog, and sidebar navigation | 305ca33, 851b8b1 |
+| 14-offboarding-retainer-system | 01 | Database foundation with retainer tables, extended project_status enum, TypeScript types for retainer phase | 3461e62, 3d8d648 |
 
 ## Accumulated Decisions
 
@@ -159,6 +160,11 @@ Progress: [======================================..] 96%
 | 15-06 | Link picker fetches all projects/inquiries | Small datasets (<100 items), client-side search sufficient |
 | 15-06 | HTML5 video element for recordings | Recall.ai URLs are standard video, native element provides controls |
 | 15-06 | Participant profile links to /admin/devs | No individual profile pages in V1, list page sufficient |
+| 14-01 | TEXT CHECK constraint for check_in_cadence | Simpler than new enum for 3 fixed values (weekly/biweekly/monthly) |
+| 14-01 | Role-based check_in_assignees array | Store role strings not user IDs - roles expand to current team |
+| 14-01 | Allow retainer_tasks on completed projects | Support post-completion work tracking beyond retainer phase |
+| 14-01 | Retainer phase between delivery and closed | Represents ongoing maintenance state before final closure |
+| 14-01 | JSONB completion_summary | Flexible structure for completion ceremony without rigid schema |
 
 ## Patterns Established
 
@@ -220,6 +226,9 @@ Progress: [======================================..] 96%
 | Client-side list filtering | Badge-based filter UI for small datasets | 15-05 |
 | Responsive meeting list | Cards on mobile, table on desktop with Tailwind md: utilities | 15-05 |
 | Admin-only navigation | Sidebar entries restricted by role (adminNav/internalNav only) | 15-05 |
+| Retainer config as inline columns | Nullable retainer-specific fields on projects table rather than separate config table | 14-01 |
+| Post-delivery lifecycle | accepted->retainer->completed or accepted->completed (direct close) | 14-01 |
+| Retainer reactivation | completed->retainer allows converting closed projects to ongoing retainer | 14-01 |
 
 ## Blockers/Concerns
 
@@ -227,8 +236,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:23:20 UTC
-Stopped at: Completed 15-06-PLAN.md
+Last session: 2026-02-09 13:27:50 UTC
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
