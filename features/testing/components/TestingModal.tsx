@@ -14,7 +14,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { CheckCircle2, XCircle, Loader2, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import {
@@ -24,6 +32,7 @@ import {
   startTestingSessionAction,
   updateChecklistItemServerAction,
   submitTestResultsAction,
+  addChecklistItemAction,
 } from '@/features/testing/actions/testingActions'
 import type { ChecklistCategory, TestChecklistItem, TestingStage } from '@/lib/api/testing'
 import type { DeliverableTestSummary } from '@/lib/api/testing'
@@ -60,6 +69,10 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
   const [testSession, setTestSession] = useState<any>(null)
   const [notes, setNotes] = useState('')
   const [activeTab, setActiveTab] = useState('checklist')
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [newItemDesc, setNewItemDesc] = useState('')
+  const [newItemCategory, setNewItemCategory] = useState<ChecklistCategory>('functional')
+  const [addingItem, setAddingItem] = useState(false)
 
   const stageToTest: TestingStage = deliverable.next_stage || 'dev'
 
@@ -71,14 +84,36 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
 
   const loadTestSession = async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const session = await getOrCreateTestSessionAction(deliverable.deliverable_id, stageToTest)
+      if (!session?.id) {
+        setLoadError('Failed to create test session')
+        return
+      }
       const fullSession = await getTestSessionAction(session.id)
       setTestSession(fullSession)
     } catch (error) {
       console.error('Failed to load test session:', error)
+      setLoadError('Failed to load test session. Try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAddItem = async () => {
+    if (!testSession || !newItemDesc.trim()) return
+    setAddingItem(true)
+    try {
+      await addChecklistItemAction(testSession.id, newItemCategory, newItemDesc.trim())
+      setNewItemDesc('')
+      await loadTestSession()
+      toast.success('Item added')
+    } catch (error) {
+      console.error('Failed to add checklist item:', error)
+      toast.error('Failed to add item')
+    } finally {
+      setAddingItem(false)
     }
   }
 
@@ -183,6 +218,11 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
+        ) : loadError ? (
+          <div className="text-center py-12 space-y-3">
+            <p className="text-sm text-muted-foreground">{loadError}</p>
+            <Button variant="outline" onClick={loadTestSession}>Retry</Button>
+          </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
             <TabsList className="grid w-full grid-cols-2">
@@ -216,12 +256,37 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
               ) : (
                 <ScrollArea className="h-[400px] pr-4">
                   {totalCount === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">No checklist items yet.</p>
+                    <div className="text-center py-8 space-y-6">
+                      <p className="text-muted-foreground">No checklist items yet.</p>
                       <Button variant="outline" onClick={handleGenerateChecklist} disabled={generating}>
                         {generating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                         {generating ? 'Generating...' : 'Generate Checklist'}
                       </Button>
+                      <div className="border-t pt-4">
+                        <p className="text-sm text-muted-foreground mb-3">Or add items manually:</p>
+                        <div className="flex gap-2">
+                          <Select value={newItemCategory} onValueChange={(v) => setNewItemCategory(v as ChecklistCategory)}>
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.entries(categoryLabels) as Array<[ChecklistCategory, string]>).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Describe the test item..."
+                            value={newItemDesc}
+                            onChange={(e) => setNewItemDesc(e.target.value)}
+                            className="flex-1"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+                          />
+                          <Button size="sm" onClick={handleAddItem} disabled={addingItem || !newItemDesc.trim()}>
+                            {addingItem ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="space-y-6">
@@ -244,6 +309,36 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
                           </div>
                         </div>
                       ))}
+
+                      {/* Add item + Generate controls */}
+                      <div className="border-t pt-4 space-y-3">
+                        <div className="flex gap-2">
+                          <Select value={newItemCategory} onValueChange={(v) => setNewItemCategory(v as ChecklistCategory)}>
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(Object.entries(categoryLabels) as Array<[ChecklistCategory, string]>).map(([key, label]) => (
+                                <SelectItem key={key} value={key}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Add a test item..."
+                            value={newItemDesc}
+                            onChange={(e) => setNewItemDesc(e.target.value)}
+                            className="flex-1"
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
+                          />
+                          <Button size="sm" onClick={handleAddItem} disabled={addingItem || !newItemDesc.trim()}>
+                            {addingItem ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={handleGenerateChecklist} disabled={generating}>
+                          {generating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          {generating ? 'Generating...' : 'Generate More Items'}
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </ScrollArea>
