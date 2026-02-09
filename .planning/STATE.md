@@ -9,9 +9,9 @@
 ## Current Position
 
 Phase: 14 of 15 (offboarding-retainer-system)
-Plan: 05 of TBD
+Plan: 04 of TBD
 Status: In progress
-Last activity: 2026-02-09 - Completed 14-05-PLAN.md
+Last activity: 2026-02-09 - Completed 14-04-PLAN.md
 
 Progress: [========================================] 100%
          Phase 01: 01, 02 complete
@@ -27,7 +27,7 @@ Progress: [========================================] 100%
          Phase 11: 01, 02 complete (PHASE COMPLETE)
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
-         Phase 14: 01, 02, 03, 05 complete
+         Phase 14: 01, 02, 03, 04, 05 complete
          Phase 15: 01, 02, 03, 04, 05, 06, 07 complete (PHASE COMPLETE)
 
 ## Completed Work
@@ -71,6 +71,7 @@ Progress: [========================================] 100%
 | 14-offboarding-retainer-system | 01 | Database foundation with retainer tables, extended project_status enum, TypeScript types for retainer phase | 3461e62, 3d8d648 |
 | 14-offboarding-retainer-system | 02 | Projects page with Active/Retainer/Completed tabs, CloseProjectDialog, completion ceremony | 7a1cc8a, 075a7ef |
 | 14-offboarding-retainer-system | 03 | Complete API layer with check-ins, tasks, and retainer config with cascading dev updates | 3da9b22, 28adbd0 |
+| 14-offboarding-retainer-system | 04 | Complete retainer UI with check-ins timeline, grouped task management, admin config, and dashboard cards | e6186b7, 5495da3 |
 | 14-offboarding-retainer-system | 05 | Future Improvements backlog with multi-select bundling, available on all projects regardless of status | 0a0a2f2, 24639e9 |
 
 ## Accumulated Decisions
@@ -184,6 +185,11 @@ Progress: [========================================] 100%
 | 15-07 | Meetings tab in admin-only More dropdown | Consistent with sidebar navigation and V1 admin-only scope |
 | 14-03 | Task ordering priority: status → priority → created_at | Ensures active todos surface first |
 | 14-03 | Unassign removed dev tasks | When dev removed from retainer_dev_ids, automatically unassign their tasks |
+| 14-04 | Lazy loading for tab data | CheckInsTab/RetainerTasksTab only fetch data when tab is activated to avoid unnecessary API calls |
+| 14-04 | Done tasks collapsed by default | Keep UI clean for active work items, user can expand to see completed tasks |
+| 14-04 | Health dots use colored circles | Simple 12px colored circles (green/yellow/red) instead of icons for quick visual scanning |
+| 14-04 | Development tabs hidden for retainer/completed | Progress, Testing, Deliverables, Requirements, Scope tabs completely hidden (not just disabled) to simplify UI |
+| 14-04 | Retainer tab uses dashboard cards | Projects page Retainer tab renders grid of cards instead of table for better health/task visibility |
 
 ## Patterns Established
 
@@ -257,6 +263,11 @@ Progress: [========================================] 100%
 | Task inline editing pattern | Edit form replaces row, save/cancel buttons, checkbox for quick status toggle | 15-07 |
 | CSV import dialog pattern | File preview, result summary with imported/skipped counts, error list display | 15-07 |
 | Supabase realtime subscription | createClient from client lib, channel.on('postgres_changes'), cleanup in useEffect | 15-07 |
+| Lazy tab data loading | useState + useEffect pattern for fetching data only when tab activated, prevents unnecessary API calls | 14-04 |
+| Phase-based tab visibility | Use isRetainerPhase/isPostDeliveryPhase helpers to show/hide tabs based on project lifecycle state | 14-04 |
+| Health indicator dots | Colored circles (12px, green/yellow/red) with cn() for conditional styling based on check-in health status | 14-04 |
+| Retainer dashboard cards | Compact Card with py-3, health dot, relative times, overdue badges, team avatars | 14-04 |
+| Collapsible sections | Use Collapsible for done tasks and long notes to keep UI clean by default | 14-04 |
 
 ## Blockers/Concerns
 
@@ -264,8 +275,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:47:18 UTC
-Stopped at: Completed 14-05-PLAN.md
+Last session: 2026-02-09 13:48:25 UTC
+Stopped at: Completed 14-04-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
