@@ -37,6 +37,9 @@ export interface Blocker {
     id: string
     project_name: string
   }
+  escalated_to_dfy: boolean
+  escalated_at: string | null
+  escalated_by: string | null
   comments_count?: number
 }
 
@@ -243,6 +246,71 @@ export async function updateBlocker(
 
   if (error) throw error
   return normalizeBlockerRelations(data)
+}
+
+/**
+ * Escalate a blocker to the DFY partner
+ */
+export async function escalateBlockerToDfy(blockerId: string): Promise<Blocker> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('blockers')
+    .update({
+      escalated_to_dfy: true,
+      escalated_at: new Date().toISOString(),
+      escalated_by: user.id,
+    })
+    .eq('id', blockerId)
+    .select(`
+      *,
+      reporter:profiles!reported_by(id, name, email),
+      deliverable:deliverables(id, title),
+      project:projects(id, project_name, dfy_partner_id)
+    `)
+    .single()
+
+  if (error) throw error
+  return normalizeBlockerRelations(data)
+}
+
+/**
+ * Get blockers escalated to DFY partner
+ */
+export async function getEscalatedBlockersForDfy(): Promise<Blocker[]> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  // Get projects where this user is the DFY partner
+  const { data: myProjects } = await supabase
+    .from('projects')
+    .select('id')
+    .eq('dfy_partner_id', user.id)
+
+  if (!myProjects || myProjects.length === 0) return []
+
+  const projectIds = myProjects.map(p => p.id)
+
+  const { data, error } = await supabase
+    .from('blockers')
+    .select(`
+      *,
+      reporter:profiles!reported_by(id, name, email),
+      deliverable:deliverables(id, title),
+      project:projects(id, project_name)
+    `)
+    .eq('escalated_to_dfy', true)
+    .not('status', 'in', '("resolved","closed")')
+    .in('project_id', projectIds)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return (data || []).map(normalizeBlockerRelations)
 }
 
 /**

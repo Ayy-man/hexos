@@ -30,6 +30,8 @@ export type NotificationType =
   | 'testing_passed'
   | 'testing_failed'
   | 'testing_escalated'
+  // Payment notifications
+  | 'invoice_payment_failed'
   // Suggestion notifications
   | 'suggestion_reply'
   | 'suggestion_status_change'
@@ -82,6 +84,8 @@ export function getNotificationIcon(type: NotificationType): string {
       return 'file-text'
     case 'invoice_paid':
       return 'check-circle'
+    case 'invoice_payment_failed':
+      return 'alert-triangle'
     case 'payout_submitted':
       return 'upload'
     case 'payout_approved':
@@ -147,6 +151,8 @@ export function getNotificationColor(type: NotificationType): string {
       return 'text-info'
     case 'invoice_paid':
       return 'text-success'
+    case 'invoice_payment_failed':
+      return 'text-error'
     case 'payout_submitted':
       return 'text-info'
     case 'payout_approved':
@@ -223,6 +229,7 @@ export function getNotificationUrl(notification: Notification): string {
       return `/projects/${projectId}?tab=deliverables`
     case 'invoice_sent':
     case 'invoice_paid':
+    case 'invoice_payment_failed':
       return `/projects/${projectId}?tab=financials`
     case 'payout_submitted':
     case 'payout_approved':

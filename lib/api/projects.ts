@@ -170,7 +170,7 @@ export async function getProjects(filter: ProjectFilter = 'active') {
       dfy_partner:profiles!projects_dfy_partner_id_fkey(id, name, email),
       assigned_dev:profiles!projects_assigned_dev_id_fkey(id, name, email),
       client:profiles!projects_client_id_fkey(id, name, email),
-      deliverables(id, status, parent_id, hill_position),
+      deliverables(id, title, status, due_date, parent_id, hill_position),
       requirements:onboarding_requirements(id, status)
     `)
 

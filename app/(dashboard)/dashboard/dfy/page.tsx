@@ -15,6 +15,7 @@ import { getProjects } from '@/lib/api/projects'
 import { getInquiries, type ProposalStage } from '@/lib/api/inquiries'
 import { getStaleProposalsForDfy } from '@/lib/api/proposal-reminders'
 import { getPendingExtensions } from '@/lib/api/project-extensions'
+import { getEscalatedBlockersForDfy } from '@/lib/api/blockers'
 import { getActivityTrendsBatch, type ActivityTrendPoint } from '@/lib/api/activity-logs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +26,6 @@ import { InlineSparkline } from '@/components/shared/ActivitySparkline'
 import { StaleProposalsBanner } from '@/features/inquiries/components/StaleProposalsBanner'
 import { PendingExtensionsList } from '@/features/projects/components/delays/PendingExtensionsList'
 import { cn } from '@/lib/utils'
-import { calculateHillChartProgress } from '@/lib/utils/projectProgress'
 
 // DFY-visible stages (they don't see internal workflow stages)
 const DFY_VISIBLE_STAGES: ProposalStage[] = ['sent', 'closed', 'lost']
@@ -73,11 +73,12 @@ export default async function DfyDashboard() {
   await requireRole(['dfy'])
   const profile = await getProfile()
 
-  const [projects, inquiries, staleProposals, pendingExtensions] = await Promise.all([
+  const [projects, inquiries, staleProposals, pendingExtensions, escalatedBlockers] = await Promise.all([
     getProjects().catch(() => []),
     getInquiries().catch(() => []),
     profile?.id ? getStaleProposalsForDfy(profile.id).catch(() => []) : [],
     getPendingExtensions().catch(() => []),
+    getEscalatedBlockersForDfy().catch(() => []),
   ])
 
   // Get activity trends for projects
@@ -252,10 +253,9 @@ export default async function DfyDashboard() {
                   const trendKey = `project:${project.id}`
                   const trend = activityTrends.get(trendKey) || []
                   const HealthIcon = HEALTH_CONFIG[project.health].icon
-                  const hillProgress = calculateHillChartProgress(project.deliverables)
-                  const progress = hillProgress?.averagePosition || 0
                   const done = project.deliverables?.filter(d => d.status === 'done').length || 0
                   const total = project.deliverables?.length || 0
+                  const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
                   return (
                     <Link
@@ -275,8 +275,9 @@ export default async function DfyDashboard() {
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {project.price_dfy && (
-                          <span className="text-xs font-medium text-green-600 tabular-nums">
-                            ${project.price_dfy.toLocaleString()}
+                          <span className="text-xs text-green-600 tabular-nums" title="Deal Value">
+                            <span className="text-muted-foreground font-normal">Deal </span>
+                            <span className="font-medium">${project.price_dfy.toLocaleString()}</span>
                           </span>
                         )}
                         <InlineSparkline data={trend} color="primary" />
@@ -284,6 +285,44 @@ export default async function DfyDashboard() {
                     </Link>
                   )
                 })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Escalated Blockers */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              Blockers
+              {escalatedBlockers.length > 0 && (
+                <Badge variant="destructive" className="text-[10px]">
+                  {escalatedBlockers.length}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {escalatedBlockers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No blockers requiring your attention
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {escalatedBlockers.slice(0, 5).map((blocker) => (
+                  <div
+                    key={blocker.id}
+                    className="flex items-center gap-2 rounded-lg border p-2"
+                  >
+                    <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{blocker.title}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {blocker.project?.project_name || 'Unknown project'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

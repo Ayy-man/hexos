@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import {
   generateChecklistAction,
   getTestSessionAction,
@@ -55,6 +56,7 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const [testSession, setTestSession] = useState<any>(null)
   const [notes, setNotes] = useState('')
   const [activeTab, setActiveTab] = useState('checklist')
@@ -93,15 +95,22 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
   }
 
   const handleGenerateChecklist = async () => {
+    setGenerating(true)
     try {
-      await generateChecklistAction(
+      const result = await generateChecklistAction(
         testSession.id,
         deliverable.deliverable_title,
         null
       )
+      if (result.success) {
+        toast.success(`Generated ${result.itemCount} checklist items`)
+      }
       await loadTestSession()
     } catch (error) {
       console.error('Failed to generate checklist:', error)
+      toast.error('Failed to generate checklist')
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -194,8 +203,9 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
                       Start Testing
                     </Button>
                     {totalCount === 0 && (
-                      <Button variant="outline" onClick={handleGenerateChecklist}>
-                        Generate Checklist
+                      <Button variant="outline" onClick={handleGenerateChecklist} disabled={generating}>
+                        {generating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        {generating ? 'Generating...' : 'Generate Checklist'}
                       </Button>
                     )}
                   </div>
@@ -205,8 +215,9 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
                   {totalCount === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground mb-4">No checklist items yet.</p>
-                      <Button variant="outline" onClick={handleGenerateChecklist}>
-                        Generate Checklist
+                      <Button variant="outline" onClick={handleGenerateChecklist} disabled={generating}>
+                        {generating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        {generating ? 'Generating...' : 'Generate Checklist'}
                       </Button>
                     </div>
                   ) : (

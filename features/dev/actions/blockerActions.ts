@@ -10,6 +10,7 @@ import {
   updateBlockerComment,
   deleteBlockerComment,
   getBlocker,
+  escalateBlockerToDfy,
   type BlockerStatus,
   type BlockerPriority,
 } from '@/lib/api/blockers'
@@ -146,5 +147,42 @@ export async function deleteBlockerCommentAction(commentId: string) {
   } catch (error) {
     console.error('Error deleting blocker comment:', error)
     return { success: false, message: 'Failed to delete comment' }
+  }
+}
+
+export async function escalateBlockerAction(blockerId: string) {
+  try {
+    const blocker = await escalateBlockerToDfy(blockerId)
+
+    // Get the DFY partner for this project
+    const supabase = await createClient()
+    const { data: project } = await supabase
+      .from('projects')
+      .select('dfy_partner_id')
+      .eq('id', blocker.project_id)
+      .single()
+
+    if (project?.dfy_partner_id) {
+      try {
+        await createNotification({
+          userId: project.dfy_partner_id,
+          type: 'blocker_comment',
+          title: 'Blocker escalated to you',
+          message: `A blocker "${blocker.title}" on project ${blocker.project?.project_name || ''} needs your attention.`,
+          projectId: blocker.project_id,
+          blockerId: blocker.id,
+        })
+      } catch (e) {
+        console.error('Failed to notify DFY partner:', e)
+      }
+    }
+
+    revalidatePath('/admin/blockers')
+    revalidatePath('/dashboard/admin')
+    revalidatePath('/dashboard/dfy')
+    return { success: true, blocker }
+  } catch (error) {
+    console.error('Error escalating blocker:', error)
+    return { success: false, message: 'Failed to escalate blocker' }
   }
 }

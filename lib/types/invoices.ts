@@ -3,7 +3,7 @@
  * Stripe integration for inbound client payments
  */
 
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'void' | 'overdue'
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'void' | 'overdue' | 'payment_failed'
 
 export interface InvoiceLineItem {
   description: string

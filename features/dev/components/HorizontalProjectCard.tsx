@@ -136,7 +136,7 @@ export function HorizontalProjectCard({
                 </span>
               </div>
             ) : (
-              <span className="text-xs text-muted-foreground">No payout set</span>
+              <div />
             )}
             <InlineSparkline data={activityTrend} color="primary" />
           </div>

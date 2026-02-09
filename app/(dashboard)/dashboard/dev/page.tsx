@@ -71,7 +71,7 @@ export default async function DevDashboard() {
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">In Progress</p>
+              <p className="text-xs text-muted-foreground">Active Tasks</p>
               <p className="text-xl font-bold text-cyan-600 tabular-nums">{inProgressDeliverables.length}</p>
             </div>
             <Clock className="h-5 w-5 text-cyan-500" />
@@ -80,7 +80,7 @@ export default async function DevDashboard() {
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Completed</p>
+              <p className="text-xs text-muted-foreground">Done</p>
               <p className="text-xl font-bold text-green-600 tabular-nums">{completedDeliverables.length}</p>
             </div>
             <CheckCircle2 className="h-5 w-5 text-green-500" />

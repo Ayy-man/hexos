@@ -841,3 +841,103 @@ export async function getTotalUnreadCount(): Promise<number> {
   const conversations = await getAllConversationsWithUnread()
   return conversations.reduce((sum, conv) => sum + (conv.unread_count || 0), 0)
 }
+
+export interface UnreadConversationSummary {
+  id: string
+  title: string
+  type: ConversationType
+  unread_count: number
+}
+
+/**
+ * Get a lightweight summary of conversations with unread messages.
+ * Returns total unread count + up to 3 conversations with the most unread.
+ * Much cheaper than getAllConversationsWithUnread — no last_message joins.
+ */
+export async function getUnreadConversationsSummary(): Promise<{
+  total_unread: number
+  conversations: UnreadConversationSummary[]
+}> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { total_unread: 0, conversations: [] }
+
+  // Fetch all conversations with minimal joins
+  const { data: convs, error } = await supabase
+    .from('conversations')
+    .select(`
+      id, title, type,
+      project:projects(project_name, client_name),
+      participants:direct_conversation_participants(
+        user:profiles!user_id(id, name)
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  if (error || !convs) return { total_unread: 0, conversations: [] }
+
+  // Get read statuses in a single query
+  const { data: readStatuses } = await supabase
+    .from('conversation_read_status')
+    .select('conversation_id, last_read_at')
+    .eq('user_id', user.id)
+
+  const readMap = new Map(
+    (readStatuses || []).map(rs => [rs.conversation_id, rs.last_read_at])
+  )
+
+  // Compute unread counts in parallel
+  const withUnread = await Promise.all(
+    convs.map(async (conv) => {
+      const lastReadAt = readMap.get(conv.id) || '1970-01-01T00:00:00Z'
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('conversation_id', conv.id)
+        .is('deleted_at', null)
+        .gt('created_at', lastReadAt)
+        .neq('sender_id', user.id)
+
+      if (!count || count === 0) return null
+
+      // Build display title
+      let title = conv.title || ''
+      if (!title) {
+        // Supabase joins may return array or object depending on cardinality
+        const rawProject = conv.project
+        const project = Array.isArray(rawProject) ? rawProject[0] : rawProject
+        if (project) {
+          title = project.project_name || project.client_name
+        } else if (conv.type === 'direct') {
+          const rawParticipants = conv.participants || []
+          const participants = (Array.isArray(rawParticipants) ? rawParticipants : [rawParticipants]) as Array<Record<string, unknown>>
+          const other = participants.find((p) => {
+            const rawUser = p.user
+            const u = Array.isArray(rawUser) ? rawUser[0] : rawUser
+            return u && (u as { id: string }).id !== user.id
+          })
+          if (other) {
+            const rawUser = other.user
+            const u = (Array.isArray(rawUser) ? rawUser[0] : rawUser) as { name: string } | null
+            title = u?.name || 'Direct Message'
+          } else {
+            title = 'Direct Message'
+          }
+        } else {
+          title = conv.type.charAt(0).toUpperCase() + conv.type.slice(1)
+        }
+      }
+
+      return { id: conv.id, title, type: conv.type as ConversationType, unread_count: count }
+    })
+  )
+
+  const unreadConvs = withUnread.filter((c): c is UnreadConversationSummary => c !== null)
+  unreadConvs.sort((a, b) => b.unread_count - a.unread_count)
+
+  return {
+    total_unread: unreadConvs.reduce((sum, c) => sum + c.unread_count, 0),
+    conversations: unreadConvs.slice(0, 3),
+  }
+}

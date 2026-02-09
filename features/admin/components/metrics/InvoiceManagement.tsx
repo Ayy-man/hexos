@@ -92,6 +92,7 @@ const STATUS_LABELS: Record<InvoiceStatus, string> = {
   paid: 'Paid',
   void: 'Void',
   overdue: 'Overdue',
+  payment_failed: 'Payment Failed',
 };
 
 const STATUS_COLORS: Record<InvoiceStatus, string> = {
@@ -100,6 +101,7 @@ const STATUS_COLORS: Record<InvoiceStatus, string> = {
   paid: 'bg-success/10 text-success',
   void: 'bg-muted text-muted-foreground line-through',
   overdue: 'bg-error/10 text-error',
+  payment_failed: 'bg-error/10 text-error',
 };
 
 interface LineItemInput {

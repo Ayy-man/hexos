@@ -17,6 +17,9 @@ import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
 import { getMyNotifications, getUnreadCount } from '@/lib/api/notifications'
 import { getInquiryStatusCounts } from '@/lib/api/inquiries'
+import { getProjectStats } from '@/lib/api/projects'
+import { getUnreadConversationsSummary } from '@/lib/api/conversations'
+import { getSuggestionCounts } from '@/lib/api/suggestions'
 import { OnbordaProvider, Onborda } from 'onborda'
 import { OnboardingWrapper } from '@/features/onboarding/components/OnboardingWrapper'
 import { onboardingTours } from '@/features/onboarding/lib/tours'
@@ -54,11 +57,14 @@ export default async function DashboardLayout({
   const isAdminOrInternal = ['admin', 'internal'].includes((profile as Profile).role)
   const isDev = (profile as Profile).role === 'dev'
 
-  const [notifications, unreadCount, devLoggingStatus, inquiryStatusCounts] = await Promise.all([
+  const [notifications, unreadCount, devLoggingStatus, inquiryStatusCounts, projectStats, conversationSummary, suggestionCounts] = await Promise.all([
     getMyNotifications(20).catch(() => []),
     getUnreadCount().catch(() => 0),
     isDev ? getDevLoggingStatus().catch(() => null) : Promise.resolve(null),
     isAdminOrInternal ? getInquiryStatusCounts().catch(() => null) : Promise.resolve(null),
+    isAdminOrInternal ? getProjectStats().catch(() => null) : Promise.resolve(null),
+    getUnreadConversationsSummary().catch(() => ({ total_unread: 0, conversations: [] })),
+    isAdminOrInternal ? getSuggestionCounts().catch(() => null) : Promise.resolve(null),
   ])
 
   const inquiryCounts = inquiryStatusCounts ? {
@@ -91,6 +97,9 @@ export default async function DashboardLayout({
             profile={profile as Profile}
             navigation={navigation}
             inquiryCounts={inquiryCounts}
+            projectStats={projectStats ?? undefined}
+            conversationSummary={conversationSummary}
+            suggestionCounts={suggestionCounts ?? undefined}
           />
           <SidebarInset>
             <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">

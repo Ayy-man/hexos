@@ -52,12 +52,13 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
         }
     };
 
-    const statusColors = {
+    const statusColors: Record<string, string> = {
         draft: 'bg-muted text-muted-foreground',
         sent: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
         paid: 'bg-green-500/10 text-green-500 border-green-500/20',
         void: 'bg-red-500/10 text-red-500 border-red-500/20',
         overdue: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+        payment_failed: 'bg-red-500/10 text-red-500 border-red-500/20',
     };
 
     return (

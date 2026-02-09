@@ -52,6 +52,7 @@ import {
 } from '@/components/ui/tooltip'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
+import type { UnreadConversationSummary } from '@/lib/api/conversations'
 
 // Icon map to resolve string names to components
 const iconMap: Record<string, LucideIcon> = {
@@ -101,6 +102,99 @@ function InquiryTooltipContent({ counts }: { counts: { unopened: number; working
   )
 }
 
+function ProjectTooltipContent({ stats }: { stats: { total: number; active: number; inquiry: number; completed: number } }) {
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="font-medium text-sm">Projects</p>
+      <div className="flex justify-between gap-4">
+        <span className="text-cyan-500">Active:</span>
+        <span className="tabular-nums">{stats.active}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-amber-500">Inquiry:</span>
+        <span className="tabular-nums">{stats.inquiry}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-green-500">Completed:</span>
+        <span className="tabular-nums">{stats.completed}</span>
+      </div>
+      <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
+        <span className="text-muted-foreground">Total:</span>
+        <span className="tabular-nums font-medium">{stats.total}</span>
+      </div>
+    </div>
+  )
+}
+
+const CONVERSATION_TYPE_ICONS: Record<string, string> = {
+  project: '📁',
+  direct: '💬',
+  inquiry: '📋',
+  suggestion: '💡',
+  workspace: '🏢',
+  partner: '🤝',
+}
+
+function ConversationTooltipContent({ summary }: { summary: { total_unread: number; conversations: UnreadConversationSummary[] } }) {
+  if (summary.total_unread === 0) {
+    return (
+      <div className="space-y-1.5 text-xs">
+        <p className="font-medium text-sm">Conversations</p>
+        <p className="text-muted-foreground">All caught up</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2 text-xs">
+      <div className="flex items-center justify-between">
+        <p className="font-medium text-sm">Unread Messages</p>
+        <span className="tabular-nums text-red-500 font-medium">{summary.total_unread}</span>
+      </div>
+      <div className="space-y-1.5">
+        {summary.conversations.map((conv) => (
+          <div key={conv.id} className="flex items-center gap-2">
+            <span className="shrink-0">{CONVERSATION_TYPE_ICONS[conv.type] || '💬'}</span>
+            <span className="truncate max-w-[140px]">{conv.title}</span>
+            <span className="ml-auto tabular-nums text-red-500 font-medium">{conv.unread_count}</span>
+          </div>
+        ))}
+      </div>
+      {summary.conversations.length < summary.total_unread && (
+        <p className="text-muted-foreground border-t pt-1.5">
+          + more unread conversations
+        </p>
+      )}
+    </div>
+  )
+}
+
+function SuggestionTooltipContent({ counts }: { counts: Record<string, number> }) {
+  const open = (counts.new || 0) + (counts.reviewed || 0)
+  const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="font-medium text-sm">Suggestions</p>
+      <div className="flex justify-between gap-4">
+        <span className="text-amber-500">New:</span>
+        <span className="tabular-nums">{counts.new || 0}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-cyan-500">Reviewed:</span>
+        <span className="tabular-nums">{counts.reviewed || 0}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-green-500">Implemented:</span>
+        <span className="tabular-nums">{counts.implemented || 0}</span>
+      </div>
+      <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
+        <span className="text-muted-foreground">Open:</span>
+        <span className="tabular-nums font-medium">{open}</span>
+      </div>
+    </div>
+  )
+}
+
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profile: Profile
   navigation: NavGroup[]
@@ -110,12 +204,26 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     ready: number
     total: number
   }
+  projectStats?: {
+    total: number
+    active: number
+    inquiry: number
+    completed: number
+  }
+  conversationSummary?: {
+    total_unread: number
+    conversations: UnreadConversationSummary[]
+  }
+  suggestionCounts?: Record<string, number>
 }
 
 export function AppSidebar({
   profile,
   navigation,
   inquiryCounts,
+  projectStats,
+  conversationSummary,
+  suggestionCounts,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname()
@@ -151,9 +259,44 @@ export function AppSidebar({
                 {group.items.map((item) => {
                   const isActive = pathname === item.url || pathname.startsWith(item.url + '/')
                   const Icon = iconMap[item.icon] || LayoutDashboard
-                  const isInquiriesWithCounts = item.title === 'Inquiries' && inquiryCounts
 
-                  if (isInquiriesWithCounts) {
+                  // Determine tooltip content and badge for items with stats
+                  let tooltipContent: React.ReactNode = null
+                  let badgeContent: React.ReactNode = null
+
+                  if (item.title === 'Inquiries' && inquiryCounts) {
+                    tooltipContent = <InquiryTooltipContent counts={inquiryCounts} />
+                    if (inquiryCounts.unopened > 0) {
+                      badgeContent = (
+                        <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                          {inquiryCounts.unopened}
+                        </Badge>
+                      )
+                    }
+                  } else if (item.title === 'Projects' && projectStats) {
+                    tooltipContent = <ProjectTooltipContent stats={projectStats} />
+                  } else if (item.title === 'Conversations' && conversationSummary) {
+                    tooltipContent = <ConversationTooltipContent summary={conversationSummary} />
+                    if (conversationSummary.total_unread > 0) {
+                      badgeContent = (
+                        <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                          {conversationSummary.total_unread}
+                        </Badge>
+                      )
+                    }
+                  } else if (item.title === 'Suggestions' && suggestionCounts) {
+                    tooltipContent = <SuggestionTooltipContent counts={suggestionCounts} />
+                    const newCount = suggestionCounts.new || 0
+                    if (newCount > 0) {
+                      badgeContent = (
+                        <Badge variant="secondary" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                          {newCount}
+                        </Badge>
+                      )
+                    }
+                  }
+
+                  if (tooltipContent) {
                     return (
                       <SidebarMenuItem key={item.title}>
                         <Tooltip>
@@ -166,16 +309,12 @@ export function AppSidebar({
                               <Link href={item.url} prefetch={true}>
                                 <Icon />
                                 <span>{item.title}</span>
-                                {inquiryCounts.unopened > 0 && (
-                                  <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
-                                    {inquiryCounts.unopened}
-                                  </Badge>
-                                )}
+                                {badgeContent}
                               </Link>
                             </SidebarMenuButton>
                           </TooltipTrigger>
-                          <TooltipContent side="right" align="start" className="p-3">
-                            <InquiryTooltipContent counts={inquiryCounts} />
+                          <TooltipContent side="right" align="start" className="p-3 bg-popover text-popover-foreground border shadow-md">
+                            {tooltipContent}
                           </TooltipContent>
                         </Tooltip>
                       </SidebarMenuItem>

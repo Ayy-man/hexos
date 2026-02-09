@@ -29,6 +29,7 @@ import {
   MessageCircle,
   Filter,
   ChevronDown,
+  ArrowUpRight,
 } from 'lucide-react'
 import {
   Collapsible,
@@ -39,6 +40,7 @@ import { toast } from 'sonner'
 import {
   updateBlockerStatusAction,
   addBlockerCommentAction,
+  escalateBlockerAction,
 } from '@/features/dev/actions/blockerActions'
 import type { Blocker, BlockerStatus, BlockerPriority } from '@/lib/api/blockers'
 
@@ -156,6 +158,18 @@ export function AdminBlockerQueue({ blockers, projects }: AdminBlockerQueueProps
     handleStatusChange(resolveDialog, 'resolved', resolutionNotes || undefined)
     setResolveDialog(null)
     setResolutionNotes('')
+  }
+
+  const handleEscalate = (blocker: Blocker) => {
+    startTransition(async () => {
+      const result = await escalateBlockerAction(blocker.id)
+      if (result.success) {
+        toast.success('Blocker escalated to DFY partner')
+        router.refresh()
+      } else {
+        toast.error(result.message || 'Failed to escalate')
+      }
+    })
   }
 
   const handleAddComment = () => {
@@ -309,6 +323,22 @@ export function AdminBlockerQueue({ blockers, projects }: AdminBlockerQueueProps
                             <Check className="h-3 w-3 mr-1" />
                             Resolve
                           </Button>
+                        )}
+                        {!blocker.escalated_to_dfy && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEscalate(blocker)}
+                            disabled={isPending}
+                          >
+                            <ArrowUpRight className="h-3 w-3 mr-1" />
+                            Escalate to DFY
+                          </Button>
+                        )}
+                        {blocker.escalated_to_dfy && (
+                          <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                            Escalated to DFY
+                          </Badge>
                         )}
                         <Button
                           size="sm"

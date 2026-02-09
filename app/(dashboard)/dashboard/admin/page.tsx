@@ -11,9 +11,9 @@ import {
 } from 'lucide-react'
 import { requireRole } from '@/lib/auth/guards'
 import { getProjectStats, getProjects } from '@/lib/api/projects'
+import { getAllActiveBlockers } from '@/lib/api/blockers'
 import { getAllSentProposals, bundleProposalsByDfy } from '@/lib/api/proposal-reminders'
 import { getActivityTrendsBatch } from '@/lib/api/activity-logs'
-import { getProjectProgress } from '@/lib/utils/projectProgress'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -83,12 +83,8 @@ export default async function AdminDashboard() {
   const proposalBundles = bundleProposalsByDfy(sentProposals)
   const pendingProposalsCount = sentProposals.length
 
-  // Get all blockers from projects
-  const allBlockedDeliverables = allProjects.flatMap(p =>
-    (p.deliverables || [])
-      .filter(d => d.status === 'blocked')
-      .map(d => ({ ...d, projectName: p.project_name, projectId: p.id }))
-  )
+  // Get all active blockers from blockers table
+  const activeBlockers = await getAllActiveBlockers().catch(() => [])
 
   return (
     <div className="space-y-6">
@@ -181,12 +177,9 @@ export default async function AdminDashboard() {
                   const trendKey = `project:${project.id}`
                   const trend = activityTrends.get(trendKey) || []
                   const HealthIcon = HEALTH_CONFIG[project.health].icon
-                  const progressData = getProjectProgress(project)
-
-                  // Blue indicator for onboarding phases
-                  const progressClass = progressData.isOnboardingPhase
-                    ? '[&>div]:bg-blue-500'
-                    : ''
+                  const done = (project.deliverables || []).filter((d: any) => d.status === 'done').length
+                  const total = (project.deliverables || []).length
+                  const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
                   return (
                     <Link
@@ -198,15 +191,15 @@ export default async function AdminDashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-medium truncate">{project.project_name}</p>
+                          <span className="text-xs text-muted-foreground tabular-nums">
+                            {done}/{total}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Progress value={progress} className="h-1 flex-1" />
                           <Badge variant="secondary" className="text-[10px] capitalize">
                             {formatStatus(project.status)}
                           </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Progress value={progressData.percentage} className={cn('h-1 flex-1', progressClass)} />
-                          <span className="text-[10px] text-muted-foreground tabular-nums w-8">
-                            {progressData.percentage}%
-                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -280,39 +273,39 @@ export default async function AdminDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2">
                 Blockers
-                {allBlockedDeliverables.length > 0 && (
+                {activeBlockers.length > 0 && (
                   <Badge variant="destructive" className="text-[10px]">
-                    {allBlockedDeliverables.length}
+                    {activeBlockers.length}
                   </Badge>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {allBlockedDeliverables.length === 0 ? (
+              {activeBlockers.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   No blocked items
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {allBlockedDeliverables.slice(0, 5).map((item) => (
+                  {activeBlockers.slice(0, 5).map((blocker) => (
                     <Link
-                      key={item.id}
-                      href={`/projects/${item.projectId}`}
+                      key={blocker.id}
+                      href={`/admin/blockers`}
                       className="flex items-center gap-2 rounded-lg border p-2 hover:bg-muted/50 transition-colors"
                     >
                       <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-xs font-medium truncate">{item.title}</p>
+                        <p className="text-xs font-medium truncate">{blocker.title}</p>
                         <p className="text-[10px] text-muted-foreground truncate">
-                          {item.projectName}
+                          {blocker.project?.project_name || 'Unknown project'}
                         </p>
                       </div>
                     </Link>
                   ))}
-                  {allBlockedDeliverables.length > 5 && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      +{allBlockedDeliverables.length - 5} more
-                    </p>
+                  {activeBlockers.length > 5 && (
+                    <Link href="/admin/blockers" className="block text-xs text-muted-foreground text-center hover:underline">
+                      +{activeBlockers.length - 5} more
+                    </Link>
                   )}
                 </div>
               )}

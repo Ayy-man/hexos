@@ -69,17 +69,43 @@ export async function POST(req: NextRequest) {
       case 'invoice.payment_failed': {
         const stripeInvoice = event.data.object as Stripe.Invoice
 
-        // Find our invoice and update status
         const supabase2 = createAdminClient()
         const { data: invoice } = await supabase2
           .from('invoices')
-          .select('id')
+          .select('id, total, client_name, project_id')
           .eq('stripe_invoice_id', stripeInvoice.id)
           .single()
 
         if (invoice) {
-          // Could update to a 'payment_failed' status or send notification
-          console.warn(`Payment failed for invoice ${invoice.id}`)
+          // Update invoice status
+          await supabase2
+            .from('invoices')
+            .update({ status: 'payment_failed' })
+            .eq('id', invoice.id)
+
+          // Notify all admin users
+          const { data: admins } = await supabase2
+            .from('profiles')
+            .select('id')
+            .eq('role', 'admin')
+
+          if (admins && admins.length > 0) {
+            const amount = (invoice.total / 100).toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })
+            await supabase2.from('notifications').insert(
+              admins.map((admin) => ({
+                user_id: admin.id,
+                type: 'invoice_payment_failed',
+                title: 'Invoice Payment Failed',
+                message: `Payment of ${amount} from ${invoice.client_name || 'Unknown'} has failed.`,
+                project_id: invoice.project_id || null,
+              }))
+            )
+          }
+
+          console.warn(`Payment failed for invoice ${invoice.id}, admins notified`)
         }
         break
       }
