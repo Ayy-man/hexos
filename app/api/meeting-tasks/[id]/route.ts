@@ -16,7 +16,7 @@ import type { UpdateMeetingTaskInput } from '@/lib/types/meetings'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   const {
@@ -27,7 +27,8 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const task = await getMeetingTask(params.id)
+  const { id } = await params
+  const task = await getMeetingTask(id)
 
   if (!task) {
     return NextResponse.json({ error: 'Task not found' }, { status: 404 })
@@ -38,7 +39,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   const {
@@ -50,8 +51,9 @@ export async function PATCH(
   }
 
   try {
+    const { id } = await params
     const body = (await req.json()) as UpdateMeetingTaskInput
-    const result = await updateMeetingTask(params.id, body)
+    const result = await updateMeetingTask(id, body)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
@@ -66,7 +68,7 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   const {
@@ -77,7 +79,8 @@ export async function DELETE(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const result = await deleteMeetingTask(params.id)
+  const { id } = await params
+  const result = await deleteMeetingTask(id)
 
   if (!result.success) {
     return NextResponse.json({ error: result.error }, { status: 400 })

@@ -9,7 +9,7 @@ import { convertTaskToDeliverable } from '@/lib/api/meeting-tasks'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient()
   const {
@@ -21,6 +21,7 @@ export async function POST(
   }
 
   try {
+    const { id } = await params
     const body = await req.json()
     const { project_id } = body
 
@@ -31,7 +32,7 @@ export async function POST(
       )
     }
 
-    const result = await convertTaskToDeliverable(params.id, project_id)
+    const result = await convertTaskToDeliverable(id, project_id)
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 })
