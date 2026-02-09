@@ -65,7 +65,7 @@ export function TaskRow({ task, onUpdate, onDelete }: TaskRowProps) {
     try {
       const result = await updateTaskAction(task.id, {
         title: editedTitle,
-        description: editedDescription || null,
+        description: editedDescription || undefined,
       })
       if (result.success) {
         toast.success('Task updated')
