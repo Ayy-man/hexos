@@ -122,8 +122,8 @@ export function ConvertToDeliverable({
               <CheckCircle2 className="h-5 w-5" />
               <span className="font-medium">Already converted</span>
             </div>
-            {deliverableId && projectId && (
-              <Link href={`/projects/${projectId}`}>
+            {deliverableId && initialProjectId && (
+              <Link href={`/projects/${initialProjectId}`}>
                 <Button variant="outline" className="w-full">
                   View Project Deliverables
                 </Button>
