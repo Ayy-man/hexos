@@ -2,18 +2,18 @@
 
 **Milestone:** v1.0 Polish
 **Repository:** hexos-main
-**Last Updated:** 2026-02-01
+**Last Updated:** 2026-02-09
 
 ---
 
 ## Current Position
 
-Phase: 13 of 13 (email-delivery-resend)
-Plan: 02 of 2
-Status: MILESTONE COMPLETE
-Last activity: 2026-02-01 - Completed 13-02-PLAN.md (Email Templates and Action Wiring)
+Phase: 15 of 15 (meeting-assistant)
+Plan: 01 of TBD
+Status: In progress
+Last activity: 2026-02-09 - Completed 15-01-PLAN.md
 
-Progress: [==========================================] 100%
+Progress: [======================================..] 95%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -25,7 +25,10 @@ Progress: [==========================================] 100%
          Phase 09: 01, 02, 03 complete (PHASE COMPLETE)
          Phase 10: 01, 02, 03, 04, 05 complete (PHASE COMPLETE)
          Phase 11: 01, 02 complete (PHASE COMPLETE)
+         Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
+         Phase 14: not planned
+         Phase 15: 01 complete
 
 ## Completed Work
 
@@ -58,6 +61,7 @@ Progress: [==========================================] 100%
 | 11-notification-system-audit | 02 | Toast deduplication fix and trigger documentation | 44c7bb0, 336e509 |
 | 13-email-delivery-resend | 01 | Resend SDK integration with working sendEmail | a23f855, aab07b9, 1c285b5 |
 | 13-email-delivery-resend | 02 | React Email templates and action wiring | a614973, 86308ae, 1149992 |
+| 15-meeting-assistant | 01 | Meeting assistant database schema and Recall.ai client | 45c50d3, 44a0dbc |
 
 ## Accumulated Decisions
 
@@ -123,6 +127,10 @@ Progress: [==========================================] 100%
 | 13-01 | EMAIL_FROM uses RESEND_FROM_EMAIL env or falls back to hexOS address | Configurable sender with sensible default |
 | 13-02 | Async renderEmailTemplate for React Email render() | render() returns Promise, must await |
 | 13-02 | Handle Supabase join results as array or object | Join queries may return different shapes depending on cardinality |
+| 15-01 | Admin-only RLS policies for V1 - all meeting tables restricted to admin role | Simplifies initial implementation, can be expanded when dev/DFY partner visibility needed |
+| 15-01 | Polymorphic meeting_links table without FK constraints on linkable_id | Prevents invalid cascades for project/inquiry/conversation polymorphic references |
+| 15-01 | Fetch-based Recall.ai client (no official SDK) following resend.ts singleton pattern | Lightweight wrapper around fetch with Token authentication |
+| 15-01 | JSONB storage for transcript segments and key decisions | Structured queries while maintaining flexibility for AI extraction results |
 
 ## Patterns Established
 
@@ -168,16 +176,23 @@ Progress: [==========================================] 100%
 | Email error handling | try/catch with console.error logging, return false on failure | 13-01 |
 | React Email templates | Inline styles, consistent color palette, preview text | 13-02 |
 | Email send in actions | Fetch context (inviter profile, org name) before sending | 13-02 |
+| Fetch-based third-party API client | getApiKey() + wrapper function + singleton export for APIs without SDKs | 15-01 |
+| Admin-only V1 RLS | Single policy using get_user_role() = 'admin' for all operations | 15-01 |
+| Polymorphic linking without FKs | linkable_type + linkable_id without FK constraints for flexibility | 15-01 |
 
 ## Blockers/Concerns
 
-None - milestone complete.
+None.
 
 ## Session Continuity
 
-Last session: 2026-02-01T23:56:00Z
-Stopped at: Completed 13-02-PLAN.md (Email Templates and Action Wiring)
+Last session: 2026-02-09 13:09:08 UTC
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
+
+### Roadmap Evolution
+
+- Phase 15 added: Meeting Assistant — Recall.ai bot + Claude AI transcription + first-class tasks with CSV import/export
 
 ---
 
