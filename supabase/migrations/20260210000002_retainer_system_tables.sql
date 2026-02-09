@@ -2,6 +2,7 @@
 -- Creates tables, indexes, triggers, and RLS policies for retainer workflow
 -- Phase 14, Plan 01 (split from 20260210000001 because new enum values
 -- must be committed before they can be referenced in policies)
+-- All statements are idempotent (safe to re-run)
 
 -- ============================================================================
 -- ADD RETAINER CONFIG COLUMNS TO PROJECTS TABLE
@@ -92,7 +93,7 @@ CREATE TRIGGER retainer_tasks_updated_at
 
 ALTER TABLE retainer_check_ins ENABLE ROW LEVEL SECURITY;
 
--- SELECT: Admin sees all, DFY sees own projects, Dev sees assigned retainer projects
+DROP POLICY IF EXISTS retainer_check_ins_select_policy ON retainer_check_ins;
 CREATE POLICY retainer_check_ins_select_policy ON retainer_check_ins
   FOR SELECT
   USING (
@@ -101,15 +102,13 @@ CREATE POLICY retainer_check_ins_select_policy ON retainer_check_ins
       SELECT 1 FROM projects
       WHERE projects.id = retainer_check_ins.project_id
         AND (
-          -- DFY sees own projects
           (public.get_user_role() = 'dfy' AND projects.dfy_partner_id = auth.uid())
-          -- Dev sees if they're assigned to retainer
           OR (public.get_user_role() = 'dev' AND auth.uid() = ANY(projects.retainer_dev_ids))
         )
     )
   );
 
--- INSERT: Same as SELECT but also require project status = 'retainer'
+DROP POLICY IF EXISTS retainer_check_ins_insert_policy ON retainer_check_ins;
 CREATE POLICY retainer_check_ins_insert_policy ON retainer_check_ins
   FOR INSERT
   WITH CHECK (
@@ -131,7 +130,7 @@ CREATE POLICY retainer_check_ins_insert_policy ON retainer_check_ins
 
 ALTER TABLE retainer_tasks ENABLE ROW LEVEL SECURITY;
 
--- SELECT: Admin sees all, DFY sees own projects, Dev sees assigned retainer projects
+DROP POLICY IF EXISTS retainer_tasks_select_policy ON retainer_tasks;
 CREATE POLICY retainer_tasks_select_policy ON retainer_tasks
   FOR SELECT
   USING (
@@ -146,7 +145,7 @@ CREATE POLICY retainer_tasks_select_policy ON retainer_tasks
     )
   );
 
--- INSERT: Same as SELECT + project must be in retainer or completed status
+DROP POLICY IF EXISTS retainer_tasks_insert_policy ON retainer_tasks;
 CREATE POLICY retainer_tasks_insert_policy ON retainer_tasks
   FOR INSERT
   WITH CHECK (
@@ -162,7 +161,7 @@ CREATE POLICY retainer_tasks_insert_policy ON retainer_tasks
     )
   );
 
--- UPDATE: Same as INSERT
+DROP POLICY IF EXISTS retainer_tasks_update_policy ON retainer_tasks;
 CREATE POLICY retainer_tasks_update_policy ON retainer_tasks
   FOR UPDATE
   USING (
@@ -178,7 +177,7 @@ CREATE POLICY retainer_tasks_update_policy ON retainer_tasks
     )
   );
 
--- DELETE: Admin only
+DROP POLICY IF EXISTS retainer_tasks_delete_policy ON retainer_tasks;
 CREATE POLICY retainer_tasks_delete_policy ON retainer_tasks
   FOR DELETE
   USING (public.get_user_role() = 'admin');
@@ -189,7 +188,7 @@ CREATE POLICY retainer_tasks_delete_policy ON retainer_tasks
 
 ALTER TABLE project_improvements ENABLE ROW LEVEL SECURITY;
 
--- SELECT: Admin sees all, DFY sees own projects, Dev sees assigned projects
+DROP POLICY IF EXISTS project_improvements_select_policy ON project_improvements;
 CREATE POLICY project_improvements_select_policy ON project_improvements
   FOR SELECT
   USING (
@@ -207,7 +206,7 @@ CREATE POLICY project_improvements_select_policy ON project_improvements
     )
   );
 
--- INSERT: Same as SELECT (anyone on team can add)
+DROP POLICY IF EXISTS project_improvements_insert_policy ON project_improvements;
 CREATE POLICY project_improvements_insert_policy ON project_improvements
   FOR INSERT
   WITH CHECK (
@@ -225,12 +224,12 @@ CREATE POLICY project_improvements_insert_policy ON project_improvements
     )
   );
 
--- UPDATE: Admin only (for status changes to 'converted')
+DROP POLICY IF EXISTS project_improvements_update_policy ON project_improvements;
 CREATE POLICY project_improvements_update_policy ON project_improvements
   FOR UPDATE
   USING (public.get_user_role() = 'admin');
 
--- DELETE: Admin only
+DROP POLICY IF EXISTS project_improvements_delete_policy ON project_improvements;
 CREATE POLICY project_improvements_delete_policy ON project_improvements
   FOR DELETE
   USING (public.get_user_role() = 'admin');
