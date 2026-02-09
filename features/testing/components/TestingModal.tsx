@@ -83,6 +83,7 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
   }
 
   const handleStartTesting = async () => {
+    if (!testSession) return
     setStarting(true)
     try {
       await startTestingSessionAction(testSession.id)
@@ -95,6 +96,7 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
   }
 
   const handleGenerateChecklist = async () => {
+    if (!testSession) return
     setGenerating(true)
     try {
       const result = await generateChecklistAction(
@@ -128,6 +130,7 @@ export function TestingModal({ deliverable, open, onClose, userRole, userId }: T
   }
 
   const handleSubmit = async () => {
+    if (!testSession) return
     setSubmitting(true)
     try {
       await submitTestResultsAction(
