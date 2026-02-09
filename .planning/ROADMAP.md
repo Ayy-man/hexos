@@ -272,7 +272,8 @@ Plans:
 
 ### Phase 14: Offboarding & Retainer System
 **Goal:** Implement completion ceremony, retainer mode, and future improvements backlog
-**Status:** Planned
+**Status:** Complete ✓
+**Completed:** 2026-02-09
 **Plans:** 5 plans
 
 Implement the full offboarding and retainer system as designed in Phase 12. Two-path close flow (Complete vs Retainer), retainer mode with check-ins and lightweight tasks, Future Improvements backlog on all projects, and Projects page tab navigation (Active/Retainer/Completed).
@@ -296,11 +297,11 @@ Implement the full offboarding and retainer system as designed in Phase 12. Two-
 Design doc: `docs/plans/2026-02-09-offboarding-retainer-design.md`
 
 Plans:
-- [ ] 14-01-PLAN.md — Database migration, TypeScript types, status system extension, notification types
-- [ ] 14-02-PLAN.md — Projects page tabs (Active/Retainer/Completed) and completion ceremony
-- [ ] 14-03-PLAN.md — Retainer check-ins and tasks API modules and server actions
-- [ ] 14-04-PLAN.md — Retainer UI components and ProjectTabs integration
-- [ ] 14-05-PLAN.md — Future Improvements backlog on all projects
+- [x] 14-01-PLAN.md — Database migration, TypeScript types, status system extension, notification types
+- [x] 14-02-PLAN.md — Projects page tabs (Active/Retainer/Completed) and completion ceremony
+- [x] 14-03-PLAN.md — Retainer check-ins and tasks API modules and server actions
+- [x] 14-04-PLAN.md — Retainer UI components and ProjectTabs integration
+- [x] 14-05-PLAN.md — Future Improvements backlog on all projects
 
 ---
 

@@ -27,7 +27,7 @@ Progress: [========================================] 100%
          Phase 11: 01, 02 complete (PHASE COMPLETE)
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
-         Phase 14: 01, 02, 03, 04, 05 complete
+         Phase 14: 01, 02, 03, 04, 05 complete (PHASE COMPLETE)
          Phase 15: 01, 02, 03, 04, 05, 06, 07 complete (PHASE COMPLETE)
 
 ## Completed Work
