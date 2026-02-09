@@ -9,11 +9,11 @@
 ## Current Position
 
 Phase: 14 of 15 (offboarding-retainer-system)
-Plan: 01 of TBD
+Plan: 03 of TBD
 Status: In progress
-Last activity: 2026-02-09 - Completed 14-01-PLAN.md
+Last activity: 2026-02-09 - Completed 14-03-PLAN.md
 
-Progress: [======================================..] 97%
+Progress: [======================================..] 98%
          Phase 01: 01, 02 complete
          Phase 02: 01 complete
          Phase 03: 01, 02 complete (verified)
@@ -27,7 +27,7 @@ Progress: [======================================..] 97%
          Phase 11: 01, 02 complete (PHASE COMPLETE)
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
-         Phase 14: 01 complete
+         Phase 14: 01, 03 complete
          Phase 15: 01, 02, 03, 04, 05, 06 complete
 
 ## Completed Work
@@ -68,6 +68,7 @@ Progress: [======================================..] 97%
 | 15-meeting-assistant | 06 | Tabbed meeting detail interface with AI summary, searchable transcript, video playback, and link management | 4e8a10b |
 | 15-meeting-assistant | 05 | Meetings list page with status filters, create dialog, and sidebar navigation | 305ca33, 851b8b1 |
 | 14-offboarding-retainer-system | 01 | Database foundation with retainer tables, extended project_status enum, TypeScript types for retainer phase | 3461e62, 3d8d648 |
+| 14-offboarding-retainer-system | 03 | Complete API layer with check-ins, tasks, and retainer config with cascading dev updates | 3da9b22, 28adbd0 |
 
 ## Accumulated Decisions
 
@@ -165,6 +166,11 @@ Progress: [======================================..] 97%
 | 14-01 | Allow retainer_tasks on completed projects | Support post-completion work tracking beyond retainer phase |
 | 14-01 | Retainer phase between delivery and closed | Represents ongoing maintenance state before final closure |
 | 14-01 | JSONB completion_summary | Flexible structure for completion ceremony without rigid schema |
+| 14-03 | Calculate due date from last check-in + cadence, fallback to retainer_started_at | Ensures due date always calculable |
+| 14-03 | Notify all admins for any non-green health status | Simplified health warning logic - no per-admin config needed for V1 |
+| 14-03 | Auto-manage completed_at in updateRetainerTask | When status changes to/from 'done', timestamp set/cleared automatically |
+| 14-03 | Task ordering priority: status → priority → created_at | Ensures active todos surface first |
+| 14-03 | Unassign removed dev tasks | When dev removed from retainer_dev_ids, automatically unassign their tasks |
 
 ## Patterns Established
 
@@ -229,6 +235,9 @@ Progress: [======================================..] 97%
 | Retainer config as inline columns | Nullable retainer-specific fields on projects table rather than separate config table | 14-01 |
 | Post-delivery lifecycle | accepted->retainer->completed or accepted->completed (direct close) | 14-01 |
 | Retainer reactivation | completed->retainer allows converting closed projects to ongoing retainer | 14-01 |
+| Cadence-based due date calculation | Calculate next due date from last check-in timestamp + cadence days (weekly=7, biweekly=14, monthly=30) | 14-03 |
+| Status-driven timestamp management | Auto-set completed_at when status becomes 'done', clear when status changes from 'done' | 14-03 |
+| Health-triggered notifications | Send retainer_health_warning to all admins when health is not green | 14-03 |
 
 ## Blockers/Concerns
 
@@ -236,8 +245,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:27:50 UTC
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-02-09 13:35:33 UTC
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
