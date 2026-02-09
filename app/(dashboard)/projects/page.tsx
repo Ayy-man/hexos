@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { getProjects } from '@/lib/api/projects'
 import { requireAuth } from '@/lib/auth/guards'
 import { ProjectProgressBar, ProjectProgressInline } from '@/features/projects/components/ProjectProgressBar'
+import { RetainerDashboardCard } from '@/features/projects/components/retainer/RetainerDashboardCard'
+import { getLatestCheckIn, getNextCheckInDueDate } from '@/lib/api/retainer-check-ins'
+import { getRetainerTaskCounts } from '@/lib/api/retainer-tasks'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Search } from 'lucide-react'
@@ -77,6 +80,21 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
     return true
   })
+
+  // Fetch retainer supplemental data if viewing retainer tab
+  let retainerData: Map<string, { lastCheckIn: unknown, dueInfo: unknown, taskCounts: unknown }> | null = null
+  if (view === 'retainer') {
+    retainerData = new Map()
+    const retainerProjects = filteredProjects.filter(p => p.status === 'retainer')
+    await Promise.all(retainerProjects.map(async (p) => {
+      const [lastCheckIn, dueInfo, taskCounts] = await Promise.all([
+        getLatestCheckIn(p.id).catch(() => null),
+        getNextCheckInDueDate(p.id).catch(() => null),
+        getRetainerTaskCounts(p.id).catch(() => ({ todo: 0, in_progress: 0, done: 0, total: 0 })),
+      ])
+      retainerData!.set(p.id, { lastCheckIn, dueInfo, taskCounts })
+    }))
+  }
 
   // Build filter URL helper
   const buildFilterUrl = (params: { q?: string; view?: string }) => {
@@ -166,47 +184,71 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             )}
           </p>
 
-          {/* Mobile card view */}
-          <div className="space-y-3 md:hidden">
-            {filteredProjects.map((project) => (
-              <Link
-                key={project.id}
-                href={`/projects/${project.id}`}
-                className="block rounded-lg border border-stone-200 bg-white p-4 active:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:active:bg-stone-800/50"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-medium text-stone-900 dark:text-stone-100">
-                      {project.project_name}
-                    </h3>
-                    <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">
-                      {project.client_name}
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
+          {/* Retainer view - grid of dashboard cards */}
+          {view === 'retainer' ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredProjects.map((project) => {
+                const data = retainerData?.get(project.id)
+                return (
+                  <RetainerDashboardCard
+                    key={project.id}
+                    project={project}
+                    lastCheckIn={data?.lastCheckIn as never}
+                    dueInfo={data?.dueInfo as never}
+                    taskCounts={data?.taskCounts as never}
+                  />
+                )
+              })}
+            </div>
+          ) : (
+            <>
+              {/* Mobile card view */}
+              <div className="space-y-3 md:hidden">
+                {filteredProjects.map((project) => (
+                  <Link
+                    key={project.id}
+                    href={`/projects/${project.id}`}
+                    className="block rounded-lg border border-stone-200 bg-white p-4 active:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:active:bg-stone-800/50"
                   >
-                    {formatStatus(project.status)}
-                  </span>
-                </div>
-                {/* Progress bar */}
-                <ProjectProgressInline project={project} className="mt-3" />
-                <div className="mt-2 flex items-center gap-4 text-xs text-stone-500 dark:text-stone-400">
-                  {project.assigned_dev?.name && (
-                    <span>Dev: {project.assigned_dev.name}</span>
-                  )}
-                  {project.target_delivery_date && (
-                    <span>
-                      Due: {new Date(project.target_delivery_date).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate font-medium text-stone-900 dark:text-stone-100">
+                          {project.project_name}
+                        </h3>
+                        <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">
+                          {project.client_name}
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
+                      >
+                        {formatStatus(project.status)}
+                      </span>
+                    </div>
+                    {/* Progress bar or completion date */}
+                    {view === 'completed' && project.completed_at ? (
+                      <div className="mt-3 text-sm text-stone-500 dark:text-stone-400">
+                        Completed: {new Date(project.completed_at).toLocaleDateString()}
+                      </div>
+                    ) : (
+                      <ProjectProgressInline project={project} className="mt-3" />
+                    )}
+                    <div className="mt-2 flex items-center gap-4 text-xs text-stone-500 dark:text-stone-400">
+                      {project.assigned_dev?.name && (
+                        <span>Dev: {project.assigned_dev.name}</span>
+                      )}
+                      {project.target_delivery_date && view !== 'completed' && (
+                        <span>
+                          Due: {new Date(project.target_delivery_date).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
 
-          {/* Desktop table view */}
-          <div className="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block dark:border-stone-800 dark:bg-stone-900">
+              {/* Desktop table view */}
+              <div className="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block dark:border-stone-800 dark:bg-stone-900">
             <table className="min-w-full divide-y divide-stone-200 dark:divide-stone-800">
               <thead className="bg-stone-50 dark:bg-stone-800/50">
                 <tr>
@@ -226,7 +268,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                     Assigned Dev
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
-                    Target Date
+                    {view === 'completed' ? 'Completed' : 'Target Date'}
                   </th>
                 </tr>
               </thead>
@@ -258,7 +300,9 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                       {project.assigned_dev?.name || '—'}
                     </td>
                     <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
-                      {project.target_delivery_date
+                      {view === 'completed' && project.completed_at
+                        ? new Date(project.completed_at).toLocaleDateString()
+                        : project.target_delivery_date
                         ? new Date(project.target_delivery_date).toLocaleDateString()
                         : '—'}
                     </td>
@@ -267,6 +311,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
               </tbody>
             </table>
           </div>
+            </>
+          )}
         </>
       )}
     </div>
