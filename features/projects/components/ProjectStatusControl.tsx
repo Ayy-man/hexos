@@ -25,11 +25,12 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ChevronDown, Loader2, Pause, X, Undo2, Clock, CalendarPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { ProjectStatus } from '@/lib/api/projects'
+import type { ProjectStatus, ProjectWithRelations } from '@/lib/api/projects'
 import { updateProjectStatusAction } from '../actions/projectActions'
 import { toast } from 'sonner'
 import { DelayMarkerDialog } from './delays/DelayMarkerDialog'
 import { ExtensionRequestDialog } from './delays/ExtensionRequestDialog'
+import { CloseProjectDialog } from './completion/CloseProjectDialog'
 
 // ============================================
 // Status Configuration
@@ -242,6 +243,8 @@ interface ProjectStatusControlProps {
   deliverables?: Array<{ id: string; title: string }>
   blockers?: Array<{ id: string; title: string }>
   targetDeliveryDate?: string | null
+  project?: ProjectWithRelations
+  availableDevs?: Array<{ id: string; name: string; email: string }>
 }
 
 export function ProjectStatusControl({
@@ -252,6 +255,8 @@ export function ProjectStatusControl({
   deliverables = [],
   blockers = [],
   targetDeliveryDate,
+  project,
+  availableDevs = [],
 }: ProjectStatusControlProps) {
   const [isUpdating, setIsUpdating] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -261,6 +266,7 @@ export function ProjectStatusControl({
   }>({ open: false, status: null, label: '' })
   const [delayDialogOpen, setDelayDialogOpen] = useState(false)
   const [extensionDialogOpen, setExtensionDialogOpen] = useState(false)
+  const [closeProjectDialogOpen, setCloseProjectDialogOpen] = useState(false)
 
   // Permission checks for delay tracking
   const canMarkDelay = userRole === 'admin' || userRole === 'internal' || userRole === 'dev'
@@ -273,6 +279,11 @@ export function ProjectStatusControl({
   const previousPhases = getPreviousPhases(currentStatus)
 
   const handleTransition = async (newStatus: ProjectStatus) => {
+    // Intercept accepted→completed/retainer to show CloseProjectDialog
+    if (currentStatus === 'accepted' && (newStatus === 'completed' || newStatus === 'retainer') && project) {
+      setCloseProjectDialogOpen(true)
+      return
+    }
     setIsUpdating(true)
     try {
       await updateProjectStatusAction(projectId, newStatus)
@@ -500,6 +511,16 @@ export function ProjectStatusControl({
           onOpenChange={setExtensionDialogOpen}
           projectId={projectId}
           currentDeadline={targetDeliveryDate}
+        />
+      )}
+
+      {/* Close Project Dialog (Complete / Move to Retainer) */}
+      {project && (
+        <CloseProjectDialog
+          project={project}
+          open={closeProjectDialogOpen}
+          onOpenChange={setCloseProjectDialogOpen}
+          availableDevs={availableDevs}
         />
       )}
     </div>

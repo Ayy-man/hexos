@@ -169,6 +169,8 @@ export function ProjectPageClient({
                 .filter(r => r.status === 'blocked')
                 .map(r => ({ id: r.id, title: r.title }))}
               targetDeliveryDate={effectiveDeliveryDate}
+              project={project}
+              availableDevs={availableDevs}
             />
           </motion.div>
         )}

@@ -82,6 +82,7 @@ export function ProjectTabs({
   const showOnboardingTab = isOnboardingPhase(project.status)
   const showRetainerTabs = isRetainerPhase(project.status)
   const showCompletedView = project.status === 'completed'
+  const showTasksTab = showRetainerTabs || showCompletedView
   const showDevelopmentTabs = !showOnboardingTab && !showRetainerTabs && !showCompletedView
 
   // Check if any deliverable is ready for testing (90%+)
@@ -151,16 +152,17 @@ export function ProjectTabs({
         )}
         {/* Retainer tabs - shown for retainer projects */}
         {showRetainerTabs && (
-          <>
-            <TabsTrigger value="check-ins" className="gap-2">
-              <Clock className="h-4 w-4" />
-              Check-ins
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="gap-2">
-              <CheckSquare className="h-4 w-4" />
-              Tasks
-            </TabsTrigger>
-          </>
+          <TabsTrigger value="check-ins" className="gap-2">
+            <Clock className="h-4 w-4" />
+            Check-ins
+          </TabsTrigger>
+        )}
+        {/* Tasks tab - shown for retainer and completed projects */}
+        {showTasksTab && (
+          <TabsTrigger value="tasks" className="gap-2">
+            <CheckSquare className="h-4 w-4" />
+            Tasks
+          </TabsTrigger>
         )}
         {/* Development tabs - shown for active development projects */}
         {!showRetainerTabs && (
@@ -278,6 +280,25 @@ export function ProjectTabs({
             userRole={userRole}
             isAdmin={isAdmin}
             isDfy={isDfy}
+          />
+        </TabsContent>
+      )}
+
+      {/* Check-ins tab - retainer projects only */}
+      {showRetainerTabs && (
+        <TabsContent value="check-ins" className="mt-6">
+          <CheckInsTab project={project} userRole={userRole} />
+        </TabsContent>
+      )}
+
+      {/* Tasks tab - retainer and completed projects */}
+      {showTasksTab && (
+        <TabsContent value="tasks" className="mt-6">
+          <RetainerTasksTab
+            project={project}
+            userRole={userRole}
+            userId={userId}
+            availableDevs={availableDevs}
           />
         </TabsContent>
       )}

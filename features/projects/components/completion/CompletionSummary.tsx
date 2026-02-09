@@ -5,14 +5,17 @@ import { RefreshCw, Plus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import type { ProjectWithRelations } from '@/lib/api/projects'
+import { CloseProjectDialog } from './CloseProjectDialog'
+import { RetainerTaskDialog } from '../retainer/RetainerTaskDialog'
 
 interface CompletionSummaryProps {
   project: ProjectWithRelations
+  availableDevs?: Array<{ id: string; name: string; email: string }>
 }
 
-export function CompletionSummary({ project }: CompletionSummaryProps) {
-  const [showRetainerForm, setShowRetainerForm] = useState(false)
-  const [showTaskForm, setShowTaskForm] = useState(false)
+export function CompletionSummary({ project, availableDevs = [] }: CompletionSummaryProps) {
+  const [showRetainerDialog, setShowRetainerDialog] = useState(false)
+  const [showTaskDialog, setShowTaskDialog] = useState(false)
 
   if (!project.completion_summary) {
     return null
@@ -91,7 +94,7 @@ export function CompletionSummary({ project }: CompletionSummaryProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowRetainerForm(true)}
+              onClick={() => setShowRetainerDialog(true)}
               className="flex-1"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
@@ -100,7 +103,7 @@ export function CompletionSummary({ project }: CompletionSummaryProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowTaskForm(true)}
+              onClick={() => setShowTaskDialog(true)}
               className="flex-1"
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" />
@@ -108,38 +111,22 @@ export function CompletionSummary({ project }: CompletionSummaryProps) {
             </Button>
           </div>
 
-          {/* Placeholder forms (will be implemented in retainer tasks plan) */}
-          {showRetainerForm && (
-            <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 dark:border-stone-800 dark:bg-stone-800/50">
-              <p className="text-sm text-stone-600 dark:text-stone-400">
-                Retainer conversion form coming soon...
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowRetainerForm(false)}
-                className="mt-2"
-              >
-                Close
-              </Button>
-            </div>
-          )}
+          {/* Convert to Retainer Dialog */}
+          <CloseProjectDialog
+            project={project}
+            open={showRetainerDialog}
+            onOpenChange={setShowRetainerDialog}
+            availableDevs={availableDevs}
+          />
 
-          {showTaskForm && (
-            <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 dark:border-stone-800 dark:bg-stone-800/50">
-              <p className="text-sm text-stone-600 dark:text-stone-400">
-                Task creation form coming soon...
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowTaskForm(false)}
-                className="mt-2"
-              >
-                Close
-              </Button>
-            </div>
-          )}
+          {/* Create Task Dialog */}
+          <RetainerTaskDialog
+            projectId={project.id}
+            open={showTaskDialog}
+            onOpenChange={setShowTaskDialog}
+            onSuccess={() => setShowTaskDialog(false)}
+            availableDevs={availableDevs}
+          />
         </div>
       </CardContent>
     </Card>
