@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LayoutDashboard, CheckSquare, TrendingUp, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign, Flag, ClipboardCheck, MoreHorizontal, TestTube } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, TrendingUp, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign, Flag, ClipboardCheck, MoreHorizontal, TestTube, Video } from 'lucide-react'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DeliverablesTab } from './tabs/DeliverablesTab'
 import { HillChartTab } from './hill-chart/HillChartTab'
@@ -22,6 +22,7 @@ import { ActivityTab } from './tabs/ActivityTab'
 import { ProjectInfoTab } from './tabs/ProjectInfoTab'
 import { FinancialsTab } from './tabs/FinancialsTab'
 import { ScopeTab } from './tabs/ScopeTab'
+import { MeetingsTab } from './tabs/MeetingsTab'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
@@ -112,7 +113,7 @@ export function ProjectTabs({
   }
 
   // Tabs that go in the "More" dropdown
-  const moreTabIds = ['deliverables', 'requirements', 'activity', 'scope', 'financials', 'info']
+  const moreTabIds = ['deliverables', 'requirements', 'activity', 'scope', 'financials', 'meetings', 'info']
   const isMoreTabActive = moreTabIds.includes(activeTab)
 
   // Get label for currently selected "More" tab
@@ -123,6 +124,7 @@ export function ProjectTabs({
       case 'activity': return 'Activity'
       case 'scope': return 'Scope'
       case 'financials': return 'Financials'
+      case 'meetings': return 'Meetings'
       case 'info': return 'Project Info'
       default: return 'More'
     }
@@ -216,6 +218,10 @@ export function ProjectTabs({
                 <DropdownMenuItem onClick={() => setActiveTab('financials')} className="gap-2">
                   <DollarSign className="h-4 w-4" />
                   Financials
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab('meetings')} className="gap-2">
+                  <Video className="h-4 w-4" />
+                  Meetings
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setActiveTab('info')} className="gap-2">
                   <Info className="h-4 w-4" />
@@ -332,6 +338,9 @@ export function ProjectTabs({
         <>
           <TabsContent value="financials" className="mt-6">
             <FinancialsTab project={project} />
+          </TabsContent>
+          <TabsContent value="meetings" className="mt-6">
+            <MeetingsTab projectId={project.id} />
           </TabsContent>
           <TabsContent value="info" className="mt-6">
             <ProjectInfoTab

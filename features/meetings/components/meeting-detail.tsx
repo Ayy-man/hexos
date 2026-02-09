@@ -11,6 +11,7 @@ import { MeetingSummary } from './meeting-summary'
 import { MeetingTranscript } from './meeting-transcript'
 import { MeetingParticipants } from './meeting-participants'
 import { MeetingLinkPicker } from './meeting-link-picker'
+import { TaskList } from './task-list'
 import { LinkIcon, CalendarIcon, ClockIcon } from 'lucide-react'
 
 interface MeetingDetailProps {
@@ -182,8 +183,9 @@ export function MeetingDetail({ meeting, userRole }: MeetingDetailProps) {
         </Card>
       ) : (
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="transcript">Transcript</TabsTrigger>
             <TabsTrigger value="recording">Recording</TabsTrigger>
             <TabsTrigger value="participants">Participants</TabsTrigger>
@@ -194,6 +196,10 @@ export function MeetingDetail({ meeting, userRole }: MeetingDetailProps) {
               summary={meeting.summary}
               keyDecisions={meeting.key_decisions}
             />
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <TaskList tasks={meeting.tasks || []} meetingId={meeting.id} />
           </TabsContent>
 
           <TabsContent value="transcript">
