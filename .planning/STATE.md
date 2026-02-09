@@ -9,9 +9,9 @@
 ## Current Position
 
 Phase: 15 of 15 (meeting-assistant)
-Plan: 04 of TBD
+Plan: 05 of TBD
 Status: In progress
-Last activity: 2026-02-09 - Completed 15-04-PLAN.md
+Last activity: 2026-02-09 - Completed 15-05-PLAN.md
 
 Progress: [======================================..] 95%
          Phase 01: 01, 02 complete
@@ -28,7 +28,7 @@ Progress: [======================================..] 95%
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
          Phase 14: not planned
-         Phase 15: 01, 02, 03, 04 complete
+         Phase 15: 01, 02, 03, 04, 05 complete
 
 ## Completed Work
 
@@ -65,6 +65,7 @@ Progress: [======================================..] 95%
 | 15-meeting-assistant | 02 | Meeting CRUD API with bot dispatch and meeting links | 6f97469, 8190513 |
 | 15-meeting-assistant | 03 | Webhook handler & AI transcript processing pipeline | 00a1c28 |
 | 15-meeting-assistant | 04 | Meeting task CRUD API with CSV import/export and task-to-deliverable conversion | 20473cb, ddbbf90 |
+| 15-meeting-assistant | 05 | Meetings list page with status filters, create dialog, and sidebar navigation | 305ca33, 851b8b1 |
 
 ## Accumulated Decisions
 
@@ -149,6 +150,10 @@ Progress: [======================================..] 95%
 | 15-03 | Create meeting_participants from unique speakers automatically | Provides participant list even without email matching, can be manually enhanced later |
 | 15-03 | meeting_ready notification routes to /meetings list page | V1 simplification - no meeting detail page yet, message includes title for findability |
 | 15-04 | Import accepts context query params | meeting_id/project_id/inquiry_id can be applied to all imported tasks |
+| 15-05 | Client-side status filtering for meetings | Small dataset, no need for server-side filtering in V1 |
+| 15-05 | Pulse animation for recording status | Visual indicator for active meetings, draws attention to live recordings |
+| 15-05 | Platform text labels (not icons) | Simpler than platform-specific icons for V1, clear and accessible |
+| 15-05 | Admin-only meetings navigation | V1 scope - dev/DFY/client visibility can be added later as needed |
 
 ## Patterns Established
 
@@ -206,6 +211,10 @@ Progress: [======================================..] 95%
 | AI transcript extraction | OpenRouter + Claude with structured JSON response_format for data extraction | 15-03 |
 | Best-effort name matching | ILIKE profile search, store original if no match, don't fail operation | 15-03 |
 | Transcript format normalization | Transform varying input formats to consistent internal schema | 15-03 |
+| Status badge with pulse animation | Dual-span technique with animate-ping + solid dot for active states | 15-05 |
+| Client-side list filtering | Badge-based filter UI for small datasets | 15-05 |
+| Responsive meeting list | Cards on mobile, table on desktop with Tailwind md: utilities | 15-05 |
+| Admin-only navigation | Sidebar entries restricted by role (adminNav/internalNav only) | 15-05 |
 
 ## Blockers/Concerns
 
@@ -213,8 +222,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:14:34 UTC
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-02-09 13:21:33 UTC
+Stopped at: Completed 15-05-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
