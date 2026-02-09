@@ -13,18 +13,16 @@ const STATUS_COLORS: Record<string, string> = {
   proposal_drafting: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
   proposal_sent: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
   in_progress: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
+  retainer: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
   completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
   cancelled: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
   on_hold: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
 }
 
 // Map statuses to categories for filtering
-const COMPLETED_STATUSES = ['completed', 'accepted']
-const ON_HOLD_STATUSES = ['on_hold', 'cancelled']
-
-function getStatusCategory(status: string): 'active' | 'completed' | 'on_hold' {
-  if (COMPLETED_STATUSES.includes(status)) return 'completed'
-  if (ON_HOLD_STATUSES.includes(status)) return 'on_hold'
+function getStatusCategory(status: string): 'active' | 'retainer' | 'completed' {
+  if (status === 'retainer') return 'retainer'
+  if (['completed', 'cancelled'].includes(status)) return 'completed'
   return 'active'
 }
 
@@ -39,24 +37,23 @@ function formatStatus(status: string) {
 interface ProjectsPageProps {
   searchParams: Promise<{
     q?: string
-    status?: string
-    view?: 'active' | 'archived'
+    view?: 'active' | 'retainer' | 'completed'
   }>
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
   await requireAuth()
-  const { q: search, status: statusFilter, view = 'active' } = await searchParams
+  const { q: search, view = 'active' } = await searchParams
 
   let projects: Awaited<ReturnType<typeof getProjects>> = []
   try {
-    // Use 'archived' or 'active' filter based on view param
-    projects = await getProjects(view === 'archived' ? 'archived' : 'active')
+    // All views fetch active projects, then filter by status category
+    projects = await getProjects('active')
   } catch {
     // RLS or no data
   }
 
-  // Filter projects based on search and status
+  // Filter projects based on search and view tab
   const filteredProjects = projects.filter((project) => {
     // Search filter
     if (search) {
@@ -68,20 +65,23 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       if (!matchesSearch) return false
     }
 
-    // Status filter
-    if (statusFilter && statusFilter !== 'all') {
+    // View tab filter (active/retainer/completed)
+    if (view && view !== 'active') {
       const category = getStatusCategory(project.status)
-      if (category !== statusFilter) return false
+      if (category !== view) return false
+    } else if (!view || view === 'active') {
+      // Active tab excludes retainer and completed
+      const category = getStatusCategory(project.status)
+      if (category !== 'active') return false
     }
 
     return true
   })
 
   // Build filter URL helper
-  const buildFilterUrl = (params: { q?: string; status?: string; view?: string }) => {
+  const buildFilterUrl = (params: { q?: string; view?: string }) => {
     const urlParams = new URLSearchParams()
     if (params.q) urlParams.set('q', params.q)
-    if (params.status && params.status !== 'all') urlParams.set('status', params.status)
     if (params.view && params.view !== 'active') urlParams.set('view', params.view)
     const queryString = urlParams.toString()
     return queryString ? `/projects?${queryString}` : '/projects'
@@ -89,14 +89,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
   const viewFilters = [
     { value: 'active', label: 'Active' },
-    { value: 'archived', label: 'Archived' },
-  ]
-
-  const statusFilters = [
-    { value: 'all', label: 'All' },
-    { value: 'active', label: 'Active' },
+    { value: 'retainer', label: 'Retainer' },
     { value: 'completed', label: 'Completed' },
-    { value: 'on_hold', label: 'On Hold' },
   ]
 
   return (
@@ -126,37 +120,19 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             defaultValue={search}
             className="pl-8"
           />
-          {/* Preserve filters on search */}
-          {statusFilter && <input type="hidden" name="status" value={statusFilter} />}
-          {view === 'archived' && <input type="hidden" name="view" value="archived" />}
+          {/* Preserve view on search */}
+          {view && view !== 'active' && <input type="hidden" name="view" value={view} />}
         </form>
 
-        {/* View Toggle (Active/Archived) */}
-        <div className="flex items-center gap-2 border-r pr-3 mr-1">
+        {/* View Tabs (Active/Retainer/Completed) */}
+        <div className="flex flex-wrap gap-1">
           {viewFilters.map((filter) => (
             <Link
               key={filter.value}
-              href={buildFilterUrl({ q: search, status: statusFilter, view: filter.value })}
+              href={buildFilterUrl({ q: search, view: filter.value })}
             >
               <Badge
                 variant={view === filter.value ? 'default' : 'outline'}
-                className="cursor-pointer hover:bg-muted"
-              >
-                {filter.label}
-              </Badge>
-            </Link>
-          ))}
-        </div>
-
-        {/* Status Filters */}
-        <div className="flex flex-wrap gap-1">
-          {statusFilters.map((filter) => (
-            <Link
-              key={filter.value}
-              href={buildFilterUrl({ q: search, status: filter.value, view })}
-            >
-              <Badge
-                variant={(statusFilter || 'all') === filter.value ? 'default' : 'outline'}
                 className="cursor-pointer hover:bg-muted"
               >
                 {filter.label}
@@ -169,19 +145,21 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       {filteredProjects.length === 0 ? (
         <div className="rounded-lg border border-stone-200 bg-white p-8 md:p-12 text-center dark:border-stone-800 dark:bg-stone-900">
           <p className="text-stone-500 dark:text-stone-400 text-sm md:text-base">
-            {search || statusFilter
-              ? 'No projects match your filters. Try adjusting your search.'
-              : view === 'archived'
-              ? 'No archived projects.'
-              : 'No projects yet. Create your first project to get started.'}
+            {search
+              ? 'No projects match your search. Try adjusting your query.'
+              : view === 'retainer'
+              ? 'No retainer projects.'
+              : view === 'completed'
+              ? 'No completed projects.'
+              : 'No active projects. Create your first project to get started.'}
           </p>
         </div>
       ) : (
         <>
           {/* Results count */}
           <p className="text-sm text-stone-500 dark:text-stone-400">
-            {filteredProjects.length} {view === 'archived' ? 'archived ' : ''}project{filteredProjects.length !== 1 ? 's' : ''}
-            {(search || statusFilter) && filteredProjects.length !== projects.length && (
+            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+            {search && filteredProjects.length !== projects.length && (
               <span className="ml-1">
                 (filtered from {projects.length})
               </span>
