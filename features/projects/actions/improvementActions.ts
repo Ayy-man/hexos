@@ -5,11 +5,26 @@ import {
   createImprovement,
   updateImprovement,
   markAsConverted,
+  getProjectImprovements,
   type CreateImprovementInput,
   type ImprovementPriority,
   type ProjectImprovement,
 } from '@/lib/api/project-improvements'
 import { createProject } from '@/lib/api/projects'
+
+// ============================================
+// Read actions (for client component data fetching)
+// ============================================
+
+export async function getImprovementsAction(projectId: string) {
+  try {
+    const data = await getProjectImprovements(projectId)
+    return { data }
+  } catch (error) {
+    console.error('[getImprovementsAction] Error:', error)
+    return { data: [] as ProjectImprovement[] }
+  }
+}
 
 /**
  * Create a new improvement for a project

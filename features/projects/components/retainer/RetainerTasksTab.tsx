@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ChevronDown, Plus } from 'lucide-react'
-import { getRetainerTasks, type RetainerTask, type TaskStatus, type TaskPriority } from '@/lib/api/retainer-tasks'
+import { getTasksAction } from '@/features/projects/actions/retainerActions'
+import type { RetainerTask, TaskStatus, TaskPriority } from '@/lib/api/retainer-tasks'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { UserRole } from '@/lib/auth/types'
 import { RetainerTaskDialog } from './RetainerTaskDialog'
@@ -44,7 +45,8 @@ export function RetainerTasksTab({ project, userRole, userId, availableDevs }: R
   const loadTasks = async () => {
     setIsLoading(true)
     try {
-      const data = await getRetainerTasks(project.id)
+      const result = await getTasksAction(project.id)
+      const data = result.data as RetainerTask[]
       setTasks(data)
     } catch (error) {
       console.error('[RetainerTasksTab] Error loading tasks:', error)

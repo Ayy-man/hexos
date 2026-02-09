@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Lightbulb, Plus, ExternalLink, Loader2 } from 'lucide-react'
 import { CreateImprovementDialog } from './CreateImprovementDialog'
 import { ConvertToProjectDialog } from './ConvertToProjectDialog'
-import { getProjectImprovements } from '@/lib/api/project-improvements'
+import { getImprovementsAction } from '@/features/projects/actions/improvementActions'
 import type { ProjectImprovement } from '@/lib/api/project-improvements'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { UserRole } from '@/lib/auth/types'
@@ -49,7 +49,8 @@ export function ImprovementsSection({ project, userRole }: ImprovementsSectionPr
   const loadImprovements = async () => {
     setIsLoading(true)
     try {
-      const data = await getProjectImprovements(project.id)
+      const result = await getImprovementsAction(project.id)
+      const data = result.data
       setImprovements(data)
     } catch (error) {
       console.error('[ImprovementsSection] Failed to load improvements:', error)

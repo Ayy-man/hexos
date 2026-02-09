@@ -5,7 +5,8 @@ import { format, formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Settings, Clock } from 'lucide-react'
-import { getRetainerCheckIns, getNextCheckInDueDate, type RetainerCheckIn } from '@/lib/api/retainer-check-ins'
+import { getCheckInsAction, getNextCheckInDueDateAction } from '@/features/projects/actions/retainerActions'
+import type { RetainerCheckIn } from '@/lib/api/retainer-check-ins'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { UserRole } from '@/lib/auth/types'
 import { LogCheckInDialog } from './LogCheckInDialog'
@@ -31,10 +32,12 @@ export function CheckInsTab({ project, userRole }: CheckInsTabProps) {
   const loadCheckIns = async () => {
     setIsLoading(true)
     try {
-      const [data, due] = await Promise.all([
-        getRetainerCheckIns(project.id),
-        getNextCheckInDueDate(project.id).catch(() => null),
+      const [checkInsResult, dueResult] = await Promise.all([
+        getCheckInsAction(project.id),
+        getNextCheckInDueDateAction(project.id),
       ])
+      const data = checkInsResult.data as RetainerCheckIn[]
+      const due = dueResult.data
       setCheckIns(data)
       setDueInfo(due)
     } catch (error) {

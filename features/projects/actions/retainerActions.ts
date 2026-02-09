@@ -20,6 +20,45 @@ import {
   type TaskPriority,
 } from '@/lib/api/retainer-tasks'
 
+// ============================================
+// Read actions (for client component data fetching)
+// ============================================
+
+export async function getCheckInsAction(projectId: string) {
+  try {
+    const data = await getRetainerCheckIns(projectId)
+    return { data }
+  } catch (error) {
+    console.error('[getCheckInsAction] Error:', error)
+    return { data: [] }
+  }
+}
+
+export async function getNextCheckInDueDateAction(projectId: string) {
+  try {
+    const { getNextCheckInDueDate } = await import('@/lib/api/retainer-check-ins')
+    const data = await getNextCheckInDueDate(projectId)
+    return { data }
+  } catch (error) {
+    console.error('[getNextCheckInDueDateAction] Error:', error)
+    return { data: null }
+  }
+}
+
+export async function getTasksAction(projectId: string) {
+  try {
+    const data = await getRetainerTasks(projectId)
+    return { data }
+  } catch (error) {
+    console.error('[getTasksAction] Error:', error)
+    return { data: [] }
+  }
+}
+
+// ============================================
+// Mutation actions
+// ============================================
+
 // Helper to get admin user IDs for notifications
 async function getAdminUserIds(): Promise<string[]> {
   const supabase = await createClient()
