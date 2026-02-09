@@ -63,6 +63,7 @@ Progress: [======================================..] 95%
 | 13-email-delivery-resend | 02 | React Email templates and action wiring | a614973, 86308ae, 1149992 |
 | 15-meeting-assistant | 01 | Meeting assistant database schema and Recall.ai client | 45c50d3, 44a0dbc |
 | 15-meeting-assistant | 02 | Meeting CRUD API with bot dispatch and meeting links | 6f97469, 8190513 |
+| 15-meeting-assistant | 03 | Webhook handler & AI transcript processing pipeline | 00a1c28 |
 | 15-meeting-assistant | 04 | Meeting task CRUD API with CSV import/export and task-to-deliverable conversion | 20473cb, ddbbf90 |
 
 ## Accumulated Decisions
@@ -140,6 +141,13 @@ Progress: [======================================..] 95%
 | 15-04 | Import uses best-effort ILIKE matching | Matches assigned_to names to profiles via display_name/email search |
 | 15-04 | Task-to-deliverable conversion rolls back on failure | Creates deliverable first, deletes if link fails |
 | 15-04 | Auto-manage completed_at on status change | Set timestamp when status becomes 'done', clear when status changes from 'done' |
+| 15-03 | Inline processing in webhook handler (not async queue) | Accept timeout risk - Recall.ai will retry. V1 optimization for simplicity |
+| 15-03 | Best-effort profile matching via ILIKE on name | Don't fail task creation if no match - store assigned_to_name as fallback |
+| 15-03 | Transform Recall.ai transcript format to normalized TranscriptSegment[] | Handle multiple possible formats (word-level vs segment-level) from Recall.ai |
+| 15-03 | Use Claude 3.5 Haiku for extraction (not Opus) | Fast, cheap, sufficient for structured extraction - following generate-brief pattern |
+| 15-03 | Store summary as markdown bullets (joined array) | TEXT column more compatible than JSONB for summary bullets, easier to display |
+| 15-03 | Create meeting_participants from unique speakers automatically | Provides participant list even without email matching, can be manually enhanced later |
+| 15-03 | meeting_ready notification routes to /meetings list page | V1 simplification - no meeting detail page yet, message includes title for findability |
 | 15-04 | Import accepts context query params | meeting_id/project_id/inquiry_id can be applied to all imported tasks |
 
 ## Patterns Established
@@ -193,6 +201,11 @@ Progress: [======================================..] 95%
 | CSV export with file download | GET endpoint returns Response with text/csv Content-Type and Content-Disposition | 15-04 |
 | CSV import with validation | POST with formData, parse with validation, return {imported, skipped, errors} | 15-04 |
 | Task conversion with rollback | Create target entity, link back, rollback on failure for consistency | 15-04 |
+| Webhook Svix verification | Read raw body, verify signature with Svix SDK, return 200 for all events | 15-03 |
+| Inline webhook processing | Accept timeout risk for processing in webhook handler, rely on automatic retries | 15-03 |
+| AI transcript extraction | OpenRouter + Claude with structured JSON response_format for data extraction | 15-03 |
+| Best-effort name matching | ILIKE profile search, store original if no match, don't fail operation | 15-03 |
+| Transcript format normalization | Transform varying input formats to consistent internal schema | 15-03 |
 
 ## Blockers/Concerns
 
@@ -200,7 +213,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:13:17 UTC
+Last session: 2026-02-09 13:14:34 UTC
 Stopped at: Completed 15-02-PLAN.md
 Resume file: None
 
