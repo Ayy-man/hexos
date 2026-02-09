@@ -122,11 +122,11 @@ export async function getNextCheckInDueDate(projectId: string): Promise<{
   if (checkInError) throw checkInError
 
   // Determine cadence in days
-  const cadenceDays = {
+  const cadenceDays = ({
     weekly: 7,
     biweekly: 14,
     monthly: 30,
-  }[project.check_in_cadence]
+  } as const)[project.check_in_cadence as 'weekly' | 'biweekly' | 'monthly']
 
   // Calculate due date
   let baseDate: Date
