@@ -20,6 +20,7 @@ export const STATUS_PHASES = {
     'final_qa',
   ],
   delivery: ['delivered', 'acceptance_pending', 'accepted'],
+  retainer: ['retainer'],
   closed: ['completed', 'cancelled', 'on_hold'],
 } as const
 
@@ -30,6 +31,7 @@ export const PHASE_ORDER = [
   'onboarding',
   'development',
   'delivery',
+  'retainer',
   'closed',
 ] as const
 
@@ -135,6 +137,7 @@ export function getPhaseName(phase: ProjectPhase): string {
     onboarding: 'Onboarding',
     development: 'Development',
     delivery: 'Delivery',
+    retainer: 'Retainer',
     closed: 'Closed',
   }
   return names[phase]
@@ -147,4 +150,26 @@ export function calculatePhaseProgress(status: string): number {
   const phase = getPhaseForStatus(status)
   const phaseIndex = getPhaseIndex(phase)
   return Math.round(((phaseIndex + 1) / PHASE_ORDER.length) * 100)
+}
+
+/**
+ * Check if a project is in the retainer phase
+ */
+export function isRetainerPhase(status: string): boolean {
+  return getPhaseForStatus(status) === 'retainer'
+}
+
+/**
+ * Check if a project has been completed
+ */
+export function isCompletedPhase(status: string): boolean {
+  return status === 'completed'
+}
+
+/**
+ * Check if a project is in post-delivery phase (retainer or closed)
+ */
+export function isPostDeliveryPhase(status: string): boolean {
+  const phase = getPhaseForStatus(status)
+  return phase === 'retainer' || phase === 'closed'
 }

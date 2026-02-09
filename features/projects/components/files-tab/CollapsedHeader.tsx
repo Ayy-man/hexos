@@ -38,6 +38,8 @@ const statusLabels: Record<ProjectStatus, string> = {
   delivered: 'Delivered',
   acceptance_pending: 'Acceptance Pending',
   accepted: 'Accepted',
+  // Retainer
+  retainer: 'Retainer',
   // Closed
   completed: 'Completed',
   cancelled: 'Cancelled',
@@ -71,6 +73,8 @@ const statusColors: Record<ProjectStatus, string> = {
   delivered: 'bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300',
   acceptance_pending: 'bg-lime-100 text-lime-700 dark:bg-lime-900 dark:text-lime-300',
   accepted: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  // Retainer
+  retainer: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
   // Closed
   completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
   cancelled: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',

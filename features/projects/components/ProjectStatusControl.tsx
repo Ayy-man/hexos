@@ -43,6 +43,7 @@ const STATUS_PHASES = {
   onboarding: ['collecting_access', 'access_complete', 'dev_assigned'],
   development: ['in_progress', 'blocked_client', 'blocked_internal', 'review_checkpoint', 'revisions', 'final_qa'],
   delivery: ['delivered', 'acceptance_pending', 'accepted'],
+  retainer: ['retainer'],
   closed: ['completed', 'cancelled', 'on_hold'],
 } as const
 
@@ -53,10 +54,11 @@ const PHASE_LABELS: Record<string, string> = {
   onboarding: 'Onboarding',
   development: 'Development',
   delivery: 'Delivery',
+  retainer: 'Retainer',
   closed: 'Closed',
 }
 
-const PHASE_ORDER = ['signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery', 'closed'] as const
+const PHASE_ORDER = ['signoff', 'agreement', 'payment', 'onboarding', 'development', 'delivery', 'retainer', 'closed'] as const
 
 const STATUS_LABELS: Record<string, string> = {
   // Sign-off
@@ -85,6 +87,8 @@ const STATUS_LABELS: Record<string, string> = {
   delivered: 'Delivered',
   acceptance_pending: 'Acceptance Pending',
   accepted: 'Accepted',
+  // Retainer
+  retainer: 'Retainer',
   // Closed
   completed: 'Completed',
   cancelled: 'Cancelled',
@@ -119,6 +123,8 @@ const STATUS_COLORS: Record<string, string> = {
   delivered: 'bg-success-muted text-success-foreground',
   acceptance_pending: 'bg-success-muted text-success-foreground',
   accepted: 'bg-success-muted text-success-foreground',
+  // Retainer - Info
+  retainer: 'bg-info-muted text-info-foreground',
   // Closed
   completed: 'bg-success-muted text-success-foreground',
   cancelled: 'bg-error-muted text-error-foreground',
@@ -172,10 +178,16 @@ const TRANSITIONS: Record<string, { next: ProjectStatus; label: string; primary?
     { next: 'accepted', label: 'Client Accepted', primary: true },
     { next: 'revisions', label: 'Revisions Needed' }
   ],
-  accepted: [{ next: 'completed', label: 'Close Project', primary: true }],
+  accepted: [
+    { next: 'completed', label: 'Complete Project', primary: true },
+    { next: 'retainer', label: 'Move to Retainer' },
+  ],
+
+  // Retainer
+  retainer: [{ next: 'completed', label: 'Complete Retainer', primary: true }],
 
   // Closed (terminal or resume)
-  completed: [],
+  completed: [{ next: 'retainer', label: 'Convert to Retainer' }],
   cancelled: [],
   on_hold: [{ next: 'in_progress', label: 'Resume', primary: true }],
 }

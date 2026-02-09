@@ -37,6 +37,13 @@ export type NotificationType =
   | 'suggestion_status_change'
   // Meeting notifications
   | 'meeting_ready'
+  // Retainer notifications
+  | 'retainer_check_in_due'
+  | 'retainer_check_in_overdue'
+  | 'retainer_task_assigned'
+  | 'retainer_health_warning'
+  | 'project_completed'
+  | 'project_moved_to_retainer'
 
 export interface Notification {
   id: string
@@ -125,6 +132,19 @@ export function getNotificationIcon(type: NotificationType): string {
     // Meeting notifications
     case 'meeting_ready':
       return 'video'
+    // Retainer notifications
+    case 'retainer_check_in_due':
+      return 'clock'
+    case 'retainer_check_in_overdue':
+      return 'alert-triangle'
+    case 'retainer_task_assigned':
+      return 'check-square'
+    case 'retainer_health_warning':
+      return 'alert-triangle'
+    case 'project_completed':
+      return 'check-circle'
+    case 'project_moved_to_retainer':
+      return 'refresh-cw'
     default:
       return 'bell'
   }
@@ -195,6 +215,19 @@ export function getNotificationColor(type: NotificationType): string {
     // Meeting notifications
     case 'meeting_ready':
       return 'text-info'
+    // Retainer notifications
+    case 'retainer_check_in_due':
+      return 'text-info'
+    case 'retainer_check_in_overdue':
+      return 'text-error'
+    case 'retainer_task_assigned':
+      return 'text-info'
+    case 'retainer_health_warning':
+      return 'text-warning'
+    case 'project_completed':
+      return 'text-success'
+    case 'project_moved_to_retainer':
+      return 'text-info'
     default:
       return 'text-muted-foreground'
   }
@@ -218,6 +251,15 @@ export function getNotificationUrl(notification: Notification): string {
         return '/my-suggestions'
       case 'meeting_ready':
         return '/meetings'
+      case 'retainer_check_in_due':
+      case 'retainer_check_in_overdue':
+      case 'retainer_health_warning':
+        // Check-in notifications - determine URL from context when projectId available
+        return '/dashboard'
+      case 'retainer_task_assigned':
+      case 'project_completed':
+      case 'project_moved_to_retainer':
+        return '/dashboard'
       default:
         return '/dashboard'
     }
@@ -258,6 +300,16 @@ export function getNotificationUrl(notification: Notification): string {
     case 'testing_failed':
     case 'testing_escalated':
       return `/projects/${projectId}?tab=testing`
+    // Retainer notifications with project context
+    case 'retainer_check_in_due':
+    case 'retainer_check_in_overdue':
+    case 'retainer_health_warning':
+      return `/projects/${projectId}?tab=check-ins`
+    case 'retainer_task_assigned':
+      return `/projects/${projectId}?tab=tasks`
+    case 'project_completed':
+    case 'project_moved_to_retainer':
+      return `/projects/${projectId}`
     default:
       return `/projects/${projectId}`
   }

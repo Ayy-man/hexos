@@ -3,7 +3,7 @@ import type { UserRole } from '@/lib/auth/types'
 import type { OnboardingRequirement } from './onboarding-requirements'
 export type { Deliverable } from './deliverables'
 
-// Project statuses (22 total) - starts at sign-off phase after conversion from inquiry
+// Project statuses (23 total) - starts at sign-off phase after conversion from inquiry
 // Inquiry/proposal phases are handled at the inquiry level (proposal_stage)
 export type ProjectStatus =
   // Sign-off
@@ -18,6 +18,8 @@ export type ProjectStatus =
   | 'in_progress' | 'blocked_client' | 'blocked_internal' | 'review_checkpoint' | 'revisions' | 'final_qa'
   // Delivery
   | 'delivered' | 'acceptance_pending' | 'accepted'
+  // Retainer
+  | 'retainer'
   // Closed
   | 'completed' | 'cancelled' | 'on_hold'
 
@@ -69,6 +71,14 @@ export interface Project {
 
   // Delivery estimate override
   delivery_date_override: string | null
+
+  // Retainer config
+  check_in_cadence: 'weekly' | 'biweekly' | 'monthly' | null
+  check_in_assignees: string[] | null
+  retainer_dev_ids: string[] | null
+  completion_summary: Record<string, unknown> | null
+  completed_at: string | null
+  retainer_started_at: string | null
 
   // Soft delete/archive fields
   archived_at: string | null
@@ -155,6 +165,12 @@ export interface UpdateProjectInput extends Partial<CreateProjectInput> {
   date_delivered?: string
   dfy_commission_pct?: number
   payment_structure?: '100_upfront' | '50_50' | '40_30_30' | 'custom'
+  check_in_cadence?: 'weekly' | 'biweekly' | 'monthly' | null
+  check_in_assignees?: string[]
+  retainer_dev_ids?: string[]
+  completion_summary?: Record<string, unknown>
+  completed_at?: string
+  retainer_started_at?: string
 }
 
 // Get all projects (filtered by RLS based on user role)
