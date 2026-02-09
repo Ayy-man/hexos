@@ -145,9 +145,9 @@ export async function updateRetainerTask(
   if (input.status === 'done') {
     // Setting to done - set completed_at
     updateData.completed_at = new Date().toISOString()
-  } else if (input.status && input.status !== 'done') {
-    // Changing from done to something else - clear completed_at
-    // First check if it was previously done
+  } else if (input.status) {
+    // Changing status to something other than done
+    // First check if it was previously done - if so, clear completed_at
     const { data: currentTask } = await supabase
       .from('retainer_tasks')
       .select('status')
