@@ -33,6 +33,7 @@ const adminNav: NavGroup[] = [
     items: [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
+      { title: 'Meetings', url: '/meetings', icon: 'Video' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
@@ -78,6 +79,7 @@ const internalNav: NavGroup[] = [
     items: [
       { title: 'Projects', url: '/projects', icon: 'FolderKanban' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
+      { title: 'Meetings', url: '/meetings', icon: 'Video' },
       { title: 'Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },

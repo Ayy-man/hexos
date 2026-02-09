@@ -24,6 +24,7 @@ import {
   Shield,
   Building2,
   DollarSign,
+  Video,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -76,6 +77,7 @@ const iconMap: Record<string, LucideIcon> = {
   Shield,
   Building2,
   DollarSign,
+  Video,
 }
 
 function InquiryTooltipContent({ counts }: { counts: { unopened: number; working: number; ready: number; total: number } }) {
