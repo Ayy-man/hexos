@@ -35,6 +35,8 @@ export type NotificationType =
   // Suggestion notifications
   | 'suggestion_reply'
   | 'suggestion_status_change'
+  // Meeting notifications
+  | 'meeting_ready'
 
 export interface Notification {
   id: string
@@ -120,6 +122,9 @@ export function getNotificationIcon(type: NotificationType): string {
       return 'message-circle'
     case 'suggestion_status_change':
       return 'lightbulb'
+    // Meeting notifications
+    case 'meeting_ready':
+      return 'video'
     default:
       return 'bell'
   }
@@ -187,6 +192,9 @@ export function getNotificationColor(type: NotificationType): string {
       return 'text-info'
     case 'suggestion_status_change':
       return 'text-warning'
+    // Meeting notifications
+    case 'meeting_ready':
+      return 'text-info'
     default:
       return 'text-muted-foreground'
   }
@@ -208,6 +216,8 @@ export function getNotificationUrl(notification: Notification): string {
       case 'suggestion_reply':
       case 'suggestion_status_change':
         return '/my-suggestions'
+      case 'meeting_ready':
+        return '/meetings'
       default:
         return '/dashboard'
     }
