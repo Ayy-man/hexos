@@ -234,12 +234,16 @@ Plans:
 
 ### Phase 12: Offboarding Flow Design
 **Goal:** Define post-completion experience
-**Status:** Not started
+**Status:** Complete ✓
+**Completed:** 2026-02-09
+**Plans:** 0 plans (design only)
 
 Brainstorm and document what happens after a project is marked complete. Design spec for future implementation.
 
 **Delivers:**
 - Offboarding flow specification
+
+Design doc: `docs/plans/2026-02-09-offboarding-retainer-design.md`
 
 ---
 
@@ -266,6 +270,73 @@ Plans:
 
 ---
 
+### Phase 14: Offboarding & Retainer System
+**Goal:** Implement completion ceremony, retainer mode, and future improvements backlog
+**Status:** Not started
+
+Implement the full offboarding and retainer system as designed in Phase 12. Two-path close flow (Complete vs Retainer), retainer mode with check-ins and lightweight tasks, Future Improvements backlog on all projects, and Projects page tab navigation (Active/Retainer/Completed).
+
+**Delivers:**
+- Close Project modal with Complete / Move to Retainer options
+- Completion ceremony (summary snapshot, archive artifacts, notifications)
+- `retainer` project status with setup configuration
+- Retainer page with Check-ins and Tasks tabs
+- Retainer dashboard on Projects page (Retainer tab)
+- Completed projects view (Completed tab)
+- Configurable check-in cadence and role-based ping assignments
+- Dev add/remove from retainer (silent removal)
+- Future Improvements backlog on all projects (active, retainer, completed)
+- "Create Project from Selected" improvements action
+- Standalone tasks on completed projects
+- Retainer-to-Completed and Completed-to-Retainer transitions
+
+**Dependencies:** None
+
+Design doc: `docs/plans/2026-02-09-offboarding-retainer-design.md`
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 14 to break down)
+
+---
+
+### Phase 15: Meeting Assistant
+**Goal:** Integrated meeting notetaker — cloud bot joins Zoom/Meet/Teams, transcribes, extracts structured notes with AI, and manages tasks
+**Status:** Not started
+
+Recall.ai bot joins meetings with custom "Hexos Notetaker" branding, records and transcribes with speaker diarization. Claude extracts summaries, action items, and key decisions. Meetings link many-to-many to projects, inquiries, and conversations. Tasks are first-class entities with assignment, priorities, due dates, CSV import/export, and one-click conversion to project deliverables. Admin-only visibility for V1. Calendar sync planned for V2.
+
+**Delivers:**
+- Recall.ai integration (bot dispatch, webhook receiver, recording storage)
+- AI-powered transcript processing (summaries, tasks, decisions via Claude)
+- Meeting management UI (list, detail, transcript viewer, recording playback)
+- Many-to-many linking to projects, inquiries, conversations
+- First-class meeting tasks (CRUD, assignment, status tracking)
+- CSV import/export for tasks
+- Task-to-deliverable conversion
+- Meetings tab on project and inquiry detail pages
+- Sidebar navigation entry (admin-only)
+- Realtime status updates (bot joining → recording → processing → ready)
+- Push notifications when meeting notes are ready
+
+**Dependencies:** None
+
+**Cost:** ~$0.70/meeting ($0.50 recording + $0.15 transcription + ~$0.05 AI). ~$14.50/month at 250 meetings/year.
+
+Design doc: `docs/plans/2026-02-09-meeting-assistant-design.md`
+
+**Plans:** 7 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Database migration, TypeScript types, and Recall.ai client singleton
+- [ ] 15-02-PLAN.md — Meeting CRUD API helpers and API routes with bot dispatch
+- [ ] 15-03-PLAN.md — Recall.ai webhook handler and AI transcript processing pipeline
+- [ ] 15-04-PLAN.md — Meeting tasks API with CSV import/export and deliverable conversion
+- [ ] 15-05-PLAN.md — Meetings list page, new meeting dialog, and sidebar navigation
+- [ ] 15-06-PLAN.md — Meeting detail page with Summary, Transcript, Recording, Participants tabs
+- [ ] 15-07-PLAN.md — Task management UI, realtime hook, and project detail Meetings tab
+
+---
+
 ## Summary
 
 | Phase | Name | Complexity | Dependencies |
@@ -281,9 +352,11 @@ Plans:
 | 09 | Suggestion Box | Moderate | Phase 01 |
 | 10 | Opportunities | Complex | Phase 06 |
 | 11 | Notifications | Moderate | Phase 05 |
-| 12 | Offboarding | Design | None |
+| 12 | Offboarding Design | Design | None |
 | 13 | Email Delivery | Moderate | None |
+| 14 | Offboarding & Retainer | Complex | Phase 12 |
+| 15 | Meeting Assistant | Complex | None |
 
 ---
 
-*13 phases for v1.0 polish milestone*
+*15 phases for v1.0 polish milestone*
