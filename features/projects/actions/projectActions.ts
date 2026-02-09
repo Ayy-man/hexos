@@ -9,6 +9,7 @@ import {
 import { checkAndNotifyUnblockedRequirements } from '@/lib/api/requirement-notifications'
 import { createNotification } from '@/lib/api/notifications'
 import { captureBaseline } from '@/lib/api/scope-monitoring'
+import { getProject, updateProject } from '@/lib/api/projects'
 import type { ProjectStatus } from '@/lib/api/projects'
 
 // ============================================
@@ -588,4 +589,151 @@ export async function updateDeliveryOverrideAction(
 
   revalidatePath(`/projects/${projectId}`)
   return { success: true }
+}
+
+// ============================================
+// Project Completion Ceremony
+// ============================================
+
+/**
+ * Complete a project and generate completion summary
+ */
+export async function completeProjectAction(projectId: string): Promise<{ data?: { success: boolean }; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Not authenticated' }
+
+    // 1. Fetch project with deliverables
+    const project = await getProject(projectId)
+
+    // 2. Generate completion summary
+    const summary = {
+      total_deliverables: (project.deliverables || []).filter(d => d.status === 'completed' || d.status === 'done').length,
+      total_deliverables_all: (project.deliverables || []).length,
+      deliverable_titles: (project.deliverables || []).map(d => d.title),
+      timeline_days: project.started_at
+        ? Math.ceil((Date.now() - new Date(project.started_at).getTime()) / (1000 * 60 * 60 * 24))
+        : null,
+      start_date: project.started_at || project.created_at,
+      completion_date: new Date().toISOString(),
+      team_members: [
+        project.dfy_partner ? { id: project.dfy_partner.id, name: project.dfy_partner.name, role: 'dfy' } : null,
+        project.assigned_dev ? { id: project.assigned_dev.id, name: project.assigned_dev.name, role: 'dev' } : null,
+      ].filter(Boolean),
+    }
+
+    // 3. Update project status to completed with summary
+    await updateProject(projectId, {
+      status: 'completed',
+      completion_summary: summary,
+      completed_at: new Date().toISOString(),
+    })
+
+    // 4. Send notifications to all parties
+    if (project.dfy_partner_id) {
+      await createNotification({
+        userId: project.dfy_partner_id,
+        type: 'project_completed',
+        title: 'Project completed',
+        message: `${project.project_name} has been marked as completed`,
+        projectId,
+        actorId: user.id,
+      })
+    }
+    if (project.assigned_dev_id) {
+      await createNotification({
+        userId: project.assigned_dev_id,
+        type: 'project_completed',
+        title: 'Project completed',
+        message: `${project.project_name} has been marked as completed`,
+        projectId,
+        actorId: user.id,
+      })
+    }
+
+    // Log activity
+    await supabase.from('activity_log').insert({
+      project_id: projectId,
+      user_id: user.id,
+      action: 'project_completed',
+      details: { summary },
+    })
+
+    revalidatePath(`/projects/${projectId}`)
+    revalidatePath('/projects')
+    return { data: { success: true } }
+  } catch (error) {
+    console.error('[completeProjectAction]', error)
+    return { error: 'Failed to complete project' }
+  }
+}
+
+/**
+ * Move a project to retainer mode
+ */
+export async function moveToRetainerAction(params: {
+  projectId: string
+  checkInCadence: 'weekly' | 'biweekly' | 'monthly'
+  checkInAssignees: string[]
+  retainerDevIds: string[]
+}): Promise<{ data?: { success: boolean }; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Not authenticated' }
+
+    await updateProject(params.projectId, {
+      status: 'retainer',
+      check_in_cadence: params.checkInCadence,
+      check_in_assignees: params.checkInAssignees,
+      retainer_dev_ids: params.retainerDevIds,
+      retainer_started_at: new Date().toISOString(),
+    })
+
+    const project = await getProject(params.projectId)
+
+    // Notify DFY partner
+    if (project.dfy_partner_id) {
+      await createNotification({
+        userId: project.dfy_partner_id,
+        type: 'project_moved_to_retainer',
+        title: 'Project moved to retainer',
+        message: `${project.project_name} is now in retainer mode`,
+        projectId: params.projectId,
+        actorId: user.id,
+      })
+    }
+
+    // Notify retainer team members
+    for (const devId of params.retainerDevIds) {
+      await createNotification({
+        userId: devId,
+        type: 'project_moved_to_retainer',
+        title: 'Assigned to retainer',
+        message: `You've been assigned to the ${project.project_name} retainer`,
+        projectId: params.projectId,
+        actorId: user.id,
+      })
+    }
+
+    // Log activity
+    await supabase.from('activity_log').insert({
+      project_id: params.projectId,
+      user_id: user.id,
+      action: 'project_moved_to_retainer',
+      details: {
+        check_in_cadence: params.checkInCadence,
+        check_in_assignees: params.checkInAssignees,
+        retainer_dev_ids: params.retainerDevIds,
+      },
+    })
+
+    revalidatePath(`/projects/${params.projectId}`)
+    revalidatePath('/projects')
+    return { data: { success: true } }
+  } catch (error) {
+    console.error('[moveToRetainerAction]', error)
+    return { error: 'Failed to move to retainer' }
+  }
 }
