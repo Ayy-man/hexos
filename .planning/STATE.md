@@ -9,9 +9,9 @@
 ## Current Position
 
 Phase: 15 of 15 (meeting-assistant)
-Plan: 01 of TBD
+Plan: 04 of TBD
 Status: In progress
-Last activity: 2026-02-09 - Completed 15-01-PLAN.md
+Last activity: 2026-02-09 - Completed 15-04-PLAN.md
 
 Progress: [======================================..] 95%
          Phase 01: 01, 02 complete
@@ -28,7 +28,7 @@ Progress: [======================================..] 95%
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
          Phase 14: not planned
-         Phase 15: 01 complete
+         Phase 15: 01, 02, 03, 04 complete
 
 ## Completed Work
 
@@ -62,6 +62,7 @@ Progress: [======================================..] 95%
 | 13-email-delivery-resend | 01 | Resend SDK integration with working sendEmail | a23f855, aab07b9, 1c285b5 |
 | 13-email-delivery-resend | 02 | React Email templates and action wiring | a614973, 86308ae, 1149992 |
 | 15-meeting-assistant | 01 | Meeting assistant database schema and Recall.ai client | 45c50d3, 44a0dbc |
+| 15-meeting-assistant | 04 | Meeting task CRUD API with CSV import/export and task-to-deliverable conversion | 20473cb, ddbbf90 |
 
 ## Accumulated Decisions
 
@@ -131,6 +132,11 @@ Progress: [======================================..] 95%
 | 15-01 | Polymorphic meeting_links table without FK constraints on linkable_id | Prevents invalid cascades for project/inquiry/conversation polymorphic references |
 | 15-01 | Fetch-based Recall.ai client (no official SDK) following resend.ts singleton pattern | Lightweight wrapper around fetch with Token authentication |
 | 15-01 | JSONB storage for transcript segments and key decisions | Structured queries while maintaining flexibility for AI extraction results |
+| 15-04 | CSV export returns Content-Disposition header | Ensures browser treats response as downloadable file |
+| 15-04 | Import uses best-effort ILIKE matching | Matches assigned_to names to profiles via display_name/email search |
+| 15-04 | Task-to-deliverable conversion rolls back on failure | Creates deliverable first, deletes if link fails |
+| 15-04 | Auto-manage completed_at on status change | Set timestamp when status becomes 'done', clear when status changes from 'done' |
+| 15-04 | Import accepts context query params | meeting_id/project_id/inquiry_id can be applied to all imported tasks |
 
 ## Patterns Established
 
@@ -179,6 +185,9 @@ Progress: [======================================..] 95%
 | Fetch-based third-party API client | getApiKey() + wrapper function + singleton export for APIs without SDKs | 15-01 |
 | Admin-only V1 RLS | Single policy using get_user_role() = 'admin' for all operations | 15-01 |
 | Polymorphic linking without FKs | linkable_type + linkable_id without FK constraints for flexibility | 15-01 |
+| CSV export with file download | GET endpoint returns Response with text/csv Content-Type and Content-Disposition | 15-04 |
+| CSV import with validation | POST with formData, parse with validation, return {imported, skipped, errors} | 15-04 |
+| Task conversion with rollback | Create target entity, link back, rollback on failure for consistency | 15-04 |
 
 ## Blockers/Concerns
 
@@ -186,8 +195,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:09:08 UTC
-Stopped at: Completed 15-01-PLAN.md
+Last session: 2026-02-09 13:15:00 UTC
+Stopped at: Completed 15-04-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
