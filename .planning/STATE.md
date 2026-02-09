@@ -9,9 +9,9 @@
 ## Current Position
 
 Phase: 14 of 15 (offboarding-retainer-system)
-Plan: 03 of TBD
+Plan: 02 of TBD
 Status: In progress
-Last activity: 2026-02-09 - Completed 14-03-PLAN.md
+Last activity: 2026-02-09 - Completed 14-02-PLAN.md
 
 Progress: [======================================..] 98%
          Phase 01: 01, 02 complete
@@ -27,7 +27,7 @@ Progress: [======================================..] 98%
          Phase 11: 01, 02 complete (PHASE COMPLETE)
          Phase 12: design complete (PHASE COMPLETE)
          Phase 13: 01, 02 complete (PHASE COMPLETE)
-         Phase 14: 01, 03 complete
+         Phase 14: 01, 02, 03 complete
          Phase 15: 01, 02, 03, 04, 05, 06 complete
 
 ## Completed Work
@@ -68,6 +68,7 @@ Progress: [======================================..] 98%
 | 15-meeting-assistant | 06 | Tabbed meeting detail interface with AI summary, searchable transcript, video playback, and link management | 4e8a10b |
 | 15-meeting-assistant | 05 | Meetings list page with status filters, create dialog, and sidebar navigation | 305ca33, 851b8b1 |
 | 14-offboarding-retainer-system | 01 | Database foundation with retainer tables, extended project_status enum, TypeScript types for retainer phase | 3461e62, 3d8d648 |
+| 14-offboarding-retainer-system | 02 | Projects page with Active/Retainer/Completed tabs, CloseProjectDialog, completion ceremony | 7a1cc8a, 075a7ef |
 | 14-offboarding-retainer-system | 03 | Complete API layer with check-ins, tasks, and retainer config with cascading dev updates | 3da9b22, 28adbd0 |
 
 ## Accumulated Decisions
@@ -166,6 +167,12 @@ Progress: [======================================..] 98%
 | 14-01 | Allow retainer_tasks on completed projects | Support post-completion work tracking beyond retainer phase |
 | 14-01 | Retainer phase between delivery and closed | Represents ongoing maintenance state before final closure |
 | 14-01 | JSONB completion_summary | Flexible structure for completion ceremony without rigid schema |
+| 14-02 | Three main tabs (Active/Retainer/Completed) replace Active/Archived toggle | Lifecycle stages are mutually exclusive categories, better as tabs |
+| 14-02 | Client-side filtering by status category | All three tabs fetch active projects, filter by getStatusCategory - simpler than three queries |
+| 14-02 | Retainer color matches in_progress (cyan) | Retainer is ongoing work, not a terminal state like completed |
+| 14-02 | JSONB completion_summary instead of rigid schema | Flexible structure allows adding fields without migrations |
+| 14-02 | Check-in assignees as role strings | Roles expand to current team - more flexible than user IDs |
+| 14-02 | Team members snapshot in completion summary | Preserves who worked on project even if assignments change later |
 | 14-03 | Calculate due date from last check-in + cadence, fallback to retainer_started_at | Ensures due date always calculable |
 | 14-03 | Notify all admins for any non-green health status | Simplified health warning logic - no per-admin config needed for V1 |
 | 14-03 | Auto-manage completed_at in updateRetainerTask | When status changes to/from 'done', timestamp set/cleared automatically |
@@ -235,6 +242,9 @@ Progress: [======================================..] 98%
 | Retainer config as inline columns | Nullable retainer-specific fields on projects table rather than separate config table | 14-01 |
 | Post-delivery lifecycle | accepted->retainer->completed or accepted->completed (direct close) | 14-01 |
 | Retainer reactivation | completed->retainer allows converting closed projects to ongoing retainer | 14-01 |
+| Tab-based view filtering | Badge-based tab navigation with URL query params for view state | 14-02 |
+| Multi-step dialog | Option selection → conditional form → confirmation pattern | 14-02 |
+| JSONB completion ceremony | Generate summary with deliverables, timeline, team on project completion | 14-02 |
 | Cadence-based due date calculation | Calculate next due date from last check-in timestamp + cadence days (weekly=7, biweekly=14, monthly=30) | 14-03 |
 | Status-driven timestamp management | Auto-set completed_at when status becomes 'done', clear when status changes from 'done' | 14-03 |
 | Health-triggered notifications | Send retainer_health_warning to all admins when health is not green | 14-03 |
@@ -245,8 +255,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-09 13:35:33 UTC
-Stopped at: Completed 14-03-PLAN.md
+Last session: 2026-02-09 13:36:36 UTC
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
