@@ -80,6 +80,7 @@ CREATE INDEX IF NOT EXISTS idx_project_improvements_project_status
 -- UPDATED_AT TRIGGER FOR RETAINER_TASKS
 -- ============================================================================
 
+DROP TRIGGER IF EXISTS retainer_tasks_updated_at ON retainer_tasks;
 CREATE TRIGGER retainer_tasks_updated_at
   BEFORE UPDATE ON retainer_tasks
   FOR EACH ROW
