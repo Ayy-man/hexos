@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LayoutDashboard, CheckSquare, TrendingUp, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign, Flag, ClipboardCheck, MoreHorizontal, TestTube, Video } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, TrendingUp, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign, Flag, ClipboardCheck, MoreHorizontal, TestTube, Video, Clock, Lightbulb } from 'lucide-react'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DeliverablesTab } from './tabs/DeliverablesTab'
 import { HillChartTab } from './hill-chart/HillChartTab'
@@ -23,13 +23,16 @@ import { ProjectInfoTab } from './tabs/ProjectInfoTab'
 import { FinancialsTab } from './tabs/FinancialsTab'
 import { ScopeTab } from './tabs/ScopeTab'
 import { MeetingsTab } from './tabs/MeetingsTab'
+import { CheckInsTab } from './retainer/CheckInsTab'
+import { RetainerTasksTab } from './retainer/RetainerTasksTab'
+import { ImprovementsSection } from './improvements/ImprovementsSection'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
 import type { DelaySummary } from '@/lib/api/project-delays'
 import type { PreloadedProjectData } from '@/hooks/use-project-preload'
 import type { TestingInfo } from '@/lib/api/testing'
-import { isOnboardingPhase } from '@/lib/utils/projectPhases'
+import { isOnboardingPhase, isRetainerPhase, isPostDeliveryPhase } from '@/lib/utils/projectPhases'
 import { cn } from '@/lib/utils'
 
 interface ProjectTabsProps {
@@ -77,12 +80,17 @@ export function ProjectTabs({
 
   // Phase-based tab visibility
   const showOnboardingTab = isOnboardingPhase(project.status)
+  const showRetainerTabs = isRetainerPhase(project.status)
+  const showCompletedView = project.status === 'completed'
+  const showDevelopmentTabs = !showOnboardingTab && !showRetainerTabs && !showCompletedView
 
   // Check if any deliverable is ready for testing (90%+)
-  const showTestingTab = (project.deliverables || []).some((d: any) => (d.hill_position ?? 0) >= 90)
+  const showTestingTab = showDevelopmentTabs && (project.deliverables || []).some((d: any) => (d.hill_position ?? 0) >= 90)
 
   // Default tab depends on phase
-  const defaultTab = showOnboardingTab ? 'onboarding' : 'overview'
+  const defaultTab = showOnboardingTab ? 'onboarding'
+    : showRetainerTabs ? 'check-ins'
+    : 'overview'
 
   // Track active tab for "More" dropdown highlight
   const [activeTab, setActiveTab] = useState(defaultTab)
@@ -113,7 +121,7 @@ export function ProjectTabs({
   }
 
   // Tabs that go in the "More" dropdown
-  const moreTabIds = ['deliverables', 'requirements', 'activity', 'scope', 'financials', 'meetings', 'info']
+  const moreTabIds = ['deliverables', 'requirements', 'activity', 'scope', 'improvements', 'financials', 'meetings', 'info']
   const isMoreTabActive = moreTabIds.includes(activeTab)
 
   // Get label for currently selected "More" tab
@@ -123,6 +131,7 @@ export function ProjectTabs({
       case 'requirements': return 'Requirements'
       case 'activity': return 'Activity'
       case 'scope': return 'Scope'
+      case 'improvements': return 'Improvements'
       case 'financials': return 'Financials'
       case 'meetings': return 'Meetings'
       case 'info': return 'Project Info'
@@ -140,20 +149,40 @@ export function ProjectTabs({
             Onboarding
           </TabsTrigger>
         )}
-        <TabsTrigger value="overview" className="gap-2">
-          <LayoutDashboard className="h-4 w-4" />
-          Overview
-        </TabsTrigger>
-        <TabsTrigger value="progress" className="gap-2">
-          <TrendingUp className="h-4 w-4" />
-          Progress
-        </TabsTrigger>
-        {/* Testing tab - shown when deliverables reach 90% */}
-        {showTestingTab && (
-          <TabsTrigger value="testing" className="gap-2">
-            <TestTube className="h-4 w-4" />
-            Testing
-          </TabsTrigger>
+        {/* Retainer tabs - shown for retainer projects */}
+        {showRetainerTabs && (
+          <>
+            <TabsTrigger value="check-ins" className="gap-2">
+              <Clock className="h-4 w-4" />
+              Check-ins
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Tasks
+            </TabsTrigger>
+          </>
+        )}
+        {/* Development tabs - shown for active development projects */}
+        {!showRetainerTabs && (
+          <>
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            {showDevelopmentTabs && (
+              <TabsTrigger value="progress" className="gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Progress
+              </TabsTrigger>
+            )}
+            {/* Testing tab - shown when deliverables reach 90% */}
+            {showTestingTab && (
+              <TabsTrigger value="testing" className="gap-2">
+                <TestTube className="h-4 w-4" />
+                Testing
+              </TabsTrigger>
+            )}
+          </>
         )}
         <TabsTrigger value="files" className="gap-2">
           <FolderOpen className="h-4 w-4" />
@@ -186,15 +215,15 @@ export function ProjectTabs({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            {/* Deliverables - hidden during onboarding */}
-            {!showOnboardingTab && (
+            {/* Deliverables - only shown during development */}
+            {showDevelopmentTabs && (
               <DropdownMenuItem onClick={() => setActiveTab('deliverables')} className="gap-2">
                 <CheckSquare className="h-4 w-4" />
                 Deliverables
               </DropdownMenuItem>
             )}
-            {/* Requirements - hidden during onboarding */}
-            {!showOnboardingTab && (
+            {/* Requirements - only shown during development */}
+            {showDevelopmentTabs && (
               <DropdownMenuItem onClick={() => setActiveTab('requirements')} className="gap-2">
                 <FileText className="h-4 w-4" />
                 Requirements
@@ -204,14 +233,21 @@ export function ProjectTabs({
               <Activity className="h-4 w-4" />
               Activity
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setActiveTab('scope')} className="gap-2">
-              <Flag className="h-4 w-4" />
-              Scope
-              {pendingScopeChanges > 0 && (
-                <Badge variant="secondary" className="ml-auto bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
-                  {pendingScopeChanges}
-                </Badge>
-              )}
+            {/* Scope - only shown during development */}
+            {showDevelopmentTabs && (
+              <DropdownMenuItem onClick={() => setActiveTab('scope')} className="gap-2">
+                <Flag className="h-4 w-4" />
+                Scope
+                {pendingScopeChanges > 0 && (
+                  <Badge variant="secondary" className="ml-auto bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+                    {pendingScopeChanges}
+                  </Badge>
+                )}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => setActiveTab('improvements')} className="gap-2">
+              <Lightbulb className="h-4 w-4" />
+              Improvements
             </DropdownMenuItem>
             {isAdmin && (
               <>
@@ -332,6 +368,10 @@ export function ProjectTabs({
           isAdmin={isAdmin}
           isDfy={isDfy}
         />
+      </TabsContent>
+
+      <TabsContent value="improvements" className="mt-6">
+        <ImprovementsSection project={project} userRole={userRole} />
       </TabsContent>
 
       {isAdmin && (
