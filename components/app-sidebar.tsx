@@ -85,19 +85,19 @@ function InquiryTooltipContent({ counts }: { counts: { unopened: number; working
     <div className="space-y-1.5 text-xs">
       <p className="font-medium text-sm">Inquiry Pipeline</p>
       <div className="flex justify-between gap-4">
-        <span className="text-red-500">Unopened:</span>
+        <span className="text-signal-bad">Unopened:</span>
         <span className="tabular-nums">{counts.unopened}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-cyan-500">Working:</span>
+        <span className="text-accent">Working:</span>
         <span className="tabular-nums">{counts.working}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-green-500">Ready:</span>
+        <span className="text-signal-good">Ready:</span>
         <span className="tabular-nums">{counts.ready}</span>
       </div>
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
-        <span className="text-muted-foreground">Total Active:</span>
+        <span className="text-text-tertiary">Total Active:</span>
         <span className="tabular-nums font-medium">{counts.total}</span>
       </div>
     </div>
@@ -109,19 +109,19 @@ function ProjectTooltipContent({ stats }: { stats: { total: number; active: numb
     <div className="space-y-1.5 text-xs">
       <p className="font-medium text-sm">Projects</p>
       <div className="flex justify-between gap-4">
-        <span className="text-cyan-500">Active:</span>
+        <span className="text-accent">Active:</span>
         <span className="tabular-nums">{stats.active}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-amber-500">Inquiry:</span>
+        <span className="text-signal-warn">Inquiry:</span>
         <span className="tabular-nums">{stats.inquiry}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-green-500">Completed:</span>
+        <span className="text-signal-good">Completed:</span>
         <span className="tabular-nums">{stats.completed}</span>
       </div>
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
-        <span className="text-muted-foreground">Total:</span>
+        <span className="text-text-tertiary">Total:</span>
         <span className="tabular-nums font-medium">{stats.total}</span>
       </div>
     </div>
@@ -142,7 +142,7 @@ function ConversationTooltipContent({ summary }: { summary: { total_unread: numb
     return (
       <div className="space-y-1.5 text-xs">
         <p className="font-medium text-sm">Conversations</p>
-        <p className="text-muted-foreground">All caught up</p>
+        <p className="text-text-tertiary">All caught up</p>
       </div>
     )
   }
@@ -151,19 +151,19 @@ function ConversationTooltipContent({ summary }: { summary: { total_unread: numb
     <div className="space-y-2 text-xs">
       <div className="flex items-center justify-between">
         <p className="font-medium text-sm">Unread Messages</p>
-        <span className="tabular-nums text-red-500 font-medium">{summary.total_unread}</span>
+        <span className="tabular-nums text-signal-bad font-medium">{summary.total_unread}</span>
       </div>
       <div className="space-y-1.5">
         {summary.conversations.map((conv) => (
           <div key={conv.id} className="flex items-center gap-2">
             <span className="shrink-0">{CONVERSATION_TYPE_ICONS[conv.type] || '💬'}</span>
             <span className="truncate max-w-[140px]">{conv.title}</span>
-            <span className="ml-auto tabular-nums text-red-500 font-medium">{conv.unread_count}</span>
+            <span className="ml-auto tabular-nums text-signal-bad font-medium">{conv.unread_count}</span>
           </div>
         ))}
       </div>
       {summary.conversations.length < summary.total_unread && (
-        <p className="text-muted-foreground border-t pt-1.5">
+        <p className="text-text-tertiary border-t pt-1.5">
           + more unread conversations
         </p>
       )}
@@ -178,19 +178,19 @@ function SuggestionTooltipContent({ counts }: { counts: Record<string, number> }
     <div className="space-y-1.5 text-xs">
       <p className="font-medium text-sm">Suggestions</p>
       <div className="flex justify-between gap-4">
-        <span className="text-amber-500">New:</span>
+        <span className="text-signal-warn">New:</span>
         <span className="tabular-nums">{counts.new || 0}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-cyan-500">Reviewed:</span>
+        <span className="text-accent">Reviewed:</span>
         <span className="tabular-nums">{counts.reviewed || 0}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-green-500">Implemented:</span>
+        <span className="text-signal-good">Implemented:</span>
         <span className="tabular-nums">{counts.implemented || 0}</span>
       </div>
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
-        <span className="text-muted-foreground">Open:</span>
+        <span className="text-text-tertiary">Open:</span>
         <span className="tabular-nums font-medium">{open}</span>
       </div>
     </div>
@@ -237,12 +237,12 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-accent text-text-primary">
                   <Hexagon className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">hexOS</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="truncate text-xs font-mono uppercase tracking-wider text-text-tertiary">
                     {profile.role}
                   </span>
                 </div>
@@ -270,7 +270,7 @@ export function AppSidebar({
                     tooltipContent = <InquiryTooltipContent counts={inquiryCounts} />
                     if (inquiryCounts.unopened > 0) {
                       badgeContent = (
-                        <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
                           {inquiryCounts.unopened}
                         </Badge>
                       )
@@ -281,7 +281,7 @@ export function AppSidebar({
                     tooltipContent = <ConversationTooltipContent summary={conversationSummary} />
                     if (conversationSummary.total_unread > 0) {
                       badgeContent = (
-                        <Badge variant="destructive" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
                           {conversationSummary.total_unread}
                         </Badge>
                       )
@@ -291,7 +291,7 @@ export function AppSidebar({
                     const newCount = suggestionCounts.new || 0
                     if (newCount > 0) {
                       badgeContent = (
-                        <Badge variant="secondary" className="ml-auto h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px]">
+                        <Badge variant="secondary" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
                           {newCount}
                         </Badge>
                       )
@@ -315,7 +315,7 @@ export function AppSidebar({
                               </Link>
                             </SidebarMenuButton>
                           </TooltipTrigger>
-                          <TooltipContent side="right" align="start" className="p-3 bg-popover text-popover-foreground border shadow-md">
+                          <TooltipContent side="right" align="start" className="p-3 bg-bg-elevated text-text-primary border border-border-rule shadow-[var(--shadow-float)]">
                             {tooltipContent}
                           </TooltipContent>
                         </Tooltip>

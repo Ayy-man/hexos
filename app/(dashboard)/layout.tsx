@@ -12,7 +12,6 @@ import { Separator } from '@/components/ui/separator'
 import { DynamicBreadcrumb } from '@/components/dynamic-breadcrumb'
 import { CommandPalette } from '@/components/command-palette'
 import { NotificationPopover } from '@/components/notifications'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { Toaster } from 'sonner'
 import { PresenceProvider } from '@/components/presence-provider'
 import { getMyNotifications, getUnreadCount } from '@/lib/api/notifications'
@@ -102,7 +101,7 @@ export default async function DashboardLayout({
             suggestionCounts={suggestionCounts ?? undefined}
           />
           <SidebarInset>
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border-hairline bg-bg-surface px-4">
               <SidebarTrigger id="sidebar-trigger" className="-ml-1" />
               <Separator orientation="vertical" className="mr-2 h-4" />
               <DynamicBreadcrumb />
@@ -113,10 +112,9 @@ export default async function DashboardLayout({
                   initialNotifications={notifications}
                   initialUnreadCount={unreadCount}
                 />
-                <ThemeToggle />
               </div>
             </header>
-            <main className="flex-1 p-4 md:p-6">
+            <main className="flex-1 bg-bg-void p-4 md:p-8">
               <PresenceProvider profile={profile as Profile}>
                 <CheckinPromptProvider
                   initialStatus={devLoggingStatus}

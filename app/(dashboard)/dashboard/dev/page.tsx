@@ -52,7 +52,7 @@ export default async function DevDashboard() {
         <h1 className="text-2xl font-semibold tracking-tight">
           Welcome back, {profile?.name?.split(' ')[0]}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-text-secondary">
           Here&apos;s what you&apos;re working on
         </p>
       </div>
@@ -62,37 +62,37 @@ export default async function DevDashboard() {
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Projects</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-text-tertiary">Projects</p>
               <p className="text-xl font-bold tabular-nums">{projects.length}</p>
             </div>
-            <FolderKanban className="h-5 w-5 text-muted-foreground" />
+            <FolderKanban className="h-5 w-5 text-text-ghost" />
           </CardContent>
         </Card>
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Active Tasks</p>
-              <p className="text-xl font-bold text-cyan-600 tabular-nums">{inProgressDeliverables.length}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-text-tertiary">Active Tasks</p>
+              <p className="text-xl font-bold text-accent tabular-nums">{inProgressDeliverables.length}</p>
             </div>
-            <Clock className="h-5 w-5 text-cyan-500" />
+            <Clock className="h-5 w-5 text-accent" />
           </CardContent>
         </Card>
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Done</p>
-              <p className="text-xl font-bold text-green-600 tabular-nums">{completedDeliverables.length}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-text-tertiary">Done</p>
+              <p className="text-xl font-bold text-signal-good tabular-nums">{completedDeliverables.length}</p>
             </div>
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <CheckCircle2 className="h-5 w-5 text-signal-good" />
           </CardContent>
         </Card>
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Blocked</p>
-              <p className="text-xl font-bold text-red-600 tabular-nums">{blockedDeliverables.length}</p>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-text-tertiary">Blocked</p>
+              <p className="text-xl font-bold text-signal-bad tabular-nums">{blockedDeliverables.length}</p>
             </div>
-            <AlertCircle className="h-5 w-5 text-red-500" />
+            <AlertCircle className="h-5 w-5 text-signal-bad" />
           </CardContent>
         </Card>
       </div>
@@ -101,7 +101,7 @@ export default async function DevDashboard() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">My Projects</h2>
-          <Link href="/projects" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+          <Link href="/projects" className="text-xs text-text-tertiary hover:text-text-primary flex items-center gap-1">
             View all <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
@@ -109,13 +109,13 @@ export default async function DevDashboard() {
           <Card>
             <CardContent className="py-8">
               <div className="flex flex-col items-center justify-center text-center">
-                <FolderKanban className="h-10 w-10 text-muted-foreground/50 mb-3" />
-                <p className="text-sm text-muted-foreground">No projects assigned yet</p>
+                <FolderKanban className="h-10 w-10 text-text-ghost mb-3" />
+                <p className="text-sm text-text-tertiary">No projects assigned yet</p>
               </div>
             </CardContent>
           </Card>
         ) : (
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:-mx-6 md:px-6">
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:-mx-8 md:px-8">
             {projects.map((project) => {
               const trendKey = `project:${project.id}`
               const trend = activityTrends.get(trendKey) || []
@@ -168,7 +168,7 @@ export default async function DevDashboard() {
           </CardHeader>
           <CardContent>
             {activeBlockers.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
+              <p className="text-sm text-text-tertiary text-center py-4">
                 No active blockers
               </p>
             ) : (
@@ -180,9 +180,9 @@ export default async function DevDashboard() {
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <AlertCircle className={`h-4 w-4 flex-shrink-0 ${
-                        blocker.priority === 'critical' ? 'text-red-500' :
-                        blocker.priority === 'high' ? 'text-orange-500' :
-                        'text-amber-500'
+                        blocker.priority === 'critical' ? 'text-signal-bad' :
+                        blocker.priority === 'high' ? 'text-signal-warn' :
+                        'text-signal-warn'
                       }`} />
                       <span className="truncate text-xs">{blocker.title}</span>
                     </div>
@@ -192,7 +192,7 @@ export default async function DevDashboard() {
                   </div>
                 ))}
                 {activeBlockers.length > 4 && (
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-text-ghost text-center">
                     +{activeBlockers.length - 4} more
                   </p>
                 )}
@@ -222,14 +222,14 @@ export default async function DevDashboard() {
             <div className="space-y-3">
               {/* Summary */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Expected</p>
-                  <p className="text-lg font-bold text-green-600 tabular-nums">
+                <div className="rounded-lg bg-bg-surface p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-tertiary">Expected</p>
+                  <p className="text-lg font-bold text-signal-good tabular-nums">
                     ${expectedProjectPayout.toLocaleString()}
                   </p>
                 </div>
-                <div className="rounded-lg bg-muted/50 p-3">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Pending</p>
+                <div className="rounded-lg bg-bg-surface p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-text-tertiary">Pending</p>
                   <p className="text-lg font-bold tabular-nums">
                     ${totalPendingAmount.toLocaleString()}
                   </p>
@@ -238,7 +238,7 @@ export default async function DevDashboard() {
 
               {/* Recent payouts */}
               {pendingPayouts.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-2">
+                <p className="text-sm text-text-tertiary text-center py-2">
                   No pending payouts
                 </p>
               ) : (
@@ -249,7 +249,7 @@ export default async function DevDashboard() {
                       className="flex items-center justify-between rounded-lg border p-2 text-sm"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <DollarSign className="h-4 w-4 text-text-ghost flex-shrink-0" />
                         <span className="truncate text-xs">{payout.description || 'Payout'}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -288,19 +288,19 @@ export default async function DevDashboard() {
                   <Link
                     key={deliverable.id}
                     href={`/projects/${project?.id}`}
-                    className="flex items-center justify-between rounded-lg border p-2 hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between rounded-lg border p-2 hover:bg-bg-hover transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="h-2 w-2 rounded-full bg-stone-400" />
+                      <div className="h-2 w-2 rounded-full bg-text-ghost" />
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">{deliverable.title}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">
+                        <p className="text-[10px] text-text-tertiary truncate">
                           {project?.project_name}
                         </p>
                       </div>
                     </div>
                     {deliverable.due_date && (
-                      <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                      <span className="text-[10px] text-text-tertiary flex-shrink-0">
                         {new Date(deliverable.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </span>
                     )}
@@ -309,7 +309,7 @@ export default async function DevDashboard() {
               })}
             </div>
             {pendingDeliverables.length > 6 && (
-              <p className="text-xs text-muted-foreground text-center mt-3">
+              <p className="text-xs text-text-ghost text-center mt-3">
                 +{pendingDeliverables.length - 6} more pending
               </p>
             )}

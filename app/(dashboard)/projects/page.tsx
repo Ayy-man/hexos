@@ -7,34 +7,15 @@ import { getLatestCheckIn, getNextCheckInDueDate } from '@/lib/api/retainer-chec
 import { getRetainerTaskCounts } from '@/lib/api/retainer-tasks'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
-
-const STATUS_COLORS: Record<string, string> = {
-  inquiry_new: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  ai_matching: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  qualified: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  proposal_drafting: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-  proposal_sent: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-  in_progress: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  retainer: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  cancelled: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-  on_hold: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-}
+import { getStatusConfig, StatusDot } from '@/lib/utils/status'
 
 // Map statuses to categories for filtering
 function getStatusCategory(status: string): 'active' | 'retainer' | 'completed' {
   if (status === 'retainer') return 'retainer'
   if (['completed', 'cancelled'].includes(status)) return 'completed'
   return 'active'
-}
-
-function getStatusColor(status: string) {
-  return STATUS_COLORS[status] || 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300'
-}
-
-function formatStatus(status: string) {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 interface ProjectsPageProps {
@@ -114,23 +95,22 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   return (
     <div className="space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl md:text-2xl font-semibold text-stone-900 dark:text-stone-100">
+        <h1 className="text-xl md:text-2xl font-semibold text-text-primary">
           Projects
         </h1>
-        <Link
-          href="/projects/new"
-          className="rounded-md bg-cyan-600 px-3 py-2 md:px-4 text-sm font-medium text-white hover:bg-cyan-700"
-        >
-          <span className="hidden sm:inline">New Project</span>
-          <span className="sm:hidden">New</span>
-        </Link>
+        <Button asChild>
+          <Link href="/projects/new">
+            <span className="hidden sm:inline">New Project</span>
+            <span className="sm:hidden">New</span>
+          </Link>
+        </Button>
       </div>
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Search */}
         <form className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-text-tertiary" />
           <Input
             type="search"
             name="q"
@@ -151,7 +131,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
             >
               <Badge
                 variant={view === filter.value ? 'default' : 'outline'}
-                className="cursor-pointer hover:bg-muted"
+                className="cursor-pointer hover:bg-bg-hover"
               >
                 {filter.label}
               </Badge>
@@ -161,8 +141,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       </div>
 
       {filteredProjects.length === 0 ? (
-        <div className="rounded-lg border border-stone-200 bg-white p-8 md:p-12 text-center dark:border-stone-800 dark:bg-stone-900">
-          <p className="text-stone-500 dark:text-stone-400 text-sm md:text-base">
+        <div className="rounded-lg border border-border-hairline bg-bg-card p-8 md:p-12 text-center">
+          <p className="text-text-secondary text-sm md:text-base">
             {search
               ? 'No projects match your search. Try adjusting your query.'
               : view === 'retainer'
@@ -175,7 +155,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
       ) : (
         <>
           {/* Results count */}
-          <p className="text-sm text-stone-500 dark:text-stone-400">
+          <p className="text-text-tertiary font-mono text-[10px] uppercase tracking-wider">
             {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
             {search && filteredProjects.length !== projects.length && (
               <span className="ml-1">
@@ -208,32 +188,33 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                   <Link
                     key={project.id}
                     href={`/projects/${project.id}`}
-                    className="block rounded-lg border border-stone-200 bg-white p-4 active:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:active:bg-stone-800/50"
+                    className="block rounded-lg border border-border-hairline bg-bg-card p-4 active:bg-bg-hover"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate font-medium text-stone-900 dark:text-stone-100">
+                        <h3 className="truncate font-medium text-text-primary">
                           {project.project_name}
                         </h3>
-                        <p className="mt-0.5 text-sm text-stone-600 dark:text-stone-400">
+                        <p className="mt-0.5 text-sm text-text-secondary">
                           {project.client_name}
                         </p>
                       </div>
-                      <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
-                      >
-                        {formatStatus(project.status)}
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <StatusDot status={project.status} />
+                        <span className={`text-xs ${getStatusConfig(project.status).classes.text}`}>
+                          {getStatusConfig(project.status).label}
+                        </span>
+                      </div>
                     </div>
                     {/* Progress bar or completion date */}
                     {view === 'completed' && project.completed_at ? (
-                      <div className="mt-3 text-sm text-stone-500 dark:text-stone-400">
+                      <div className="mt-3 text-sm text-text-secondary">
                         Completed: {new Date(project.completed_at).toLocaleDateString()}
                       </div>
                     ) : (
                       <ProjectProgressInline project={project} className="mt-3" />
                     )}
-                    <div className="mt-2 flex items-center gap-4 text-xs text-stone-500 dark:text-stone-400">
+                    <div className="mt-2 flex items-center gap-4 text-text-tertiary font-mono text-[10px]">
                       {project.assigned_dev?.name && (
                         <span>Dev: {project.assigned_dev.name}</span>
                       )}
@@ -248,58 +229,59 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
               </div>
 
               {/* Desktop table view */}
-              <div className="hidden overflow-hidden rounded-lg border border-stone-200 bg-white md:block dark:border-stone-800 dark:bg-stone-900">
-            <table className="min-w-full divide-y divide-stone-200 dark:divide-stone-800">
-              <thead className="bg-stone-50 dark:bg-stone-800/50">
+              <div className="hidden overflow-hidden rounded-lg border border-border-hairline bg-bg-card md:block">
+            <table className="min-w-full divide-y divide-border-hairline">
+              <thead className="bg-bg-surface">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                  <th className="px-4 py-3 text-left text-xs font-medium font-mono uppercase tracking-wider text-text-tertiary">
                     Project
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                  <th className="px-4 py-3 text-left text-xs font-medium font-mono uppercase tracking-wider text-text-tertiary">
                     Client
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                  <th className="px-4 py-3 text-left text-xs font-medium font-mono uppercase tracking-wider text-text-tertiary">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                  <th className="px-4 py-3 text-left text-xs font-medium font-mono uppercase tracking-wider text-text-tertiary">
                     Progress
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                  <th className="px-4 py-3 text-left text-xs font-medium font-mono uppercase tracking-wider text-text-tertiary">
                     Assigned Dev
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-stone-500 dark:text-stone-400">
+                  <th className="px-4 py-3 text-left text-xs font-medium font-mono uppercase tracking-wider text-text-tertiary">
                     {view === 'completed' ? 'Completed' : 'Target Date'}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
+              <tbody className="divide-y divide-border-hairline">
                 {filteredProjects.map((project) => (
-                  <tr key={project.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                  <tr key={project.id} className="hover:bg-bg-hover">
                     <td className="px-4 py-3">
                       <Link
                         href={`/projects/${project.id}`}
-                        className="font-medium text-stone-900 hover:text-cyan-600 dark:text-stone-100 dark:hover:text-cyan-400"
+                        className="font-medium text-text-primary hover:text-accent"
                       >
                         {project.project_name}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {project.client_name}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(project.status)}`}
-                      >
-                        {formatStatus(project.status)}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <StatusDot status={project.status} />
+                        <span className={`text-xs ${getStatusConfig(project.status).classes.text}`}>
+                          {getStatusConfig(project.status).label}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <ProjectProgressBar project={project} variant="compact" />
                     </td>
-                    <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {project.assigned_dev?.name || '—'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {view === 'completed' && project.completed_at
                         ? new Date(project.completed_at).toLocaleDateString()
                         : project.target_delivery_date

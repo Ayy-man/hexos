@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import { Geist_Mono } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OfflineIndicator } from "@/components/offline-indicator";
@@ -10,34 +9,18 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { GlobalErrorHandler } from "@/components/global-error-handler";
 import "./globals.css";
 
-const switzer = localFont({
-  src: [
-    { path: './fonts/Switzer-Thin.otf', weight: '100', style: 'normal' },
-    { path: './fonts/Switzer-ThinItalic.otf', weight: '100', style: 'italic' },
-    { path: './fonts/Switzer-Extralight.otf', weight: '200', style: 'normal' },
-    { path: './fonts/Switzer-ExtralightItalic.otf', weight: '200', style: 'italic' },
-    { path: './fonts/Switzer-Light.otf', weight: '300', style: 'normal' },
-    { path: './fonts/Switzer-LightItalic.otf', weight: '300', style: 'italic' },
-    { path: './fonts/Switzer-Regular.otf', weight: '400', style: 'normal' },
-    { path: './fonts/Switzer-Italic.otf', weight: '400', style: 'italic' },
-    { path: './fonts/Switzer-Medium.otf', weight: '500', style: 'normal' },
-    { path: './fonts/Switzer-MediumItalic.otf', weight: '500', style: 'italic' },
-    { path: './fonts/Switzer-Semibold.otf', weight: '600', style: 'normal' },
-    { path: './fonts/Switzer-SemiboldItalic.otf', weight: '600', style: 'italic' },
-    { path: './fonts/Switzer-Bold.otf', weight: '700', style: 'normal' },
-    { path: './fonts/Switzer-BoldItalic.otf', weight: '700', style: 'italic' },
-    { path: './fonts/Switzer-Extrabold.otf', weight: '800', style: 'normal' },
-    { path: './fonts/Switzer-ExtraboldItalic.otf', weight: '800', style: 'italic' },
-    { path: './fonts/Switzer-Black.otf', weight: '900', style: 'normal' },
-    { path: './fonts/Switzer-BlackItalic.otf', weight: '900', style: 'italic' },
-  ],
+const dmSans = DM_Sans({
   variable: '--font-sans',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-mono',
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -75,9 +58,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={switzer.variable} suppressHydrationWarning>
+    <html lang="en" className={dmSans.variable} suppressHydrationWarning>
       <body
-        className={`${geistMono.variable} antialiased`}
+        className={`${jetbrainsMono.variable} antialiased`}
       >
         <GlobalErrorHandler />
         <ServiceWorkerRegister />
