@@ -1,6 +1,8 @@
 import { signIn } from '@/lib/auth/actions'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const TEST_USERS = [
   { email: 'admin@test.hexos', password: 'test1234', role: 'Admin', color: 'bg-red-500' },
@@ -42,16 +44,16 @@ export default async function LoginPage({
   return (
     <div className="w-full max-w-sm space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+        <h1 className="text-2xl font-semibold text-text-primary">
           hexOS
         </h1>
-        <p className="mt-2 text-sm text-stone-600 dark:text-stone-400">
+        <p className="mt-2 text-sm text-text-tertiary">
           Sign in to your account
         </p>
       </div>
 
       {displayError && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <div className="rounded-md bg-signal-bad-dim p-3 text-sm text-signal-bad border border-signal-bad/25">
           {displayError}
         </div>
       )}
@@ -60,16 +62,15 @@ export default async function LoginPage({
         <div>
           <label
             htmlFor="email"
-            className="block text-sm font-medium text-stone-700 dark:text-stone-300"
+            className="block text-[10px] font-mono font-medium uppercase tracking-wider text-text-tertiary mb-1.5"
           >
             Email
           </label>
-          <input
+          <Input
             id="email"
             name="email"
             type="email"
             required
-            className="mt-1 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder-stone-400 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
             placeholder="you@example.com"
           />
         </div>
@@ -77,31 +78,27 @@ export default async function LoginPage({
         <div>
           <label
             htmlFor="password"
-            className="block text-sm font-medium text-stone-700 dark:text-stone-300"
+            className="block text-[10px] font-mono font-medium uppercase tracking-wider text-text-tertiary mb-1.5"
           >
             Password
           </label>
-          <input
+          <Input
             id="password"
             name="password"
             type="password"
             required
-            className="mt-1 block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm placeholder-stone-400 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-100"
             placeholder="Enter your password"
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
-        >
+        <Button type="submit" className="w-full">
           Sign in
-        </button>
+        </Button>
       </form>
 
       {/* Quick Login for Testing */}
-      <div className="pt-4 border-t border-stone-200 dark:border-stone-800">
-        <p className="text-xs text-center text-stone-500 dark:text-stone-400 mb-3">
+      <div className="pt-4 border-t border-border-rule">
+        <p className="text-[10px] text-center font-mono uppercase tracking-wider text-text-ghost mb-3">
           Quick login (testing only)
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -109,12 +106,14 @@ export default async function LoginPage({
             <form key={user.email} action={quickLogin}>
               <input type="hidden" name="email" value={user.email} />
               <input type="hidden" name="password" value={user.password} />
-              <button
+              <Button
                 type="submit"
-                className={`w-full rounded-md px-3 py-2 text-xs font-medium text-white ${user.color} hover:opacity-90 transition-opacity`}
+                variant="outline"
+                size="sm"
+                className="w-full text-xs"
               >
-                Login as {user.role}
-              </button>
+                {user.role}
+              </Button>
             </form>
           ))}
         </div>
