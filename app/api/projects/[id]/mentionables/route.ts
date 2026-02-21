@@ -24,12 +24,13 @@ export async function GET(
       adminClient = supabase
     }
 
-    // Get project with related users (dfy_partner, assigned_dev)
+    // Get project with related users (dfy_partner, assigned_dev, client)
     const { data: project, error: projectError } = await adminClient
       .from('projects')
       .select(`
         dfy_partner:profiles!dfy_partner_id(id, name, email),
-        assigned_dev:profiles!assigned_dev_id(id, name, email)
+        assigned_dev:profiles!assigned_dev_id(id, name, email),
+        client:profiles!projects_client_id_fkey(id, name, email)
       `)
       .eq('id', projectId)
       .single()
@@ -49,6 +50,16 @@ export async function GET(
     if (deliverableError) {
       console.error('[API] Error fetching deliverables:', deliverableError)
       return NextResponse.json({ error: deliverableError.message }, { status: 500 })
+    }
+
+    // Get all admin and internal users (they always have project access)
+    const { data: adminProfiles, error: adminError } = await adminClient
+      .from('profiles')
+      .select('id, name, email')
+      .in('role', ['admin', 'internal'])
+
+    if (adminError) {
+      console.error('[API] Error fetching admin/internal profiles:', adminError)
     }
 
     // Build user list (deduplicated)
@@ -76,6 +87,30 @@ export async function GET(
         name: dev.name,
         email: dev.email,
       })
+    }
+
+    // Add client
+    const clientRaw = project?.client
+    const client = Array.isArray(clientRaw) ? clientRaw[0] : clientRaw
+    if (client && client.id && !userMap.has(client.id)) {
+      userMap.set(client.id, {
+        type: 'user',
+        id: client.id,
+        name: client.name,
+        email: client.email,
+      })
+    }
+
+    // Add all admin/internal users (deduplication handled by Map)
+    for (const adminProfile of adminProfiles || []) {
+      if (adminProfile.id && !userMap.has(adminProfile.id)) {
+        userMap.set(adminProfile.id, {
+          type: 'user',
+          id: adminProfile.id,
+          name: adminProfile.name,
+          email: adminProfile.email,
+        })
+      }
     }
 
     // Build deliverable list

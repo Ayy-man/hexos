@@ -12,6 +12,41 @@ import {
   deleteProjectDocument,
   type ProjectDocument,
 } from '@/lib/api/project-documents'
+import { createNotification } from '@/lib/api/notifications'
+
+// ============================================
+// Mention Utilities
+// ============================================
+
+/**
+ * Recursively extract user IDs from Plate.js mention nodes (trigger === '@')
+ * Returns a deduplicated array of user IDs
+ */
+function extractMentionUserIds(content: unknown): string[] {
+  if (!Array.isArray(content)) return []
+
+  const ids = new Set<string>()
+
+  function walk(nodes: unknown[]): void {
+    for (const node of nodes) {
+      if (!node || typeof node !== 'object') continue
+      const n = node as Record<string, unknown>
+
+      // Check if this is a user mention node
+      if (n.type === 'mention' && n.trigger === '@' && typeof n.key === 'string' && n.key) {
+        ids.add(n.key)
+      }
+
+      // Recurse into children
+      if (Array.isArray(n.children)) {
+        walk(n.children)
+      }
+    }
+  }
+
+  walk(content)
+  return Array.from(ids)
+}
 
 // ============================================
 // Document Actions
@@ -29,6 +64,17 @@ export async function updateGameplanContentAction(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
+
+  // Fetch current document content BEFORE saving (for mention diff)
+  const { data: currentDoc } = await supabase
+    .from('project_documents')
+    .select('content')
+    .eq('id', documentId)
+    .single()
+
+  const oldMentions = new Set(extractMentionUserIds(currentDoc?.content))
+  const newMentions = extractMentionUserIds(content)
+  const addedMentions = newMentions.filter((id) => !oldMentions.has(id) && id !== user.id)
 
   // Update the document content
   await updateProjectDocument(documentId, { content })
@@ -64,6 +110,26 @@ export async function updateGameplanContentAction(
   }
 
   revalidatePath(`/projects/${projectId}`)
+
+  // Fire-and-forget: send mention notifications for newly mentioned users
+  if (addedMentions.length > 0) {
+    Promise.allSettled(
+      addedMentions.map((mentionedUserId) =>
+        createNotification({
+          userId: mentionedUserId,
+          type: 'mention',
+          title: 'You were mentioned in a gameplan',
+          message: 'Someone mentioned you in a project gameplan document',
+          projectId,
+          actorId: user.id,
+        }).catch((err) => {
+          console.error('[updateGameplanContentAction] Mention notification failed:', err)
+        })
+      )
+    ).catch((err) => {
+      console.error('[updateGameplanContentAction] Promise.allSettled failed:', err)
+    })
+  }
 }
 
 /**
@@ -317,12 +383,13 @@ export async function getMentionablesAction(
     // Use admin client to bypass RLS
     const adminClient = createAdminClient()
 
-    // Get project with related users (dfy_partner, assigned_dev)
+    // Get project with related users (dfy_partner, assigned_dev, client)
     const { data: project, error: projectError } = await adminClient
       .from('projects')
       .select(`
         dfy_partner:profiles!dfy_partner_id(id, name, email),
-        assigned_dev:profiles!assigned_dev_id(id, name, email)
+        assigned_dev:profiles!assigned_dev_id(id, name, email),
+        client:profiles!projects_client_id_fkey(id, name, email)
       `)
       .eq('id', projectId)
       .single()
@@ -341,6 +408,16 @@ export async function getMentionablesAction(
 
     if (deliverableError) {
       console.error('[Action] Error fetching deliverables:', deliverableError)
+    }
+
+    // Get all admin and internal users (they always have project access)
+    const { data: adminProfiles, error: adminError } = await adminClient
+      .from('profiles')
+      .select('id, name, email')
+      .in('role', ['admin', 'internal'])
+
+    if (adminError) {
+      console.error('[Action] Error fetching admin/internal profiles:', adminError)
     }
 
     // Build user list (deduplicated)
@@ -368,6 +445,30 @@ export async function getMentionablesAction(
         name: dev.name,
         email: dev.email,
       })
+    }
+
+    // Add client
+    const clientRaw = project?.client
+    const client = Array.isArray(clientRaw) ? clientRaw[0] : clientRaw
+    if (client && client.id && !userMap.has(client.id)) {
+      userMap.set(client.id, {
+        type: 'user',
+        id: client.id,
+        name: client.name,
+        email: client.email,
+      })
+    }
+
+    // Add all admin/internal users (deduplication handled by Map)
+    for (const adminProfile of adminProfiles || []) {
+      if (adminProfile.id && !userMap.has(adminProfile.id)) {
+        userMap.set(adminProfile.id, {
+          type: 'user',
+          id: adminProfile.id,
+          name: adminProfile.name,
+          email: adminProfile.email,
+        })
+      }
     }
 
     // Build deliverable list

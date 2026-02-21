@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@/lib/supabase/admin'
 
 // Types for mentionable entities
 export interface MentionableUser {
@@ -26,41 +26,32 @@ export interface ProjectMentionables {
 
 // Get all mentionables for a project
 export async function getProjectMentionables(projectId: string): Promise<ProjectMentionables> {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS and access all profiles
+  const adminClient = createAdminClient()
 
-  // Get project team members (from project_assignments)
-  const { data: assignments, error: assignmentError } = await supabase
-    .from('project_assignments')
-    .select(`
-      user:profiles!user_id(
-        id,
-        name,
-        email,
-        avatar_url
-      )
-    `)
-    .eq('project_id', projectId)
-
-  if (assignmentError) throw assignmentError
-
-  // Get project owner from projects table
-  const { data: project, error: projectError } = await supabase
+  // Get project with related users (dfy_partner, assigned_dev, client)
+  const { data: project, error: projectError } = await adminClient
     .from('projects')
     .select(`
-      owner:profiles!dfy_partner_id(
-        id,
-        name,
-        email,
-        avatar_url
-      )
+      dfy_partner:profiles!dfy_partner_id(id, name, email, avatar_url),
+      assigned_dev:profiles!assigned_dev_id(id, name, email, avatar_url),
+      client:profiles!projects_client_id_fkey(id, name, email, avatar_url)
     `)
     .eq('id', projectId)
     .single()
 
   if (projectError) throw projectError
 
+  // Get all admin and internal users (they always have project access)
+  const { data: adminProfiles, error: adminError } = await adminClient
+    .from('profiles')
+    .select('id, name, email, avatar_url')
+    .in('role', ['admin', 'internal'])
+
+  if (adminError) throw adminError
+
   // Get deliverables for the project
-  const { data: deliverables, error: deliverableError } = await supabase
+  const { data: deliverables, error: deliverableError } = await adminClient
     .from('deliverables')
     .select('id, title, status, parent_id')
     .eq('project_id', projectId)
@@ -71,35 +62,56 @@ export async function getProjectMentionables(projectId: string): Promise<Project
   // Build user list (deduplicated)
   const userMap = new Map<string, MentionableUser>()
 
-  // Add assigned users
-  for (const assignment of assignments || []) {
-    // Supabase returns array for joined data - take first element
-    const userRaw = assignment.user
-    const user = Array.isArray(userRaw) ? userRaw[0] : userRaw
-
-    if (user && user.id && !userMap.has(user.id)) {
-      userMap.set(user.id, {
-        type: 'user',
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        avatar_url: user.avatar_url,
-      })
-    }
+  // Add DFY partner
+  const dfyRaw = project?.dfy_partner
+  const dfy = Array.isArray(dfyRaw) ? dfyRaw[0] : dfyRaw
+  if (dfy && dfy.id && !userMap.has(dfy.id)) {
+    userMap.set(dfy.id, {
+      type: 'user',
+      id: dfy.id,
+      name: dfy.name,
+      email: dfy.email,
+      avatar_url: dfy.avatar_url,
+    })
   }
 
-  // Add project owner
-  const ownerRaw = project?.owner
-  const owner = Array.isArray(ownerRaw) ? ownerRaw[0] : ownerRaw
-
-  if (owner && owner.id && !userMap.has(owner.id)) {
-    userMap.set(owner.id, {
+  // Add assigned dev
+  const devRaw = project?.assigned_dev
+  const dev = Array.isArray(devRaw) ? devRaw[0] : devRaw
+  if (dev && dev.id && !userMap.has(dev.id)) {
+    userMap.set(dev.id, {
       type: 'user',
-      id: owner.id,
-      name: owner.name,
-      email: owner.email,
-      avatar_url: owner.avatar_url,
+      id: dev.id,
+      name: dev.name,
+      email: dev.email,
+      avatar_url: dev.avatar_url,
     })
+  }
+
+  // Add client
+  const clientRaw = project?.client
+  const client = Array.isArray(clientRaw) ? clientRaw[0] : clientRaw
+  if (client && client.id && !userMap.has(client.id)) {
+    userMap.set(client.id, {
+      type: 'user',
+      id: client.id,
+      name: client.name,
+      email: client.email,
+      avatar_url: client.avatar_url,
+    })
+  }
+
+  // Add all admin/internal users (deduplication handled by Map)
+  for (const adminProfile of adminProfiles || []) {
+    if (adminProfile.id && !userMap.has(adminProfile.id)) {
+      userMap.set(adminProfile.id, {
+        type: 'user',
+        id: adminProfile.id,
+        name: adminProfile.name,
+        email: adminProfile.email,
+        avatar_url: adminProfile.avatar_url,
+      })
+    }
   }
 
   // Build deliverable list
