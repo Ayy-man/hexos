@@ -101,10 +101,11 @@ const MentionPlugins = [
     },
     options: {
       trigger: '@',
-      createMentionNode: (item: { text: string }) => ({
+      createMentionNode: (item: { text: string; key?: string }) => ({
         type: 'mention',
         trigger: '@',
         value: item.text,
+        key: item.key,
         children: [{ text: '' }],
       }),
     },

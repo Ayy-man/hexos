@@ -24,94 +24,53 @@ export async function GET(
       adminClient = supabase
     }
 
-    // Get project with related users (dfy_partner, assigned_dev, client)
+    // Get project user IDs (simple query, no FK joins)
     const { data: project, error: projectError } = await adminClient
       .from('projects')
-      .select(`
-        dfy_partner:profiles!dfy_partner_id(id, name, email),
-        assigned_dev:profiles!assigned_dev_id(id, name, email),
-        client:profiles!client_id(id, name, email)
-      `)
+      .select('dfy_partner_id, assigned_dev_id, client_id')
       .eq('id', projectId)
       .single()
 
     if (projectError) {
       console.error('[API] Error fetching project:', projectError)
-      // Don't bail — still fetch admin/internal profiles below
     }
 
-    // Get deliverables for the project
-    const { data: deliverables, error: deliverableError } = await adminClient
-      .from('deliverables')
-      .select('id, title, status, parent_id')
-      .eq('project_id', projectId)
-      .order('sort_order', { ascending: true })
+    // Collect all user IDs to fetch
+    const userIds = new Set<string>()
+    if (project?.dfy_partner_id) userIds.add(project.dfy_partner_id)
+    if (project?.assigned_dev_id) userIds.add(project.assigned_dev_id)
+    if (project?.client_id) userIds.add(project.client_id)
 
-    if (deliverableError) {
-      console.error('[API] Error fetching deliverables:', deliverableError)
-      return NextResponse.json({ error: deliverableError.message }, { status: 500 })
-    }
+    // Fetch project-assigned profiles + admin/internal profiles + deliverables in parallel
+    const [assignedResult, adminResult, deliverableResult] = await Promise.all([
+      userIds.size > 0
+        ? adminClient.from('profiles').select('id, name, email').in('id', Array.from(userIds))
+        : Promise.resolve({ data: [], error: null }),
+      adminClient.from('profiles').select('id, name, email').in('role', ['admin', 'internal']),
+      adminClient.from('deliverables').select('id, title, status, parent_id').eq('project_id', projectId).order('sort_order', { ascending: true }),
+    ])
 
-    // Get all admin and internal users (they always have project access)
-    const { data: adminProfiles, error: adminError } = await adminClient
-      .from('profiles')
-      .select('id, name, email')
-      .in('role', ['admin', 'internal'])
-
-    if (adminError) {
-      console.error('[API] Error fetching admin/internal profiles:', adminError)
+    if (deliverableResult.error) {
+      console.error('[API] Error fetching deliverables:', deliverableResult.error)
+      return NextResponse.json({ error: deliverableResult.error.message }, { status: 500 })
     }
 
     // Build user list (deduplicated)
     const userMap = new Map<string, { type: string; id: string; name: string; email: string }>()
 
-    // Add DFY partner
-    const dfyRaw = project?.dfy_partner
-    const dfy = Array.isArray(dfyRaw) ? dfyRaw[0] : dfyRaw
-    if (dfy && dfy.id && !userMap.has(dfy.id)) {
-      userMap.set(dfy.id, {
-        type: 'user',
-        id: dfy.id,
-        name: dfy.name,
-        email: dfy.email,
-      })
-    }
-
-    // Add assigned dev
-    const devRaw = project?.assigned_dev
-    const dev = Array.isArray(devRaw) ? devRaw[0] : devRaw
-    if (dev && dev.id && !userMap.has(dev.id)) {
-      userMap.set(dev.id, {
-        type: 'user',
-        id: dev.id,
-        name: dev.name,
-        email: dev.email,
-      })
-    }
-
-    // Add client
-    const clientRaw = project?.client
-    const client = Array.isArray(clientRaw) ? clientRaw[0] : clientRaw
-    if (client && client.id && !userMap.has(client.id)) {
-      userMap.set(client.id, {
-        type: 'user',
-        id: client.id,
-        name: client.name,
-        email: client.email,
-      })
-    }
-
-    // Add all admin/internal users (deduplication handled by Map)
-    for (const adminProfile of adminProfiles || []) {
-      if (adminProfile.id && !userMap.has(adminProfile.id)) {
-        userMap.set(adminProfile.id, {
-          type: 'user',
-          id: adminProfile.id,
-          name: adminProfile.name,
-          email: adminProfile.email,
-        })
+    for (const p of assignedResult.data || []) {
+      if (p.id && !userMap.has(p.id)) {
+        userMap.set(p.id, { type: 'user', id: p.id, name: p.name, email: p.email })
       }
     }
+
+    for (const p of adminResult.data || []) {
+      if (p.id && !userMap.has(p.id)) {
+        userMap.set(p.id, { type: 'user', id: p.id, name: p.name, email: p.email })
+      }
+    }
+
+    const deliverables = deliverableResult.data
 
     // Build deliverable list
     const mentionableDeliverables = (deliverables || []).map((d) => ({
