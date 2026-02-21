@@ -9,9 +9,9 @@
 ## Current Position
 
 Phase: 16 of 16 (notification-coverage-overhaul)
-Plan: 04 of 5
-Status: In progress
-Last activity: 2026-02-22 - Completed 16-04: Dev experience notifications (check-in submitted, blocker raised, meeting scheduled)
+Plan: 05 of 5
+Status: Complete (Phase 16 COMPLETE)
+Last activity: 2026-02-22 - Completed 16-05: Cron endpoints for check-in overdue, deadline reminders, and stale proposal notifications
 
 Progress: [========================================] 100%
          Phase 01: 01, 02 complete
@@ -29,7 +29,7 @@ Progress: [========================================] 100%
          Phase 13: 01, 02 complete (PHASE COMPLETE)
          Phase 14: 01, 02, 03, 04, 05 complete (PHASE COMPLETE)
          Phase 15: 01, 02, 03, 04, 05, 06, 07 complete (PHASE COMPLETE)
-         Phase 16: 01, 02, 03, 04 complete
+         Phase 16: 01, 02, 03, 04, 05 complete (PHASE COMPLETE)
 
 ## Completed Work
 
@@ -77,6 +77,7 @@ Progress: [========================================] 100%
 | 16-notification-coverage-overhaul | 01 | DB enum sync (38 idempotent ADD VALUE blocks), notifyAdmins/notifyProjectStakeholders/notifyUsers helpers, eliminated as-never casts and raw inserts | 8d9dcb6, b7bf380 |
 | 16-notification-coverage-overhaul | 02 | notifyAdmins() in 5 inquiry/proposal lifecycle functions (createInquiry, submitProposalToDfy, markInquiryAsClosed, markProposalLost, escalateToAdmin); @mention DB trigger on message_mentions | 065af01, e0310f0 |
 | 16-notification-coverage-overhaul | 04 | Dev experience notifications: check_in_submitted to admins on check-in, blocker_raised to admins on new blocker, meeting_scheduled to stakeholders/admins on meeting creation | a1a5627, e492722 |
+| 16-notification-coverage-overhaul | 05 | Three cron GET endpoints: check-in overdue detection (cadence math + 24h dedup), deadline reminders (3-day look-ahead + 24h dedup), stale proposal detection (14-day threshold + 7-day dedup) | 8c904af, 06bc11c |
 
 ## Accumulated Decisions
 
@@ -205,6 +206,9 @@ Progress: [========================================] 100%
 - [Phase 16-04]: Profile+project fetch done in Promise.all before notifying — avoids sequential round-trips for notification message context
 - [Phase 16]: Client invoice notifications use project.client_id joined from invoice query — invoices have no direct profile UUID
 - [Phase 16]: voidInvoice notifies DFY partner and client only (not admins) since void affects parties directly
+- [Phase 16-05]: Cron routes use admin client raw inserts — createNotification/notifyAdmins require cookie-based auth unavailable in cron GET handlers
+- [Phase 16-05]: proposal-expiry deduplicates by company name LIKE match — notifications table has no inquiry_id FK
+- [Phase 16-05]: proposal_ready type reused for stale proposal alerts — DFY and admin get different title/message text, avoids new enum value
 
 ## Patterns Established
 
@@ -297,8 +301,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-22 21:37:00 UTC
-Stopped at: Completed quick-002 (fix broken mentions)
+Last session: 2026-02-22 21:40:00 UTC
+Stopped at: Completed 16-05-PLAN.md (Phase 16 COMPLETE)
 Resume file: None
 
 ### Roadmap Evolution
