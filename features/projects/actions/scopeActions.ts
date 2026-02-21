@@ -82,7 +82,7 @@ export async function flagScopeChangeAction(
       if (admin.id !== user.id) {
         await createNotification({
           userId: admin.id,
-          type: 'scope_change_flagged' as never, // Type will be added
+          type: 'scope_change_flagged',
           title: 'Scope Change Flagged',
           message: input.description,
           projectId: input.project_id,
@@ -140,7 +140,7 @@ export async function approveScopeChangeAction(
   if (scopeChangeDetails.requested_by && scopeChangeDetails.requested_by !== user.id) {
     await createNotification({
       userId: scopeChangeDetails.requested_by,
-      type: 'scope_change_approved' as never,
+      type: 'scope_change_approved',
       title: 'Scope Change Approved',
       message: `Your scope change request has been approved${notes ? `: ${notes}` : ''}`,
       projectId,
@@ -196,7 +196,7 @@ export async function rejectScopeChangeAction(
   if (scopeChangeDetails.requested_by && scopeChangeDetails.requested_by !== user.id) {
     await createNotification({
       userId: scopeChangeDetails.requested_by,
-      type: 'scope_change_rejected' as never,
+      type: 'scope_change_rejected',
       title: 'Scope Change Rejected',
       message: `Your scope change request was rejected: ${reason}`,
       projectId,

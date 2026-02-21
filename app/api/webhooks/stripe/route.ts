@@ -87,21 +87,28 @@ export async function POST(req: NextRequest) {
           const { data: admins } = await supabase2
             .from('profiles')
             .select('id')
-            .eq('role', 'admin')
+            .in('role', ['admin', 'internal'])
 
           if (admins && admins.length > 0) {
             const amount = (invoice.total / 100).toLocaleString('en-US', {
               style: 'currency',
               currency: 'USD',
             })
-            await supabase2.from('notifications').insert(
-              admins.map((admin) => ({
-                user_id: admin.id,
-                type: 'invoice_payment_failed',
-                title: 'Invoice Payment Failed',
-                message: `Payment of ${amount} from ${invoice.client_name || 'Unknown'} has failed.`,
-                project_id: invoice.project_id || null,
-              }))
+            const notifTitle = 'Invoice Payment Failed'
+            const notifMessage = `Payment of ${amount} from ${invoice.client_name || 'Unknown'} has failed.`
+
+            // Insert individual notifications using admin client (webhook context
+            // does not support cookie-based auth required by createNotification)
+            await Promise.allSettled(
+              admins.map((admin) =>
+                supabase2.from('notifications').insert({
+                  user_id: admin.id,
+                  type: 'invoice_payment_failed',
+                  title: notifTitle,
+                  message: notifMessage,
+                  project_id: invoice.project_id || null,
+                })
+              )
             )
           }
 

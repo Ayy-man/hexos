@@ -8,6 +8,7 @@ import {
   rejectExtension,
   type CreateExtensionInput,
 } from '@/lib/api/project-extensions'
+import { createNotification } from '@/lib/api/notifications'
 
 // ============================================
 // Extension Request Actions
@@ -49,16 +50,13 @@ export async function requestExtensionAction(
       .single()
 
     if (project?.dfy_partner_id) {
-      await supabase.from('notifications').insert({
-        user_id: project.dfy_partner_id,
+      await createNotification({
+        userId: project.dfy_partner_id,
+        type: 'status_change',
         title: 'Extension Request',
-        body: `An extension has been requested for ${project.project_name}. Please review and approve or reject.`,
-        type: 'extension_requested',
-        link: `/projects/${input.project_id}?tab=scope`,
-        data: {
-          project_id: input.project_id,
-          extension_id: extension.id,
-        },
+        message: `An extension has been requested for ${project.project_name}. Please review and approve or reject.`,
+        projectId: input.project_id,
+        actorId: user.id,
       })
     }
 
@@ -109,16 +107,13 @@ export async function approveExtensionAction(
         .eq('id', projectId)
         .single()
 
-      await supabase.from('notifications').insert({
-        user_id: extension.requested_by,
+      await createNotification({
+        userId: extension.requested_by,
+        type: 'status_change',
         title: 'Extension Approved',
-        body: `Your extension request for ${project?.project_name} has been approved.`,
-        type: 'extension_approved',
-        link: `/projects/${projectId}`,
-        data: {
-          project_id: projectId,
-          extension_id: extensionId,
-        },
+        message: `Your extension request for ${project?.project_name} has been approved.`,
+        projectId,
+        actorId: user.id,
       })
     }
 
@@ -168,16 +163,13 @@ export async function rejectExtensionAction(
         .eq('id', projectId)
         .single()
 
-      await supabase.from('notifications').insert({
-        user_id: extension.requested_by,
+      await createNotification({
+        userId: extension.requested_by,
+        type: 'status_change',
         title: 'Extension Rejected',
-        body: `Your extension request for ${project?.project_name} has been rejected.${notes ? ` Reason: ${notes}` : ''}`,
-        type: 'extension_rejected',
-        link: `/projects/${projectId}`,
-        data: {
-          project_id: projectId,
-          extension_id: extensionId,
-        },
+        message: `Your extension request for ${project?.project_name} has been rejected.${notes ? ` Reason: ${notes}` : ''}`,
+        projectId,
+        actorId: user.id,
       })
     }
 
