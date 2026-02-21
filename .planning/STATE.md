@@ -293,11 +293,12 @@ None.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 001 | Fix testing modal null crash + add manual checklist items | 2026-02-09 | 2585fbb | [001-fix-testing-modal-manual-items](./quick/001-fix-testing-modal-manual-items/) |
+| 002 | Fix broken mentions — expand autocomplete to all project users, wire notifications, remove Star Wars dead code | 2026-02-22 | 75f19f7, b5b2b94, 99a05fe | [2-fix-broken-mentions-connect-autocomplete](./quick/2-fix-broken-mentions-connect-autocomplete/) |
 
 ## Session Continuity
 
-Last session: 2026-02-22 21:35:00 UTC
-Stopped at: Completed 16-04-PLAN.md
+Last session: 2026-02-22 21:37:00 UTC
+Stopped at: Completed quick-002 (fix broken mentions)
 Resume file: None
 
 ### Roadmap Evolution
