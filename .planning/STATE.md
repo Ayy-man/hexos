@@ -203,6 +203,8 @@ Progress: [========================================] 100%
 - [Phase 16-04]: reportBlockerAction now calls createClient/getUser — original function had no auth context; added to enable devName fetch and actorId for notification
 - [Phase 16-04]: meetingActions inspects input.links for project link before choosing notifyProjectStakeholders vs notifyAdmins — project-linked meetings notify whole project team
 - [Phase 16-04]: Profile+project fetch done in Promise.all before notifying — avoids sequential round-trips for notification message context
+- [Phase 16]: Client invoice notifications use project.client_id joined from invoice query — invoices have no direct profile UUID
+- [Phase 16]: voidInvoice notifies DFY partner and client only (not admins) since void affects parties directly
 
 ## Patterns Established
 
