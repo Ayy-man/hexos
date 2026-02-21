@@ -9,9 +9,9 @@
 ## Current Position
 
 Phase: 16 of 16 (notification-coverage-overhaul)
-Plan: 02 of 5
+Plan: 04 of 5
 Status: In progress
-Last activity: 2026-02-22 - Completed 16-02: Inquiry/proposal lifecycle notifications + @mention DB trigger
+Last activity: 2026-02-22 - Completed 16-04: Dev experience notifications (check-in submitted, blocker raised, meeting scheduled)
 
 Progress: [========================================] 100%
          Phase 01: 01, 02 complete
@@ -29,7 +29,7 @@ Progress: [========================================] 100%
          Phase 13: 01, 02 complete (PHASE COMPLETE)
          Phase 14: 01, 02, 03, 04, 05 complete (PHASE COMPLETE)
          Phase 15: 01, 02, 03, 04, 05, 06, 07 complete (PHASE COMPLETE)
-         Phase 16: 01, 02 complete
+         Phase 16: 01, 02, 03, 04 complete
 
 ## Completed Work
 
@@ -76,6 +76,7 @@ Progress: [========================================] 100%
 | 14-offboarding-retainer-system | 05 | Future Improvements backlog with multi-select bundling, available on all projects regardless of status | 0a0a2f2, 24639e9 |
 | 16-notification-coverage-overhaul | 01 | DB enum sync (38 idempotent ADD VALUE blocks), notifyAdmins/notifyProjectStakeholders/notifyUsers helpers, eliminated as-never casts and raw inserts | 8d9dcb6, b7bf380 |
 | 16-notification-coverage-overhaul | 02 | notifyAdmins() in 5 inquiry/proposal lifecycle functions (createInquiry, submitProposalToDfy, markInquiryAsClosed, markProposalLost, escalateToAdmin); @mention DB trigger on message_mentions | 065af01, e0310f0 |
+| 16-notification-coverage-overhaul | 04 | Dev experience notifications: check_in_submitted to admins on check-in, blocker_raised to admins on new blocker, meeting_scheduled to stakeholders/admins on meeting creation | a1a5627, e492722 |
 
 ## Accumulated Decisions
 
@@ -199,6 +200,9 @@ Progress: [========================================] 100%
 - [Phase 16-02]: DB trigger uses raw INSERT into notifications for @mentions — triggers run without HTTP session/cookies so createNotification() unavailable; push notifications for mentions deferred to V1.1
 - [Phase 16-02]: SELECT expanded in markInquiryAsClosed and markProposalLost to include prospect_company_name — required for notification messages
 - [Phase 16-02]: escalateToAdmin() now fetches auth user and inquiry name — previously had no auth context; needed for actorId and notification message
+- [Phase 16-04]: reportBlockerAction now calls createClient/getUser — original function had no auth context; added to enable devName fetch and actorId for notification
+- [Phase 16-04]: meetingActions inspects input.links for project link before choosing notifyProjectStakeholders vs notifyAdmins — project-linked meetings notify whole project team
+- [Phase 16-04]: Profile+project fetch done in Promise.all before notifying — avoids sequential round-trips for notification message context
 
 ## Patterns Established
 
@@ -290,8 +294,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-22 21:25:00 UTC
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-02-22 21:35:00 UTC
+Stopped at: Completed 16-04-PLAN.md
 Resume file: None
 
 ### Roadmap Evolution
