@@ -10,6 +10,7 @@ import {
   clearCheckinSnooze,
   type CreateCheckinInput,
 } from '@/lib/api/dev-logging'
+import { notifyAdmins } from '@/lib/api/notification-helpers'
 
 // ============================================
 // Check-in Actions
@@ -40,6 +41,25 @@ export async function submitCheckinAction(
         notes_count: input.notes?.length || 0,
       },
     })
+
+    // Notify admins of check-in submission (fire-and-forget)
+    try {
+      const [{ data: profile }, { data: project }] = await Promise.all([
+        supabase.from('profiles').select('display_name').eq('id', user.id).single(),
+        supabase.from('projects').select('name').eq('id', input.project_id).single(),
+      ])
+      const devName = profile?.display_name || 'A developer'
+      const projectName = project?.name || 'Unknown project'
+      await notifyAdmins({
+        type: 'check_in_submitted',
+        title: 'Dev Check-in Submitted',
+        message: `${devName} submitted a check-in for "${projectName}": ${input.checkin_type || 'Update'}`,
+        projectId: input.project_id,
+        actorId: user.id,
+      })
+    } catch (e) {
+      console.error('[submitCheckinAction] Notification failed:', e)
+    }
 
     revalidatePath(`/projects/${input.project_id}`)
     revalidatePath('/dashboard')

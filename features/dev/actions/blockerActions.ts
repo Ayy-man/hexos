@@ -15,6 +15,7 @@ import {
   type BlockerPriority,
 } from '@/lib/api/blockers'
 import { createNotification } from '@/lib/api/notifications'
+import { notifyAdmins } from '@/lib/api/notification-helpers'
 import { createClient } from '@/lib/supabase/server'
 
 export async function reportBlockerAction(params: {
@@ -25,10 +26,33 @@ export async function reportBlockerAction(params: {
   priority?: BlockerPriority
 }) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
     const blocker = await createBlocker(params)
     revalidatePath(`/projects/${params.projectId}`)
     revalidatePath('/dashboard/dev')
     revalidatePath('/admin/blockers')
+
+    // Notify admins of new blocker (fire-and-forget)
+    try {
+      const [{ data: profile }, { data: project }] = await Promise.all([
+        user ? supabase.from('profiles').select('display_name').eq('id', user.id).single() : Promise.resolve({ data: null }),
+        supabase.from('projects').select('name').eq('id', params.projectId).single(),
+      ])
+      const devName = profile?.display_name || 'A developer'
+      const projectName = project?.name || 'Unknown project'
+      await notifyAdmins({
+        type: 'blocker_raised',
+        title: 'New Blocker Reported',
+        message: `${devName} raised a blocker on "${projectName}": ${params.title}`,
+        projectId: params.projectId,
+        actorId: user?.id,
+      })
+    } catch (e) {
+      console.error('[reportBlockerAction] Notification failed:', e)
+    }
+
     return { success: true, blocker }
   } catch (error) {
     console.error('Error reporting blocker:', error)
