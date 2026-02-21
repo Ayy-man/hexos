@@ -96,7 +96,7 @@ export function SettingsSidebar({ userRole }: SettingsSidebarProps) {
       <div className="sticky top-20 space-y-6">
         {/* General Settings */}
         <div>
-          <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <h3 className="mb-2 px-3 text-xs font-mono font-semibold uppercase tracking-wider text-text-tertiary">
             General
           </h3>
           <div className="space-y-1">
@@ -125,7 +125,7 @@ export function SettingsSidebar({ userRole }: SettingsSidebarProps) {
         {/* Role-Specific Settings */}
         {roleSpecificSettings.length > 0 && (
           <div>
-            <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <h3 className="mb-2 px-3 text-xs font-mono font-semibold uppercase tracking-wider text-text-tertiary">
               {userRole === 'dev' ? 'Developer' : userRole === 'dfy' ? 'Partner' : 'Admin'}
             </h3>
             <div className="space-y-1">

@@ -106,7 +106,7 @@ export function PublicProposalView({ proposal }: PublicProposalViewProps) {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
             <Building2 className="h-4 w-4" />
-            <span className="text-sm uppercase tracking-wider">Proposal For</span>
+            <span className="text-sm font-mono uppercase tracking-wider">Proposal For</span>
           </div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">
             {proposal.prospect_company_name || 'Your Project'}

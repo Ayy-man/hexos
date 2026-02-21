@@ -223,13 +223,13 @@ export default async function DevDashboard() {
               {/* Summary */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-bg-surface p-3">
-                  <p className="text-[10px] uppercase tracking-wide text-text-tertiary">Expected</p>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-text-tertiary">Expected</p>
                   <p className="text-lg font-bold text-signal-good tabular-nums">
                     ${expectedProjectPayout.toLocaleString()}
                   </p>
                 </div>
                 <div className="rounded-lg bg-bg-surface p-3">
-                  <p className="text-[10px] uppercase tracking-wide text-text-tertiary">Pending</p>
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-text-tertiary">Pending</p>
                   <p className="text-lg font-bold tabular-nums">
                     ${totalPendingAmount.toLocaleString()}
                   </p>

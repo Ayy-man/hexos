@@ -211,7 +211,7 @@ export function FileSidebar({
           {/* DOCUMENTS Section */}
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+              <span className="text-[10px] font-mono font-medium text-text-tertiary uppercase tracking-wider">
                 Documents
               </span>
             </div>
@@ -248,7 +248,7 @@ export function FileSidebar({
           {/* UPLOADS Section */}
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+              <span className="text-[10px] font-mono font-medium text-text-tertiary uppercase tracking-wider">
                 Uploads
               </span>
             </div>

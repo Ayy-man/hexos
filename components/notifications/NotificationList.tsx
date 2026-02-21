@@ -29,7 +29,7 @@ function NotificationGroup({
 
   return (
     <div className="space-y-1">
-      <h3 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
+      <h3 className="text-[10px] font-mono font-medium text-text-tertiary uppercase tracking-wider mb-2">
         {title}
       </h3>
       <div className="divide-y divide-dashed divide-border">

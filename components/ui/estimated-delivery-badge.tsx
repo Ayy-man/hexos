@@ -104,7 +104,7 @@ export function EstimatedDeliveryBadge({
 
             {/* Text Content */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              <p className="text-[10px] font-mono font-medium text-text-tertiary uppercase tracking-wider">
                 Estimated Delivery
               </p>
               <h3 className={cn('text-xl font-bold mt-0.5', colors.text)}>

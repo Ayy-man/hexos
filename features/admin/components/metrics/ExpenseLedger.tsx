@@ -522,7 +522,7 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
                   {formData.is_recurring && (
                     <div className="grid grid-cols-2 gap-4 pt-2">
                       <div className="space-y-2">
-                        <Label className="text-xs uppercase tracking-wider text-muted-foreground">Frequency</Label>
+                        <Label className="text-xs font-mono uppercase tracking-wider text-text-tertiary">Frequency</Label>
                         <Select
                           value={formData.recurring_frequency}
                           onValueChange={(v) =>
@@ -544,7 +544,7 @@ export function ExpenseLedger({ expenses, paymentSources, projects }: ExpenseLed
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                        <Label className="text-xs font-mono uppercase tracking-wider text-text-tertiary">
                           {formData.recurring_frequency === 'weekly' ? 'Day of Week' : 'Day of Month'}
                         </Label>
                         <Select

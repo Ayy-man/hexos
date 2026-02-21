@@ -344,7 +344,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
               {/* Description */}
               {viewingInvitation.opportunity?.description && (
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                  <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider">
                     Description
                   </Label>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -357,7 +357,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
                 {/* Estimated hours */}
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     Estimated
                   </Label>
@@ -369,7 +369,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
                 {/* Complexity */}
                 {viewingInvitation.opportunity && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider flex items-center gap-1">
                       <BarChart3 className="h-3 w-3" />
                       Complexity
                     </Label>
@@ -382,7 +382,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
                 {/* Match percentage */}
                 {viewingInvitation.match_percentage && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                    <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider">
                       Match Score
                     </Label>
                     <p className="text-lg font-semibold text-green-600 dark:text-green-400">
@@ -394,7 +394,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
                 {/* Invitation expires */}
                 {viewingInvitation.expires_at && (
                   <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" />
                       Respond By
                     </Label>
@@ -418,7 +418,7 @@ export function InvitationList({ invitations }: InvitationListProps) {
                 <>
                   <Separator className="my-4" />
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                    <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider">
                       Requirements
                     </Label>
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">

@@ -109,7 +109,7 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
                         <div className="grid grid-cols-2 gap-8 text-sm">
                             <div className="space-y-4">
                                 <div>
-                                    <h4 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Bill To</h4>
+                                    <h4 className="font-mono font-semibold text-text-tertiary uppercase text-xs tracking-wider">Bill To</h4>
                                     <p className="mt-1 font-medium">{invoice.client_name}</p>
                                     <p className="text-muted-foreground">{invoice.client_email}</p>
                                     {invoice.client_company && <p className="text-muted-foreground">{invoice.client_company}</p>}
@@ -117,11 +117,11 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
                             </div>
                             <div className="space-y-4 text-right">
                                 <div>
-                                    <h4 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Issue Date</h4>
+                                    <h4 className="font-mono font-semibold text-text-tertiary uppercase text-xs tracking-wider">Issue Date</h4>
                                     <p className="mt-1 font-medium">{format(new Date(invoice.issue_date), 'MMM d, yyyy')}</p>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Due Date</h4>
+                                    <h4 className="font-mono font-semibold text-text-tertiary uppercase text-xs tracking-wider">Due Date</h4>
                                     <p className="mt-1 font-medium">{format(new Date(invoice.due_date), 'MMM d, yyyy')}</p>
                                 </div>
                             </div>
@@ -133,7 +133,7 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
                         <div>
                             <table className="w-full">
                                 <thead>
-                                    <tr className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                                    <tr className="text-left text-xs font-mono font-semibold text-text-tertiary uppercase tracking-wider">
                                         <th className="pb-4">Description</th>
                                         <th className="pb-4 text-center">Qty</th>
                                         <th className="pb-4 text-right">Price</th>

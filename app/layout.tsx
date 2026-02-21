@@ -49,7 +49,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#8860d0",
+  themeColor: "#0c0a08",
 };
 
 export default function RootLayout({
@@ -66,8 +66,8 @@ export default function RootLayout({
         <ServiceWorkerRegister />
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
           disableTransitionOnChange
         >
           <ErrorBoundary>

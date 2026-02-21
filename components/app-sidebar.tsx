@@ -270,7 +270,7 @@ export function AppSidebar({
                     tooltipContent = <InquiryTooltipContent counts={inquiryCounts} />
                     if (inquiryCounts.unopened > 0) {
                       badgeContent = (
-                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
+                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px] font-mono font-semibold">
                           {inquiryCounts.unopened}
                         </Badge>
                       )
@@ -281,7 +281,7 @@ export function AppSidebar({
                     tooltipContent = <ConversationTooltipContent summary={conversationSummary} />
                     if (conversationSummary.total_unread > 0) {
                       badgeContent = (
-                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
+                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px] font-mono font-semibold">
                           {conversationSummary.total_unread}
                         </Badge>
                       )
@@ -291,7 +291,7 @@ export function AppSidebar({
                     const newCount = suggestionCounts.new || 0
                     if (newCount > 0) {
                       badgeContent = (
-                        <Badge variant="secondary" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
+                        <Badge variant="secondary" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px] font-mono font-semibold">
                           {newCount}
                         </Badge>
                       )

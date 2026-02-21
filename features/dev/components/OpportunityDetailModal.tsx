@@ -148,7 +148,7 @@ export function OpportunityDetailModal({
       {/* Description */}
       {opportunity.description && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+          <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider">
             Description
           </Label>
           <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -161,7 +161,7 @@ export function OpportunityDetailModal({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
         {/* Duration - uses formatDuration */}
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+          <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider flex items-center gap-1">
             <Clock className="h-3 w-3" />
             Duration
           </Label>
@@ -172,7 +172,7 @@ export function OpportunityDetailModal({
 
         {/* Complexity */}
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+          <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider flex items-center gap-1">
             <BarChart3 className="h-3 w-3" />
             Complexity
           </Label>
@@ -184,7 +184,7 @@ export function OpportunityDetailModal({
         {/* Expiry */}
         {opportunity.expires_at && (
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+            <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               Expires
             </Label>
@@ -203,7 +203,7 @@ export function OpportunityDetailModal({
         <>
           <Separator className="my-4" />
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+            <Label className="text-xs font-mono text-text-tertiary uppercase tracking-wider">
               Requirements
             </Label>
             <p className="text-sm leading-relaxed whitespace-pre-wrap">

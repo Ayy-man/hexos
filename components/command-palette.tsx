@@ -455,7 +455,7 @@ export function CommandPalette({ role }: CommandPaletteProps) {
               ))}
               <div
                 onClick={clearRecent}
-                className="flex items-center justify-center gap-1.5 py-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 py-3 text-[10px] font-mono font-medium uppercase tracking-wider text-text-tertiary hover:text-foreground transition-colors cursor-pointer"
               >
                 <Clock className="h-3 w-3" />
                 Clear history

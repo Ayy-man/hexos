@@ -63,7 +63,7 @@ export function StageBadge({ stage, className, viewAs = 'admin' }: StageBadgePro
     <Badge
       variant="outline"
       className={cn(
-        'text-xs font-semibold uppercase tracking-wide',
+        'text-xs font-mono font-semibold uppercase tracking-wider',
         config.className,
         className
       )}
