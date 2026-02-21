@@ -157,16 +157,18 @@ export function UserMentionInputElement(props: PlateElementProps<TComboboxInputE
         showTrigger={false}
         trigger="@"
       >
-        <span className="inline-block rounded-md bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 align-baseline text-sm ring-ring focus-within:ring-2">
-          <InlineComboboxInput />
+        <span className="inline-block rounded-md bg-accent-dim px-1.5 py-0.5 align-baseline text-sm text-accent ring-accent-border focus-within:ring-1">
+          @<InlineComboboxInput />
         </span>
 
-        <InlineComboboxContent className="my-1.5">
+        <InlineComboboxContent className="my-1.5 border border-border bg-surface-secondary">
           {isLoading ? (
-            <div className="p-2 text-sm text-muted-foreground">Loading...</div>
+            <div className="p-3 text-sm text-muted-foreground">Loading...</div>
           ) : (
             <>
-              <InlineComboboxEmpty>No team members found</InlineComboboxEmpty>
+              <InlineComboboxEmpty>
+                <span className="text-muted-foreground">No team members found</span>
+              </InlineComboboxEmpty>
 
               <InlineComboboxGroup>
                 <InlineComboboxGroupLabel>Team Members</InlineComboboxGroupLabel>
@@ -175,13 +177,15 @@ export function UserMentionInputElement(props: PlateElementProps<TComboboxInputE
                     key={item.key}
                     value={item.text}
                     onClick={() => onSelectItem(editor, item, search)}
-                    className="flex items-center gap-2"
+                    className="h-auto py-1.5 gap-2.5 data-[active-item=true]:bg-accent-dim data-[active-item=true]:text-foreground"
                   >
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex flex-col">
-                      <span>{item.text}</span>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+                      <User className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{item.text}</span>
                       {item.data?.email && (
-                        <span className="text-xs text-muted-foreground">{item.data.email}</span>
+                        <span className="text-xs text-muted-foreground truncate">{item.data.email}</span>
                       )}
                     </div>
                   </InlineComboboxItem>
