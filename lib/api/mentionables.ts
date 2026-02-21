@@ -35,12 +35,15 @@ export async function getProjectMentionables(projectId: string): Promise<Project
     .select(`
       dfy_partner:profiles!dfy_partner_id(id, name, email, avatar_url),
       assigned_dev:profiles!assigned_dev_id(id, name, email, avatar_url),
-      client:profiles!projects_client_id_fkey(id, name, email, avatar_url)
+      client:profiles!client_id(id, name, email, avatar_url)
     `)
     .eq('id', projectId)
     .single()
 
-  if (projectError) throw projectError
+  if (projectError) {
+    console.error('[mentionables] Error fetching project:', projectError)
+    // Don't throw — still fetch admin/internal profiles below
+  }
 
   // Get all admin and internal users (they always have project access)
   const { data: adminProfiles, error: adminError } = await adminClient

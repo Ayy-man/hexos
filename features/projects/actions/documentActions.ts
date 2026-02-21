@@ -389,14 +389,14 @@ export async function getMentionablesAction(
       .select(`
         dfy_partner:profiles!dfy_partner_id(id, name, email),
         assigned_dev:profiles!assigned_dev_id(id, name, email),
-        client:profiles!projects_client_id_fkey(id, name, email)
+        client:profiles!client_id(id, name, email)
       `)
       .eq('id', projectId)
       .single()
 
     if (projectError) {
       console.error('[Action] Error fetching project for mentionables:', projectError)
-      return { users: [], deliverables: [] }
+      // Don't bail — still fetch admin/internal profiles below
     }
 
     // Get deliverables for the project

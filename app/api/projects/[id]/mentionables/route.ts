@@ -30,14 +30,14 @@ export async function GET(
       .select(`
         dfy_partner:profiles!dfy_partner_id(id, name, email),
         assigned_dev:profiles!assigned_dev_id(id, name, email),
-        client:profiles!projects_client_id_fkey(id, name, email)
+        client:profiles!client_id(id, name, email)
       `)
       .eq('id', projectId)
       .single()
 
     if (projectError) {
       console.error('[API] Error fetching project:', projectError)
-      return NextResponse.json({ error: projectError.message }, { status: 500 })
+      // Don't bail — still fetch admin/internal profiles below
     }
 
     // Get deliverables for the project
