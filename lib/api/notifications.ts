@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@/lib/supabase/admin'
 import { sendPushNotification } from '@/lib/push/send-notification'
 
 // Types
@@ -154,7 +155,8 @@ export async function createNotification(params: {
   blockerId?: string
   actorId?: string
 }): Promise<Notification> {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS — system notifications must insert for any user
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from('notifications')

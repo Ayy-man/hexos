@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@/lib/supabase/admin'
 import { createNotification } from '@/lib/api/notifications'
 import type { NotificationType } from '@/lib/api/notifications-utils'
 
@@ -26,7 +26,7 @@ interface BaseNotificationParams {
  */
 export async function notifyAdmins(params: BaseNotificationParams): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: admins, error } = await supabase
       .from('profiles')
@@ -84,7 +84,7 @@ export async function notifyProjectStakeholders(
   params: NotifyProjectStakeholdersParams
 ): Promise<void> {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Fetch project DFY partner
     const { data: project, error: projectError } = await supabase

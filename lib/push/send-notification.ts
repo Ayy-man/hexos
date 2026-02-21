@@ -10,7 +10,7 @@
  */
 
 import webpush from 'web-push';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@/lib/supabase/admin';
 
 // Configure VAPID details
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -44,7 +44,7 @@ export async function sendPushNotification(
   notification: PushNotificationPayload
 ): Promise<{ sent: number; failed: number }> {
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Get all push subscriptions for this user
     const { data: subscriptions, error } = await supabase
