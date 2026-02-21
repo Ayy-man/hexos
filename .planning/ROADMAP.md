@@ -343,6 +343,37 @@ Plans:
 
 ---
 
+### Phase 16: Notification Coverage Overhaul
+**Goal:** Every state transition in the platform lifecycle sends appropriate notifications to the right roles — zero silent state changes
+**Status:** Not started
+**Priority:** CRITICAL (Business visibility)
+**Plans:** 5 plans
+
+**Requirements:** [NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05, NOTIF-06, NOTIF-07, NOTIF-08]
+
+Full notification audit revealed 20+ missing or incomplete notification triggers across the entire platform. DFY partners can mark deals won/lost with zero admin visibility. Projects are created silently. Clients receive almost no notifications. Multiple notification types are defined in the enum but never triggered. Some code bypasses `createNotification()` (losing push delivery). The "Need Help" button lies — says "Admin notified" but sends nothing.
+
+**Delivers:**
+- Fix all missing inquiry/proposal lifecycle notifications (the reported DFY popup bug)
+- Fix all missing project/deliverable lifecycle notifications
+- Fix all missing payment notifications (client visibility)
+- Fix all missing dev experience notifications (check-ins, blockers raised)
+- Add @mention → notification trigger
+- Fix type safety issues (scope notifications using `as never` cast)
+- Fix inconsistent creation patterns (raw insert vs createNotification)
+- Add cron jobs for deadline reminders and check-in overdue detection
+
+**Dependencies:** Phase 11 (notification infrastructure), Phase 14 (retainer system)
+
+Plans:
+- [ ] 16-01-PLAN.md — DB enum sync, notification helpers, fix raw inserts and type safety
+- [ ] 16-02-PLAN.md — Inquiry/proposal lifecycle notifications and @mention trigger
+- [ ] 16-03-PLAN.md — Project/deliverable lifecycle and payment notifications
+- [ ] 16-04-PLAN.md — Dev experience notifications (check-ins, blockers, meetings)
+- [ ] 16-05-PLAN.md — Cron jobs for scheduled notifications (overdue, deadlines, expiry)
+
+---
+
 ## Summary
 
 | Phase | Name | Complexity | Dependencies |
@@ -362,7 +393,8 @@ Plans:
 | 13 | Email Delivery | Moderate | None |
 | 14 | Offboarding & Retainer | Complex | Phase 12 |
 | 15 | Meeting Assistant | Complex | None |
+| 16 | Notification Coverage Overhaul | Complex | Phase 11, Phase 14 |
 
 ---
 
-*15 phases for v1.0 polish milestone*
+*16 phases for v1.0 polish milestone*
