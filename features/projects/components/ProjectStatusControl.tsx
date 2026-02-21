@@ -479,7 +479,7 @@ export function ProjectStatusControl({
             <AlertDialogAction
               onClick={() => confirmDialog.status && handleTransition(confirmDialog.status)}
               disabled={isUpdating}
-              className={confirmDialog.status === 'cancelled' ? 'bg-red-600 hover:bg-red-700' : ''}
+              className={confirmDialog.status === 'cancelled' ? 'bg-red-600 hover:bg-red-700 text-white' : ''}
             >
               {isUpdating ? (
                 <>

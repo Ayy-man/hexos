@@ -280,7 +280,7 @@ export function ScopeChangeCard({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleReject}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
               disabled={isRejecting || !rejectReason.trim()}
             >
               {isRejecting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

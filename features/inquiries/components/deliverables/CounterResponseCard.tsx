@@ -138,7 +138,7 @@ export function CounterResponseCard({
                     size="sm"
                     onClick={onAccept}
                     disabled={isSubmitting}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     <Check className="h-4 w-4 mr-1" />
                     Accept Counter

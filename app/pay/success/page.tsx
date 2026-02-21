@@ -18,7 +18,7 @@ export default async function PaymentSuccessPage({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 dark:bg-slate-950">
+        <div className="min-h-screen bg-muted/50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 dark:bg-background">
             <div className="max-w-md mx-auto w-full">
                 <div className="flex justify-center mb-8">
                     <div className="flex items-center gap-2">

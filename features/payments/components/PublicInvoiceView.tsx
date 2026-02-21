@@ -62,7 +62,7 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 dark:bg-slate-950">
+        <div className="min-h-screen bg-muted/50 py-12 px-4 sm:px-6 lg:px-8 dark:bg-background">
             <div className="max-w-3xl mx-auto">
                 {/* Brand/Header */}
                 <div className="flex justify-between items-center mb-8">
@@ -80,7 +80,7 @@ export function PublicInvoiceView({ invoice }: PublicInvoiceViewProps) {
                     )}
                 </div>
 
-                <Card className="shadow-xl border-none overflow-hidden bg-white/80 backdrop-blur-sm dark:bg-slate-900/80">
+                <Card className="shadow-xl border-none overflow-hidden bg-white/80 backdrop-blur-sm dark:bg-card/80">
                     <div className="h-2 bg-primary" />
                     <CardHeader className="pt-8 px-8">
                         <div className="flex justify-between items-start">

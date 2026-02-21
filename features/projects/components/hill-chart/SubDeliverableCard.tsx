@@ -27,7 +27,7 @@ export function SubDeliverableCard({
   return (
     <Card
       className={cn(
-        'overflow-hidden border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900',
+        'overflow-hidden border-border bg-card dark:border-border dark:bg-card',
         deadline.isOverdue && 'border-red-500/40'
       )}
     >
@@ -85,7 +85,7 @@ export function SubDeliverableCard({
         </div>
 
         {/* Sparkline - full width, no extra container */}
-        <div className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/50 px-2 py-3">
+        <div className="border-t border-border bg-muted/50 dark:border-border dark:bg-background/50 px-2 py-3">
           <ExpandedSparkline
             history={item.history}
             currentX={item.x}
@@ -96,7 +96,7 @@ export function SubDeliverableCard({
         </div>
 
         {/* Quick update buttons */}
-        <div className="grid grid-cols-4 gap-2 border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/30 p-4">
+        <div className="grid grid-cols-4 gap-2 border-t border-border bg-muted/50 dark:border-border dark:bg-background/30 p-4">
           <Button
             variant="outline"
             size="sm"
@@ -136,7 +136,7 @@ export function SubDeliverableCard({
         </div>
 
         {/* History count */}
-        <div className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/30 py-2 text-center text-xs text-zinc-500 dark:text-zinc-600">
+        <div className="border-t border-border bg-muted/50 dark:border-border dark:bg-background/30 py-2 text-center text-xs text-muted-foreground dark:text-muted-foreground">
           {item.history?.length || 0} updates logged
         </div>
       </CardContent>

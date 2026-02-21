@@ -91,7 +91,7 @@ export function MarkAsClosedButton({
     <>
       <Button
         variant="default"
-        className="bg-green-600 hover:bg-green-700"
+        className="bg-green-600 hover:bg-green-700 text-white"
         onClick={() => setOpen(true)}
       >
         <PartyPopper className="h-4 w-4 mr-2" />

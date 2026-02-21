@@ -45,16 +45,16 @@ interface InquiryBoardViewProps {
 }
 
 const STAGE_COLORS: Record<ProposalStage, string> = {
-  unopened: 'border-t-red-500',
-  admin_reviewed: 'border-t-purple-500',
-  in_queue: 'border-t-blue-500',
-  working: 'border-t-cyan-500',
-  on_hold: 'border-t-orange-500',
-  final_review: 'border-t-yellow-500',
-  ready: 'border-t-green-500',
-  sent: 'border-t-emerald-500',
-  closed: 'border-t-teal-500',
-  lost: 'border-t-stone-500',
+  unopened: 'border-t-red-400 dark:border-t-red-400/60',
+  admin_reviewed: 'border-t-purple-400 dark:border-t-purple-400/60',
+  in_queue: 'border-t-blue-400 dark:border-t-blue-400/60',
+  working: 'border-t-cyan-400 dark:border-t-cyan-400/60',
+  on_hold: 'border-t-orange-400 dark:border-t-orange-400/60',
+  final_review: 'border-t-yellow-400 dark:border-t-yellow-400/60',
+  ready: 'border-t-green-400 dark:border-t-green-400/60',
+  sent: 'border-t-emerald-400 dark:border-t-emerald-400/60',
+  closed: 'border-t-teal-400 dark:border-t-teal-400/60',
+  lost: 'border-t-stone-400 dark:border-t-stone-400/60',
 }
 
 function groupInquiriesByStage(inquiries: Inquiry[]): Record<ProposalStage, Inquiry[]> {
@@ -160,7 +160,7 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
               </div>
 
               {/* Column Content */}
-              <KanbanColumnContent value={stage} className="p-2 min-h-[400px]">
+              <KanbanColumnContent value={stage} className="p-2 min-h-[120px]">
                 {stageInquiries.map((inquiry) => (
                   <KanbanItem key={inquiry.id} value={inquiry.id}>
                     <InquiryCard
@@ -171,8 +171,8 @@ export function InquiryBoardView({ inquiries, onStageChange }: InquiryBoardViewP
                 ))}
 
                 {stageInquiries.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    Drop inquiries here
+                  <div className="text-center py-4 text-muted-foreground text-sm italic opacity-60">
+                    No items
                   </div>
                 )}
               </KanbanColumnContent>

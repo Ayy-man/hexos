@@ -19,7 +19,7 @@ export function ParentDeliverableCard({ item, onClick }: ParentCardProps) {
   return (
     <Card
       className={cn(
-        'cursor-pointer overflow-hidden border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800/50',
+        'cursor-pointer overflow-hidden border-border bg-card dark:border-border dark:bg-card transition-all hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-muted/50 dark:hover:bg-muted/50',
         deadline.isOverdue && 'border-red-500/40'
       )}
       onClick={onClick}
@@ -69,7 +69,7 @@ export function ParentDeliverableCard({ item, onClick }: ParentCardProps) {
         </div>
 
         {/* Sparkline with labels */}
-        <div className="border-t border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950/50 px-3 pt-2 pb-1">
+        <div className="border-t border-border bg-muted/50 dark:border-border dark:bg-background/50 px-3 pt-2 pb-1">
           <CompactSparkline
             history={item.history}
             currentX={item.x}

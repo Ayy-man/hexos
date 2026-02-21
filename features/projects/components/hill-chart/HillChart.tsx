@@ -150,7 +150,7 @@ export function HillChart({
       ref={svgRef}
       width={width}
       height={height}
-      className="rounded-lg bg-zinc-100 dark:bg-zinc-950"
+      className="rounded-lg bg-muted dark:bg-background"
       style={{
         cursor: draggedId ? 'grabbing' : 'default',
       }}
@@ -436,56 +436,68 @@ export function HillChart({
               </g>
             )}
 
-            {/* Hover tooltip */}
-            {isHovered && !isDragging && (
-              <g style={{ pointerEvents: 'none' }}>
-                <rect
-                  x={pos.x - 60}
-                  y={cy - 48}
-                  width={120}
-                  height={testing ? 48 : 36}
-                  rx={6}
-                  className="fill-white stroke-zinc-200 dark:fill-zinc-900 dark:stroke-zinc-800"
-                />
-                <text
-                  x={pos.x}
-                  y={cy - 32}
-                  className="fill-zinc-900 dark:fill-zinc-100"
-                  fontSize="11"
-                  textAnchor="middle"
-                  fontWeight="500"
-                  fontFamily="system-ui"
-                >
-                  {item.name}
-                </text>
-                <text
-                  x={pos.x}
-                  y={cy - 18}
-                  className={testing ? 'fill-violet-500' : 'fill-zinc-500'}
-                  fontSize="10"
-                  textAnchor="middle"
-                  fontFamily="system-ui"
-                  fontWeight={testing ? '600' : '400'}
-                >
-                  {testing && testing.stage ? `${STAGE_CONFIG[testing.stage].label} TEST` : `${Math.round(effectiveX)}%`}
-                </text>
-                {testing && isLocked && (
-                  <text
-                    x={pos.x}
-                    y={cy - 6}
-                    className="fill-amber-500"
-                    fontSize="9"
-                    textAnchor="middle"
-                    fontFamily="system-ui"
-                  >
-                    Locked until {testing.unlockPosition}% test passes
-                  </text>
-                )}
-              </g>
-            )}
           </g>
         )
       })}
+
+      {/* Hover tooltip — rendered after all dots so it paints on top */}
+      {hoveredId && !draggedId && (() => {
+        const item = items.find(i => i.id === hoveredId)
+        if (!item) return null
+        const pos = stackedPositions[item.id]
+        if (!pos) return null
+        const effectiveX = getItemX(item)
+        const cy = pos.y
+        const testing = item.testing
+        const isLocked = testing?.isLocked
+
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect
+              x={pos.x - 60}
+              y={cy - 48}
+              width={120}
+              height={testing ? 48 : 36}
+              rx={6}
+              className="fill-white stroke-zinc-200 dark:fill-zinc-900 dark:stroke-zinc-800"
+            />
+            <text
+              x={pos.x}
+              y={cy - 32}
+              className="fill-zinc-900 dark:fill-zinc-100"
+              fontSize="11"
+              textAnchor="middle"
+              fontWeight="500"
+              fontFamily="system-ui"
+            >
+              {item.name}
+            </text>
+            <text
+              x={pos.x}
+              y={cy - 18}
+              className={testing ? 'fill-violet-500' : 'fill-zinc-500'}
+              fontSize="10"
+              textAnchor="middle"
+              fontFamily="system-ui"
+              fontWeight={testing ? '600' : '400'}
+            >
+              {testing && testing.stage ? `${STAGE_CONFIG[testing.stage].label} TEST` : `${Math.round(effectiveX)}%`}
+            </text>
+            {testing && isLocked && (
+              <text
+                x={pos.x}
+                y={cy - 6}
+                className="fill-amber-500"
+                fontSize="9"
+                textAnchor="middle"
+                fontFamily="system-ui"
+              >
+                Locked until {testing.unlockPosition}% test passes
+              </text>
+            )}
+          </g>
+        )
+      })()}
 
       {/* Mode badge */}
       {readOnly && !isEditMode && (

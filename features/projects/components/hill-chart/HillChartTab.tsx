@@ -250,13 +250,13 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
   // Phase-based visibility: hide during early phases
   if (!showHillChart) {
     return (
-      <Card className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="border-border bg-card dark:border-border dark:bg-card">
         <CardContent className="py-12 text-center">
-          <p className="mb-2 text-zinc-500 dark:text-zinc-400">Hill Chart not available yet</p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-600">
+          <p className="mb-2 text-muted-foreground">Hill Chart not available yet</p>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Progress tracking will be available once the project enters the development phase.
           </p>
-          <p className="mt-4 text-xs text-zinc-400 dark:text-zinc-600">
+          <p className="mt-4 text-xs text-muted-foreground">
             Current phase: <span className="font-medium">{getPhaseName(currentPhase)}</span>
           </p>
         </CardContent>
@@ -267,10 +267,10 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
   // Empty state
   if (parentItems.length === 0) {
     return (
-      <Card className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="border-border bg-card dark:border-border dark:bg-card">
         <CardContent className="py-12 text-center">
-          <p className="mb-2 text-zinc-500 dark:text-zinc-400">No deliverables to track</p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-600">
+          <p className="mb-2 text-muted-foreground">No deliverables to track</p>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Add deliverables in the Deliverables tab to visualize progress here.
           </p>
         </CardContent>
@@ -285,8 +285,8 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
     <div className="space-y-4">
       {/* Read-only banner for delivery/closed phases */}
       {isReadOnlyPhase && (
-        <Card className="border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
-          <CardContent className="py-3 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+        <Card className="border-border bg-muted/50 dark:border-border dark:bg-card/50">
+          <CardContent className="py-3 flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4" />
             <span>
               This project is in the <span className="font-medium">{getPhaseName(currentPhase)}</span> phase.
@@ -297,7 +297,7 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
       )}
 
       {/* Header */}
-      <Card className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="border-border bg-card dark:border-border dark:bg-card">
         <CardContent className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             {selectedDeliverableId && (
@@ -305,30 +305,30 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
                 variant="outline"
                 size="sm"
                 onClick={() => setSelectedDeliverableId(null)}
-                className="border-zinc-300 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-950"
+                className="border-border bg-muted dark:border-border dark:bg-background"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
             )}
             <div>
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              <h2 className="text-lg font-semibold text-foreground">
                 {selectedParent ? selectedParent.name : 'Project Hill Chart'}
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-600">
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                 {selectedParent
                   ? `${selectedParent.children.length} sub-deliverables`
                   : `${parentItems.length} deliverables`}
                 {selectedParent?.deadline && (
-                  <span className="text-zinc-400 dark:text-zinc-500"> • Due {selectedParent.deadline}</span>
+                  <span className="text-muted-foreground"> • Due {selectedParent.deadline}</span>
                 )}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="rounded-md border border-zinc-200 bg-zinc-100 px-3 py-1.5 dark:border-zinc-800 dark:bg-zinc-950">
-              <span className="text-xs text-zinc-500 dark:text-zinc-600">Today: </span>
+            <div className="rounded-md border border-border bg-muted px-3 py-1.5 dark:border-border dark:bg-background">
+              <span className="text-xs text-muted-foreground dark:text-muted-foreground">Today: </span>
               <span className="text-sm font-semibold text-cyan-500">
                 {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
@@ -338,7 +338,7 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
       </Card>
 
       {/* Hill Chart */}
-      <Card className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+      <Card className="border-border bg-card dark:border-border dark:bg-card">
         <CardContent className="p-4">
           <HillChart
             items={currentItems}
@@ -385,7 +385,7 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
 
       {/* Items Grid */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">
           {selectedDeliverableId ? 'Sub-deliverables' : 'Deliverables'}
         </h3>
 
@@ -418,7 +418,7 @@ export function HillChartTab({ project, userRole, isAdmin, testingInfo }: HillCh
       </div>
 
       {/* Help text */}
-      <p className="text-center text-xs text-zinc-500 dark:text-zinc-600">
+      <p className="text-center text-xs text-muted-foreground dark:text-muted-foreground">
         {selectedDeliverableId
           ? 'Drag dots on the chart or use quick buttons to update progress'
           : 'Click a deliverable to expand and track sub-item progress'}

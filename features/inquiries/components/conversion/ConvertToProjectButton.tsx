@@ -85,7 +85,7 @@ export function ConvertToProjectButton({
         <div className="fixed bottom-6 right-6 z-50">
           <Button
             size="lg"
-            className="bg-cyan-600 hover:bg-cyan-700 shadow-lg"
+            className="bg-cyan-600 hover:bg-cyan-700 text-white shadow-lg"
             onClick={handleClick}
             disabled={isParsing}
           >
@@ -99,7 +99,7 @@ export function ConvertToProjectButton({
         </div>
       ) : (
         <Button
-          className="w-full bg-cyan-600 hover:bg-cyan-700"
+          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white"
           onClick={handleClick}
           disabled={isParsing}
         >

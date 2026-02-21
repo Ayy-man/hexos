@@ -12,7 +12,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, colorClass, icon }: StatCardProps) {
   return (
-    <Card className="border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+    <Card className="border-border bg-card dark:border-border dark:bg-card">
       <CardContent className="p-3">
         <div className="mb-0.5 flex items-center justify-between">
           <span className="text-xs text-zinc-500">{label}</span>

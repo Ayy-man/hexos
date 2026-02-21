@@ -24,7 +24,7 @@ export function PricingTiersDisplay({ tiers }: PricingTiersDisplayProps) {
               <CardTitle className="flex items-center justify-between">
                 {tier.name}
                 {index === tiers.length - 1 && (
-                  <Badge variant="default" className="bg-cyan-600">Recommended</Badge>
+                  <Badge variant="default" className="bg-cyan-600 text-white">Recommended</Badge>
                 )}
               </CardTitle>
               <CardDescription>

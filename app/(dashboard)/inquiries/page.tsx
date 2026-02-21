@@ -8,11 +8,11 @@ import { Plus, FileText, Archive, Inbox } from 'lucide-react'
 import { InquiryListView } from '@/features/inquiries/components/InquiryListView'
 import { STAGE_ORDER } from '@/features/inquiries/components/StageBadge'
 
-const STAGE_STATS: { stage: ProposalStage; label: string; color: string }[] = [
-  { stage: 'unopened', label: 'Unopened', color: 'text-red-600' },
-  { stage: 'in_queue', label: 'In Queue', color: 'text-blue-600' },
-  { stage: 'working', label: 'Working', color: 'text-cyan-600' },
-  { stage: 'ready', label: 'Ready', color: 'text-green-600' },
+const STAGE_STATS: { stage: ProposalStage; label: string; color: string; border: string }[] = [
+  { stage: 'unopened', label: 'Unopened', color: 'text-error-foreground', border: 'border-error' },
+  { stage: 'in_queue', label: 'In Queue', color: 'text-info-foreground', border: 'border-info' },
+  { stage: 'working', label: 'Working', color: 'text-warning-foreground', border: 'border-warning' },
+  { stage: 'ready', label: 'Ready', color: 'text-success-foreground', border: 'border-success' },
 ]
 
 export default async function InquiriesPage({
@@ -106,7 +106,7 @@ export default async function InquiriesPage({
       {/* Stats - only for active view - 2 per row on mobile */}
       {filter === 'active' && (
         <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-5">
-          <Card className="p-3 md:p-0">
+          <Card className="border-l-3 border-primary p-3 md:p-0">
             <CardHeader className="p-0 pb-1 md:p-6 md:pb-2">
               <CardTitle className="text-xs md:text-sm font-medium">Total</CardTitle>
             </CardHeader>
@@ -114,8 +114,8 @@ export default async function InquiriesPage({
               <div className="text-xl md:text-2xl font-bold">{inquiries.length}</div>
             </CardContent>
           </Card>
-          {STAGE_STATS.map(({ stage, label, color }) => (
-            <Card key={stage} className="p-3 md:p-0">
+          {STAGE_STATS.map(({ stage, label, color, border }) => (
+            <Card key={stage} className={`border-l-3 ${border} p-3 md:p-0`}>
               <CardHeader className="p-0 pb-1 md:p-6 md:pb-2">
                 <CardTitle className={`text-xs md:text-sm font-medium ${color}`}>{label}</CardTitle>
               </CardHeader>

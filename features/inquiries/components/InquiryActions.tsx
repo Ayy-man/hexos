@@ -117,7 +117,7 @@ export function InquiryActions({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               {isPending ? (
                 <RefreshCw className="h-4 w-4 animate-spin mr-2" />

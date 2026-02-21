@@ -29,7 +29,7 @@ const types: Array<{
     label: 'No Work',
     description: 'Did not work on this project',
     icon: <Coffee className="h-5 w-5" />,
-    color: 'text-gray-600 bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800',
+    color: 'text-gray-600 bg-gray-50 border-gray-200 dark:bg-muted/20 dark:border-border',
   },
   {
     value: 'delay',
