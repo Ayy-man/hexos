@@ -44,6 +44,20 @@ export type NotificationType =
   | 'retainer_health_warning'
   | 'project_completed'
   | 'project_moved_to_retainer'
+  // Phase 16: New notification coverage types
+  | 'inquiry_created'
+  | 'proposal_sent'
+  | 'inquiry_won'
+  | 'inquiry_lost'
+  | 'escalation_admin'
+  | 'project_created'
+  | 'deliverable_status_change'
+  | 'deliverables_confirmed'
+  | 'send_for_signoff'
+  | 'signed_off'
+  | 'check_in_submitted'
+  | 'blocker_raised'
+  | 'meeting_scheduled'
 
 export interface Notification {
   id: string
@@ -145,6 +159,33 @@ export function getNotificationIcon(type: NotificationType): string {
       return 'check-circle'
     case 'project_moved_to_retainer':
       return 'refresh-cw'
+    // Phase 16 notification types
+    case 'inquiry_created':
+      return 'inbox'
+    case 'proposal_sent':
+      return 'send'
+    case 'inquiry_won':
+      return 'trophy'
+    case 'inquiry_lost':
+      return 'x-circle'
+    case 'escalation_admin':
+      return 'alert-octagon'
+    case 'project_created':
+      return 'folder-plus'
+    case 'deliverable_status_change':
+      return 'refresh-cw'
+    case 'deliverables_confirmed':
+      return 'check-circle'
+    case 'send_for_signoff':
+      return 'send'
+    case 'signed_off':
+      return 'check-circle-2'
+    case 'check_in_submitted':
+      return 'clipboard-check'
+    case 'blocker_raised':
+      return 'alert-triangle'
+    case 'meeting_scheduled':
+      return 'calendar'
     default:
       return 'bell'
   }
@@ -228,6 +269,33 @@ export function getNotificationColor(type: NotificationType): string {
       return 'text-success'
     case 'project_moved_to_retainer':
       return 'text-info'
+    // Phase 16 notification types
+    case 'inquiry_created':
+      return 'text-info'
+    case 'proposal_sent':
+      return 'text-primary'
+    case 'inquiry_won':
+      return 'text-success'
+    case 'inquiry_lost':
+      return 'text-error'
+    case 'escalation_admin':
+      return 'text-warning'
+    case 'project_created':
+      return 'text-info'
+    case 'deliverable_status_change':
+      return 'text-muted-foreground'
+    case 'deliverables_confirmed':
+      return 'text-success'
+    case 'send_for_signoff':
+      return 'text-primary'
+    case 'signed_off':
+      return 'text-success'
+    case 'check_in_submitted':
+      return 'text-info'
+    case 'blocker_raised':
+      return 'text-error'
+    case 'meeting_scheduled':
+      return 'text-info'
     default:
       return 'text-muted-foreground'
   }
@@ -250,6 +318,7 @@ export function getNotificationUrl(notification: Notification): string {
       case 'suggestion_status_change':
         return '/my-suggestions'
       case 'meeting_ready':
+      case 'meeting_scheduled':
         return '/meetings'
       case 'retainer_check_in_due':
       case 'retainer_check_in_overdue':
@@ -260,6 +329,15 @@ export function getNotificationUrl(notification: Notification): string {
       case 'project_completed':
       case 'project_moved_to_retainer':
         return '/dashboard'
+      // Phase 16 inquiry-related notifications (no project context)
+      case 'inquiry_created':
+      case 'proposal_sent':
+      case 'inquiry_won':
+      case 'inquiry_lost':
+      case 'escalation_admin':
+        return '/inquiries'
+      case 'project_created':
+        return '/projects'
       default:
         return '/dashboard'
     }
@@ -310,6 +388,25 @@ export function getNotificationUrl(notification: Notification): string {
     case 'project_completed':
     case 'project_moved_to_retainer':
       return `/projects/${projectId}`
+    // Phase 16 project-context notifications
+    case 'project_created':
+    case 'inquiry_created':
+    case 'proposal_sent':
+    case 'inquiry_won':
+    case 'inquiry_lost':
+    case 'escalation_admin':
+      return `/projects/${projectId}`
+    case 'deliverable_status_change':
+    case 'deliverables_confirmed':
+    case 'send_for_signoff':
+    case 'signed_off':
+      return `/projects/${projectId}?tab=deliverables`
+    case 'check_in_submitted':
+      return `/projects/${projectId}?tab=check-ins`
+    case 'blocker_raised':
+      return `/projects/${projectId}?tab=requirements`
+    case 'meeting_scheduled':
+      return `/meetings`
     default:
       return `/projects/${projectId}`
   }
