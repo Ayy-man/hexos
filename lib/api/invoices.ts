@@ -11,6 +11,7 @@ import {
   createCheckoutSession,
 } from '@/lib/stripe/server'
 import { createNotification } from '@/lib/api/notifications'
+import { notifyAdmins } from '@/lib/api/notification-helpers'
 import { activityLogger } from '@/lib/logging/activity-logger'
 import type {
   Invoice,
@@ -82,7 +83,7 @@ export async function getInvoice(id: string): Promise<InvoiceWithProject | null>
     .select(
       `
       *,
-      projects!project_id(name, dfy_partner_id),
+      projects!project_id(name, dfy_partner_id, client_id),
       milestones!milestone_id(label)
     `
     )
@@ -98,6 +99,7 @@ export async function getInvoice(id: string): Promise<InvoiceWithProject | null>
     ...data,
     project_name: (data as any).projects?.name || null,
     dfy_partner_id: (data as any).projects?.dfy_partner_id || null,
+    client_id: (data as any).projects?.client_id || null,
     milestone_label: (data as any).milestones?.label || null,
     projects: undefined,
     milestones: undefined,
@@ -351,6 +353,27 @@ export async function sendInvoice(
       }
     }
 
+    // Notify client and admins of invoice sent
+    try {
+      if (invoice.client_id) {
+        await createNotification({
+          userId: invoice.client_id,
+          type: 'invoice_sent',
+          title: 'New Invoice',
+          message: `Invoice #${invoice.invoice_number} for $${invoice.total / 100} has been sent`,
+          projectId: invoice.project_id || undefined,
+        })
+      }
+      await notifyAdmins({
+        type: 'invoice_sent',
+        title: 'Invoice Sent',
+        message: `Invoice #${invoice.invoice_number} for $${invoice.total / 100} sent to ${invoice.client_name}`,
+        projectId: invoice.project_id || undefined,
+      })
+    } catch (e) {
+      console.error('[sendInvoice] Notification failed:', e)
+    }
+
     return { success: true }
   } catch (err: any) {
     console.error('Error sending invoice via Stripe:', err)
@@ -448,6 +471,30 @@ export async function voidInvoice(
       return { success: false, error: error.message }
     }
 
+    // Notify DFY partner and client of invoice voided
+    try {
+      if (invoice.dfy_partner_id) {
+        await createNotification({
+          userId: invoice.dfy_partner_id,
+          type: 'status_change',
+          title: 'Invoice Voided',
+          message: `Invoice #${invoice.invoice_number} has been voided`,
+          projectId: invoice.project_id || undefined,
+        })
+      }
+      if (invoice.client_id) {
+        await createNotification({
+          userId: invoice.client_id,
+          type: 'status_change',
+          title: 'Invoice Voided',
+          message: `Invoice #${invoice.invoice_number} has been voided`,
+          projectId: invoice.project_id || undefined,
+        })
+      }
+    } catch (e) {
+      console.error('[voidInvoice] Notification failed:', e)
+    }
+
     return { success: true }
   } catch (err: any) {
     console.error('Error voiding invoice in Stripe:', err)
@@ -517,6 +564,29 @@ export async function markInvoicePaid(
       })
     } catch (notifyErr) {
       console.error('Error notifying DFY partner of payment:', notifyErr)
+    }
+  }
+
+  // Notify client and admins of payment received
+  if (invoice) {
+    try {
+      if (invoice.client_id) {
+        await createNotification({
+          userId: invoice.client_id,
+          type: 'invoice_paid',
+          title: 'Payment Received',
+          message: `Payment for invoice #${invoice.invoice_number} ($${invoice.total / 100}) has been received`,
+          projectId: invoice.project_id || undefined,
+        })
+      }
+      await notifyAdmins({
+        type: 'invoice_paid',
+        title: 'Payment Received',
+        message: `Invoice #${invoice.invoice_number} ($${invoice.total / 100}) has been paid`,
+        projectId: invoice.project_id || undefined,
+      })
+    } catch (e) {
+      console.error('[markInvoicePaid] Notification failed:', e)
     }
   }
 
