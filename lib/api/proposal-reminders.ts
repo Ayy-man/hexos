@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { notifyAdmins } from './notification-helpers'
 
 // Constants
 export const REMINDER_DAYS = 21 // 3 weeks
@@ -280,7 +281,7 @@ export async function markProposalLost(inquiryId: string, reason?: string): Prom
   // Get current inquiry for stage history
   const { data: inquiry, error: fetchError } = await supabase
     .from('inquiries')
-    .select('stage_history, proposal_stage')
+    .select('stage_history, proposal_stage, prospect_company_name')
     .eq('id', inquiryId)
     .single()
 
@@ -310,6 +311,17 @@ export async function markProposalLost(inquiryId: string, reason?: string): Prom
     .eq('id', inquiryId)
 
   if (error) throw error
+
+  try {
+    await notifyAdmins({
+      type: 'inquiry_lost',
+      title: 'Proposal Lost',
+      message: `"${inquiry?.prospect_company_name || 'Unknown'}" has been marked as lost. Reason: ${reason || 'Not specified'}`,
+      actorId: user?.id,
+    })
+  } catch (notifyErr) {
+    console.error('[markProposalLost] Notification failed:', notifyErr)
+  }
 }
 
 /**
@@ -317,6 +329,15 @@ export async function markProposalLost(inquiryId: string, reason?: string): Prom
  */
 export async function escalateToAdmin(inquiryId: string): Promise<void> {
   const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Fetch inquiry details for notification message
+  const { data: inquiry } = await supabase
+    .from('inquiries')
+    .select('prospect_company_name')
+    .eq('id', inquiryId)
+    .single()
 
   const { error } = await supabase
     .from('inquiries')
@@ -327,6 +348,17 @@ export async function escalateToAdmin(inquiryId: string): Promise<void> {
     .eq('id', inquiryId)
 
   if (error) throw error
+
+  try {
+    await notifyAdmins({
+      type: 'escalation_admin',
+      title: 'DFY Needs Admin Help',
+      message: `DFY partner has requested admin assistance for "${inquiry?.prospect_company_name || 'Unknown'}"`,
+      actorId: user?.id,
+    })
+  } catch (notifyErr) {
+    console.error('[escalateToAdmin] Notification failed:', notifyErr)
+  }
 }
 
 /**

@@ -4,6 +4,7 @@ import type { CreateInquiryData } from '@/features/inquiries/types'
 import type { CreateRequirementInput } from './project-requirements'
 import { bulkCreateProjectRequirements } from './project-requirements'
 import { createNotification } from './notifications'
+import { notifyAdmins } from './notification-helpers'
 
 export type { CreateInquiryData }
 
@@ -41,6 +42,17 @@ export async function createInquiry(data: CreateInquiryData) {
     .single()
 
   if (error) throw error
+
+  try {
+    await notifyAdmins({
+      type: 'inquiry_created',
+      title: 'New Inquiry Submitted',
+      message: `New inquiry from ${inquiry.prospect_company_name || 'Unknown'}: ${inquiry.form_data?.project_type || 'General'}`,
+    })
+  } catch (notifyErr) {
+    console.error('[createInquiry] Notification failed:', notifyErr)
+  }
+
   return inquiry
 }
 
@@ -543,6 +555,18 @@ export async function submitProposalToDfy(id: string) {
       console.error('[submitProposalToDfy] Failed to create notification:', notifyErr)
     }
   }
+
+  // Notify admins that a proposal has been sent to DFY
+  try {
+    await notifyAdmins({
+      type: 'proposal_sent',
+      title: 'Proposal Sent to DFY',
+      message: `Proposal for "${inquiry?.prospect_company_name || 'Unknown'}" has been sent to DFY partner`,
+      actorId: user.id,
+    })
+  } catch (notifyErr) {
+    console.error('[submitProposalToDfy] Notification failed:', notifyErr)
+  }
 }
 
 // Unsubmit proposal (undo send) - admin only
@@ -659,7 +683,7 @@ export async function markInquiryAsClosed(
   // Get current stage history
   const { data: inquiry } = await supabase
     .from('inquiries')
-    .select('proposal_stage, stage_history')
+    .select('proposal_stage, stage_history, prospect_company_name')
     .eq('id', id)
     .single()
 
@@ -686,6 +710,17 @@ export async function markInquiryAsClosed(
     .eq('id', id)
 
   if (error) throw error
+
+  try {
+    await notifyAdmins({
+      type: 'inquiry_won',
+      title: 'Inquiry Won',
+      message: `"${inquiry?.prospect_company_name || 'Unknown'}" has been marked as won`,
+      actorId: user.id,
+    })
+  } catch (notifyErr) {
+    console.error('[markInquiryAsClosed] Notification failed:', notifyErr)
+  }
 }
 
 // Undo mark as closed
