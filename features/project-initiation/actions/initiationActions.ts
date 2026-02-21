@@ -7,6 +7,7 @@ import {
   type RequirementOwner,
   type RequirementBlocker,
 } from '@/lib/api/onboarding-requirements'
+import { notifyProjectStakeholders } from '@/lib/api/notification-helpers'
 
 // ============================================
 // Types
@@ -119,6 +120,19 @@ export async function completeInitiationAction(
     throw projectError
   }
   console.log('[completeInitiation] Project created:', project.id)
+
+  // Notify stakeholders of new project creation
+  try {
+    await notifyProjectStakeholders({
+      projectId: project.id,
+      type: 'project_created',
+      title: 'New Project Created',
+      message: `Project "${project.project_name}" has been created`,
+      actorId: user.id,
+    })
+  } catch (e) {
+    console.error('[completeInitiationAction] Notification failed:', e)
+  }
 
   // 2. Create payment milestones based on structure
   const priceDfy = projectData.price_dfy || 0

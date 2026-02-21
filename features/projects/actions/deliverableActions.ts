@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { hasBaseline, autoFlagScopeChange, getBaseline } from '@/lib/api/scope-monitoring'
+import { notifyProjectStakeholders } from '@/lib/api/notification-helpers'
 import type { ScopeChangeTrigger, ScopeChangeDelta } from '@/lib/types/scope-monitoring'
 
 // ============================================
@@ -286,6 +287,20 @@ export async function updateDeliverableStatusAction(
       new_status: status,
     },
   })
+
+  // Notify project stakeholders of deliverable status change
+  try {
+    await notifyProjectStakeholders({
+      projectId,
+      type: 'deliverable_status_change',
+      title: `Deliverable ${status}`,
+      message: `"${current?.title}" status changed to ${status}`,
+      actorId: user.id,
+      excludeUserId: user.id,
+    })
+  } catch (e) {
+    console.error('[updateDeliverableStatusAction] Notification failed:', e)
+  }
 
   revalidatePath(`/projects/${projectId}`)
 }

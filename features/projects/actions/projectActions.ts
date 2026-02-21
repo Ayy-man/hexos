@@ -8,6 +8,7 @@ import {
 } from '@/lib/api/project-requirements'
 import { checkAndNotifyUnblockedRequirements } from '@/lib/api/requirement-notifications'
 import { createNotification } from '@/lib/api/notifications'
+import { notifyProjectStakeholders } from '@/lib/api/notification-helpers'
 import { captureBaseline } from '@/lib/api/scope-monitoring'
 import { getProject, updateProject } from '@/lib/api/projects'
 import type { ProjectStatus } from '@/lib/api/projects'
@@ -106,6 +107,20 @@ export async function confirmDeliverablesAction(projectId: string): Promise<void
     details: {},
   })
 
+  // Notify project stakeholders that deliverables have been confirmed
+  try {
+    await notifyProjectStakeholders({
+      projectId,
+      type: 'deliverables_confirmed',
+      title: 'Deliverables Confirmed',
+      message: 'Project deliverables have been confirmed and are ready for work',
+      actorId: user.id,
+      excludeUserId: user.id,
+    })
+  } catch (e) {
+    console.error('[confirmDeliverablesAction] Notification failed:', e)
+  }
+
   revalidatePath(`/projects/${projectId}`)
 }
 
@@ -130,6 +145,20 @@ export async function sendForSignoffAction(projectId: string): Promise<void> {
     action: 'signoff_sent',
     details: {},
   })
+
+  // Notify project stakeholders that deliverables are ready for signoff
+  try {
+    await notifyProjectStakeholders({
+      projectId,
+      type: 'send_for_signoff',
+      title: 'Deliverables Ready for Signoff',
+      message: 'Project deliverables have been submitted for your review and signoff',
+      actorId: user.id,
+      excludeUserId: user.id,
+    })
+  } catch (e) {
+    console.error('[sendForSignoffAction] Notification failed:', e)
+  }
 
   revalidatePath(`/projects/${projectId}`)
 }
@@ -162,6 +191,20 @@ export async function signOffDeliverablesAction(projectId: string): Promise<void
     action: 'signed_off',
     details: {},
   })
+
+  // Notify project stakeholders that client has signed off
+  try {
+    await notifyProjectStakeholders({
+      projectId,
+      type: 'signed_off',
+      title: 'Deliverables Signed Off',
+      message: 'Client has signed off on project deliverables',
+      actorId: user.id,
+      excludeUserId: user.id,
+    })
+  } catch (e) {
+    console.error('[signOffDeliverablesAction] Notification failed:', e)
+  }
 
   revalidatePath(`/projects/${projectId}`)
 }
