@@ -353,8 +353,9 @@ export function getNotificationUrl(notification: Notification): string {
     case 'requirement_unblocked':
       return `/projects/${projectId}?tab=requirements`
     case 'admin_comment':
-    case 'mention':
       return `/projects/${projectId}?tab=activity`
+    case 'mention':
+      return `/projects/${projectId}?tab=gameplan`
     case 'deadline_reminder':
       return `/projects/${projectId}?tab=deliverables`
     case 'invoice_sent':
