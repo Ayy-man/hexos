@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { OfflineIndicator } from "@/components/offline-indicator";
@@ -9,10 +10,18 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { GlobalErrorHandler } from "@/components/global-error-handler";
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const generalSans = localFont({
+  src: [
+    { path: '../public/fonts/GeneralSans-Regular.otf', weight: '400', style: 'normal' },
+    { path: '../public/fonts/GeneralSans-Italic.otf', weight: '400', style: 'italic' },
+    { path: '../public/fonts/GeneralSans-Medium.otf', weight: '500', style: 'normal' },
+    { path: '../public/fonts/GeneralSans-MediumItalic.otf', weight: '500', style: 'italic' },
+    { path: '../public/fonts/GeneralSans-Semibold.otf', weight: '600', style: 'normal' },
+    { path: '../public/fonts/GeneralSans-SemiboldItalic.otf', weight: '600', style: 'italic' },
+    { path: '../public/fonts/GeneralSans-Bold.otf', weight: '700', style: 'normal' },
+    { path: '../public/fonts/GeneralSans-BoldItalic.otf', weight: '700', style: 'italic' },
+  ],
   variable: '--font-sans',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
   display: 'swap',
 });
 
@@ -58,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={dmSans.variable} suppressHydrationWarning>
+    <html lang="en" className={generalSans.variable} suppressHydrationWarning>
       <body
         className={`${jetbrainsMono.variable} antialiased`}
       >
