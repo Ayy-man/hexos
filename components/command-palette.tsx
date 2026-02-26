@@ -283,14 +283,18 @@ const typeIcons: Record<SearchResult['type'], React.ReactNode> = {
 
 interface CommandPaletteProps {
   role: UserRole
+  externalOpen?: boolean
+  onExternalOpenChange?: (open: boolean) => void
 }
 
-export function CommandPalette({ role }: CommandPaletteProps) {
+export function CommandPalette({ role, externalOpen, onExternalOpenChange }: CommandPaletteProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
   const modifierKey = useModifierKey()
 
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = externalOpen ?? internalOpen
+  const setOpen = onExternalOpenChange ?? setInternalOpen
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)

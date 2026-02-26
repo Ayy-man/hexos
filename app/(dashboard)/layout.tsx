@@ -25,6 +25,7 @@ import { onboardingTours } from '@/features/onboarding/lib/tours'
 import { TourCard } from '@/features/onboarding/components/TourCard'
 import { CheckinPromptProvider } from '@/features/dev-logging/components'
 import { getDevLoggingStatus } from '@/lib/api/dev-logging'
+import { MobileShell } from '@/components/mobile/mobile-shell'
 import type { Profile } from '@/lib/auth/types'
 
 export default async function DashboardLayout({
@@ -77,6 +78,17 @@ export default async function DashboardLayout({
   const cookieStore = await cookies()
   const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false'
 
+  const pageContent = (
+    <PresenceProvider profile={profile as Profile}>
+      <CheckinPromptProvider
+        initialStatus={devLoggingStatus}
+        isDev={isDev}
+      >
+        {children}
+      </CheckinPromptProvider>
+    </PresenceProvider>
+  )
+
   return (
     <OnbordaProvider>
       <Onborda
@@ -92,39 +104,54 @@ export default async function DashboardLayout({
             role={(profile as Profile).role}
             onboardingStatus={profile.onboarding_status}
           />
-          <AppSidebar
-            profile={profile as Profile}
-            navigation={navigation}
-            inquiryCounts={inquiryCounts}
-            projectStats={projectStats ?? undefined}
-            conversationSummary={conversationSummary}
-            suggestionCounts={suggestionCounts ?? undefined}
-          />
-          <SidebarInset>
-            <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border-hairline bg-bg-surface px-4">
-              <SidebarTrigger id="sidebar-trigger" className="-ml-1" />
-              <Separator orientation="vertical" className="mr-2 h-4" />
-              <DynamicBreadcrumb />
-              <div className="ml-auto flex items-center gap-2">
-                <CommandPalette role={(profile as Profile).role} />
-                <NotificationPopover
-                  userId={user.id}
-                  initialNotifications={notifications}
-                  initialUnreadCount={unreadCount}
+
+          <MobileShell
+            role={(profile as Profile).role}
+            profileName={(profile as Profile).name}
+            profileEmail={(profile as Profile).email}
+            notificationSlot={
+              <NotificationPopover
+                userId={user.id}
+                initialNotifications={notifications}
+                initialUnreadCount={unreadCount}
+              />
+            }
+            inquiryCount={inquiryCounts?.total}
+            conversationCount={conversationSummary.total_unread}
+            desktopLayout={
+              <>
+                <AppSidebar
+                  profile={profile as Profile}
+                  navigation={navigation}
+                  inquiryCounts={inquiryCounts}
+                  projectStats={projectStats ?? undefined}
+                  conversationSummary={conversationSummary}
+                  suggestionCounts={suggestionCounts ?? undefined}
                 />
-              </div>
-            </header>
-            <main className="flex-1 bg-bg-void p-4 md:p-8">
-              <PresenceProvider profile={profile as Profile}>
-                <CheckinPromptProvider
-                  initialStatus={devLoggingStatus}
-                  isDev={isDev}
-                >
-                  {children}
-                </CheckinPromptProvider>
-              </PresenceProvider>
-            </main>
-          </SidebarInset>
+                <SidebarInset>
+                  <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border-hairline bg-bg-surface px-4">
+                    <SidebarTrigger id="sidebar-trigger" className="-ml-1" />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <DynamicBreadcrumb />
+                    <div className="ml-auto flex items-center gap-2">
+                      <CommandPalette role={(profile as Profile).role} />
+                      <NotificationPopover
+                        userId={user.id}
+                        initialNotifications={notifications}
+                        initialUnreadCount={unreadCount}
+                      />
+                    </div>
+                  </header>
+                  <main className="flex-1 bg-bg-void p-4 md:p-8">
+                    {pageContent}
+                  </main>
+                </SidebarInset>
+              </>
+            }
+          >
+            {pageContent}
+          </MobileShell>
+
           <Toaster richColors position="bottom-right" />
         </SidebarProvider>
       </Onborda>
