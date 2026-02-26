@@ -96,49 +96,49 @@
   /* ===== Brand Tokens ===== */
 
   /* Backgrounds */
-  --bg-void: #0c0a08;
-  --bg-surface: #141210;
-  --bg-card: #181613;
-  --bg-hover: #1e1c18;
-  --bg-elevated: #222019;
-  --bg-overlay: rgba(8, 7, 5, 0.70);
+  --bg-void: #0c0a09;
+  --bg-surface: #191613;
+  --bg-card: #211e1a;
+  --bg-hover: #292520;
+  --bg-elevated: #302c26;
+  --bg-overlay: rgba(8, 7, 5, 0.75);
 
   /* Borders */
-  --border-hairline: rgba(210, 195, 170, 0.06);
-  --border-rule: rgba(210, 195, 170, 0.10);
-  --border-active: rgba(210, 195, 170, 0.18);
+  --border-hairline: rgba(210, 195, 170, 0.10);
+  --border-rule: rgba(210, 195, 170, 0.16);
+  --border-active: rgba(210, 195, 170, 0.25);
 
   /* Shadow */
   --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.4);
 
   /* Text */
-  --text-primary: #e2dbd0;
-  --text-secondary: #a49a8e;
-  --text-tertiary: #8a8078;
-  --text-ghost: #4d453d;
+  --text-primary: #e8e2d9;
+  --text-secondary: #b8ad9f;
+  --text-tertiary: #968c82;
+  --text-ghost: #5e564e;
 
   /* Accent — Desaturated Teal */
   --accent: #6b9e94;
-  --accent-dim: rgba(107, 158, 148, 0.08);
+  --accent-dim: rgba(107, 158, 148, 0.12);
   --accent-border: rgba(107, 158, 148, 0.25);
 
   /* Signal Colors */
   --signal-good: #7a9e7a;
-  --signal-good-dim: rgba(122, 158, 122, 0.10);
+  --signal-good-dim: rgba(122, 158, 122, 0.14);
   --signal-warn: #c4a24a;
-  --signal-warn-dim: rgba(196, 162, 74, 0.10);
+  --signal-warn-dim: rgba(196, 162, 74, 0.14);
   --signal-bad: #b86054;
-  --signal-bad-dim: rgba(184, 96, 84, 0.10);
+  --signal-bad-dim: rgba(184, 96, 84, 0.14);
 
   /* Form Controls */
-  --control-bg: #0f0d0b;
-  --control-border: rgba(210, 195, 170, 0.10);
-  --control-border-hover: rgba(210, 195, 170, 0.18);
-  --control-border-focus: rgba(107, 158, 148, 0.40);
-  --control-ring: rgba(107, 158, 148, 0.15);
-  --control-placeholder: #5c554d;
-  --control-disabled-bg: #111010;
-  --control-disabled-text: #4d453d;
+  --control-bg: #131110;
+  --control-border: rgba(210, 195, 170, 0.12);
+  --control-border-hover: rgba(210, 195, 170, 0.22);
+  --control-border-focus: rgba(107, 158, 148, 0.45);
+  --control-ring: rgba(107, 158, 148, 0.18);
+  --control-placeholder: #6b635b;
+  --control-disabled-bg: #151312;
+  --control-disabled-text: #5e564e;
 
   /* Spacing (4px base) */
   --space-1: 4px;
