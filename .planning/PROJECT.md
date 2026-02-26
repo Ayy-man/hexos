@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A project management portal for Hexona's DFY automation business, replacing fragmented tools (Tally, WhatsApp, Notion, ClickUp) with a unified system. Multi-tenant SaaS with role-based dashboards for Admin, Internal, Dev, DFY partners, and Clients — covering the full lifecycle from inquiry to delivery.
+A project management portal for Hexona's DFY automation business, replacing fragmented tools (Tally, WhatsApp, Notion, ClickUp) with a unified system. Multi-tenant SaaS with role-based dashboards for Admin, Internal, Dev, DFY partners, and Clients — covering the full lifecycle from inquiry to delivery to retainer.
 
 ## Core Value
 
@@ -12,34 +12,40 @@ DFY partners can submit inquiries, receive proposals, and track their referred p
 
 ### Validated
 
-These capabilities are already shipped and working:
+These capabilities are shipped and working:
 
-- ✓ Multi-step inquiry form with AI Copilot — existing
-- ✓ Proposal pipeline with 10-stage Kanban board — existing
-- ✓ Rich text documents (Plate.js) with comments, suggestions, discussions — existing
-- ✓ Deliverables negotiation with counter offers and approval workflow — existing
-- ✓ Project initiation wizard with hierarchical requirements — existing
-- ✓ Full project lifecycle (22 statuses, 7 phases) — existing
-- ✓ Role-based dashboards (Admin, Internal, Dev, DFY, Client) — existing
-- ✓ Blueprints and case studies catalog — existing
-- ✓ Conversations with bidirectional sync to inquiry comments — existing
-- ✓ Developer skills/XP system with badges — existing
-- ✓ Daily dev check-ins with position tracking — existing
-- ✓ Delay tracking and extension requests — existing
-- ✓ Invitation system with organization creation — existing
-- ✓ Dev application self-signup with approval — existing
-- ✓ Stripe backend (webhooks, invoice API) — existing
-- ✓ Dev payouts with wire transfer workflow — existing
-- ✓ DFY proposal reminders with snooze system — existing
-- ✓ Command palette (Cmd+K) global search — existing
-- ✓ Mobile responsive layouts — existing
-- ✓ Email delivery for invitations (Resend) — 2026-02-01
-- ✓ React Email templates (invitation, application received/approved/rejected) — 2026-02-01
-- ✓ Notification center UI (bell icon, popover, realtime, full page) — existing
+- ✓ Multi-step inquiry form with AI Copilot — v1.0
+- ✓ Proposal pipeline with 10-stage Kanban board — v1.0
+- ✓ Rich text documents (Plate.js) with comments, suggestions, discussions — v1.0
+- ✓ Deliverables negotiation with counter offers and approval workflow — v1.0
+- ✓ Project initiation wizard with hierarchical requirements — v1.0
+- ✓ Full project lifecycle (22 statuses, 7 phases) — v1.0
+- ✓ Role-based dashboards (Admin, Internal, Dev, DFY, Client) — v1.0
+- ✓ Blueprints and case studies catalog with Loom video support — v1.0
+- ✓ Conversations with bidirectional sync to inquiry comments — v1.0
+- ✓ Developer skills/XP system with badges — v1.0
+- ✓ Daily dev check-ins with position tracking — v1.0
+- ✓ Delay tracking and extension requests — v1.0
+- ✓ Invitation system with organization creation — v1.0
+- ✓ Dev application self-signup with approval — v1.0
+- ✓ Stripe backend (webhooks, invoice API) — v1.0
+- ✓ Dev payouts with wire transfer workflow — v1.0
+- ✓ DFY proposal reminders with snooze system — v1.0
+- ✓ Command palette (Cmd+K) global search — v1.0
+- ✓ Mobile responsive layouts — v1.0
+- ✓ Email delivery with Resend + React Email templates — v1.0
+- ✓ Notification center UI (bell icon, popover, realtime, full page) — v1.0
+- ✓ Toast notification deduplication — v1.0
+- ✓ White-labeled proposal exports (PDF + web) — v1.0
+- ✓ Suggestion box with conversation threads — v1.0
+- ✓ Developer bidding system with AI redacted briefs — v1.0
+- ✓ Pre-commitment workflow for opportunities — v1.0
+- ✓ Meeting assistant with Recall.ai + AI transcription — v1.0
+- ✓ Offboarding & retainer system with completion ceremony — v1.0
+- ✓ Full notification coverage across all lifecycle events — v1.0
+- ✓ Finance tab with logical groupings (Revenue, Costs, Timeline) — v1.0
 
 ### Active
-
-Current scope for launch readiness:
 
 **No critical blockers remaining.** Ready for soft launch.
 
@@ -71,23 +77,21 @@ Current scope for launch readiness:
 **Technical Environment:**
 - Next.js 16 (App Router) + TypeScript strict mode
 - Supabase (PostgreSQL + Auth + Storage + Realtime)
-- shadcn/ui (Vega style, Stone+Cyan theme, Figtree font)
-- Stripe for payments, Plate.js for rich text
+- shadcn/ui (dark-first warm token system, General Sans font)
+- Stripe for payments, Plate.js for rich text, Resend for email, Recall.ai for meetings
 - Deployed on Vercel, no localhost testing
 
-**Recent History:**
-- Critical blockers cleared (2026-02-02) — notification UI already exists, other blockers deprioritized
-- Email delivery with Resend completed (2026-02-01) — invitations now send real emails
-- Opportunities overhaul completed (2026-01-20) — bidding, AI briefs, pre-commitment
-- Notification toast deduplication (2026-01-20) — no more duplicate popups
-- Database recovered from RLS crisis (2026-01-03) — safe functions documented
-- Pulse system and time tracking removed (Jan 2026)
+**Current State (post v1.0):**
+- 16 phases shipped across v1.0 Polish milestone (Jan 19 - Feb 26, 2026)
+- All critical production bugs resolved
+- Full notification coverage implemented
+- Meeting assistant fully operational
+- Offboarding/retainer lifecycle complete
+- UI brand redesign shipped (dark-first warm tokens, General Sans, FAB)
 
 **Known Issues:**
-- ~~DFY invoice query broken with FK alias (PGRST error)~~ — FIXED: uses proper PostgREST syntax
-- ~~Admin metrics SQL functions use invalid enum value~~ — FIXED: enum values are correct
 - AI Copilot form state sync (fields may not visually update) — needs testing, may be edge case
-- Payout admin actions missing role check — mitigated by layout protection, actions should add `requireRole()`
+- Payout admin actions missing role check — mitigated by layout protection
 
 ## Constraints
 
@@ -106,6 +110,11 @@ Current scope for launch readiness:
 | Invitation-based onboarding | Control over who joins, organization structure | ✓ Good |
 | Plate.js for rich text | Full-featured editor, JSONB storage | ✓ Good |
 | Remove Pulse/time tracking | Overengineered, will return redesigned | — Pending |
+| Resend for email delivery | Simple API, React Email support, good DX | ✓ Good |
+| Recall.ai for meeting bot | Managed service, multi-platform, reasonable cost | ✓ Good |
+| Database-backed toast dedup | Works across tabs and page refreshes | ✓ Good |
+| Retainer as project lifecycle phase | Reuses project infrastructure, clean transitions | ✓ Good |
+| Admin client for cross-user notifications | Bypasses RLS for notification delivery | ✓ Good |
 
 ---
-*Last updated: 2026-02-02 — no critical blockers, ready for soft launch*
+*Last updated: 2026-02-26 after v1.0 milestone*
