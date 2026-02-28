@@ -2,7 +2,7 @@
 
 **Project:** hexOS - Project Management Portal for Hexona's DFY Automation Business
 **Status:** Ready for soft launch
-**Last Updated:** 2026-02-06
+**Last Updated:** 2026-02-28
 
 ---
 
@@ -594,6 +594,9 @@ Global search via cmdk (Cmd+K) -- searches projects, inquiries, conversations, t
 
 - **AI Integration:** OpenRouter API with Claude 3.5 Haiku for extracting deliverables via tool-use
 - **Deliverable Negotiation:** DFY edits -> submits -> INT reviews -> approves/counters/rejects -> DFY responds -> final approval
+- **Deliverable State Machine:** 9 change_status states with enforced transition validation via `VALID_TRANSITIONS` map and `assertValidTransition()`. Invalid transitions throw descriptive errors. Source-aware revert (`ai_parsed` → `original`, others → `added`).
+- **Audit Trail:** All operations (including bulk approve) log to `proposal_deliverable_history` with counter fields. History failures propagate to parent operations. Version race conditions handled with retry logic (max 3).
+- **Conversion Safety:** Inquiry-to-project conversion uses transactional rollback (deletes project on failure). Only uses `counter_price` for `counter_accepted` deliverables.
 - **Proposal Stages:** intake -> scoping -> proposal_writing -> final_review -> ready -> sent -> follow_up -> closed/lost
 - **5 Intake Form Paths:** A1, A2, A3, B2, B3 based on submission_type and deal_type
 - **Public Sharing:** Token-based proposal links (no auth)

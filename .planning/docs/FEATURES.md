@@ -189,6 +189,19 @@
 - **Plate.js Editor:** Rich text editor for proposals and documents with discussion threads
 - **Deliverable Negotiation Flow:** Multi-step workflow: DFY edits -> submits -> INT reviews -> approves/counters/rejects -> DFY responds to counters -> final approval
 - **Deliverable Status Machine:** none -> parsing -> dfy_editing -> dfy_submitted -> int_reviewing -> needs_revision -> approved
+- **Deliverable Change Status Machine:** 9 states with enforced transition validation:
+  - `original` → edited, approved, rejected, countered, removed
+  - `added` → edited, approved, rejected, countered, removed
+  - `edited` → approved, rejected, countered, removed, original, added (via revert)
+  - `removed` → original, added (via revert)
+  - `approved` → edited (DFY re-edits)
+  - `rejected` → edited (DFY re-edits)
+  - `countered` → counter_accepted, counter_rejected
+  - `counter_accepted` → (terminal)
+  - `counter_rejected` → countered, approved, rejected
+  - Invalid transitions throw `Error("Invalid status transition: X → Y")`
+- **Revert Behavior:** Source-aware revert — `ai_parsed` deliverables revert to `original`, `custom`/`blueprint_tier` deliverables revert to `added` (prevents DFY-added items from escaping review)
+- **History Audit Trail:** All state changes logged to `proposal_deliverable_history` including counter fields. Bulk approve also logs per-deliverable history. History insert failures propagate to parent operations. Version numbers use retry logic (max 3 attempts) to handle concurrent writes.
 - **Proposal Stages:** intake -> scoping -> proposal_writing -> final_review -> ready -> sent -> follow_up -> closed/lost
 - **Public Proposal Sharing:** Shareable links with token-based access (no auth required)
 - **PDF Export:** React-PDF for generating downloadable proposal documents
@@ -1189,6 +1202,8 @@ Uses `features/projects/actions/checkinActions.ts` (not in this feature director
 ### Special Patterns
 
 - **Duplicate Prevention:** Checks `source_inquiry_id` before creating project
+- **Transactional Rollback:** Steps 1b-4 (milestones, deliverables, requirements, inquiry update) are wrapped in try/catch — on any failure, the created project is deleted to prevent orphaned records and allow clean retry
+- **Counter Price Handling:** Only uses `counter_price` when deliverable `change_status === 'counter_accepted'`; pending/rejected counters use the original price
 - **Tree Structure:** Requirements support parent-child hierarchy via temp_id -> real_id mapping
 - **Level-By-Level Creation:** Children created in waves to ensure parent IDs exist (max 10 iterations)
 - **Payment Structure Options:** 100_upfront, 50_50, 40_30_30, custom (with percentage-based milestones)
