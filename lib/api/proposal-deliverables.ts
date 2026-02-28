@@ -17,6 +17,24 @@ export type DeliverableChangeStatus =
 
 export type DeliverableSource = 'ai_parsed' | 'blueprint_tier' | 'custom'
 
+const VALID_TRANSITIONS: Record<DeliverableChangeStatus, DeliverableChangeStatus[]> = {
+  original: ['edited', 'approved', 'rejected', 'countered', 'removed'],
+  added: ['edited', 'approved', 'rejected', 'countered', 'removed'],
+  edited: ['approved', 'rejected', 'countered', 'removed', 'original', 'added'],
+  removed: ['original', 'added'],
+  approved: ['edited'],
+  rejected: ['edited'],
+  countered: ['counter_accepted', 'counter_rejected'],
+  counter_accepted: [],
+  counter_rejected: ['countered', 'approved', 'rejected'],
+}
+
+function assertValidTransition(from: DeliverableChangeStatus, to: DeliverableChangeStatus): void {
+  if (!VALID_TRANSITIONS[from]?.includes(to)) {
+    throw new Error(`Invalid status transition: ${from} → ${to}`)
+  }
+}
+
 export interface ProposalDeliverable {
   id: string
   inquiry_id: string
@@ -185,7 +203,7 @@ export async function createProposalDeliverable(
       inquiry_id: input.inquiry_id,
       name: input.name,
       description: input.description || null,
-      price: input.price || null,
+      price: input.price ?? null,
       parent_id: input.parent_id || null,
       source: input.source || 'custom',
       source_blueprint_id: input.source_blueprint_id || null,
@@ -229,7 +247,7 @@ export async function bulkCreateDeliverablesFromAI(
     inquiry_id: inquiryId,
     name: d.name,
     description: d.description || null,
-    price: d.price || null,
+    price: d.price ?? null,
     source: 'ai_parsed' as DeliverableSource,
     ai_confidence: d.confidence,
     ai_source_text: d.sourceText,
@@ -357,7 +375,7 @@ export async function updateProposalDeliverable(
 
   if (input.price !== undefined && input.price !== current.price) {
     updateData.price = input.price
-    if (current.original_price === null && current.price !== null) {
+    if (current.original_price === null) {
       updateData.original_price = current.price
     }
     isEdit = true
@@ -365,11 +383,13 @@ export async function updateProposalDeliverable(
 
   // If edited and was original/approved/rejected, mark as edited (needs re-review)
   if (isEdit && ['original', 'approved', 'rejected'].includes(current.change_status)) {
+    assertValidTransition(current.change_status as DeliverableChangeStatus, 'edited')
     updateData.change_status = 'edited'
   }
 
-  // Allow explicit status changes
+  // Allow explicit status changes (with validation)
   if (input.change_status !== undefined) {
+    assertValidTransition(current.change_status, input.change_status)
     updateData.change_status = input.change_status
   }
 
@@ -430,13 +450,17 @@ export async function revertDeliverable(id: string): Promise<ProposalDeliverable
 
   if (!current) throw new Error('Deliverable not found')
 
+  // Determine the correct revert target based on source
+  const revertStatus: DeliverableChangeStatus = current.source === 'ai_parsed' ? 'original' : 'added'
+  assertValidTransition(current.change_status, revertStatus)
+
   const { data, error } = await supabase
     .from('proposal_deliverables')
     .update({
       name: current.original_name || current.name,
       description: current.original_description || current.description,
       price: current.original_price ?? current.price,
-      change_status: 'original',
+      change_status: revertStatus,
       original_name: null,
       original_description: null,
       original_price: null,
@@ -481,6 +505,8 @@ export async function reviewDeliverable(
 
   if (!current) throw new Error('Deliverable not found')
 
+  assertValidTransition(current.change_status, decision)
+
   const updateData: Record<string, unknown> = {
     change_status: decision,
     updated_by: user?.id,
@@ -521,7 +547,7 @@ export async function bulkApproveDeliverables(ids: string[]): Promise<void> {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('proposal_deliverables')
     .update({
       change_status: 'approved',
@@ -529,8 +555,16 @@ export async function bulkApproveDeliverables(ids: string[]): Promise<void> {
       updated_at: new Date().toISOString(),
     })
     .in('id', ids)
+    .select()
 
   if (error) throw error
+
+  // Log history for each approved deliverable
+  if (data) {
+    await Promise.all(
+      data.map((d) => insertHistory(supabase, d.id, d, 'int_approved', user?.id || null, 'admin'))
+    )
+  }
 }
 
 // ============================================
@@ -693,37 +727,53 @@ async function insertHistory(
   actorRole: 'dfy' | 'admin' | 'system',
   note?: string
 ): Promise<void> {
-  // Get next version number
-  const { data: lastVersion } = await supabase
-    .from('proposal_deliverable_history')
-    .select('version')
-    .eq('deliverable_id', deliverableId)
-    .order('version', { ascending: false })
-    .limit(1)
-    .single()
+  const MAX_RETRIES = 3
 
-  const nextVersion = (lastVersion?.version || 0) + 1
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    // Get next version number
+    const { data: lastVersion } = await supabase
+      .from('proposal_deliverable_history')
+      .select('version')
+      .eq('deliverable_id', deliverableId)
+      .order('version', { ascending: false })
+      .limit(1)
+      .single()
 
-  console.log('[insertHistory] Inserting version', nextVersion, 'for', deliverableId, 'action:', action)
+    const nextVersion = (lastVersion?.version || 0) + 1
 
-  // Only insert core fields - counter fields may not exist in production
-  const { error } = await supabase.from('proposal_deliverable_history').insert({
-    deliverable_id: deliverableId,
-    version: nextVersion,
-    name: deliverable.name,
-    description: deliverable.description,
-    price: deliverable.price,
-    change_status: deliverable.change_status,
-    action,
-    actor_id: actorId,
-    actor_role: actorRole,
-    note: note || null,
-  })
+    console.log('[insertHistory] Inserting version', nextVersion, 'for', deliverableId, 'action:', action, 'attempt:', attempt)
 
-  if (error) {
+    const { error } = await supabase.from('proposal_deliverable_history').insert({
+      deliverable_id: deliverableId,
+      version: nextVersion,
+      name: deliverable.name,
+      description: deliverable.description,
+      price: deliverable.price,
+      change_status: deliverable.change_status,
+      counter_name: deliverable.counter_name || null,
+      counter_description: deliverable.counter_description || null,
+      counter_price: deliverable.counter_price ?? null,
+      counter_note: deliverable.counter_note || null,
+      action,
+      actor_id: actorId,
+      actor_role: actorRole,
+      note: note || null,
+    })
+
+    if (!error) {
+      console.log('[insertHistory] SUCCESS: version', nextVersion)
+      return
+    }
+
+    // Retry on duplicate/conflict errors (version race condition)
+    const isDuplicate = error.code === '23505' || error.message?.includes('duplicate') || error.message?.includes('unique')
+    if (isDuplicate && attempt < MAX_RETRIES) {
+      console.warn('[insertHistory] Version conflict, retrying...', error.message)
+      continue
+    }
+
     console.error('[insertHistory] FAILED:', error.message, error.details, error.hint)
-  } else {
-    console.log('[insertHistory] SUCCESS: version', nextVersion)
+    throw error
   }
 }
 
@@ -761,6 +811,8 @@ export async function acceptCounter(id: string): Promise<ProposalDeliverable> {
 
   if (fetchError || !current) throw new Error('Deliverable not found')
 
+  assertValidTransition(current.change_status, 'counter_accepted')
+
   // Apply counter values as new values
   const updateData: Record<string, unknown> = {
     change_status: 'counter_accepted',
@@ -796,8 +848,8 @@ export async function acceptCounter(id: string): Promise<ProposalDeliverable> {
 
   if (error) throw error
 
-  // Log history
-  await insertHistory(supabase, id, data, 'dfy_accepted_counter', user?.id || null, 'dfy')
+  // Log history using pre-update state to capture counter fields before they were cleared
+  await insertHistory(supabase, id, current, 'dfy_accepted_counter', user?.id || null, 'dfy')
 
   return data
 }
@@ -807,6 +859,17 @@ export async function rejectCounter(id: string, reason?: string): Promise<Propos
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Get current deliverable to validate transition
+  const { data: current, error: fetchError } = await supabase
+    .from('proposal_deliverables')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !current) throw new Error('Deliverable not found')
+
+  assertValidTransition(current.change_status, 'counter_rejected')
 
   // Keep the current values but change status to counter_rejected
   // This signals to admin they need to re-review

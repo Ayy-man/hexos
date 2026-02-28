@@ -888,106 +888,112 @@ export async function convertInquiryToProjectFull(
 
   if (projectError) throw projectError
 
-  // 1b. Create payment milestones based on structure
-  const priceDfy = projectData.price_dfy || 0
-  const paymentStructure = projectData.payment_structure || '50_50'
+  try {
+    // 1b. Create payment milestones based on structure
+    const priceDfy = projectData.price_dfy || 0
+    const paymentStructure = projectData.payment_structure || '50_50'
 
-  let milestones: Array<{ label: string; amount: number; sort_order: number }> = []
+    let milestones: Array<{ label: string; amount: number; sort_order: number }> = []
 
-  if (paymentStructure === '100_upfront') {
-    milestones = [{ label: 'Full Payment', amount: priceDfy, sort_order: 0 }]
-  } else if (paymentStructure === '50_50') {
-    milestones = [
-      { label: 'Deposit (50%)', amount: priceDfy * 0.5, sort_order: 0 },
-      { label: 'Final Payment (50%)', amount: priceDfy * 0.5, sort_order: 1 },
-    ]
-  } else if (paymentStructure === '40_30_30') {
-    milestones = [
-      { label: 'Deposit (40%)', amount: priceDfy * 0.4, sort_order: 0 },
-      { label: 'Midpoint (30%)', amount: priceDfy * 0.3, sort_order: 1 },
-      { label: 'Final Payment (30%)', amount: priceDfy * 0.3, sort_order: 2 },
-    ]
-  } else if (paymentStructure === 'custom' && projectData.custom_milestones) {
-    milestones = projectData.custom_milestones.map((m, i) => ({
-      label: m.label,
-      amount: priceDfy * (m.percentage / 100),
-      sort_order: i,
-    }))
-  }
-
-  if (milestones.length > 0) {
-    const { error: milestoneError } = await supabase
-      .from('payment_milestones')
-      .insert(milestones.map(m => ({ ...m, project_id: project.id })))
-
-    if (milestoneError) console.error('Failed to create payment milestones:', milestoneError)
-  }
-
-  // 2. Copy deliverables from proposal_deliverables to project deliverables
-  if (deliverableIds.length > 0) {
-    // Get the proposal deliverables
-    const { data: proposalDeliverables, error: delError } = await supabase
-      .from('proposal_deliverables')
-      .select('*')
-      .in('id', deliverableIds)
-
-    if (delError) throw delError
-
-    // Create project deliverables
-    const projectDeliverables = proposalDeliverables
-      .filter((d) => d.change_status !== 'removed' && d.change_status !== 'rejected')
-      .map((d, index) => ({
-        project_id: project.id,
-        name: d.name,
-        description: d.description,
-        price: d.counter_price ?? d.price, // Use counter if exists
-        status: 'pending',
-        sort_order: index,
+    if (paymentStructure === '100_upfront') {
+      milestones = [{ label: 'Full Payment', amount: priceDfy, sort_order: 0 }]
+    } else if (paymentStructure === '50_50') {
+      milestones = [
+        { label: 'Deposit (50%)', amount: priceDfy * 0.5, sort_order: 0 },
+        { label: 'Final Payment (50%)', amount: priceDfy * 0.5, sort_order: 1 },
+      ]
+    } else if (paymentStructure === '40_30_30') {
+      milestones = [
+        { label: 'Deposit (40%)', amount: priceDfy * 0.4, sort_order: 0 },
+        { label: 'Midpoint (30%)', amount: priceDfy * 0.3, sort_order: 1 },
+        { label: 'Final Payment (30%)', amount: priceDfy * 0.3, sort_order: 2 },
+      ]
+    } else if (paymentStructure === 'custom' && projectData.custom_milestones) {
+      milestones = projectData.custom_milestones.map((m, i) => ({
+        label: m.label,
+        amount: priceDfy * (m.percentage / 100),
+        sort_order: i,
       }))
-
-    if (projectDeliverables.length > 0) {
-      const { error: insertDelError } = await supabase
-        .from('deliverables')
-        .insert(projectDeliverables)
-
-      if (insertDelError) throw insertDelError
     }
+
+    if (milestones.length > 0) {
+      const { error: milestoneError } = await supabase
+        .from('payment_milestones')
+        .insert(milestones.map(m => ({ ...m, project_id: project.id })))
+
+      if (milestoneError) throw milestoneError
+    }
+
+    // 2. Copy deliverables from proposal_deliverables to project deliverables
+    if (deliverableIds.length > 0) {
+      // Get the proposal deliverables
+      const { data: proposalDeliverables, error: delError } = await supabase
+        .from('proposal_deliverables')
+        .select('*')
+        .in('id', deliverableIds)
+
+      if (delError) throw delError
+
+      // Create project deliverables
+      const projectDeliverables = proposalDeliverables
+        .filter((d) => d.change_status !== 'removed' && d.change_status !== 'rejected')
+        .map((d, index) => ({
+          project_id: project.id,
+          name: d.name,
+          description: d.description,
+          price: d.change_status === 'counter_accepted' ? (d.counter_price ?? d.price) : d.price,
+          status: 'pending',
+          sort_order: index,
+        }))
+
+      if (projectDeliverables.length > 0) {
+        const { error: insertDelError } = await supabase
+          .from('deliverables')
+          .insert(projectDeliverables)
+
+        if (insertDelError) throw insertDelError
+      }
+    }
+
+    // 3. Create project requirements
+    if (requirements.length > 0) {
+      await bulkCreateProjectRequirements(project.id, requirements)
+    }
+
+    // 4. Update the inquiry to link to the project and set stage to 'closed'
+    // Get current stage history
+    const { data: currentInquiry } = await supabase
+      .from('inquiries')
+      .select('proposal_stage, stage_history')
+      .eq('id', inquiryId)
+      .single()
+
+    const stageHistory = (currentInquiry?.stage_history as Array<unknown>) || []
+    const historyEntry = {
+      from: currentInquiry?.proposal_stage || 'sent',
+      to: 'closed',
+      changed_by: user.id,
+      changed_at: new Date().toISOString(),
+      notes: 'Deal closed - converted to project',
+    }
+
+    const { error: updateError } = await supabase
+      .from('inquiries')
+      .update({
+        status: 'converted',
+        converted_to_project_id: project.id,
+        proposal_stage: 'closed',
+        stage_entered_at: new Date().toISOString(),
+        stage_history: [...stageHistory, historyEntry],
+      })
+      .eq('id', inquiryId)
+
+    if (updateError) throw updateError
+  } catch (error) {
+    // Rollback: delete the project we just created to avoid orphaned records
+    await supabase.from('projects').delete().eq('id', project.id)
+    throw error
   }
-
-  // 3. Create project requirements
-  if (requirements.length > 0) {
-    await bulkCreateProjectRequirements(project.id, requirements)
-  }
-
-  // 4. Update the inquiry to link to the project and set stage to 'closed'
-  // Get current stage history
-  const { data: currentInquiry } = await supabase
-    .from('inquiries')
-    .select('proposal_stage, stage_history')
-    .eq('id', inquiryId)
-    .single()
-
-  const stageHistory = (currentInquiry?.stage_history as Array<unknown>) || []
-  const historyEntry = {
-    from: currentInquiry?.proposal_stage || 'sent',
-    to: 'closed',
-    changed_by: user.id,
-    changed_at: new Date().toISOString(),
-    notes: 'Deal closed - converted to project',
-  }
-
-  const { error: updateError } = await supabase
-    .from('inquiries')
-    .update({
-      status: 'converted',
-      converted_to_project_id: project.id,
-      proposal_stage: 'closed',
-      stage_entered_at: new Date().toISOString(),
-      stage_history: [...stageHistory, historyEntry],
-    })
-    .eq('id', inquiryId)
-
-  if (updateError) throw updateError
 
   return project
 }
