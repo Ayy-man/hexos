@@ -46,9 +46,10 @@ export function ProjectHeader({ project, isAdmin }: ProjectHeaderProps) {
     return calculateDeliveryEstimate(
       project.target_delivery_date,
       project.delivery_date_override,
-      project.deliverables || []
+      project.deliverables || [],
+      project.status
     )
-  }, [project.target_delivery_date, project.delivery_date_override, project.deliverables])
+  }, [project.target_delivery_date, project.delivery_date_override, project.deliverables, project.status])
 
   // Get current phase
   const phaseProgress = useMemo(() => {

@@ -176,8 +176,8 @@ export function EstimatedDeliveryBadge({
             strokeWidth="2"
             className={cn(
               'animate-sliding-border',
-              status === 'on_track' && 'text-success',
-              status === 'at_risk' && 'text-warning',
+              (status === 'on_track' || status === 'delivered' || status === 'ahead') && 'text-success',
+              (status === 'at_risk' || status === 'delivered_late') && 'text-warning',
               status === 'delayed' && 'text-error'
             )}
             strokeDasharray="1"
