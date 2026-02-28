@@ -131,14 +131,19 @@ export function calculateDeliveryEstimate(
   overrideDate: string | null,
   deliverables: DeliverableForEstimate[]
 ): DeliveryEstimate {
-  // If override is set, use it directly
+  // If override is set, use it but still check against today
   if (overrideDate) {
     const override = new Date(overrideDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    override.setHours(0, 0, 0, 0)
+    const pastDays = Math.floor((today.getTime() - override.getTime()) / (1000 * 60 * 60 * 24))
+    const delayDays = Math.max(0, pastDays)
     return {
-      estimatedDate: override,
+      estimatedDate: new Date(overrideDate),
       targetDate: targetDate ? new Date(targetDate) : null,
-      delayDays: 0,
-      status: 'on_track',
+      delayDays,
+      status: getDeliveryStatus(delayDays),
       overdueCount: 0,
       isOverride: true,
     }
@@ -158,13 +163,20 @@ export function calculateDeliveryEstimate(
   }
 
   // Calculate based on target + delays
-  const { delayDays, overdueCount } = calculateDelayFromDeliverables(deliverables)
+  const { delayDays: deliverableDelayDays, overdueCount } = calculateDelayFromDeliverables(deliverables)
   const target = new Date(targetDate)
   const estimated = new Date(target)
-  estimated.setDate(estimated.getDate() + delayDays)
+  estimated.setDate(estimated.getDate() + deliverableDelayDays)
+
+  // Also check if the estimated date itself is in the past
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  estimated.setHours(0, 0, 0, 0)
+  const pastDays = Math.floor((today.getTime() - estimated.getTime()) / (1000 * 60 * 60 * 24))
+  const delayDays = Math.max(deliverableDelayDays, pastDays)
 
   return {
-    estimatedDate: estimated,
+    estimatedDate: new Date(target.getTime() + deliverableDelayDays * 24 * 60 * 60 * 1000),
     targetDate: target,
     delayDays,
     status: getDeliveryStatus(delayDays),
