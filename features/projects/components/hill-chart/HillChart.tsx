@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useId } from 'react'
 import type { HillChartProps, HillChartItem, TestingStage } from './types'
 import { SNAP_ZONES, SNAP_THRESHOLD, STACK_TOLERANCE, STACK_OFFSET } from './utils'
 
@@ -23,16 +23,8 @@ export function HillChart({
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [dragPosition, setDragPosition] = useState<number | null>(null)
-  const [pulsePhase, setPulsePhase] = useState(0)
+  const pulseId = useId().replace(/:/g, '')
   const padding = 50
-
-  // Animate pulse for ready-to-test items
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulsePhase(p => (p + 0.05) % 1)
-    }, 50)
-    return () => clearInterval(interval)
-  }, [])
 
   const xToSvg = (x: number) => padding + (x / 100) * (width - padding * 2)
   const svgToX = (svgX: number) =>
@@ -179,11 +171,16 @@ export function HillChart({
           <stop offset="100%" stopColor="#10b981" stopOpacity="0.2" />
         </linearGradient>
 
-        {/* Pulse gradient for ready items */}
-        <radialGradient id="pulseGrad">
-          <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.4 - pulsePhase * 0.3} />
-          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
-        </radialGradient>
+        {/* Pulse animation for ready items */}
+        <style>{`
+          @keyframes hill-pulse-${pulseId} {
+            0%, 100% { opacity: 0.15; r: 18; }
+            50% { opacity: 0.25; r: 22; }
+          }
+          .hill-pulse-${pulseId} {
+            animation: hill-pulse-${pulseId} 2s ease-in-out infinite;
+          }
+        `}</style>
 
         {/* Lock icon pattern */}
         <pattern id="lockPattern" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
@@ -349,9 +346,9 @@ export function HillChart({
               <circle
                 cx={pos.x}
                 cy={cy}
-                r={18 + Math.sin(pulsePhase * Math.PI * 2) * 4}
+                r={18}
                 fill={testing?.stage ? STAGE_CONFIG[testing.stage].color : '#8b5cf6'}
-                opacity={0.15 + pulsePhase * 0.1}
+                className={`hill-pulse-${pulseId}`}
               />
             )}
 

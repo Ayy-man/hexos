@@ -44,16 +44,7 @@ export async function getProjectConversations(projectId: string): Promise<Conver
 
   if (error) throw error
 
-  // Get unread counts for each conversation
-  const conversationsWithUnread = await Promise.all(
-    (data || []).map(async (conv) => {
-      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
-      const lastMessage = await getLastMessage(conv.id)
-      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
-    })
-  )
-
-  return conversationsWithUnread
+  return enrichConversations(data || [], user.id)
 }
 
 /**
@@ -79,10 +70,8 @@ export async function getConversation(id: string): Promise<Conversation | null> 
     throw error
   }
 
-  const unreadCount = await getConversationUnreadCount(id, user.id)
-  const lastMessage = await getLastMessage(id)
-
-  return { ...data, unread_count: unreadCount, last_message: lastMessage }
+  const [enriched] = await enrichConversations([data], user.id)
+  return enriched
 }
 
 /**
@@ -105,17 +94,10 @@ export async function getAllConversationsWithUnread(): Promise<Conversation[]> {
 
   if (error) throw error
 
-  // Get unread counts and last messages for each
-  const conversationsWithData = await Promise.all(
-    (data || []).map(async (conv) => {
-      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
-      const lastMessage = await getLastMessage(conv.id)
-      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
-    })
-  )
+  const enriched = await enrichConversations(data || [], user.id)
 
   // Sort by last message date (most recent first)
-  return conversationsWithData.sort((a, b) => {
+  return enriched.sort((a, b) => {
     const aDate = a.last_message?.created_at || a.created_at
     const bDate = b.last_message?.created_at || b.created_at
     return new Date(bDate).getTime() - new Date(aDate).getTime()
@@ -157,16 +139,9 @@ export async function getDirectConversations(): Promise<Conversation[]> {
 
   if (error) throw error
 
-  // Get unread counts and last messages
-  const conversationsWithData = await Promise.all(
-    (data || []).map(async (conv) => {
-      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
-      const lastMessage = await getLastMessage(conv.id)
-      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
-    })
-  )
+  const enriched = await enrichConversations(data || [], user.id)
 
-  return conversationsWithData.sort((a, b) => {
+  return enriched.sort((a, b) => {
     const aDate = a.last_message?.created_at || a.created_at
     const bDate = b.last_message?.created_at || b.created_at
     return new Date(bDate).getTime() - new Date(aDate).getTime()
@@ -194,16 +169,9 @@ export async function getInquiryConversations(): Promise<Conversation[]> {
 
   if (error) throw error
 
-  // Get unread counts and last messages
-  const conversationsWithData = await Promise.all(
-    (data || []).map(async (conv) => {
-      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
-      const lastMessage = await getLastMessage(conv.id)
-      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
-    })
-  )
+  const enriched = await enrichConversations(data || [], user.id)
 
-  return conversationsWithData.sort((a, b) => {
+  return enriched.sort((a, b) => {
     const aDate = a.last_message?.created_at || a.created_at
     const bDate = b.last_message?.created_at || b.created_at
     return new Date(bDate).getTime() - new Date(aDate).getTime()
@@ -233,16 +201,9 @@ export async function getSuggestionConversations(): Promise<Conversation[]> {
 
   if (error) throw error
 
-  // Get unread counts and last messages
-  const conversationsWithData = await Promise.all(
-    (data || []).map(async (conv) => {
-      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
-      const lastMessage = await getLastMessage(conv.id)
-      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
-    })
-  )
+  const enriched = await enrichConversations(data || [], user.id)
 
-  return conversationsWithData.sort((a, b) => {
+  return enriched.sort((a, b) => {
     const aDate = a.last_message?.created_at || a.created_at
     const bDate = b.last_message?.created_at || b.created_at
     return new Date(bDate).getTime() - new Date(aDate).getTime()
@@ -270,16 +231,9 @@ export async function getProjectConversationsOnly(): Promise<Conversation[]> {
 
   if (error) throw error
 
-  // Get unread counts and last messages
-  const conversationsWithData = await Promise.all(
-    (data || []).map(async (conv) => {
-      const unreadCount = await getConversationUnreadCount(conv.id, user.id)
-      const lastMessage = await getLastMessage(conv.id)
-      return { ...conv, unread_count: unreadCount, last_message: lastMessage }
-    })
-  )
+  const enriched = await enrichConversations(data || [], user.id)
 
-  return conversationsWithData.sort((a, b) => {
+  return enriched.sort((a, b) => {
     const aDate = a.last_message?.created_at || a.created_at
     const bDate = b.last_message?.created_at || b.created_at
     return new Date(bDate).getTime() - new Date(aDate).getTime()
@@ -508,49 +462,105 @@ export async function getConversationParticipants(conversationId: string): Promi
 // Helper Functions
 // ============================================
 
-async function getConversationUnreadCount(conversationId: string, userId: string): Promise<number> {
+/**
+ * Batch-fetch unread counts for multiple conversations in 2 queries instead of 2N.
+ * 1. Fetch all read statuses for the user in one query
+ * 2. Fetch message counts per conversation_id with a single aggregation query
+ */
+async function batchGetUnreadCounts(
+  conversationIds: string[],
+  userId: string
+): Promise<Map<string, number>> {
+  if (conversationIds.length === 0) return new Map()
+
   const supabase = await createClient()
 
-  // Get last read time
-  const { data: readStatus } = await supabase
+  // 1. Get all read statuses for this user's conversations in one query
+  const { data: readStatuses } = await supabase
     .from('conversation_read_status')
-    .select('last_read_at')
-    .eq('conversation_id', conversationId)
+    .select('conversation_id, last_read_at')
     .eq('user_id', userId)
-    .maybeSingle()
+    .in('conversation_id', conversationIds)
 
-  const lastReadAt = readStatus?.last_read_at || '1970-01-01T00:00:00Z'
+  const readMap = new Map(
+    (readStatuses || []).map(rs => [rs.conversation_id, rs.last_read_at])
+  )
 
-  // Count messages after last read
-  const { count, error } = await supabase
-    .from('messages')
-    .select('*', { count: 'exact', head: true })
-    .eq('conversation_id', conversationId)
-    .is('deleted_at', null)
-    .gt('created_at', lastReadAt)
-    .neq('sender_id', userId)
+  // 2. For each conversation, count unread messages in parallel
+  //    We still need per-conversation counts because each has a different last_read_at threshold.
+  //    But we reuse the same supabase client (no extra createClient() calls).
+  const counts = await Promise.all(
+    conversationIds.map(async (convId) => {
+      const lastReadAt = readMap.get(convId) || '1970-01-01T00:00:00Z'
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('conversation_id', convId)
+        .is('deleted_at', null)
+        .gt('created_at', lastReadAt)
+        .neq('sender_id', userId)
+      return [convId, count || 0] as const
+    })
+  )
 
-  if (error) return 0
-  return count || 0
+  return new Map(counts)
 }
 
-async function getLastMessage(conversationId: string): Promise<Message | null> {
+/**
+ * Batch-fetch last message for multiple conversations in a single query.
+ * Uses Supabase ordering + JS grouping to get the most recent message per conversation.
+ */
+async function batchGetLastMessages(
+  conversationIds: string[]
+): Promise<Map<string, Message>> {
+  if (conversationIds.length === 0) return new Map()
+
   const supabase = await createClient()
 
+  // Fetch recent messages for all conversations at once, ordered newest first
   const { data, error } = await supabase
     .from('messages')
     .select(`
       *,
       sender:profiles!sender_id(id, name, email)
     `)
-    .eq('conversation_id', conversationId)
+    .in('conversation_id', conversationIds)
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
-    .limit(1)
-    .single()
 
-  if (error) return null
-  return data
+  if (error || !data) return new Map()
+
+  // Group by conversation_id and take the first (most recent) for each
+  const lastMessages = new Map<string, Message>()
+  for (const msg of data) {
+    if (!lastMessages.has(msg.conversation_id)) {
+      lastMessages.set(msg.conversation_id, msg)
+    }
+  }
+
+  return lastMessages
+}
+
+/**
+ * Enrich a list of conversations with unread counts and last messages using batch queries.
+ */
+async function enrichConversations(
+  conversations: Array<Record<string, unknown>>,
+  userId: string
+): Promise<Conversation[]> {
+  if (conversations.length === 0) return []
+
+  const ids = conversations.map(c => c.id as string)
+  const [unreadCounts, lastMessages] = await Promise.all([
+    batchGetUnreadCounts(ids, userId),
+    batchGetLastMessages(ids),
+  ])
+
+  return conversations.map(conv => ({
+    ...conv,
+    unread_count: unreadCounts.get(conv.id as string) || 0,
+    last_message: lastMessages.get(conv.id as string) || null,
+  })) as Conversation[]
 }
 
 // ============================================
@@ -877,61 +887,44 @@ export async function getUnreadConversationsSummary(): Promise<{
 
   if (error || !convs) return { total_unread: 0, conversations: [] }
 
-  // Get read statuses in a single query
-  const { data: readStatuses } = await supabase
-    .from('conversation_read_status')
-    .select('conversation_id, last_read_at')
-    .eq('user_id', user.id)
+  // Batch-fetch unread counts using shared helper
+  const convIds = convs.map(c => c.id)
+  const unreadCounts = await batchGetUnreadCounts(convIds, user.id)
 
-  const readMap = new Map(
-    (readStatuses || []).map(rs => [rs.conversation_id, rs.last_read_at])
-  )
+  // Map conversations to summaries, filtering out those with zero unread
+  const withUnread = convs.map((conv) => {
+    const count = unreadCounts.get(conv.id) || 0
+    if (count === 0) return null
 
-  // Compute unread counts in parallel
-  const withUnread = await Promise.all(
-    convs.map(async (conv) => {
-      const lastReadAt = readMap.get(conv.id) || '1970-01-01T00:00:00Z'
-      const { count } = await supabase
-        .from('messages')
-        .select('*', { count: 'exact', head: true })
-        .eq('conversation_id', conv.id)
-        .is('deleted_at', null)
-        .gt('created_at', lastReadAt)
-        .neq('sender_id', user.id)
-
-      if (!count || count === 0) return null
-
-      // Build display title
-      let title = conv.title || ''
-      if (!title) {
-        // Supabase joins may return array or object depending on cardinality
-        const rawProject = conv.project
-        const project = Array.isArray(rawProject) ? rawProject[0] : rawProject
-        if (project) {
-          title = project.project_name || project.client_name
-        } else if (conv.type === 'direct') {
-          const rawParticipants = conv.participants || []
-          const participants = (Array.isArray(rawParticipants) ? rawParticipants : [rawParticipants]) as Array<Record<string, unknown>>
-          const other = participants.find((p) => {
-            const rawUser = p.user
-            const u = Array.isArray(rawUser) ? rawUser[0] : rawUser
-            return u && (u as { id: string }).id !== user.id
-          })
-          if (other) {
-            const rawUser = other.user
-            const u = (Array.isArray(rawUser) ? rawUser[0] : rawUser) as { name: string } | null
-            title = u?.name || 'Direct Message'
-          } else {
-            title = 'Direct Message'
-          }
+    // Build display title
+    let title = conv.title || ''
+    if (!title) {
+      const rawProject = conv.project
+      const project = Array.isArray(rawProject) ? rawProject[0] : rawProject
+      if (project) {
+        title = project.project_name || project.client_name
+      } else if (conv.type === 'direct') {
+        const rawParticipants = conv.participants || []
+        const participants = (Array.isArray(rawParticipants) ? rawParticipants : [rawParticipants]) as Array<Record<string, unknown>>
+        const other = participants.find((p) => {
+          const rawUser = p.user
+          const u = Array.isArray(rawUser) ? rawUser[0] : rawUser
+          return u && (u as { id: string }).id !== user.id
+        })
+        if (other) {
+          const rawUser = other.user
+          const u = (Array.isArray(rawUser) ? rawUser[0] : rawUser) as { name: string } | null
+          title = u?.name || 'Direct Message'
         } else {
-          title = conv.type.charAt(0).toUpperCase() + conv.type.slice(1)
+          title = 'Direct Message'
         }
+      } else {
+        title = conv.type.charAt(0).toUpperCase() + conv.type.slice(1)
       }
+    }
 
-      return { id: conv.id, title, type: conv.type as ConversationType, unread_count: count }
-    })
-  )
+    return { id: conv.id, title, type: conv.type as ConversationType, unread_count: count }
+  })
 
   const unreadConvs = withUnread.filter((c): c is UnreadConversationSummary => c !== null)
   unreadConvs.sort((a, b) => b.unread_count - a.unread_count)

@@ -61,13 +61,14 @@ function formatStatus(status: string) {
 export default async function AdminDashboard() {
   await requireRole(['admin'])
 
-  const [stats, allProjects, sentProposals] = await Promise.all([
+  const [stats, allProjects, sentProposals, activeBlockers] = await Promise.all([
     getProjectStats().catch(() => ({ total: 0, inquiry: 0, active: 0, completed: 0 })),
     getProjects().catch(() => []),
     getAllSentProposals().catch(() => []),
+    getAllActiveBlockers().catch(() => []),
   ])
 
-  // Get activity trends for projects
+  // Get activity trends for projects (depends on allProjects from above)
   const projectEntities = allProjects.map(p => ({ entity_type: 'project', entity_id: p.id }))
   const activityTrends = await getActivityTrendsBatch(projectEntities, 14).catch(() => new Map())
 
@@ -83,9 +84,6 @@ export default async function AdminDashboard() {
   // Group by DFY
   const proposalBundles = bundleProposalsByDfy(sentProposals)
   const pendingProposalsCount = sentProposals.length
-
-  // Get all active blockers from blockers table
-  const activeBlockers = await getAllActiveBlockers().catch(() => [])
 
   return (
     <div className="space-y-6">

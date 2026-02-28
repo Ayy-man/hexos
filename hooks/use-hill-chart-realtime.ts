@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { DeliverableWithHistory, PositionHistoryEntry } from '@/lib/api/hill-chart'
 
@@ -57,9 +57,11 @@ export function useHillChartRealtime({
     }))
   )
   const [isRefetching, setIsRefetching] = useState(false)
+  const isRefetchingRef = useRef(false)
 
   const refetch = useCallback(async () => {
-    if (isRefetching) return
+    if (isRefetchingRef.current) return
+    isRefetchingRef.current = true
     setIsRefetching(true)
 
     try {
@@ -102,9 +104,10 @@ export function useHillChartRealtime({
     } catch (error) {
       console.error('Failed to refetch deliverables:', error)
     } finally {
+      isRefetchingRef.current = false
       setIsRefetching(false)
     }
-  }, [projectId, isRefetching])
+  }, [projectId])
 
   // Refetch on mount to ensure fresh data (safety net)
   useEffect(() => {
@@ -112,11 +115,20 @@ export function useHillChartRealtime({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Stabilize initialDeliverables reference — only update when IDs actually change
+  const deliverableIdsRef = useRef<string>('')
+  const initialDeliverablesRef = useRef(initialDeliverables)
+  const stableDeliverableIds = initialDeliverables.map((d) => d.id).sort().join(',')
+  if (stableDeliverableIds !== deliverableIdsRef.current) {
+    deliverableIdsRef.current = stableDeliverableIds
+    initialDeliverablesRef.current = initialDeliverables
+  }
+
   useEffect(() => {
     const supabase = createClient()
 
     // Get deliverable IDs for history filter
-    const deliverableIds = initialDeliverables.map((d) => d.id)
+    const deliverableIds = initialDeliverablesRef.current.map((d) => d.id)
 
     // Subscribe to deliverables table changes
     const channel = supabase
@@ -154,7 +166,7 @@ export function useHillChartRealtime({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [projectId, refetch, initialDeliverables])
+  }, [projectId, refetch, stableDeliverableIds])
 
   // Optimistic update helper - updates position and upserts today's history entry
   const optimisticUpdate = useCallback(

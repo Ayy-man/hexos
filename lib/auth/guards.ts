@@ -1,27 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { UserRole, Profile } from './types'
 import { DASHBOARD_ROUTES } from './types'
+import { getAuthUser, getAuthProfile } from './cached'
 
 export async function getSession() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user } = await getAuthUser()
   return user
 }
 
 export async function getProfile(): Promise<Profile | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) return null
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  return profile
+  return getAuthProfile()
 }
 
 export async function requireAuth() {

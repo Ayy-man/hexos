@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -96,7 +97,7 @@ function formatTimestamp(dateString: string): string {
   }
 }
 
-export function NotificationItem({
+export const NotificationItem = memo(function NotificationItem({
   notification,
   onMarkAsRead,
   onClose,
@@ -181,4 +182,4 @@ export function NotificationItem({
       </div>
     </button>
   )
-}
+})

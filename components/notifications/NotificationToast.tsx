@@ -160,7 +160,7 @@ export function NotificationToast({
       className="cursor-grab group touch-pan-y select-none"
       onClick={handleClick}
     >
-      <div className="w-[340px] rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-lg ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-all hover:bg-background/90 hover:scale-[1.02]">
+      <div className="w-[340px] rounded-xl border border-white/10 bg-background/80 backdrop-blur-xl shadow-lg ring-1 ring-black/5 dark:ring-white/5 overflow-hidden transition-[background-color,transform] hover:bg-background/90 hover:scale-[1.02]">
         <div className="p-4">
           <div className="flex gap-3">
             {/* Avatar with icon overlay */}

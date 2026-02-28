@@ -1,11 +1,10 @@
-import { requireRole, getProfile } from '@/lib/auth/guards'
+import { requireRole } from '@/lib/auth/guards'
 import { getOpportunitiesForDev } from '@/lib/api/project-invitations'
 import { getMyBids } from '@/lib/api/bids'
 import { DevOpportunitiesContent } from '@/features/dev/components/DevOpportunitiesContent'
 
 export default async function DevOpportunitiesPage() {
-  await requireRole(['dev'])
-  const profile = await getProfile()
+  const profile = await requireRole(['dev'])
 
   // Fetch opportunities and user's existing bids in parallel
   const [opportunities, myBids] = await Promise.all([

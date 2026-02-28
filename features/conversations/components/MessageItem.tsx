@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { MoreHorizontal, Pencil, Trash2, Download } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -26,7 +26,7 @@ interface MessageItemProps {
   onDownloadAttachment?: (filePath: string, fileName: string) => Promise<void>
 }
 
-export function MessageItem({
+export const MessageItem = memo(function MessageItem({
   message,
   currentUserId,
   isOwnMessage,
@@ -215,7 +215,7 @@ export function MessageItem({
       </div>
     </div>
   )
-}
+})
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`

@@ -10,7 +10,7 @@ import {
   AlertTriangle,
   Calendar,
 } from 'lucide-react'
-import { requireRole, getProfile } from '@/lib/auth/guards'
+import { requireRole } from '@/lib/auth/guards'
 import { getProjects } from '@/lib/api/projects'
 import { getInquiries, type ProposalStage } from '@/lib/api/inquiries'
 import { getStaleProposalsForDfy } from '@/lib/api/proposal-reminders'
@@ -70,8 +70,7 @@ const HEALTH_CONFIG = {
 }
 
 export default async function DfyDashboard() {
-  await requireRole(['dfy'])
-  const profile = await getProfile()
+  const profile = await requireRole(['dfy'])
 
   const [projects, inquiries, staleProposals, pendingExtensions, escalatedBlockers] = await Promise.all([
     getProjects().catch(() => []),

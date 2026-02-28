@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { ProjectRequirement } from '@/lib/api/project-requirements'
 
@@ -19,9 +19,11 @@ export function useRequirementsRealtime({
 }: UseRequirementsRealtimeOptions) {
   const [requirements, setRequirements] = useState(initialRequirements)
   const [isRefetching, setIsRefetching] = useState(false)
+  const isRefetchingRef = useRef(false)
 
   const refetch = useCallback(async () => {
-    if (isRefetching) return
+    if (isRefetchingRef.current) return
+    isRefetchingRef.current = true
     setIsRefetching(true)
 
     try {
@@ -67,9 +69,10 @@ export function useRequirementsRealtime({
     } catch (error) {
       console.error('Failed to refetch requirements:', error)
     } finally {
+      isRefetchingRef.current = false
       setIsRefetching(false)
     }
-  }, [projectId, isRefetching])
+  }, [projectId])
 
   useEffect(() => {
     const supabase = createClient()

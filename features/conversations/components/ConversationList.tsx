@@ -33,7 +33,7 @@ export function ConversationList({
   }, [conversations])
 
   // Filter conversations by search query and type
-  const filteredConversations = conversations.filter((conv) => {
+  const filteredConversations = useMemo(() => conversations.filter((conv) => {
     // Type filter
     if (typeFilter !== 'all' && conv.type !== typeFilter) return false
 
@@ -46,14 +46,14 @@ export function ConversationList({
       conv.project?.client_name?.toLowerCase().includes(query) ||
       conv.last_message?.content?.toLowerCase().includes(query)
     )
-  })
+  }), [conversations, typeFilter, searchQuery])
 
   // Sort by last message time (most recent first)
-  const sortedConversations = [...filteredConversations].sort((a, b) => {
+  const sortedConversations = useMemo(() => [...filteredConversations].sort((a, b) => {
     const aTime = a.last_message?.created_at || a.created_at
     const bTime = b.last_message?.created_at || b.created_at
     return new Date(bTime).getTime() - new Date(aTime).getTime()
-  })
+  }), [filteredConversations])
 
   return (
     <div className={cn('flex flex-col h-full border-r', className)}>

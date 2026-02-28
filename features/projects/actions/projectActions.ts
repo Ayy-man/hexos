@@ -312,19 +312,19 @@ export async function assignDevAction(projectId: string, devId: string): Promise
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  // Get dev name for activity log
-  const { data: dev } = await supabase
-    .from('profiles')
-    .select('name')
-    .eq('id', devId)
-    .single()
-
-  // Get project name for notification
-  const { data: project } = await supabase
-    .from('projects')
-    .select('project_name')
-    .eq('id', projectId)
-    .single()
+  // Fetch dev name and project name in parallel (independent queries)
+  const [{ data: dev }, { data: project }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', devId)
+      .single(),
+    supabase
+      .from('projects')
+      .select('project_name')
+      .eq('id', projectId)
+      .single(),
+  ])
 
   await supabase
     .from('projects')
@@ -748,17 +748,19 @@ export async function moveToRetainerAction(params: {
       })
     }
 
-    // Notify retainer team members
-    for (const devId of params.retainerDevIds) {
-      await createNotification({
-        userId: devId,
-        type: 'project_moved_to_retainer',
-        title: 'Assigned to retainer',
-        message: `You've been assigned to the ${project.project_name} retainer`,
-        projectId: params.projectId,
-        actorId: user.id,
-      })
-    }
+    // Notify retainer team members in parallel
+    await Promise.all(
+      params.retainerDevIds.map(devId =>
+        createNotification({
+          userId: devId,
+          type: 'project_moved_to_retainer',
+          title: 'Assigned to retainer',
+          message: `You've been assigned to the ${project.project_name} retainer`,
+          projectId: params.projectId,
+          actorId: user.id,
+        })
+      )
+    )
 
     // Log activity
     await supabase.from('activity_log').insert({

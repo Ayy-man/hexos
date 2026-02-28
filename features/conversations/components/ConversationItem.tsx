@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { Conversation, ConversationType } from '@/lib/api/conversations.shared'
@@ -51,7 +52,7 @@ interface ConversationItemProps {
   onClick: () => void
 }
 
-export function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
+export const ConversationItem = memo(function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
   const lastMessageTime = conversation.last_message?.created_at
     ? formatDistanceToNow(new Date(conversation.last_message.created_at), { addSuffix: true })
     : null
@@ -160,7 +161,7 @@ export function ConversationItem({ conversation, isSelected, onClick }: Conversa
       </div>
     </button>
   )
-}
+})
 
 function truncate(str: string, length: number): string {
   if (str.length <= length) return str

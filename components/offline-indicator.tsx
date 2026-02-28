@@ -64,7 +64,7 @@ export function OfflineIndicator() {
   return (
     <div
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300',
+        'fixed top-0 left-0 right-0 z-50 border-b transition-colors duration-300',
         !isOnline
           ? 'bg-destructive/90 text-destructive-foreground border-destructive'
           : pendingCount > 0

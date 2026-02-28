@@ -10,6 +10,17 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      'recharts',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      'framer-motion',
+      'react-day-picker',
+    ],
+  },
 };
 
 export default nextConfig;

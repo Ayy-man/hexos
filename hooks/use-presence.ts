@@ -53,7 +53,11 @@ export function usePresence(profile: Profile) {
       })
     })
 
-    setOnlineUsers(users)
+    setOnlineUsers(prev => {
+      const newIds = users.map(u => u.id).sort().join(',')
+      const prevIds = prev.map(u => u.id).sort().join(',')
+      return newIds === prevIds ? prev : users
+    })
   }, [])
 
   useEffect(() => {
@@ -154,7 +158,11 @@ export function useOnlineUsers() {
       })
     })
 
-    setOnlineUsers(users)
+    setOnlineUsers(prev => {
+      const newIds = users.map(u => u.id).sort().join(',')
+      const prevIds = prev.map(u => u.id).sort().join(',')
+      return newIds === prevIds ? prev : users
+    })
   }, [])
 
   useEffect(() => {

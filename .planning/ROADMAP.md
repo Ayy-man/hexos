@@ -28,4 +28,12 @@
 
 ---
 
-*Next milestone: `/gsd:new-milestone`*
+## v1.1 Performance
+
+- [ ] Phase 17: Performance Optimization (6 work streams)
+  - WS-1: Caching & Auth Dedup
+  - WS-2: Bundle & Dynamic Imports
+  - WS-3: Loading States
+  - WS-4: Waterfall Fixes
+  - WS-5: Re-render Fixes
+  - WS-6: CSS & Animation Fixes

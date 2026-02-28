@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, useMemo, createContext, useContext } from 'react'
 import { CheckinModal } from './CheckinModal'
 import type { DevLoggingStatus } from '@/lib/api/dev-logging'
 
@@ -50,14 +50,18 @@ export function CheckinPromptProvider({
     }
   }, [isDev, initialStatus, hasPrompted])
 
+  const stableOverdueProjects = useMemo(
+    () => initialStatus?.overdue_projects ?? [],
+    [initialStatus]
+  )
+
+  const contextValue = useMemo(
+    () => ({ showModal, setShowModal, overdueProjects: stableOverdueProjects }),
+    [showModal, stableOverdueProjects]
+  )
+
   return (
-    <CheckinPromptContext.Provider
-      value={{
-        showModal,
-        setShowModal,
-        overdueProjects: initialStatus?.overdue_projects || [],
-      }}
-    >
+    <CheckinPromptContext.Provider value={contextValue}>
       {children}
       {isDev && initialStatus?.needs_checkin && (
         <CheckinModal

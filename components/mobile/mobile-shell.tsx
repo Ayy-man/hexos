@@ -1,8 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { CommandPalette } from '@/components/command-palette'
+import dynamic from 'next/dynamic'
+
+const CommandPalette = dynamic(
+  () => import('@/components/command-palette').then((m) => m.CommandPalette),
+  { ssr: false }
+)
 import { MobileLayout } from './mobile-layout'
 import { MobileAvatarMenu } from './avatar-menu'
 import type { UserRole } from '@/lib/auth/types'
@@ -32,10 +38,28 @@ export function MobileShell({
 }: MobileShellProps) {
   const isMobile = useIsMobile()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
 
-  // Desktop: render the full desktop layout
+  // Find the desktop notification target after mount
+  useEffect(() => {
+    if (!isMobile) {
+      const el = document.getElementById('desktop-notification-target')
+      if (el) setPortalTarget(el)
+    } else {
+      setPortalTarget(null)
+    }
+  }, [isMobile])
+
+  // Desktop: render the full desktop layout with notification portaled into header
+  // Only one NotificationPopover instance exists — it's portaled into the desktop
+  // header on desktop, or rendered inline in MobileLayout on mobile.
   if (!isMobile) {
-    return <>{desktopLayout}</>
+    return (
+      <>
+        {desktopLayout}
+        {portalTarget && createPortal(notificationSlot, portalTarget)}
+      </>
+    )
   }
 
   // Mobile: render mobile-specific layout with tab bar, header, etc.

@@ -84,7 +84,7 @@ export function EstimatedDeliveryBadge({
         {/* Main Card */}
         <div
           className={cn(
-            'relative overflow-hidden rounded-2xl border-2 p-4 transition-all',
+            'relative overflow-hidden rounded-2xl border-2 p-4 transition-colors',
             colors.border,
             colors.bg
           )}

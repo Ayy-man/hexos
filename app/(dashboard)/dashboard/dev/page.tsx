@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { FolderKanban, CheckCircle2, Clock, AlertCircle, ChevronRight, DollarSign } from 'lucide-react'
-import { requireRole, getProfile } from '@/lib/auth/guards'
+import { requireRole } from '@/lib/auth/guards'
 import { getProjects } from '@/lib/api/projects'
 import { getMyReportedBlockers } from '@/lib/api/blockers'
 import { getMyPayouts } from '@/lib/api/payouts'
@@ -13,8 +13,7 @@ import { BlockerReportDialog } from '@/features/dev/components/BlockerReportDial
 import { HorizontalProjectCard } from '@/features/dev/components/HorizontalProjectCard'
 
 export default async function DevDashboard() {
-  await requireRole(['dev'])
-  const profile = await getProfile()
+  const profile = await requireRole(['dev'])
 
   // Fetch all data in parallel
   const [projects, myBlockers, myPayouts] = await Promise.all([
