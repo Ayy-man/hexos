@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -48,10 +48,10 @@ import { SuggestionBox } from '@/components/suggestion-box'
 import { TeamPresence } from '@/components/team-presence'
 import { Badge } from '@/components/ui/badge'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  HoverCard,
+  HoverCardTrigger,
+  HoverCardContent,
+} from '@/components/ui/hover-card'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
 import type { UnreadConversationSummary } from '@/lib/api/conversations'
@@ -81,80 +81,25 @@ const iconMap: Record<string, LucideIcon> = {
   Video,
 }
 
-// PinnableHoverCard: replaces Tooltip with interactive Popover that opens on hover and pins on click
-function PinnableHoverCard({
+// SidebarHoverCard: uses Radix HoverCard for native hover-to-open with interactive content
+function SidebarHoverCard({
   children,
   content,
-  side = 'right',
-  align = 'start',
 }: {
   children: React.ReactNode
   content: React.ReactNode
-  side?: 'right' | 'left' | 'top' | 'bottom'
-  align?: 'start' | 'center' | 'end'
 }) {
-  const [open, setOpen] = useState(false)
-  const [pinned, setPinned] = useState(false)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    if (!pinned) setOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    if (!pinned) {
-      timeoutRef.current = setTimeout(() => setOpen(false), 150)
-    }
-  }
-
-  const handlePin = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (pinned) {
-      setPinned(false)
-      setOpen(false)
-    } else {
-      setPinned(true)
-      setOpen(true)
-    }
-  }
-
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      setPinned(false)
-      setOpen(false)
-    }
-  }
-
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <div
-        className="relative"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
+    <HoverCard>
+      <HoverCardTrigger asChild>
         {children}
-        <PopoverTrigger asChild>
-          <button
-            aria-label="Pin preview"
-            className="absolute inset-0 w-full opacity-0 cursor-default"
-            onClick={handlePin}
-            tabIndex={-1}
-          />
-        </PopoverTrigger>
-      </div>
-      <PopoverContent
-        side={side}
-        align={align}
-        sideOffset={8}
-        className="w-72 p-3 bg-bg-elevated text-text-primary border border-border-rule shadow-[var(--shadow-float)]"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+      </HoverCardTrigger>
+      <HoverCardContent
+        className="bg-bg-elevated text-text-primary border border-border-rule shadow-[var(--shadow-float)]"
       >
         {content}
-      </PopoverContent>
-    </Popover>
+      </HoverCardContent>
+    </HoverCard>
   )
 }
 
@@ -566,7 +511,7 @@ export function AppSidebar({
                   if (tooltipContent) {
                     return (
                       <SidebarMenuItem key={item.title}>
-                        <PinnableHoverCard content={tooltipContent}>
+                        <SidebarHoverCard content={tooltipContent}>
                           <SidebarMenuButton
                             asChild
                             isActive={isActive}
@@ -578,7 +523,7 @@ export function AppSidebar({
                               {badgeContent}
                             </Link>
                           </SidebarMenuButton>
-                        </PinnableHoverCard>
+                        </SidebarHoverCard>
                       </SidebarMenuItem>
                     )
                   }
