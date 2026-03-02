@@ -312,6 +312,132 @@ function SuggestionTooltipContent({ counts }: { counts: Record<string, number> }
   )
 }
 
+function MeetingsHoverContent({ meetings }: { meetings: Array<{ id: string; title: string; scheduled_at: string | null; status: string }> }) {
+  if (meetings.length === 0) {
+    return (
+      <div className="space-y-1.5 text-xs">
+        <p className="font-medium text-sm">Meetings</p>
+        <p className="text-text-tertiary">No upcoming meetings scheduled</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2 text-xs">
+      <p className="font-medium text-sm">Upcoming Meetings</p>
+      <div className="space-y-1.5">
+        {meetings.map((meeting) => (
+          <Link
+            key={meeting.id}
+            href={`/meetings/${meeting.id}`}
+            className="block hover:text-accent group"
+          >
+            <div className="flex items-center gap-2">
+              <span className="truncate max-w-[180px] group-hover:underline">{meeting.title}</span>
+            </div>
+            {meeting.scheduled_at && (
+              <span className="text-[11px] text-text-tertiary">
+                {new Date(meeting.scheduled_at).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}{' '}
+                at{' '}
+                {new Date(meeting.scheduled_at).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })}
+              </span>
+            )}
+          </Link>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BlueprintHoverContent({ counts }: { counts: { draft: number; published: number } }) {
+  const total = counts.draft + counts.published
+  if (total === 0) {
+    return (
+      <div className="space-y-1.5 text-xs">
+        <p className="font-medium text-sm">Blueprints</p>
+        <p className="text-text-tertiary">No blueprints yet</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="font-medium text-sm">Blueprints</p>
+      <DrillDownRow label="Draft" count={counts.draft} colorClass="text-signal-warn" type="blueprints" status="draft" />
+      <DrillDownRow label="Published" count={counts.published} colorClass="text-signal-good" type="blueprints" status="published" />
+      <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
+        <span className="text-text-tertiary">Total:</span>
+        <span className="tabular-nums font-medium">{total}</span>
+      </div>
+    </div>
+  )
+}
+
+function CaseStudyHoverContent({ counts }: { counts: { draft: number; published: number } }) {
+  const total = counts.draft + counts.published
+  if (total === 0) {
+    return (
+      <div className="space-y-1.5 text-xs">
+        <p className="font-medium text-sm">Case Studies</p>
+        <p className="text-text-tertiary">No case studies yet</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="font-medium text-sm">Case Studies</p>
+      <DrillDownRow label="Draft" count={counts.draft} colorClass="text-signal-warn" type="case-studies" status="draft" />
+      <DrillDownRow label="Published" count={counts.published} colorClass="text-signal-good" type="case-studies" status="published" />
+      <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
+        <span className="text-text-tertiary">Total:</span>
+        <span className="tabular-nums font-medium">{total}</span>
+      </div>
+    </div>
+  )
+}
+
+function BlockerHoverContent({ counts }: { counts: { critical: number; high: number; medium: number; low: number } }) {
+  const total = counts.critical + counts.high + counts.medium + counts.low
+  if (total === 0) {
+    return (
+      <div className="space-y-1.5 text-xs">
+        <p className="font-medium text-sm">Blockers</p>
+        <p className="text-signal-good">No active blockers</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-1.5 text-xs">
+      <p className="font-medium text-sm">Active Blockers</p>
+      {counts.critical > 0 && (
+        <DrillDownRow label="Critical" count={counts.critical} colorClass="text-red-500 font-semibold" type="blockers" status="critical" />
+      )}
+      {counts.high > 0 && (
+        <DrillDownRow label="High" count={counts.high} colorClass="text-signal-bad" type="blockers" status="high" />
+      )}
+      {counts.medium > 0 && (
+        <DrillDownRow label="Medium" count={counts.medium} colorClass="text-signal-warn" type="blockers" status="medium" />
+      )}
+      {counts.low > 0 && (
+        <DrillDownRow label="Low" count={counts.low} colorClass="text-text-secondary" type="blockers" status="low" />
+      )}
+      <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
+        <span className="text-text-tertiary">Total Active:</span>
+        <span className="tabular-nums font-medium">{total}</span>
+      </div>
+    </div>
+  )
+}
+
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   profile: Profile
   navigation: NavGroup[]
@@ -416,6 +542,22 @@ export function AppSidebar({
                       badgeContent = (
                         <Badge variant="secondary" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold">
                           {newCount}
+                        </Badge>
+                      )
+                    }
+                  } else if (item.title === 'Meetings' && meetingsSummary && meetingsSummary.length > 0) {
+                    tooltipContent = <MeetingsHoverContent meetings={meetingsSummary} />
+                  } else if (item.title === 'Blueprints' && blueprintCounts) {
+                    tooltipContent = <BlueprintHoverContent counts={blueprintCounts} />
+                  } else if (item.title === 'Case Studies' && caseStudyCounts) {
+                    tooltipContent = <CaseStudyHoverContent counts={caseStudyCounts} />
+                  } else if (item.title === 'Blockers' && activeBlockerCounts) {
+                    tooltipContent = <BlockerHoverContent counts={activeBlockerCounts} />
+                    const criticalCount = activeBlockerCounts.critical
+                    if (criticalCount > 0) {
+                      badgeContent = (
+                        <Badge variant="default" className="ml-auto h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] font-mono font-semibold bg-red-500">
+                          {criticalCount}
                         </Badge>
                       )
                     }
