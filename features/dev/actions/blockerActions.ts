@@ -10,9 +10,11 @@ import {
   updateBlockerComment,
   deleteBlockerComment,
   getBlocker,
+  getBlockerComments,
   escalateBlockerToDfy,
   type BlockerStatus,
   type BlockerPriority,
+  type BlockerComment,
 } from '@/lib/api/blockers'
 import { createNotification } from '@/lib/api/notifications'
 import { notifyAdmins } from '@/lib/api/notification-helpers'
@@ -171,6 +173,16 @@ export async function deleteBlockerCommentAction(commentId: string) {
   } catch (error) {
     console.error('Error deleting blocker comment:', error)
     return { success: false, message: 'Failed to delete comment' }
+  }
+}
+
+export async function getBlockerCommentsAction(blockerId: string) {
+  try {
+    const comments = await getBlockerComments(blockerId)
+    return { success: true, comments }
+  } catch (error) {
+    console.error('Error fetching blocker comments:', error)
+    return { success: false, comments: [] as BlockerComment[] }
   }
 }
 

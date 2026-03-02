@@ -138,6 +138,27 @@ export async function getMyReportedBlockers(): Promise<Blocker[]> {
 }
 
 /**
+ * Get all blockers (admin view — includes resolved/closed)
+ */
+export async function getAllBlockers(): Promise<Blocker[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('blockers')
+    .select(`
+      *,
+      reporter:profiles!reported_by(id, name, email),
+      resolver:profiles!resolved_by(id, name),
+      deliverable:deliverables(id, title),
+      project:projects(id, project_name)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return (data || []).map(normalizeBlockerRelations)
+}
+
+/**
  * Get all active blockers (admin view)
  */
 export async function getAllActiveBlockers(): Promise<Blocker[]> {
