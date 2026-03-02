@@ -5,6 +5,7 @@ export interface Profile {
   name: string
   email: string
   role: UserRole
+  avatar_url?: string | null
   logo_url?: string | null
   city?: string | null
   country?: string | null

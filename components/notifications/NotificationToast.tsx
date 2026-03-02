@@ -13,7 +13,8 @@ import {
   Bell,
 } from 'lucide-react'
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import type { UserRole } from '@/lib/auth/types'
 import { Button } from '@/components/ui/button'
 import {
   type Notification,
@@ -165,15 +166,11 @@ export function NotificationToast({
           <div className="flex gap-3">
             {/* Avatar with icon overlay */}
             <div className="relative">
-              <Avatar className="size-10 ring-2 ring-background">
-                <AvatarImage
-                  src={`https://api.dicebear.com/7.x/notionists/svg?seed=${actorName}`}
-                  alt={actorName}
-                />
-                <AvatarFallback className="bg-muted text-muted-foreground text-sm font-medium">
-                  {actorInitial}
-                </AvatarFallback>
-              </Avatar>
+              <RoleAvatar
+                role={(notification.actor?.role as UserRole) || 'admin'}
+                name={actorName}
+                avatarUrl={notification.actor?.avatar_url}
+              />
               <div className={`absolute -bottom-0.5 -right-0.5 p-1 rounded-full bg-background ring-2 ring-background ${colorClass}`}>
                 <Icon className="size-3" />
               </div>

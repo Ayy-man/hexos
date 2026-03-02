@@ -14,6 +14,7 @@ interface TeamMember {
   email: string
   name: string | null
   role: string
+  avatar_url: string | null
   created_at: string
   last_seen_at: string | null
 }
@@ -23,7 +24,7 @@ async function getHexonaTeam(): Promise<TeamMember[]> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, email, name, role, created_at, last_seen_at')
+    .select('id, email, name, role, avatar_url, created_at, last_seen_at')
     .in('role', ['admin', 'internal'])
     .order('role')
     .order('created_at')

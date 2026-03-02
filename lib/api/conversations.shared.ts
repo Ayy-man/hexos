@@ -61,6 +61,8 @@ export interface Message {
     id: string
     name: string
     email: string
+    role?: string
+    avatar_url?: string | null
   }
   attachments?: MessageAttachment[]
   reactions?: MessageReaction[]

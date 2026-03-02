@@ -363,7 +363,7 @@ export async function getConversationMessages(
     .from('messages')
     .select(`
       *,
-      sender:profiles!sender_id(id, name, email),
+      sender:profiles!sender_id(id, name, email, role, avatar_url),
       attachments:message_attachments(*),
       reactions:message_reactions(
         *,
@@ -522,7 +522,7 @@ async function batchGetLastMessages(
     .from('messages')
     .select(`
       *,
-      sender:profiles!sender_id(id, name, email)
+      sender:profiles!sender_id(id, name, email, role, avatar_url)
     `)
     .in('conversation_id', conversationIds)
     .is('deleted_at', null)
@@ -590,7 +590,7 @@ export async function sendMessage(
     })
     .select(`
       *,
-      sender:profiles!sender_id(id, name, email)
+      sender:profiles!sender_id(id, name, email, role, avatar_url)
     `)
     .single()
 
@@ -699,7 +699,7 @@ export async function editMessage(messageId: string, content: string): Promise<M
     .eq('sender_id', user.id) // Ensure own message
     .select(`
       *,
-      sender:profiles!sender_id(id, name, email)
+      sender:profiles!sender_id(id, name, email, role, avatar_url)
     `)
     .single()
 

@@ -12,7 +12,8 @@ import {
   RefreshCw,
   Bell,
 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import type { UserRole } from '@/lib/auth/types'
 import {
   type Notification,
   getNotificationColor,
@@ -127,16 +128,12 @@ export const NotificationItem = memo(function NotificationItem({
     >
       <div className="flex gap-3">
         {/* Avatar */}
-        <Avatar className="size-11 ring-1 ring-border">
-          <AvatarImage
-            src={`https://api.dicebear.com/7.x/notionists/svg?seed=${actorName}`}
-            alt={actorName}
-            className="object-cover"
-          />
-          <AvatarFallback className="bg-muted text-muted-foreground font-medium">
-            {actorInitial}
-          </AvatarFallback>
-        </Avatar>
+        <RoleAvatar
+          role={(notification.actor?.role as UserRole) || 'admin'}
+          name={actorName}
+          avatarUrl={notification.actor?.avatar_url}
+          size="lg"
+        />
 
         {/* Content */}
         <div className="flex flex-1 flex-col space-y-2 min-w-0">

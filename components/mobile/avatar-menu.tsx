@@ -1,7 +1,9 @@
 'use client'
 
 import { LogOut, User } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import { getRoleColor } from '@/lib/constants/role-colors'
+import type { UserRole } from '@/lib/auth/types'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,25 +18,22 @@ interface MobileAvatarMenuProps {
   name: string
   email: string
   role: string
+  avatarUrl?: string | null
 }
 
-export function MobileAvatarMenu({ name, email, role }: MobileAvatarMenuProps) {
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+export function MobileAvatarMenu({ name, email, role, avatarUrl }: MobileAvatarMenuProps) {
+  const colors = getRoleColor(role as UserRole)
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className="flex-shrink-0">
-          <Avatar className="h-8 w-8 rounded-lg">
-            <AvatarFallback className="rounded-lg bg-cyan-600 text-white text-xs">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <RoleAvatar
+            role={role as UserRole}
+            name={name}
+            avatarUrl={avatarUrl}
+            className="rounded-lg"
+          />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -45,14 +44,15 @@ export function MobileAvatarMenu({ name, email, role }: MobileAvatarMenuProps) {
       >
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <Avatar className="h-8 w-8 rounded-lg">
-              <AvatarFallback className="rounded-lg bg-cyan-600 text-white text-xs">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <RoleAvatar
+              role={role as UserRole}
+              name={name}
+              avatarUrl={avatarUrl}
+              className="rounded-lg"
+            />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{name}</span>
-              <span className="truncate text-xs text-muted-foreground">{role}</span>
+              <span className={`truncate text-xs ${colors.text}`}>{colors.label}</span>
             </div>
           </div>
         </DropdownMenuLabel>

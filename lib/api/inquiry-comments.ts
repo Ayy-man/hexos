@@ -22,6 +22,8 @@ export interface InquiryComment {
     id: string
     name: string
     email: string
+    role?: string
+    avatar_url?: string | null
   }
   replies?: InquiryComment[]
 }
@@ -49,7 +51,7 @@ export async function getInquiryComments(
     .from('inquiry_comments')
     .select(`
       *,
-      author:profiles!author_id(id, name, email)
+      author:profiles!author_id(id, name, email, role, avatar_url)
     `)
     .eq('inquiry_id', inquiryId)
 
@@ -71,7 +73,7 @@ export async function getInquiryComment(id: string): Promise<InquiryComment> {
     .from('inquiry_comments')
     .select(`
       *,
-      author:profiles!author_id(id, name, email)
+      author:profiles!author_id(id, name, email, role, avatar_url)
     `)
     .eq('id', id)
     .single()
@@ -100,7 +102,7 @@ export async function createInquiryComment(input: CreateCommentInput): Promise<I
     })
     .select(`
       *,
-      author:profiles!author_id(id, name, email)
+      author:profiles!author_id(id, name, email, role, avatar_url)
     `)
     .single()
 
@@ -173,7 +175,7 @@ export async function updateInquiryComment(id: string, input: UpdateCommentInput
     .eq('id', id)
     .select(`
       *,
-      author:profiles!author_id(id, name, email)
+      author:profiles!author_id(id, name, email, role, avatar_url)
     `)
     .single()
 
@@ -219,7 +221,7 @@ export async function resolveInquiryComment(id: string, resolved: boolean): Prom
     .eq('id', id)
     .select(`
       *,
-      author:profiles!author_id(id, name, email)
+      author:profiles!author_id(id, name, email, role, avatar_url)
     `)
     .single()
 
@@ -235,7 +237,7 @@ export async function getCommentsByAnchor(inquiryId: string, anchorId: string): 
     .from('inquiry_comments')
     .select(`
       *,
-      author:profiles!author_id(id, name, email)
+      author:profiles!author_id(id, name, email, role, avatar_url)
     `)
     .eq('inquiry_id', inquiryId)
     .eq('anchor_id', anchorId)

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useOnlineUsers } from '@/hooks/use-presence'
 import { useSidebar } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback, AvatarImage, AvatarGroup } from '@/components/ui/avatar'
+import { AvatarGroup } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
 import { formatLastSeen } from '@/lib/utils'
 import type { Profile } from '@/lib/auth/types'
 
@@ -67,15 +68,15 @@ export function TeamPresence() {
         <div className="space-y-1">
           <AvatarGroup className="justify-start">
             {online.slice(0, 5).map((member, i) => (
-              <Avatar
+              <RoleAvatar
                 key={member.id}
+                role={member.role}
+                name={member.name}
+                avatarUrl={member.avatar_url || member.logo_url}
                 size="sm"
-                className="animate-pop-in ring-success/50"
+                className="animate-pop-in"
                 style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <AvatarImage src={member.logo_url || undefined} />
-                <AvatarFallback>{member.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
+              />
             ))}
             {online.length > 5 && (
               <div className="flex items-center justify-center size-6 rounded-full bg-muted text-xs font-medium ring-2 ring-background">
@@ -93,10 +94,12 @@ export function TeamPresence() {
           <div className="flex flex-col gap-1">
             {offline.slice(0, 3).map(member => (
               <div key={member.id} className="flex items-center gap-2 text-xs">
-                <Avatar size="sm">
-                  <AvatarImage src={member.logo_url || undefined} />
-                  <AvatarFallback>{member.name.slice(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <RoleAvatar
+                  role={member.role}
+                  name={member.name}
+                  avatarUrl={member.avatar_url || member.logo_url}
+                  size="sm"
+                />
                 <span className="truncate flex-1">{member.name}</span>
                 <span className="text-muted-foreground shrink-0">
                   {formatLastSeen(member.last_seen_at ?? null)}

@@ -3,7 +3,8 @@
 import { useState, memo } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { MoreHorizontal, Pencil, Trash2, Download } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import type { UserRole } from '@/lib/auth/types'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -65,13 +66,6 @@ export const MessageItem = memo(function MessageItem({
     await onToggleReaction(message.id, emoji)
   }
 
-  const initials = message.sender?.name
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || '?'
-
   const timeAgo = formatDistanceToNow(new Date(message.created_at), { addSuffix: true })
 
   // Parse content for @mentions (simple approach - look for @name patterns)
@@ -99,9 +93,12 @@ export const MessageItem = memo(function MessageItem({
         isOwnMessage && 'bg-muted/30'
       )}
     >
-      <Avatar className="h-8 w-8 shrink-0">
-        <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-      </Avatar>
+      <RoleAvatar
+        role={(message.sender?.role as UserRole) || 'client'}
+        name={message.sender?.name || 'Unknown'}
+        avatarUrl={message.sender?.avatar_url}
+        className="h-8 w-8 shrink-0"
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline gap-2">

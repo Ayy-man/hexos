@@ -5,7 +5,8 @@ import { useState, useCallback, useTransition } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import type { UserRole } from '@/lib/auth/types'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -337,11 +338,12 @@ function CommentThread({
       {/* Comment header */}
       <div className="mb-2 flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <Avatar className="h-6 w-6">
-            <div className="flex h-full w-full items-center justify-center bg-primary text-xs text-primary-foreground">
-              {comment.author?.name?.charAt(0) || '?'}
-            </div>
-          </Avatar>
+          <RoleAvatar
+            role={(comment.author?.role as UserRole) || 'admin'}
+            name={comment.author?.name || 'Unknown'}
+            avatarUrl={comment.author?.avatar_url}
+            size="sm"
+          />
           <div>
             <p className="text-sm font-medium">
               {comment.author?.name || 'Unknown'}

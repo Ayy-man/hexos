@@ -75,6 +75,8 @@ export interface Notification {
   actor?: {
     id: string
     name: string
+    role?: string
+    avatar_url?: string | null
   }
   project?: {
     id: string

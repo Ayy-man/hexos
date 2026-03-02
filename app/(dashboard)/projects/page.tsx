@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
+import { RoleAvatar } from '@/components/ui/role-avatar'
 import { getStatusConfig, StatusDot } from '@/lib/utils/status'
 
 // Map statuses to categories for filtering
@@ -216,7 +217,10 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                     )}
                     <div className="mt-2 flex items-center gap-4 text-text-tertiary font-mono text-[10px]">
                       {project.assigned_dev?.name && (
-                        <span>Dev: {project.assigned_dev.name}</span>
+                        <span className="flex items-center gap-1">
+                          <RoleAvatar role="dev" name={project.assigned_dev.name} size="sm" />
+                          {project.assigned_dev.name}
+                        </span>
                       )}
                       {project.target_delivery_date && view !== 'completed' && (
                         <span>
@@ -279,7 +283,16 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
                       <ProjectProgressBar project={project} variant="compact" />
                     </td>
                     <td className="px-4 py-3 text-sm text-text-secondary">
-                      {project.assigned_dev?.name || '—'}
+                      {project.assigned_dev?.name ? (
+                        <div className="flex items-center gap-2">
+                          <RoleAvatar
+                            role="dev"
+                            name={project.assigned_dev.name}
+                            size="sm"
+                          />
+                          <span>{project.assigned_dev.name}</span>
+                        </div>
+                      ) : '—'}
                     </td>
                     <td className="px-4 py-3 text-sm text-text-secondary">
                       {view === 'completed' && project.completed_at

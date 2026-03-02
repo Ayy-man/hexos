@@ -35,6 +35,9 @@ import {
   ArrowLeftRight,
   Activity,
 } from 'lucide-react'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import type { UserRole } from '@/lib/auth/types'
+import { getRoleColor } from '@/lib/constants/role-colors'
 import type { ActivityLogWithUser, ActivityLogCategory } from '@/lib/types/activity-logs'
 import {
   formatActivityCategory,
@@ -209,15 +212,24 @@ export function ActivityLogContent({
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col">
-                            <span className="text-sm truncate max-w-[160px]">
-                              {log.user?.name || log.user_email || 'System'}
-                            </span>
+                          <div className="flex items-center gap-2">
                             {log.user_role && (
-                              <span className="text-xs text-muted-foreground">
-                                {log.user_role}
-                              </span>
+                              <RoleAvatar
+                                role={log.user_role as UserRole}
+                                name={log.user?.name || log.user_email || 'System'}
+                                size="sm"
+                              />
                             )}
+                            <div className="flex flex-col">
+                              <span className="text-sm truncate max-w-[160px]">
+                                {log.user?.name || log.user_email || 'System'}
+                              </span>
+                              {log.user_role && (
+                                <span className={`text-xs ${getRoleColor(log.user_role as UserRole).text}`}>
+                                  {getRoleColor(log.user_role as UserRole).label}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>

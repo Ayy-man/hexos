@@ -17,6 +17,7 @@ interface MobileShellProps {
   role: UserRole
   profileName: string
   profileEmail: string
+  profileAvatarUrl?: string | null
   notificationSlot: React.ReactNode
   inquiryCount?: number
   conversationCount?: number
@@ -30,6 +31,7 @@ export function MobileShell({
   role,
   profileName,
   profileEmail,
+  profileAvatarUrl,
   notificationSlot,
   inquiryCount,
   conversationCount,
@@ -72,6 +74,7 @@ export function MobileShell({
           name={profileName}
           email={profileEmail}
           role={role}
+          avatarUrl={profileAvatarUrl}
         />
       }
       commandPaletteSlot={

@@ -30,7 +30,7 @@ export async function getMyNotifications(
     .from('notifications')
     .select(`
       *,
-      actor:profiles!actor_id(id, name),
+      actor:profiles!actor_id(id, name, role, avatar_url),
       project:projects(id, project_name)
     `)
     .eq('user_id', user.id)
@@ -78,7 +78,7 @@ export async function markAsRead(notificationId: string): Promise<Notification> 
     .eq('id', notificationId)
     .select(`
       *,
-      actor:profiles!actor_id(id, name),
+      actor:profiles!actor_id(id, name, role, avatar_url),
       project:projects(id, project_name)
     `)
     .single()
@@ -235,7 +235,7 @@ export async function getUnshownToastNotifications(
     .from('notifications')
     .select(`
       *,
-      actor:profiles!actor_id(id, name),
+      actor:profiles!actor_id(id, name, role, avatar_url),
       project:projects(id, project_name)
     `)
     .eq('user_id', user.id)
