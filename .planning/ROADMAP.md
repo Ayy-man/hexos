@@ -68,3 +68,14 @@
   - Role-aware UI: same page adapts for admin (build + monitor) and DFY (fill out)
   - New tables: onboarding_categories, onboarding_questions, onboarding_answers
   - Uses Stepperize (headless stepper) + existing shadcn/react-hook-form/zod
+
+- [ ] Phase 21: Blocker Queue Redesign
+  - Replace dense card-dump admin blocker queue with scannable minimal cards + slide-over sidebar
+  - Minimal blocker cards: priority color bar, title, description preview, status badge, project, time, comment count, reporter
+  - Click card opens Sheet (40vw right) with Overview + Conversation tabs
+  - Overview tab: full blocker detail, meta, description, inline resolve (no dialog), inline delete confirm, status transitions, escalate to DFY
+  - Conversation tab: chat-like threaded comments with avatars, timestamps, edit/delete, Enter-to-send composer
+  - Same experience for all roles (admin, dev, DFY) — trust-based, no role gating
+  - Remove resolve dialog and comment dialog — replaced by inline sidebar interactions
+  - Add getAllBlockers API + getBlockerCommentsAction server action for client-side comment fetching
+  - No database changes needed — uses existing blocker_comments table and APIs
