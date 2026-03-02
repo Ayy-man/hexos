@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -47,10 +48,10 @@ import { SuggestionBox } from '@/components/suggestion-box'
 import { TeamPresence } from '@/components/team-presence'
 import { Badge } from '@/components/ui/badge'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import type { Profile } from '@/lib/auth/types'
 import type { NavGroup } from '@/lib/navigation'
 import type { UnreadConversationSummary } from '@/lib/api/conversations'
@@ -80,22 +81,155 @@ const iconMap: Record<string, LucideIcon> = {
   Video,
 }
 
+// PinnableHoverCard: replaces Tooltip with interactive Popover that opens on hover and pins on click
+function PinnableHoverCard({
+  children,
+  content,
+  side = 'right',
+  align = 'start',
+}: {
+  children: React.ReactNode
+  content: React.ReactNode
+  side?: 'right' | 'left' | 'top' | 'bottom'
+  align?: 'start' | 'center' | 'end'
+}) {
+  const [open, setOpen] = useState(false)
+  const [pinned, setPinned] = useState(false)
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    if (!pinned) setOpen(true)
+  }
+
+  const handleMouseLeave = () => {
+    if (!pinned) {
+      timeoutRef.current = setTimeout(() => setOpen(false), 150)
+    }
+  }
+
+  const handlePin = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (pinned) {
+      setPinned(false)
+      setOpen(false)
+    } else {
+      setPinned(true)
+      setOpen(true)
+    }
+  }
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setPinned(false)
+      setOpen(false)
+    }
+  }
+
+  return (
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <div
+        className="relative"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {children}
+        <PopoverTrigger asChild>
+          <button
+            aria-label="Pin preview"
+            className="absolute inset-0 w-full opacity-0 cursor-default"
+            onClick={handlePin}
+            tabIndex={-1}
+          />
+        </PopoverTrigger>
+      </div>
+      <PopoverContent
+        side={side}
+        align={align}
+        sideOffset={8}
+        className="w-72 p-3 bg-bg-elevated text-text-primary border border-border-rule shadow-[var(--shadow-float)]"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {content}
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+// DrillDownRow: a stat row that lazily fetches item names on first hover and caches them
+function DrillDownRow({
+  label,
+  count,
+  colorClass,
+  type,
+  status,
+}: {
+  label: string
+  count: number
+  colorClass: string
+  type: string
+  status: string
+}) {
+  const [items, setItems] = useState<Array<{ id: string; name: string; href: string }> | null>(null)
+  const [hovered, setHovered] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const handleMouseEnter = async () => {
+    setHovered(true)
+    if (items === null && count > 0) {
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/sidebar-previews?type=${type}&status=${status}&limit=5`)
+        const data = await res.json()
+        setItems(data.items || [])
+      } catch {
+        setItems([])
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className="flex justify-between gap-4">
+        <span className={colorClass}>{label}:</span>
+        <span className="tabular-nums">{count}</span>
+      </div>
+      {hovered && count > 0 && (
+        <div className="mt-1 ml-2 space-y-0.5 border-l border-border-hairline pl-2">
+          {loading && <span className="text-text-tertiary text-[11px]">Loading...</span>}
+          {items && items.length === 0 && <span className="text-text-tertiary text-[11px]">No items</span>}
+          {items && items.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="block text-[11px] text-text-secondary hover:text-accent hover:underline truncate"
+            >
+              {item.name}
+            </Link>
+          ))}
+          {items && items.length >= 5 && (
+            <span className="text-[11px] text-text-tertiary">+ more</span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function InquiryTooltipContent({ counts }: { counts: { unopened: number; working: number; ready: number; total: number } }) {
   return (
     <div className="space-y-1.5 text-xs">
       <p className="font-medium text-sm">Inquiry Pipeline</p>
-      <div className="flex justify-between gap-4">
-        <span className="text-signal-bad">Unopened:</span>
-        <span className="tabular-nums">{counts.unopened}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-accent">Working:</span>
-        <span className="tabular-nums">{counts.working}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-signal-good">Ready:</span>
-        <span className="tabular-nums">{counts.ready}</span>
-      </div>
+      <DrillDownRow label="Unopened" count={counts.unopened} colorClass="text-signal-bad" type="inquiries" status="unopened" />
+      <DrillDownRow label="Working" count={counts.working} colorClass="text-accent" type="inquiries" status="working" />
+      <DrillDownRow label="Ready" count={counts.ready} colorClass="text-signal-good" type="inquiries" status="ready" />
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
         <span className="text-text-tertiary">Total Active:</span>
         <span className="tabular-nums font-medium">{counts.total}</span>
@@ -108,18 +242,9 @@ function ProjectTooltipContent({ stats }: { stats: { total: number; active: numb
   return (
     <div className="space-y-1.5 text-xs">
       <p className="font-medium text-sm">Projects</p>
-      <div className="flex justify-between gap-4">
-        <span className="text-accent">Active:</span>
-        <span className="tabular-nums">{stats.active}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-signal-warn">Inquiry:</span>
-        <span className="tabular-nums">{stats.inquiry}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-signal-good">Completed:</span>
-        <span className="tabular-nums">{stats.completed}</span>
-      </div>
+      <DrillDownRow label="Active" count={stats.active} colorClass="text-accent" type="projects" status="active" />
+      <DrillDownRow label="Inquiry" count={stats.inquiry} colorClass="text-signal-warn" type="projects" status="inquiry" />
+      <DrillDownRow label="Completed" count={stats.completed} colorClass="text-signal-good" type="projects" status="completed" />
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
         <span className="text-text-tertiary">Total:</span>
         <span className="tabular-nums font-medium">{stats.total}</span>
@@ -155,11 +280,11 @@ function ConversationTooltipContent({ summary }: { summary: { total_unread: numb
       </div>
       <div className="space-y-1.5">
         {summary.conversations.map((conv) => (
-          <div key={conv.id} className="flex items-center gap-2">
+          <Link key={conv.id} href={`/conversations/${conv.id}`} className="flex items-center gap-2 hover:text-accent group">
             <span className="shrink-0">{CONVERSATION_TYPE_ICONS[conv.type] || '💬'}</span>
-            <span className="truncate max-w-[140px]">{conv.title}</span>
+            <span className="truncate max-w-[140px] group-hover:underline">{conv.title}</span>
             <span className="ml-auto tabular-nums text-signal-bad font-medium">{conv.unread_count}</span>
-          </div>
+          </Link>
         ))}
       </div>
       {summary.conversations.length < summary.total_unread && (
@@ -173,22 +298,12 @@ function ConversationTooltipContent({ summary }: { summary: { total_unread: numb
 
 function SuggestionTooltipContent({ counts }: { counts: Record<string, number> }) {
   const open = (counts.new || 0) + (counts.reviewed || 0)
-  const total = Object.values(counts).reduce((a, b) => a + b, 0)
   return (
     <div className="space-y-1.5 text-xs">
       <p className="font-medium text-sm">Suggestions</p>
-      <div className="flex justify-between gap-4">
-        <span className="text-signal-warn">New:</span>
-        <span className="tabular-nums">{counts.new || 0}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-accent">Reviewed:</span>
-        <span className="tabular-nums">{counts.reviewed || 0}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-signal-good">Implemented:</span>
-        <span className="tabular-nums">{counts.implemented || 0}</span>
-      </div>
+      <DrillDownRow label="New" count={counts.new || 0} colorClass="text-signal-warn" type="suggestions" status="new" />
+      <DrillDownRow label="Reviewed" count={counts.reviewed || 0} colorClass="text-accent" type="suggestions" status="reviewed" />
+      <DrillDownRow label="Implemented" count={counts.implemented || 0} colorClass="text-signal-good" type="suggestions" status="implemented" />
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
         <span className="text-text-tertiary">Open:</span>
         <span className="tabular-nums font-medium">{open}</span>
@@ -301,24 +416,19 @@ export function AppSidebar({
                   if (tooltipContent) {
                     return (
                       <SidebarMenuItem key={item.title}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={isActive}
-                              id={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
-                            >
-                              <Link href={item.url} prefetch={true}>
-                                <Icon />
-                                <span>{item.title}</span>
-                                {badgeContent}
-                              </Link>
-                            </SidebarMenuButton>
-                          </TooltipTrigger>
-                          <TooltipContent side="right" align="start" className="p-3 bg-bg-elevated text-text-primary border border-border-rule shadow-[var(--shadow-float)]">
-                            {tooltipContent}
-                          </TooltipContent>
-                        </Tooltip>
+                        <PinnableHoverCard content={tooltipContent}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            id={`nav-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            <Link href={item.url} prefetch={true}>
+                              <Icon />
+                              <span>{item.title}</span>
+                              {badgeContent}
+                            </Link>
+                          </SidebarMenuButton>
+                        </PinnableHoverCard>
                       </SidebarMenuItem>
                     )
                   }
