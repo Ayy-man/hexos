@@ -32,6 +32,7 @@ export interface OnboardingRequirement {
   loom_url: string | null
   resource_url: string | null
   position: number
+  category_id: string | null
   created_at: string
   updated_at: string
   completed_at: string | null
@@ -50,6 +51,7 @@ export interface CreateOnboardingRequirementInput {
   loom_url?: string
   resource_url?: string
   position?: number
+  category_id?: string | null
 }
 
 export interface UpdateOnboardingRequirementInput {
@@ -63,6 +65,7 @@ export interface UpdateOnboardingRequirementInput {
   loom_url?: string | null
   resource_url?: string | null
   position?: number
+  category_id?: string | null
 }
 
 // For tree building
@@ -113,6 +116,24 @@ export async function getOnboardingRequirement(
   return data as OnboardingRequirement
 }
 
+export async function getRequirementsByCategory(
+  categoryId: string
+): Promise<OnboardingRequirement[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('onboarding_requirements')
+    .select(`
+      *,
+      attachments:requirement_attachments(*)
+    `)
+    .eq('category_id', categoryId)
+    .order('position', { ascending: true })
+
+  if (error) throw error
+  return (data || []) as OnboardingRequirement[]
+}
+
 // ============================================
 // Create Operations
 // ============================================
@@ -135,6 +156,7 @@ export async function createOnboardingRequirement(
       loom_url: input.loom_url || null,
       resource_url: input.resource_url || null,
       position: input.position ?? 0,
+      category_id: input.category_id || null,
     })
     .select()
     .single()
@@ -224,6 +246,8 @@ export async function updateOnboardingRequirement(
       updateData.completed_by = null
     }
   }
+
+  if (input.category_id !== undefined) updateData.category_id = input.category_id
 
   const { data, error } = await supabase
     .from('onboarding_requirements')
