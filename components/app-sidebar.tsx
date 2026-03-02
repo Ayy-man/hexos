@@ -103,6 +103,16 @@ function SidebarHoverCard({
   )
 }
 
+// Section page paths for "view all" links
+const SECTION_HREFS: Record<string, string> = {
+  inquiries: '/inquiries',
+  projects: '/projects',
+  suggestions: '/suggestions',
+  blueprints: '/blueprints',
+  'case-studies': '/case-studies',
+  blockers: '/admin/blockers',
+}
+
 // DrillDownRow: a stat row that lazily fetches item names on first hover and caches them
 function DrillDownRow({
   label,
@@ -160,7 +170,12 @@ function DrillDownRow({
             </Link>
           ))}
           {items && items.length >= 5 && (
-            <span className="text-[11px] text-text-tertiary">+ more</span>
+            <Link
+              href={SECTION_HREFS[type] || '#'}
+              className="block text-[11px] text-text-tertiary hover:text-accent hover:underline"
+            >
+              + {count - 5} more
+            </Link>
           )}
         </div>
       )}

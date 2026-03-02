@@ -998,13 +998,21 @@ export async function convertInquiryToProjectFull(
   return project
 }
 
-// Get inquiries by proposal stage (for sidebar hover drill-down)
+// Stage group mappings: the sidebar aggregates raw stages into display groups
+const STAGE_GROUPS: Record<string, string[]> = {
+  unopened: ['unopened'],
+  working: ['working', 'in_queue', 'admin_reviewed'],
+  ready: ['ready', 'final_review'],
+}
+
+// Get inquiries by proposal stage group (for sidebar hover drill-down)
 export async function getInquiriesByStage(stage: string, limit = 5) {
   const supabase = await createClient()
+  const stages = STAGE_GROUPS[stage] || [stage]
   const { data } = await supabase
     .from('inquiries')
     .select('id, prospect_company_name, form_data')
-    .eq('proposal_stage', stage)
+    .in('proposal_stage', stages)
     .is('deleted_at', null)
     .is('archived_at', null)
     .order('created_at', { ascending: false })
