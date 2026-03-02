@@ -48,3 +48,14 @@
   - Toggleable filter chips (All, Status, Deliverables, Documents, Hill Chart, Files, Team)
   - Show entity names, field-level diffs (old → new), zone labels, file names, and truncated previews inline
   - Client-side filtering on already-loaded activity data
+
+- [ ] Phase 19: Enhanced Sidebar Hover Previews with Drill-Down Navigation
+  - Add second-layer drill-down to existing tooltip stat rows (Inquiries, Projects, Conversations, Suggestions) — hover a count row to see actual item names
+  - Make every entity name in tooltips a clickable Link for direct navigation
+  - Add new hover cards for Meetings, Blueprints, Case Studies, and Blockers sidebar items
+  - Fetch additional data (item names/titles) to power the drill-down lists
+  - Pinnable tooltips (click to keep open) for comfortable reading and clicking
+  - **Plans:** 3 plans
+    - [ ] 19-01-PLAN.md — API functions + Route Handler for drill-down data
+    - [ ] 19-02-PLAN.md — PinnableHoverCard component + upgrade existing 4 tooltips
+    - [ ] 19-03-PLAN.md — 4 new hover cards (Meetings, Blueprints, Case Studies, Blockers) + visual verification
