@@ -61,13 +61,13 @@ export function ActivityTab({ activity, projectId, requirements }: ActivityTabPr
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
+    <Card className="flex flex-col max-h-[700px]">
+      <CardHeader className="pb-2 flex-shrink-0">
         <CardTitle className="text-base">Activity Timeline</CardTitle>
       </CardHeader>
 
       {/* Filter chips */}
-      <div className="flex gap-2 flex-wrap px-6 pb-4">
+      <div className="flex gap-2 flex-wrap px-6 pb-4 flex-shrink-0">
         {FILTER_CHIPS.map((chip) => (
           <button
             key={chip.value}
@@ -98,9 +98,9 @@ export function ActivityTab({ activity, projectId, requirements }: ActivityTabPr
 
       {/* Timeline content */}
       {filteredActivity.length > 0 && (
-        <CardContent>
+        <CardContent className="overflow-y-auto flex-1 min-h-0">
           <TooltipProvider>
-            <div className="relative max-h-[600px] overflow-y-auto pr-2">
+            <div className="relative">
               {/* Vertical timeline line */}
               <div className="absolute left-[17px] top-0 bottom-0 w-px bg-border" />
 
