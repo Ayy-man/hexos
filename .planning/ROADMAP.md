@@ -59,3 +59,12 @@
     - [x] 19-01-PLAN.md — API functions + Route Handler for drill-down data (completed 2026-03-03)
     - [ ] 19-02-PLAN.md — PinnableHoverCard component + upgrade existing 4 tooltips
     - [ ] 19-03-PLAN.md — 4 new hover cards (Meetings, Blueprints, Case Studies, Blockers) + visual verification
+
+- [ ] Phase 20: Onboarding Stepper Form
+  - Replace flat onboarding tab with a guided multi-step form experience
+  - Admin builds onboarding forms: categories with mixed question types (text, textarea, select, multi_select, boolean) and requirements
+  - DFY partner fills out as a vertical stepper: deliverables sign-off → category sections → review & complete
+  - Admin monitors answer progress with completion rings per category and inline answer previews
+  - Role-aware UI: same page adapts for admin (build + monitor) and DFY (fill out)
+  - New tables: onboarding_categories, onboarding_questions, onboarding_answers
+  - Uses Stepperize (headless stepper) + existing shadcn/react-hook-form/zod
