@@ -332,6 +332,10 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     conversations: UnreadConversationSummary[]
   }
   suggestionCounts?: Record<string, number>
+  meetingsSummary?: Array<{ id: string; title: string; scheduled_at: string | null; status: string }>
+  blueprintCounts?: { draft: number; published: number }
+  caseStudyCounts?: { draft: number; published: number }
+  activeBlockerCounts?: { critical: number; high: number; medium: number; low: number }
 }
 
 export function AppSidebar({
@@ -341,6 +345,10 @@ export function AppSidebar({
   projectStats,
   conversationSummary,
   suggestionCounts,
+  meetingsSummary,
+  blueprintCounts,
+  caseStudyCounts,
+  activeBlockerCounts,
   ...props
 }: AppSidebarProps) {
   const pathname = usePathname()

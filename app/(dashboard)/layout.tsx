@@ -19,6 +19,10 @@ import { getInquiryStatusCounts } from '@/lib/api/inquiries'
 import { getProjectStats } from '@/lib/api/projects'
 import { getUnreadConversationsSummary } from '@/lib/api/conversations'
 import { getSuggestionCounts } from '@/lib/api/suggestions'
+import { getUpcomingMeetings } from '@/lib/api/meetings'
+import { getBlueprintStatusCounts } from '@/lib/api/blueprints'
+import { getCaseStudyStatusCounts } from '@/lib/api/case-studies'
+import { getActiveBlockerCountsByPriority } from '@/lib/api/blockers'
 import { OnboardingShell } from '@/components/onboarding-shell'
 import { CheckinPromptProvider } from '@/features/dev-logging/components'
 import { getDevLoggingStatus } from '@/lib/api/dev-logging'
@@ -48,7 +52,11 @@ export default async function DashboardLayout({
   const isAdminOrInternal = ['admin', 'internal'].includes((profile as Profile).role)
   const isDev = (profile as Profile).role === 'dev'
 
-  const [notifications, unreadCount, devLoggingStatus, inquiryStatusCounts, projectStats, conversationSummary, suggestionCounts] = await Promise.all([
+  const [
+    notifications, unreadCount, devLoggingStatus,
+    inquiryStatusCounts, projectStats, conversationSummary, suggestionCounts,
+    meetingsSummary, blueprintCounts, caseStudyCounts, activeBlockerCounts,
+  ] = await Promise.all([
     getMyNotifications(20).catch(() => []),
     getUnreadCount().catch(() => 0),
     isDev ? getDevLoggingStatus().catch(() => null) : Promise.resolve(null),
@@ -56,6 +64,10 @@ export default async function DashboardLayout({
     isAdminOrInternal ? getProjectStats().catch(() => null) : Promise.resolve(null),
     getUnreadConversationsSummary().catch(() => ({ total_unread: 0, conversations: [] })),
     isAdminOrInternal ? getSuggestionCounts().catch(() => null) : Promise.resolve(null),
+    isAdminOrInternal ? getUpcomingMeetings(3).catch(() => []) : Promise.resolve([]),
+    isAdminOrInternal ? getBlueprintStatusCounts().catch(() => null) : Promise.resolve(null),
+    isAdminOrInternal ? getCaseStudyStatusCounts().catch(() => null) : Promise.resolve(null),
+    isAdminOrInternal ? getActiveBlockerCountsByPriority().catch(() => null) : Promise.resolve(null),
   ])
 
   const inquiryCounts = inquiryStatusCounts ? {
@@ -109,6 +121,10 @@ export default async function DashboardLayout({
                 projectStats={projectStats ?? undefined}
                 conversationSummary={conversationSummary}
                 suggestionCounts={suggestionCounts ?? undefined}
+                meetingsSummary={meetingsSummary}
+                blueprintCounts={blueprintCounts ?? undefined}
+                caseStudyCounts={caseStudyCounts ?? undefined}
+                activeBlockerCounts={activeBlockerCounts ?? undefined}
               />
               <SidebarInset>
                 <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border-hairline bg-bg-surface px-4">
