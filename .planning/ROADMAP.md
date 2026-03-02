@@ -37,3 +37,14 @@
   - WS-4: Waterfall Fixes
   - WS-5: Re-render Fixes
   - WS-6: CSS & Animation Fixes
+
+---
+
+## v1.2 UX Enrichment
+
+- [ ] Phase 18: Rich Activity Timeline
+  - Upgrade both Activity Timeline (full tab) and Recent Activity (overview card) with rich inline details per activity type
+  - Category-specific icons + color accents for visual differentiation (status, deliverables, documents, hill chart, files, team, etc.)
+  - Toggleable filter chips (All, Status, Deliverables, Documents, Hill Chart, Files, Team)
+  - Show entity names, field-level diffs (old → new), zone labels, file names, and truncated previews inline
+  - Client-side filtering on already-loaded activity data

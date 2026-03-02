@@ -33,6 +33,8 @@ import { getDelaySummaryAction } from '../../actions/delayActions'
 import { ProjectTimeline } from '../ProjectTimeline'
 import { ScopeMetricsSummary } from '../scope'
 import { DelaySummaryWidget } from '../delays/DelaySummaryWidget'
+import { getCategoryConfig, formatCompactDetail, formatRelativeTime, ACTIVITY_LABELS } from './activity-utils'
+import { cn } from '@/lib/utils'
 
 interface OverviewTabProps {
   project: ProjectWithRelations
@@ -40,23 +42,7 @@ interface OverviewTabProps {
   isAdmin: boolean
   availableDevs: Array<{ id: string; name: string; email: string }>
   initialDelaySummary?: DelaySummary
-}
-
-const ACTIVITY_LABELS: Record<string, string> = {
-  status_changed: 'Status changed',
-  deliverables_confirmed: 'Deliverables confirmed',
-  signoff_sent: 'Sent for sign-off',
-  signed_off: 'Signed off',
-  dev_assigned: 'Developer assigned',
-  deliverable_added: 'Deliverable added',
-  deliverable_edited: 'Deliverable edited',
-  deliverable_deleted: 'Deliverable deleted',
-  deliverable_status_changed: 'Deliverable status changed',
-  requirement_completed: 'Requirement completed',
-  requirement_updated: 'Requirement updated',
-  onboarding_requirement_completed: 'Requirement approved',
-  file_uploaded: 'File uploaded',
-  note_added: 'Note added',
+  onNavigateToActivity?: () => void
 }
 
 function formatDate(date: string | null) {
@@ -68,21 +54,6 @@ function formatDate(date: string | null) {
   })
 }
 
-function formatRelativeTime(date: string) {
-  const now = new Date()
-  const then = new Date(date)
-  const diffMs = now.getTime() - then.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 7) return `${diffDays}d ago`
-  return formatDate(date)
-}
-
 function formatCurrency(value: number | null) {
   if (!value) return 'Not set'
   return new Intl.NumberFormat('en-US', {
@@ -92,7 +63,7 @@ function formatCurrency(value: number | null) {
   }).format(value)
 }
 
-export function OverviewTab({ project, userRole, isAdmin, availableDevs, initialDelaySummary }: OverviewTabProps) {
+export function OverviewTab({ project, userRole, isAdmin, availableDevs, initialDelaySummary, onNavigateToActivity }: OverviewTabProps) {
   const [isAssigning, setIsAssigning] = useState(false)
   const [showDevSelect, setShowDevSelect] = useState(false)
   const [scopeMetrics, setScopeMetrics] = useState<ScopeMetrics | null>(null)
@@ -422,38 +393,60 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs, initial
       </Card>
 
       {/* Recent Activity */}
-      {recentActivity.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {recentActivity.map((activity) => (
-                <li key={activity.id} className="flex items-start justify-between gap-4 text-sm">
-                  <div className="flex items-start gap-2">
-                    <Circle className="h-2 w-2 mt-1.5 fill-primary text-primary" />
-                    <div>
-                      <span className="font-medium">
-                        {ACTIVITY_LABELS[activity.action] || activity.action.replace(/_/g, ' ')}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recentActivity.length > 0 ? (
+            <>
+              <ul className="space-y-3">
+                {recentActivity.map((activity) => {
+                  const config = getCategoryConfig(activity.action)
+                  const detail = formatCompactDetail(activity.action, activity.details)
+                  return (
+                    <li key={activity.id} className="flex items-center justify-between gap-4 text-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {/* Colored category dot */}
+                        <div className={cn('h-2 w-2 rounded-full shrink-0', config.dotClass)} />
+                        <div className="min-w-0 truncate">
+                          <span className="font-medium">
+                            {ACTIVITY_LABELS[activity.action] || activity.action.replace(/_/g, ' ')}
+                          </span>
+                          {detail && (
+                            <span className="text-muted-foreground"> — {detail}</span>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                        {formatRelativeTime(activity.created_at)}
                       </span>
-                      {activity.user?.name && (
-                        <span className="text-muted-foreground"> by {activity.user.name}</span>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {formatRelativeTime(activity.created_at)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+                    </li>
+                  )
+                })}
+              </ul>
+              {/* View all activity link */}
+              {onNavigateToActivity && (
+                <div className="pt-3 mt-3 border-t border-border">
+                  <button
+                    onClick={onNavigateToActivity}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    View all activity →
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              Activity will appear here as your project progresses
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Notes */}
       {project.notes && (

@@ -310,6 +310,7 @@ export function ProjectTabs({
           isAdmin={isAdmin}
           availableDevs={availableDevs}
           initialDelaySummary={delaySummary}
+          onNavigateToActivity={() => handleTabChange('activity')}
         />
       </TabsContent>
 
@@ -369,6 +370,8 @@ export function ProjectTabs({
       <TabsContent value="activity" className="mt-6" forceMount>
         <ActivityTab
           activity={project.activity || []}
+          projectId={project.id}
+          requirements={project.requirements}
         />
       </TabsContent>
 
