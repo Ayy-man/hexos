@@ -1,5 +1,5 @@
 import { requireRole } from '@/lib/auth/guards'
-import { getAllActiveBlockers, getBlockerCounts } from '@/lib/api/blockers'
+import { getAllBlockers } from '@/lib/api/blockers'
 import { getProjects } from '@/lib/api/projects'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -9,17 +9,18 @@ import { AdminBlockerQueue } from '@/features/admin/components/AdminBlockerQueue
 export default async function AdminBlockersPage() {
   await requireRole(['admin', 'internal'])
 
-  const [blockers, projects] = await Promise.all([
-    getAllActiveBlockers().catch(() => []),
+  const [allBlockers, projects] = await Promise.all([
+    getAllBlockers().catch(() => []),
     getProjects().catch(() => []),
   ])
 
-  // Count by status and priority
-  const reported = blockers.filter(b => b.status === 'reported').length
-  const acknowledged = blockers.filter(b => b.status === 'acknowledged').length
-  const inProgress = blockers.filter(b => b.status === 'in_progress').length
-  const critical = blockers.filter(b => b.priority === 'critical').length
-  const high = blockers.filter(b => b.priority === 'high').length
+  // Compute stats from active blockers only
+  const activeBlockers = allBlockers.filter(b => !['resolved', 'closed'].includes(b.status))
+  const reported = activeBlockers.filter(b => b.status === 'reported').length
+  const acknowledged = activeBlockers.filter(b => b.status === 'acknowledged').length
+  const inProgress = activeBlockers.filter(b => b.status === 'in_progress').length
+  const critical = activeBlockers.filter(b => b.priority === 'critical').length
+  const high = activeBlockers.filter(b => b.priority === 'high').length
 
   return (
     <div className="space-y-6">
@@ -100,7 +101,7 @@ export default async function AdminBlockersPage() {
       )}
 
       {/* Main Content */}
-      <AdminBlockerQueue blockers={blockers} projects={projects} />
+      <AdminBlockerQueue blockers={allBlockers} projects={projects} />
     </div>
   )
 }
