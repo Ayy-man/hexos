@@ -56,6 +56,6 @@
   - Fetch additional data (item names/titles) to power the drill-down lists
   - Pinnable tooltips (click to keep open) for comfortable reading and clicking
   - **Plans:** 3 plans
-    - [ ] 19-01-PLAN.md — API functions + Route Handler for drill-down data
+    - [x] 19-01-PLAN.md — API functions + Route Handler for drill-down data (completed 2026-03-03)
     - [ ] 19-02-PLAN.md — PinnableHoverCard component + upgrade existing 4 tooltips
     - [ ] 19-03-PLAN.md — 4 new hover cards (Meetings, Blueprints, Case Studies, Blockers) + visual verification
