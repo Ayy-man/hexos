@@ -858,7 +858,7 @@ export async function convertInquiryToProjectFull(
   // Get the inquiry to extract source info
   const { data: inquiry, error: inquiryError } = await supabase
     .from('inquiries')
-    .select('submitted_by, blueprint_id')
+    .select('submitted_by, blueprint_id, created_at, proposal_submitted_at, closed_at, price_hexona, price_dev')
     .eq('id', inquiryId)
     .single()
 
@@ -881,6 +881,11 @@ export async function convertInquiryToProjectFull(
       dfy_partner_id: inquiry.submitted_by,
       matched_blueprint_id: inquiry.blueprint_id,
       source_inquiry_id: inquiryId,
+      date_inquiry: inquiry.created_at || null,
+      date_proposal_sent: inquiry.proposal_submitted_at || null,
+      date_closed: inquiry.closed_at || null,
+      price_hexona: inquiry.price_hexona || null,
+      price_dev: inquiry.price_dev || null,
       status: 'deliverables_pending', // Start with sign-off flow
     })
     .select()
