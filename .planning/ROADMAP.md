@@ -79,3 +79,6 @@
   - Remove resolve dialog and comment dialog — replaced by inline sidebar interactions
   - Add getAllBlockers API + getBlockerCommentsAction server action for client-side comment fetching
   - No database changes needed — uses existing blocker_comments table and APIs
+  - **Plans:** 2 plans
+    - [ ] 21-01-PLAN.md — API layer (getAllBlockers + getBlockerCommentsAction) + presentational components (BlockerCard + BlockerConversation)
+    - [ ] 21-02-PLAN.md — BlockerSidebar + AdminBlockerQueue rewrite + page wire-up + visual verification
