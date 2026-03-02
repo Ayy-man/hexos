@@ -42,7 +42,7 @@
 
 ## v1.2 UX Enrichment
 
-- [ ] Phase 18: Rich Activity Timeline
+- [x] Phase 18: Rich Activity Timeline (completed 2026-03-02)
   - Upgrade both Activity Timeline (full tab) and Recent Activity (overview card) with rich inline details per activity type
   - Category-specific icons + color accents for visual differentiation (status, deliverables, documents, hill chart, files, team, etc.)
   - Toggleable filter chips (All, Status, Deliverables, Documents, Hill Chart, Files, Team)
