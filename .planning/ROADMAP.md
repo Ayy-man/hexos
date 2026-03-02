@@ -49,7 +49,7 @@
   - Show entity names, field-level diffs (old → new), zone labels, file names, and truncated previews inline
   - Client-side filtering on already-loaded activity data
 
-- [ ] Phase 19: Enhanced Sidebar Hover Previews with Drill-Down Navigation
+- [x] Phase 19: Enhanced Sidebar Hover Previews with Drill-Down Navigation (completed 2026-03-02)
   - Add second-layer drill-down to existing tooltip stat rows (Inquiries, Projects, Conversations, Suggestions) — hover a count row to see actual item names
   - Make every entity name in tooltips a clickable Link for direct navigation
   - Add new hover cards for Meetings, Blueprints, Case Studies, and Blockers sidebar items

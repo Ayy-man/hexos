@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 19-02 complete — UI layer for sidebar hover previews (PinnableHoverCard + DrillDownRow + 4 upgraded components)
-Last activity: 2026-03-02 - Phase 19-02 executed — Tooltip replaced with Popover-based PinnableHoverCard and DrillDownRow in app-sidebar.tsx
+Status: Phase 19-03 at checkpoint — Tasks 1 & 2 complete, awaiting human visual verification (Task 3 checkpoint:human-verify)
+Last activity: 2026-03-02 - Phase 19-03 Tasks 1-2 executed — 4 new hover content components (Meetings, Blueprints, Case Studies, Blockers) added and wired in app-sidebar.tsx; layout.tsx expanded with 4 new server-side queries
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 19-enhanced-sidebar-hover-previews-19-02-PLAN.md
-Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-02-SUMMARY.md
+Stopped at: Checkpoint hit at 19-03 Task 3 — awaiting human visual verification of all 8 sidebar hover previews
+Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-03-SUMMARY.md
 
 ## Decisions
 
@@ -48,14 +48,17 @@ Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-02-SUMMARY.m
 - Phase 19-01: Non-admin users receive empty items array (not 403) on admin-gated sidebar drill-down types
 - Phase 19-02: Invisible overlay button with stopPropagation for pin capture — preserves underlying Link click for navigation
 - Phase 19-02: DrillDownRow caches via items===null guard — fetches once on first hover, never re-fetches
+- Phase 19-03: Meetings hover card gates on meetingsSummary.length > 0 — no tooltip shown when zero upcoming meetings
+- Phase 19-03: BlockerHoverContent uses conditional rendering per severity row — only non-zero counts rendered to avoid noise
+- Phase 19-03: Critical blocker badge uses bg-red-500 class override for distinct red color
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - Phase 19 added: Enhanced Sidebar Hover Previews with Drill-Down Navigation (v1.2 UX Enrichment)
-- Phase 19 complete: Both API layer (19-01) and UI layer (19-02) executed
+- Phase 19 in progress: API layer (19-01), UI layer (19-02), and new cards (19-03 Tasks 1-2) executed — awaiting visual verification
 
 ---
 
-*Updated 2026-03-02 — Phase 19-02 complete*
+*Updated 2026-03-02 — Phase 19-03 Tasks 1-2 complete, checkpoint at Task 3*
