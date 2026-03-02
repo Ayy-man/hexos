@@ -237,29 +237,29 @@ export default async function AdminDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              {proposalBundles.length === 0 ? (
+              {sentProposals.length === 0 ? (
                 <p className="text-sm text-text-tertiary text-center py-4">
                   No pending proposals
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {proposalBundles.slice(0, 4).map((bundle) => (
+                  {sentProposals.slice(0, 4).map((proposal) => (
                     <div
-                      key={bundle.dfyPartnerId}
+                      key={proposal.id}
                       className="flex items-center justify-between rounded-lg border p-2 text-sm"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <Users className="h-4 w-4 text-text-ghost flex-shrink-0" />
-                        <span className="truncate text-xs text-text-secondary">{bundle.dfyPartnerName || bundle.dfyPartnerEmail}</span>
+                        <span className="truncate text-xs text-text-secondary">{proposal.prospect_company_name || 'Unnamed Inquiry'}</span>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">
-                        {bundle.proposals.length}
-                      </Badge>
+                      <span className="text-[10px] text-text-ghost flex-shrink-0">
+                        {proposal.dfy_partner?.name || proposal.dfy_partner?.email}
+                      </span>
                     </div>
                   ))}
-                  {proposalBundles.length > 4 && (
+                  {sentProposals.length > 4 && (
                     <p className="text-xs text-text-ghost text-center">
-                      +{proposalBundles.length - 4} more DFY partners
+                      +{sentProposals.length - 4} more
                     </p>
                   )}
                 </div>
