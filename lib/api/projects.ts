@@ -357,6 +357,24 @@ export async function getProjectStats() {
   return stats
 }
 
+// Get projects by status group (for sidebar hover drill-down)
+export async function getProjectsByStatusGroup(group: 'active' | 'inquiry' | 'completed', limit = 5) {
+  const supabase = await createClient()
+  const statusMap: Record<string, string[]> = {
+    active: ['in_progress', 'blocked_client', 'blocked_internal', 'review_checkpoint', 'revisions', 'final_qa'],
+    inquiry: ['deliverables_pending', 'awaiting_signoff', 'signed_off', 'agreement_sent', 'agreement_signed', 'payment_pending', 'payment_partial', 'payment_paid', 'collecting_access', 'access_complete', 'dev_assigned'],
+    completed: ['completed', 'cancelled', 'on_hold'],
+  }
+  const { data } = await supabase
+    .from('projects')
+    .select('id, project_name, client_name, status')
+    .in('status', statusMap[group] || [])
+    .is('deleted_at', null)
+    .order('updated_at', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 // ============================================================================
 // FINANCIAL FIELDS
 // ============================================================================

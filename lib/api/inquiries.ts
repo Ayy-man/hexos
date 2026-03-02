@@ -998,6 +998,20 @@ export async function convertInquiryToProjectFull(
   return project
 }
 
+// Get inquiries by proposal stage (for sidebar hover drill-down)
+export async function getInquiriesByStage(stage: string, limit = 5) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('inquiries')
+    .select('id, prospect_company_name, form_data')
+    .eq('proposal_stage', stage)
+    .is('deleted_at', null)
+    .is('archived_at', null)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 // Get counts of inquiries by proposal stage (for sidebar tooltip)
 export async function getInquiryStatusCounts(): Promise<Record<ProposalStage, number>> {
   const supabase = await createClient()

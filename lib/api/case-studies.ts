@@ -243,6 +243,31 @@ export async function deleteCaseStudy(id: string): Promise<void> {
   if (error) throw error
 }
 
+// Get case study status counts (for sidebar hover preview)
+export async function getCaseStudyStatusCounts() {
+  const supabase = await createClient()
+  const { data } = await supabase.from('case_studies').select('status')
+  if (!data) return { draft: 0, published: 0 }
+  const counts = { draft: 0, published: 0 }
+  for (const row of data) {
+    if (row.status === 'draft') counts.draft++
+    else if (row.status === 'published') counts.published++
+  }
+  return counts
+}
+
+// Get case studies by status (for sidebar hover drill-down)
+export async function getCaseStudiesByStatus(status: string, limit = 5) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('case_studies')
+    .select('id, name')
+    .eq('status', status)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 export async function duplicateCaseStudy(id: string): Promise<CaseStudy> {
   const original = await getCaseStudy(id)
   if (!original) throw new Error('Case study not found')

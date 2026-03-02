@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@/lib/supabase/admin'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { recall } from '@/lib/recall/client'
 import type {
   Meeting,
@@ -395,4 +396,25 @@ export async function getMeetingsForEntity(
   }
 
   return (meetings || []) as Meeting[]
+}
+
+// ============================================================================
+// UPCOMING MEETINGS (server client — respects RLS)
+// ============================================================================
+
+/**
+ * Get upcoming meetings ordered by scheduled_at (for sidebar hover drill-down).
+ * Uses the server client (NOT admin) so RLS policies are respected.
+ */
+export async function getUpcomingMeetings(limit = 3) {
+  const supabase = await createServerClient()
+  const now = new Date().toISOString()
+  const { data } = await supabase
+    .from('meetings')
+    .select('id, title, scheduled_at, status')
+    .gte('scheduled_at', now)
+    .not('status', 'in', '("done","error")')
+    .order('scheduled_at', { ascending: true })
+    .limit(limit)
+  return (data || []) as Array<{ id: string; title: string; scheduled_at: string | null; status: string }>
 }

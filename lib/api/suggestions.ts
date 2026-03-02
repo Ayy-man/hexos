@@ -220,6 +220,18 @@ export async function deleteSuggestion(id: string): Promise<void> {
   }
 }
 
+// Get suggestions by status (for sidebar hover drill-down)
+export async function getSuggestionsByStatus(status: string, limit = 5) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('suggestions')
+    .select('id, title')
+    .eq('status', status)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 // Get suggestion counts by status (for badges)
 export async function getSuggestionCounts(): Promise<Record<string, number>> {
   const supabase = await createClient()

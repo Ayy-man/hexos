@@ -434,6 +434,35 @@ export async function getBlockerCounts(projectId: string): Promise<Record<Blocke
   return counts
 }
 
+// Get active blocker counts by priority (for sidebar hover preview)
+export async function getActiveBlockerCountsByPriority() {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('blockers')
+    .select('priority')
+    .not('status', 'in', '("resolved","closed")')
+  if (!data) return { critical: 0, high: 0, medium: 0, low: 0 }
+  const counts = { critical: 0, high: 0, medium: 0, low: 0 }
+  for (const row of data) {
+    const p = row.priority as keyof typeof counts
+    if (p in counts) counts[p]++
+  }
+  return counts
+}
+
+// Get active blockers by priority (for sidebar hover drill-down)
+export async function getActiveBlockersByPriority(priority: string, limit = 5) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('blockers')
+    .select('id, title, priority, projects(project_name)')
+    .eq('priority', priority)
+    .not('status', 'in', '("resolved","closed")')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 // Helper to normalize relations from Supabase array format
 function normalizeBlockerRelations(blocker: Record<string, unknown>): Blocker {
   const reporter = Array.isArray(blocker.reporter)

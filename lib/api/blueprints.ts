@@ -195,6 +195,31 @@ export async function deleteBlueprint(id: string): Promise<void> {
   if (error) throw error
 }
 
+// Get blueprint status counts (for sidebar hover preview)
+export async function getBlueprintStatusCounts() {
+  const supabase = await createClient()
+  const { data } = await supabase.from('blueprints').select('status')
+  if (!data) return { draft: 0, published: 0 }
+  const counts = { draft: 0, published: 0 }
+  for (const row of data) {
+    if (row.status === 'draft') counts.draft++
+    else if (row.status === 'published') counts.published++
+  }
+  return counts
+}
+
+// Get blueprints by status (for sidebar hover drill-down)
+export async function getBlueprintsByStatus(status: string, limit = 5) {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('blueprints')
+    .select('id, name')
+    .eq('status', status)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return data || []
+}
+
 export async function duplicateBlueprint(id: string): Promise<Blueprint> {
   const original = await getBlueprint(id)
   if (!original) throw new Error('Blueprint not found')
