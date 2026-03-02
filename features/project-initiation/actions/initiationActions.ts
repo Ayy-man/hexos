@@ -81,7 +81,7 @@ export async function completeInitiationAction(
   // Get the inquiry to extract source info
   const { data: inquiry, error: inquiryError } = await supabase
     .from('inquiries')
-    .select('submitted_by, blueprint_id, status')
+    .select('submitted_by, blueprint_id, status, created_at, proposal_submitted_at, closed_at, price_hexona, price_dev')
     .eq('id', inquiryId)
     .single()
 
@@ -103,13 +103,16 @@ export async function completeInitiationAction(
       operational_mode: projectData.operational_mode || 'hexona_devs_dfy',
       target_delivery_date: projectData.target_delivery_date || null,
       price_dfy: projectData.price_dfy || null,
-      price_hexona: projectData.price_hexona || null,
-      price_dev: projectData.price_dev || null,
+      price_hexona: projectData.price_hexona ?? inquiry.price_hexona ?? null,
+      price_dev: projectData.price_dev ?? inquiry.price_dev ?? null,
       notes: projectData.notes || null,
       payment_structure: projectData.payment_structure || '50_50',
       dfy_partner_id: inquiry.submitted_by,
       matched_blueprint_id: inquiry.blueprint_id,
       source_inquiry_id: inquiryId,
+      date_inquiry: inquiry.created_at || null,
+      date_proposal_sent: inquiry.proposal_submitted_at || null,
+      date_closed: inquiry.closed_at || null,
       status: 'deliverables_pending', // Start with sign-off flow
     })
     .select()
