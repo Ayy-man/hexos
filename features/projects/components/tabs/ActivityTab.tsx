@@ -100,14 +100,14 @@ export function ActivityTab({ activity, projectId, requirements }: ActivityTabPr
       {filteredActivity.length > 0 && (
         <CardContent>
           <TooltipProvider>
-            <div className="relative">
+            <div className="relative max-h-[600px] overflow-y-auto pr-2">
               {/* Vertical timeline line */}
-              <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border" />
+              <div className="absolute left-[17px] top-0 bottom-0 w-px bg-border" />
 
               {dayGroups.map((group) => (
                 <div key={group.label}>
                   {/* Date separator */}
-                  <div className="relative flex items-center gap-4 py-2 pl-9">
+                  <div className="relative flex items-center gap-4 py-2 pl-11">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       {group.label}
                     </span>
@@ -131,13 +131,13 @@ export function ActivityTab({ activity, projectId, requirements }: ActivityTabPr
                     return (
                       <div
                         key={entry.id}
-                        className="group relative flex gap-3 -mx-2 px-2 py-2 hover:bg-muted/50 rounded-md transition-colors"
-                        style={{ paddingLeft: 'calc(36px + 8px)' }}
+                        className="group relative flex items-start gap-3 py-2 hover:bg-muted/50 rounded-md transition-colors"
+                        style={{ paddingLeft: '44px' }}
                       >
-                        {/* Timeline dot */}
+                        {/* Timeline dot — centered on the timeline line at 17px */}
                         <div
                           className={cn(
-                            'absolute left-0 top-2 h-[30px] w-[30px] rounded-full flex items-center justify-center flex-shrink-0',
+                            'absolute left-[3px] top-2.5 h-[28px] w-[28px] rounded-full flex items-center justify-center flex-shrink-0',
                             config.bgClass
                           )}
                         >
