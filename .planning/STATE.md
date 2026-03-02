@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-02T23:19:45.827Z"
+last_updated: "2026-03-03T00:14:19Z"
 progress:
-  total_phases: 19
+  total_phases: 20
   completed_phases: 17
-  total_plans: 49
-  completed_plans: 49
+  total_plans: 57
+  completed_plans: 50
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 
 ## Current Position
 
-Status: Phase 19-03 at checkpoint — Tasks 1 & 2 complete, awaiting human visual verification (Task 3 checkpoint:human-verify)
-Last activity: 2026-03-02 - Completed quick task 3: Auto-sync inquiry data to project during conversion
+Status: Phase 21 Plan 01 complete — data layer and leaf components built; Plan 02 next (BlockerSidebar + AdminBlockerQueue rebuild)
+Last activity: 2026-03-03 - Completed Phase 21-01: getAllBlockers API, getBlockerCommentsAction, BlockerCard, BlockerConversation
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** DFY partners can submit inquiries, receive proposals, and track projects through a single portal
-**Current focus:** UX Enrichment (Phase 19)
+**Current focus:** Blocker Queue Redesign (Phase 21)
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: Checkpoint hit at 19-03 Task 3 — awaiting human visual verification of all 8 sidebar hover previews
-Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-03-SUMMARY.md
+Last session: 2026-03-03
+Stopped at: Completed 21-blocker-queue-redesign/21-01-PLAN.md
+Resume file: .planning/phases/21-blocker-queue-redesign/21-01-SUMMARY.md
 
 ## Decisions
 
@@ -52,6 +52,8 @@ Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-03-SUMMARY.m
 - Phase 19-03: BlockerHoverContent uses conditional rendering per severity row — only non-zero counts rendered to avoid noise
 - Phase 19-03: Critical blocker badge uses bg-red-500 class override for distinct red color
 - [Phase quick-3]: Used || for date fields and ?? for price fields in inquiry-to-project sync to preserve explicit 0 values
+- [Phase 21-01]: getAllBlockers() returns all statuses including resolved/closed — placed after getAllActiveBlockers with full resolver/project joins
+- [Phase 21-01]: getBlockerCommentsAction() wraps getBlockerComments as thin server action — BlockerConversation uses it (not direct API) for client-side comment fetching
 
 ## Accumulated Context
 
@@ -68,4 +70,4 @@ Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-03-SUMMARY.m
 
 ---
 
-*Updated 2026-03-02 — Quick task 3 complete*
+*Updated 2026-03-03 — Phase 21-01 complete: data layer and leaf components for blocker queue redesign*

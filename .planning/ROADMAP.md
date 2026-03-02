@@ -60,14 +60,22 @@
     - [ ] 19-02-PLAN.md — PinnableHoverCard component + upgrade existing 4 tooltips
     - [ ] 19-03-PLAN.md — 4 new hover cards (Meetings, Blueprints, Case Studies, Blockers) + visual verification
 
-- [ ] Phase 20: Onboarding Stepper Form
-  - Replace flat onboarding tab with a guided multi-step form experience
+- [ ] Phase 20: Onboarding Bento Grid + Expandable Sheets
+  - Replace flat onboarding tab with a bento grid dashboard of minimal preview cards
+  - Each card opens an expandable sheet (~90% viewport) via ResponsiveDialog with URL state (?section=)
   - Admin builds onboarding forms: categories with mixed question types (text, textarea, select, multi_select, boolean) and requirements
-  - DFY partner fills out as a vertical stepper: deliverables sign-off → category sections → review & complete
+  - DFY partner fills out categories at their own pace with auto-save (blur + debounce + save-on-close)
   - Admin monitors answer progress with completion rings per category and inline answer previews
   - Role-aware UI: same page adapts for admin (build + monitor) and DFY (fill out)
   - New tables: onboarding_categories, onboarding_questions, onboarding_answers
-  - Uses Stepperize (headless stepper) + existing shadcn/react-hook-form/zod
+  - No Stepperize — bento grid + sheets replace stepper pattern
+  - **Plans:** 6 plans
+    - [ ] 20-01-PLAN.md — DB migration (3 tables + RLS) + API layer + server actions (Wave 1)
+    - [ ] 20-02-PLAN.md — Bento grid UI + data pipeline + URL state + progress hooks (Wave 2)
+    - [ ] 20-03-PLAN.md — Category question sheet with auto-save form + DFY flow (Wave 3)
+    - [ ] 20-04-PLAN.md — Admin form builder: inline add, reorder, preview toggle (Wave 3)
+    - [ ] 20-05-PLAN.md — Deliverables + Requirements expandable sheets (Wave 4)
+    - [ ] 20-06-PLAN.md — Completion flow + post-onboarding state + visual verification (Wave 5)
 
 - [ ] Phase 21: Blocker Queue Redesign
   - Replace dense card-dump admin blocker queue with scannable minimal cards + slide-over sidebar
