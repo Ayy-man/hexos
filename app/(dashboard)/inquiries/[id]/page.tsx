@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
+import { createClient } from '@/lib/supabase/server'
 import { getInquiry, type DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
 import { getInquiryComments, type InquiryComment, type CommentType } from '@/lib/api/inquiry-comments'
 import { getProposalDeliverables, type ProposalDeliverable } from '@/lib/api/proposal-deliverables'
@@ -311,6 +312,37 @@ export default async function InquiryDetailPage({
     blueprints = b
   } catch (error) {
     console.warn('Failed to fetch deliverables or blueprints:', error)
+  }
+
+  // Fetch all selections for this inquiry (junction table with name joins)
+  let inquirySelections: Array<{
+    id: string
+    item_type: 'blueprint' | 'case_study'
+    sort_order: number
+    blueprint: { id: string; name: string; icon: string | null } | null
+    case_study: { id: string; name: string; icon: string | null; client_name: string | null } | null
+  }> = []
+
+  try {
+    const supabase = await createClient()
+    const { data: selectionsData } = await supabase
+      .from('inquiry_selections')
+      .select(`
+        id,
+        item_type,
+        sort_order,
+        blueprint:blueprints(id, name, icon),
+        case_study:case_studies(id, name, icon, client_name)
+      `)
+      .eq('inquiry_id', id)
+      .order('sort_order', { ascending: true })
+
+    if (selectionsData) {
+      inquirySelections = selectionsData as unknown as typeof inquirySelections
+    }
+  } catch (err) {
+    console.error('[inquiry detail] Failed to fetch inquiry_selections:', err)
+    // Non-fatal: falls back to primary blueprint only
   }
 
   // Generate document content from inquiry form_data
@@ -690,6 +722,32 @@ export default async function InquiryDetailPage({
                       </div>
                     )}
                   </div>
+
+                  {/* Multi-select selections (Phase 22) — only show if junction data available */}
+                  {inquirySelections.length > 0 && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Selected Blueprints &amp; Case Studies ({inquirySelections.length})
+                      </p>
+                      <ul className="space-y-1 mt-1">
+                        {inquirySelections.map(sel => (
+                          <li key={sel.id} className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground capitalize text-xs bg-muted px-1.5 py-0.5 rounded">
+                              {sel.item_type === 'blueprint' ? 'Blueprint' : 'Case Study'}
+                            </span>
+                            <span className="font-medium">
+                              {sel.item_type === 'blueprint'
+                                ? (sel.blueprint?.icon ? sel.blueprint.icon + ' ' : '') + (sel.blueprint?.name || '—')
+                                : (sel.case_study?.icon ? sel.case_study.icon + ' ' : '') + (sel.case_study?.name || '—')}
+                            </span>
+                            {sel.item_type === 'case_study' && sel.case_study?.client_name && (
+                              <span className="text-muted-foreground text-xs">({sel.case_study.client_name})</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -705,7 +763,7 @@ export default async function InquiryDetailPage({
                 <CardContent>
                   <div className="space-y-4">
                     {Object.entries(formData)
-                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type', 'blueprint_id'].includes(key))
+                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type', 'blueprint_id', 'selections'].includes(key))
                       .map(([key, value]) => {
                         if (value === null || value === undefined) return null
                         if (Array.isArray(value) && value.length === 0) return null
