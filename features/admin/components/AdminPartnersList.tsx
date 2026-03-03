@@ -29,7 +29,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { inviteDfyAgencyAction, revokeInvitationAction, resendInvitationAction } from '@/features/organizations/actions/invitationActions'
+import { inviteDfyAgencyAction, inviteDfyToExistingOrgAction, revokeInvitationAction, resendInvitationAction } from '@/features/organizations/actions/invitationActions'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { OrganizationWithStats, InvitationWithDetails } from '@/lib/types/organization'
 
 interface AdminPartnersListProps {
@@ -44,6 +45,8 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
   const [agencyName, setAgencyName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [inviteMode, setInviteMode] = useState<'new' | 'existing'>('new')
+  const [selectedOrgId, setSelectedOrgId] = useState('')
 
   // Filter agencies
   const filteredAgencies = agencies.filter((org) => {
@@ -59,10 +62,19 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
     setIsSubmitting(true)
     setError(null)
 
-    const result = await inviteDfyAgencyAction({
-      email: inviteEmail,
-      organization_name: agencyName,
-    })
+    let result: { success: boolean; invitationId?: string; error?: string }
+
+    if (inviteMode === 'new') {
+      result = await inviteDfyAgencyAction({
+        email: inviteEmail,
+        organization_name: agencyName,
+      })
+    } else {
+      result = await inviteDfyToExistingOrgAction({
+        email: inviteEmail,
+        organization_id: selectedOrgId,
+      })
+    }
 
     setIsSubmitting(false)
 
@@ -71,9 +83,12 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
       return
     }
 
+    // Reset all state on success
     setIsInviteOpen(false)
     setInviteEmail('')
     setAgencyName('')
+    setSelectedOrgId('')
+    setInviteMode('new')
   }
 
   const handleRevoke = async (invitationId: string) => {
@@ -100,7 +115,16 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
               />
             </div>
 
-            <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+            <Dialog open={isInviteOpen} onOpenChange={(open) => {
+              setIsInviteOpen(open)
+              if (!open) {
+                setError(null)
+                setInviteMode('new')
+                setSelectedOrgId('')
+                setInviteEmail('')
+                setAgencyName('')
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button>
                   <Building2 className="h-4 w-4 mr-2" />
@@ -111,7 +135,9 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
                 <DialogHeader>
                   <DialogTitle>Invite DFY Agency</DialogTitle>
                   <DialogDescription>
-                    Invite a new DFY partner to create their agency on the platform
+                    {inviteMode === 'new'
+                      ? 'Invite a new DFY partner to create their agency on the platform'
+                      : 'Add a DFY partner to an existing agency'}
                   </DialogDescription>
                 </DialogHeader>
 
@@ -122,8 +148,35 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
                     </div>
                   )}
 
+                  <div className="flex rounded-md border border-border overflow-hidden">
+                    <button
+                      type="button"
+                      className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                        inviteMode === 'new'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-background text-muted-foreground hover:bg-muted'
+                      }`}
+                      onClick={() => setInviteMode('new')}
+                    >
+                      Create new agency
+                    </button>
+                    <button
+                      type="button"
+                      className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                        inviteMode === 'existing'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-background text-muted-foreground hover:bg-muted'
+                      }`}
+                      onClick={() => setInviteMode('existing')}
+                    >
+                      Add to existing
+                    </button>
+                  </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="email">Owner Email</Label>
+                    <Label htmlFor="email">
+                      {inviteMode === 'new' ? 'Owner Email' : 'Partner Email'}
+                    </Label>
                     <Input
                       id="email"
                       type="email"
@@ -133,25 +186,53 @@ export function AdminPartnersList({ agencies, pendingInvitations }: AdminPartner
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="agencyName">Agency Name</Label>
-                    <Input
-                      id="agencyName"
-                      placeholder="Acme Digital"
-                      value={agencyName}
-                      onChange={(e) => setAgencyName(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      This will be the name of the agency when they accept the invitation
-                    </p>
-                  </div>
+                  {inviteMode === 'new' ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="agencyName">Agency Name</Label>
+                      <Input
+                        id="agencyName"
+                        placeholder="Acme Digital"
+                        value={agencyName}
+                        onChange={(e) => setAgencyName(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        This will be the name of the agency when they accept the invitation
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="organization">Agency</Label>
+                      <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an agency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {agencies.map((org) => (
+                            <SelectItem key={org.id} value={org.id}>
+                              {org.name} ({org.member_count}/{org.max_seats} members)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        The partner will be added as a team member to this agency
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleInvite} disabled={!inviteEmail || !agencyName || isSubmitting}>
+                  <Button
+                    onClick={handleInvite}
+                    disabled={
+                      !inviteEmail ||
+                      (inviteMode === 'new' ? !agencyName : !selectedOrgId) ||
+                      isSubmitting
+                    }
+                  >
                     {isSubmitting ? 'Sending...' : 'Send Invitation'}
                   </Button>
                 </div>
