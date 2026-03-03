@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T14:51:40.913Z"
+last_updated: "2026-03-03T15:05:30.623Z"
 progress:
   total_phases: 22
   completed_phases: 18
   total_plans: 55
-  completed_plans: 53
+  completed_plans: 55
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 22 in progress — 22-01 complete (auth callback + server actions)
-Last activity: 2026-03-03 - Phase 22-01 executed — unified auth callback route + 4 server actions (Google OAuth, magic link, password reset, update password)
+Status: Phase 22 complete — 22-01 and 22-02 both complete
+Last activity: 2026-03-03 - Phase 22-02 executed — login page Google OAuth + magic link + forgot password, forgot-password page, reset-password client component, PasswordResetEmail template
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 22-01-PLAN.md — auth callback route + 4 server actions (Google OAuth, magic link, password reset, update password)
-Resume file: .planning/phases/22-modern-auth-methods/22-01-SUMMARY.md
+Stopped at: Completed 22-02-PLAN.md — login page Google OAuth + magic link + forgot password, forgot-password page, reset-password client component, PasswordResetEmail template
+Resume file: .planning/phases/22-modern-auth-methods/22-02-SUMMARY.md
 
 ## Decisions
 
@@ -61,6 +61,8 @@ Resume file: .planning/phases/22-modern-auth-methods/22-01-SUMMARY.md
 - [Phase 22-modern-auth-methods]: Invite token passed as ?token= searchParam through OAuth callback — avoids Supabase PKCE state manipulation
 - [Phase 22-modern-auth-methods]: Failed invite acceptance still redirects to /dashboard — user is authenticated, graceful degradation preferred over error
 - [Phase 22-modern-auth-methods]: Profile role check in callback rejects new OAuth users without invitations — enforces invite-only access
+- [Phase 22-modern-auth-methods]: Reset-password is a client component — hash fragment for PASSWORD_RECOVERY event is inaccessible to SSR
+- [Phase 22-modern-auth-methods]: Browser client calls supabase.auth.updateUser directly (not server action) — browser client has the recovery session from hash fragment
 
 ## Accumulated Context
 
@@ -75,4 +77,4 @@ Resume file: .planning/phases/22-modern-auth-methods/22-01-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 22-01 complete — auth callback route + 4 server actions (signInWithGoogle, signInWithMagicLink, resetPassword, updatePassword)*
+*Updated 2026-03-03 — Phase 22-02 complete — login page Google OAuth + magic link + forgot password, forgot-password page, reset-password client component, PasswordResetEmail template*
