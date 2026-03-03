@@ -96,7 +96,7 @@
   - Invite-aware auth callback: validates and accepts invitation after OAuth/magic link signup
   - **Implementation plan:** docs/plans/2026-03-03-auth-invite-implementation-plan.md (Tasks 6-10)
 
-- [ ] Phase 23: Onboarding Wizard
+- [x] Phase 23: Onboarding Wizard (completed 2026-03-03)
   - Add has_completed_onboarding boolean to profiles table (Supabase migration)
   - 2-3 step post-invite wizard: profile completion → role-specific intro → dashboard
   - Role-specific Step 2 content: DFY owner (org setup), DFY team (team intro), Dev (skills/availability), Admin (tools overview), Client (project dashboard)
