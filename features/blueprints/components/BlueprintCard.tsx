@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, DollarSign } from 'lucide-react'
@@ -11,6 +12,7 @@ interface BlueprintCardProps {
   name: string
   description: string | null
   icon: string | null
+  image_url?: string | null
   base_price: number | null
   estimated_hours: number | null
   tags: string[]
@@ -23,6 +25,7 @@ export function BlueprintCard({
   name,
   description,
   icon,
+  image_url,
   base_price,
   estimated_hours,
   tags,
@@ -35,7 +38,19 @@ export function BlueprintCard({
     : base_price
 
   return (
-    <Card className="group hover:shadow-md transition-shadow">
+    <Card className="group hover:shadow-md transition-shadow overflow-hidden">
+      {image_url && (
+        <Link href={`/blueprints/${id}`}>
+          <div className="relative aspect-video w-full">
+            <Image
+              src={image_url}
+              alt={name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          </div>
+        </Link>
+      )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">

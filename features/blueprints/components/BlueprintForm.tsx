@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,16 +10,19 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, Save, Video } from 'lucide-react'
+import { Loader2, Save, Upload, X, ImageIcon, Video, Info } from 'lucide-react'
+import { toast } from 'sonner'
 import { TagInput } from './TagInput'
 import { PricingTiersEditor } from './PricingTiersEditor'
 import { BlueprintEditor } from './BlueprintEditor'
 import { IconPicker } from './IconPicker'
 import { LoomVideoEmbed } from './LoomVideoEmbed'
 import { isValidLoomUrl } from '@/lib/utils/loom'
+import { useImageUpload } from '@/components/hooks/use-image-upload'
 import {
   createBlueprintAction,
   updateBlueprintAction,
+  uploadBlueprintImageAction,
 } from '../actions/blueprintActions'
 import type { Blueprint, PricingTier, CreateBlueprintInput } from '@/lib/api/blueprints'
 
@@ -30,6 +34,7 @@ interface BlueprintFormProps {
 export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isUploading, setIsUploading] = useState(false)
 
   // Form state
   const [name, setName] = useState(blueprint?.name || '')
@@ -41,11 +46,38 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
   const [pricingTiers, setPricingTiers] = useState<PricingTier[]>(blueprint?.pricing_tiers || [])
   const [isPublished, setIsPublished] = useState(blueprint?.status === 'published')
   const [loomUrl, setLoomUrl] = useState(blueprint?.loom_video_url || '')
+  const [imageUrl, setImageUrl] = useState<string | null>(blueprint?.image_url || null)
 
   const isValidLoom = !loomUrl || isValidLoomUrl(loomUrl)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const {
+    previewUrl,
+    file,
+    fileInputRef,
+    handleThumbnailClick,
+    handleFileChange,
+    handleRemove,
+  } = useImageUpload()
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    let finalImageUrl = imageUrl
+
+    // Upload new image if selected
+    if (file) {
+      setIsUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        finalImageUrl = await uploadBlueprintImageAction(formData)
+      } catch (error) {
+        console.error('Failed to upload image:', error)
+        setIsUploading(false)
+        return
+      }
+      setIsUploading(false)
+    }
 
     // Clean up pricing tiers - filter out empty features before saving
     const cleanedPricingTiers = pricingTiers.map((tier) => ({
@@ -62,6 +94,7 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
       tags,
       pricing_tiers: cleanedPricingTiers,
       status: isPublished ? 'published' : 'draft',
+      image_url: finalImageUrl || undefined,
       loom_video_url: loomUrl || undefined,
     }
 
@@ -70,10 +103,18 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
         await createBlueprintAction(data)
       } else if (blueprint) {
         await updateBlueprintAction(blueprint.id, data)
+        toast.success('Blueprint saved!')
         router.refresh()
       }
     })
   }
+
+  const handleRemoveImage = () => {
+    handleRemove()
+    setImageUrl(null)
+  }
+
+  const displayImage = previewUrl || imageUrl
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -148,6 +189,63 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
         </CardContent>
       </Card>
 
+      {/* Cover Image */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Cover Image</CardTitle>
+          <CardDescription className="flex items-center gap-1">
+            Add a featured image for this blueprint
+            <span className="inline-flex items-center gap-1 text-xs bg-muted px-1.5 py-0.5 rounded">
+              <Info className="h-3 w-3" />
+              16:9 aspect ratio recommended
+            </span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+
+          {displayImage ? (
+            <div className="relative w-full max-w-md">
+              <div className="relative aspect-video rounded-lg overflow-hidden border">
+                <Image
+                  src={displayImage}
+                  alt="Blueprint cover"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 h-6 w-6"
+                onClick={handleRemoveImage}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleThumbnailClick}
+              className="h-32 w-full max-w-md border-dashed"
+            >
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <ImageIcon className="h-8 w-8" />
+                <span>Click to upload image</span>
+              </div>
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Loom Video */}
       <Card>
         <CardHeader>
@@ -209,17 +307,17 @@ export function BlueprintForm({ blueprint, mode }: BlueprintFormProps) {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                disabled={isPending}
+                disabled={isPending || isUploading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending || !name || !isValidLoom}>
-                {isPending ? (
+              <Button type="submit" disabled={isPending || isUploading || !name || !isValidLoom}>
+                {(isPending || isUploading) ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                {mode === 'create' ? 'Create Blueprint' : 'Save Changes'}
+                {isUploading ? 'Uploading...' : mode === 'create' ? 'Create Blueprint' : 'Save Changes'}
               </Button>
             </div>
           </div>

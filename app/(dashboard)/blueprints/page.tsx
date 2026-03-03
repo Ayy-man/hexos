@@ -169,6 +169,7 @@ export default async function BlueprintsPage({ searchParams }: BlueprintsPagePro
               name={blueprint.name}
               description={blueprint.description}
               icon={blueprint.icon}
+              image_url={blueprint.image_url}
               base_price={blueprint.base_price}
               estimated_hours={blueprint.estimated_hours}
               tags={blueprint.tags || []}
