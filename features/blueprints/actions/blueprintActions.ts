@@ -7,9 +7,16 @@ import {
   updateBlueprint,
   deleteBlueprint,
   duplicateBlueprint,
+  uploadBlueprintImage,
   type CreateBlueprintInput,
   type UpdateBlueprintInput,
 } from '@/lib/api/blueprints'
+
+export async function uploadBlueprintImageAction(formData: FormData): Promise<string> {
+  const file = formData.get('file') as File
+  if (!file) throw new Error('No file provided')
+  return uploadBlueprintImage(file)
+}
 
 export async function createBlueprintAction(input: CreateBlueprintInput) {
   const blueprint = await createBlueprint(input)

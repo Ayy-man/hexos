@@ -1,5 +1,32 @@
 import { createClient } from '@/lib/supabase/server'
 
+// Upload image to Supabase storage
+export async function uploadBlueprintImage(file: File): Promise<string> {
+  const supabase = await createClient()
+
+  const fileExt = file.name.split('.').pop()
+  const fileName = `blueprints/${Date.now()}.${fileExt}`
+
+  const { data, error } = await supabase.storage
+    .from('general-purpose')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: false
+    })
+
+  if (error) {
+    console.error('Upload error:', error)
+    throw new Error('Failed to upload image')
+  }
+
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('general-purpose')
+    .getPublicUrl(data.path)
+
+  return urlData.publicUrl
+}
+
 // Types
 export interface PricingTier {
   name: string
@@ -20,6 +47,7 @@ export interface Blueprint {
   tags: string[]
   status: 'draft' | 'published'
   icon: string | null
+  image_url: string | null
   loom_video_url: string | null
   created_at: string
   updated_at: string | null
@@ -35,6 +63,7 @@ export interface BlueprintSummary {
   tags: string[]
   status: 'draft' | 'published'
   icon: string | null
+  image_url: string | null
   pricing_tiers: PricingTier[]
   loom_video_url: string | null
 }
@@ -49,6 +78,7 @@ export interface CreateBlueprintInput {
   tags?: string[]
   status?: 'draft' | 'published'
   icon?: string
+  image_url?: string
   loom_video_url?: string
 }
 
@@ -62,6 +92,7 @@ export interface UpdateBlueprintInput {
   tags?: string[]
   status?: 'draft' | 'published'
   icon?: string
+  image_url?: string | null
   loom_video_url?: string | null
 }
 
@@ -75,7 +106,7 @@ export async function getBlueprints(options?: {
 
   let query = supabase
     .from('blueprints')
-    .select('id, name, description, base_price, estimated_hours, tags, status, icon, pricing_tiers, loom_video_url')
+    .select('id, name, description, base_price, estimated_hours, tags, status, icon, image_url, pricing_tiers, loom_video_url')
     .order('name')
 
   // Filter by status (default to published only)
@@ -149,6 +180,7 @@ export async function createBlueprint(input: CreateBlueprintInput): Promise<Blue
       tags: input.tags || [],
       status: input.status || 'draft',
       icon: input.icon || null,
+      image_url: input.image_url || null,
       loom_video_url: input.loom_video_url || null,
     })
     .select()
@@ -171,6 +203,7 @@ export async function updateBlueprint(id: string, input: UpdateBlueprintInput): 
   if (input.tags !== undefined) updateData.tags = input.tags
   if (input.status !== undefined) updateData.status = input.status
   if (input.icon !== undefined) updateData.icon = input.icon
+  if (input.image_url !== undefined) updateData.image_url = input.image_url
   if (input.loom_video_url !== undefined) updateData.loom_video_url = input.loom_video_url
 
   const { data, error } = await supabase
@@ -234,6 +267,7 @@ export async function duplicateBlueprint(id: string): Promise<Blueprint> {
     tags: original.tags || [],
     status: 'draft', // Always create as draft
     icon: original.icon || undefined,
+    image_url: original.image_url || undefined,
     loom_video_url: original.loom_video_url || undefined,
   })
 }
