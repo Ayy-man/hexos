@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T01:00:00.000Z"
+last_updated: "2026-03-03T00:40:20.860Z"
 progress:
   total_phases: 21
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 60
-  completed_plans: 57
+  completed_plans: 58
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 22 Plan 02 complete — multi-select UI layer with ItemMultiSelect combobox and CaseStudyPreviewSidebar wired into A1, B2, A3 form steps
-Last activity: 2026-03-03 - Completed Phase 22-02: ItemMultiSelect grouped combobox with bp:/cs: prefixing, CaseStudyPreviewSidebar, updated Zod schemas (selections replaces blueprint_id in A1/B2), IntakeForm passes caseStudies to all three step components
+Status: Phase 22 Plan 03 complete — data layer closed: createInquiry() writes junction rows to inquiry_selections, detail page shows all selections, fieldMappings updated. Awaiting human visual verification checkpoint.
+Last activity: 2026-03-03 - Completed Phase 22-03: createInquiry() junction insert + primaryBlueprintId derivation, fieldMappings A1/A3/B2 now use 'selections', inquiry detail page queries and renders inquiry_selections with blueprint/case-study joins
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 22-inquiry-multi-select-blueprints-case-studies/22-02-PLAN.md
-Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22-02-SUMMARY.md
+Stopped at: Completed 22-inquiry-multi-select-blueprints-case-studies/22-03-PLAN.md — checkpoint:human-verify pending
+Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22-03-SUMMARY.md
 
 ## Decisions
 
@@ -74,6 +74,8 @@ Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22
 - [Phase 22-02]: selected_tier_blueprint_id tracks which blueprint the current tier belongs to — cleared when that blueprint is deselected
 - [Phase 20-05]: DeliverablesSheet receives full project prop (not just deliverables) — needed for sign-off status derived from project.status and project.signed_off_at
 - [Phase 20-05]: sheetContent prop used on BentoCard — BentoCard already owns the dialog lifecycle via useOnboardingSheet
+- [Phase 22]: unknown cast used for selectionsData to bypass Supabase join type discrepancy in inquiry detail page
+- [Phase 22]: createInquiry() junction insert is non-fatal — inquiry creation is never blocked by inquiry_selections errors
 
 ## Accumulated Context
 
@@ -91,4 +93,4 @@ Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22
 
 ---
 
-*Updated 2026-03-03 — Phase 22-02 complete: ItemMultiSelect grouped combobox + CaseStudyPreviewSidebar + updated Zod schemas (selections array) + updated A1/B2/A3 form steps with multi-select and dual sidebar*
+*Updated 2026-03-03 — Phase 22-03 complete (pending visual verification): createInquiry() junction insert + primaryBlueprintId derivation, fieldMappings updated for A1/A3/B2, inquiry detail page queries and renders inquiry_selections*

@@ -91,7 +91,7 @@
     - [ ] 21-01-PLAN.md — API layer (getAllBlockers + getBlockerCommentsAction) + presentational components (BlockerCard + BlockerConversation)
     - [ ] 21-02-PLAN.md — BlockerSidebar + AdminBlockerQueue rewrite + page wire-up + visual verification
 
-- [ ] Phase 22: Inquiry Multi-Select Blueprints + Case Studies
+- [x] Phase 22: Inquiry Multi-Select Blueprints + Case Studies (completed 2026-03-03)
   - Add case studies as selectable items alongside blueprints in the "I've closed a deal" / proposal intake form
   - Replace single-select blueprint dropdown with multi-select supporting both blueprints and case studies
   - New junction table `inquiry_selections` (item_type, blueprint_id, case_study_id) for many-to-many
