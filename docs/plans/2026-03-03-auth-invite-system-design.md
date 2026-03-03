@@ -1,7 +1,7 @@
 # Auth & Invite System Overhaul
 
 **Date:** 2026-03-03
-**Status:** Approved
+**Status:** Phase 1 Complete, Phases 2-3 Pending
 
 ## Overview
 
@@ -26,7 +26,7 @@ Comprehensive auth overhaul: fix the existing invite pipeline, add modern auth m
 
 ---
 
-## Phase 1 — Fix the Invite Pipeline
+## Phase 1 — Fix the Invite Pipeline ✓ (completed 2026-03-03)
 
 Unblocks everything. The API and DB are solid; the gaps are email delivery, a few bugs, and the admin DFY toggle.
 
@@ -86,19 +86,23 @@ In `AdminPartnersList.tsx` invite dialog, add a radio/select:
 - **"Create new agency"** → uses `createDfyFirstInvitation()`, shows org name text field
 - **"Add to existing agency"** → uses `createTeamInvitation(orgId, type: 'dfy_team')`, shows org dropdown populated from `getAllOrganizations('dfy_agency')`
 
-### Files Changed (Phase 1)
+### What Was Built (Phase 1)
 
-| File | Change |
-|------|--------|
-| `lib/email/templates/InvitationEmail.tsx` | New |
-| `lib/email/templates/ApplicationReceivedEmail.tsx` | New |
-| `lib/email/templates/ApplicationApprovedEmail.tsx` | New |
-| `lib/email/templates/ApplicationRejectedEmail.tsx` | New |
-| `lib/email/templates/index.ts` | New (exports) |
-| `lib/api/email.ts` | Wire templates to render + send |
-| `lib/api/invitations.ts` | Fix expiry, add dup checks |
-| `app/invite/[token]/page.tsx` | Fix signout action |
-| `features/admin/components/AdminPartnersList.tsx` | Add DFY invite toggle |
+| File | Change | Status |
+|------|--------|--------|
+| `lib/email/templates/BaseLayout.tsx` | New — shared hexOS email wrapper | ✓ |
+| `lib/email/templates/InvitationEmail.tsx` | Rewritten with BaseLayout + cyan-600 branding | ✓ |
+| `lib/email/templates/ApplicationReceivedEmail.tsx` | Rewritten with BaseLayout | ✓ |
+| `lib/email/templates/ApplicationApprovedEmail.tsx` | Rewritten with BaseLayout + CTA | ✓ |
+| `lib/email/templates/ApplicationRejectedEmail.tsx` | Rewritten with BaseLayout | ✓ |
+| `lib/email/templates/index.ts` | Unchanged — barrel already correct | ✓ |
+| `lib/api/email.ts` | Unchanged — wiring already correct | ✓ |
+| `lib/api/invitations.ts` | Added expires_at to 4 create* functions | ✓ |
+| `app/invite/[token]/page.tsx` | Fixed signout with form action pattern | ✓ |
+| `features/organizations/actions/invitationActions.ts` | New `inviteDfyToExistingOrgAction` | ✓ |
+| `features/admin/components/AdminPartnersList.tsx` | Added DFY invite mode toggle | ✓ |
+
+**Needs human testing:** Live email delivery, browser signout redirect, seat limit enforcement
 
 ---
 
