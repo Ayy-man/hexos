@@ -7,7 +7,7 @@ import { AlertTriangle, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
 import { AdminBlockerQueue } from '@/features/admin/components/AdminBlockerQueue'
 
 export default async function AdminBlockersPage() {
-  await requireRole(['admin', 'internal'])
+  await requireRole(['admin', 'internal', 'dev', 'dfy'])
 
   const [allBlockers, projects] = await Promise.all([
     getAllBlockers().catch(() => []),
