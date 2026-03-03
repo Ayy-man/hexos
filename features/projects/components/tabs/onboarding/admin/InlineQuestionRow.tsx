@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { X } from 'lucide-react'
+import { X, Plus, Loader2 } from 'lucide-react'
 import type { QuestionType } from '@/lib/api/onboarding-questions'
 
 interface InlineQuestionRowProps {
@@ -31,21 +31,13 @@ export function InlineQuestionRow({ onSave, onCancel }: InlineQuestionRowProps) 
   const [questionType, setQuestionType] = useState<QuestionType>('text')
   const [isSaving, setIsSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  // Track whether select is open to avoid triggering blur save prematurely
-  const isSelectOpenRef = useRef(false)
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
-  const handleBlur = async () => {
-    // Slight delay to allow select open event to register
-    await new Promise((resolve) => setTimeout(resolve, 150))
-    if (isSelectOpenRef.current) return
-    if (!title.trim()) {
-      onCancel()
-      return
-    }
+  const handleSubmit = async () => {
+    if (!title.trim() || isSaving) return
     setIsSaving(true)
     try {
       await onSave({ title: title.trim(), question_type: questionType })
@@ -60,7 +52,7 @@ export function InlineQuestionRow({ onSave, onCancel }: InlineQuestionRowProps) 
     }
     if (e.key === 'Enter' && title.trim()) {
       e.preventDefault()
-      inputRef.current?.blur()
+      handleSubmit()
     }
   }
 
@@ -69,9 +61,6 @@ export function InlineQuestionRow({ onSave, onCancel }: InlineQuestionRowProps) 
       <Select
         value={questionType}
         onValueChange={(val: string) => setQuestionType(val as QuestionType)}
-        onOpenChange={(open: boolean) => {
-          isSelectOpenRef.current = open
-        }}
       >
         <SelectTrigger className="h-8 w-36 shrink-0 text-xs">
           <SelectValue />
@@ -91,12 +80,23 @@ export function InlineQuestionRow({ onSave, onCancel }: InlineQuestionRowProps) 
         ref={inputRef}
         value={title}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
-        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder="Question title..."
         disabled={isSaving}
         className="h-8 text-sm flex-1"
       />
+
+      <Button
+        variant="default"
+        size="sm"
+        className="h-8 shrink-0 text-xs px-3"
+        onClick={handleSubmit}
+        disabled={!title.trim() || isSaving}
+        type="button"
+      >
+        {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5 mr-1" />}
+        {isSaving ? 'Adding...' : 'Add'}
+      </Button>
 
       <Button
         variant="ghost"

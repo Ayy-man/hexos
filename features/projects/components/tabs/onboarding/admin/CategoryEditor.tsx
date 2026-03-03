@@ -88,6 +88,10 @@ export function CategoryEditor({
     if (!result.success) {
       toast.error(result.error || 'Failed to add question')
     } else {
+      // Optimistically add to local state — no page reload needed
+      if (result.question) {
+        setSortedQuestions((prev: OnboardingQuestion[]) => [...prev, result.question!])
+      }
       toast.success('Question added')
       setShowNewRow(false)
     }

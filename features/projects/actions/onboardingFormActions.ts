@@ -3,20 +3,17 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import {
-  getOnboardingCategories,
-  createOnboardingCategory,
   updateOnboardingCategory,
   deleteOnboardingCategory,
   reorderOnboardingCategories,
 } from '@/lib/api/onboarding-categories'
 import type { UpdateOnboardingCategoryInput } from '@/lib/api/onboarding-categories'
 import {
-  createOnboardingQuestion,
   updateOnboardingQuestion,
   deleteOnboardingQuestion,
   reorderOnboardingQuestions,
 } from '@/lib/api/onboarding-questions'
-import type { QuestionType, UpdateOnboardingQuestionInput } from '@/lib/api/onboarding-questions'
+import type { QuestionType, UpdateOnboardingQuestionInput, OnboardingQuestion } from '@/lib/api/onboarding-questions'
 import { upsertOnboardingAnswer } from '@/lib/api/onboarding-answers'
 
 // ============================================
@@ -199,7 +196,7 @@ export async function addQuestionAction(
     options?: string[]
     is_required?: boolean
   }
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; question?: OnboardingQuestion }> {
   try {
     const supabase = await createClient()
     const {
@@ -207,7 +204,7 @@ export async function addQuestionAction(
     } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Not authenticated' }
 
-    // Get max position within the category
+    // Get max position within the category using the same client
     const { data: existing, error: fetchError } = await supabase
       .from('onboarding_questions')
       .select('position')
@@ -215,26 +212,40 @@ export async function addQuestionAction(
       .order('position', { ascending: false })
       .limit(1)
 
-    if (fetchError) throw fetchError
+    if (fetchError) {
+      console.error('[addQuestionAction] SELECT failed:', fetchError)
+      return { success: false, error: `SELECT failed: ${fetchError.message}` }
+    }
 
     const nextPosition = (existing?.[0]?.position ?? -1) + 1
 
-    await createOnboardingQuestion({
-      project_id: projectId,
-      category_id: categoryId,
-      title: data.title,
-      question_type: data.question_type,
-      description: data.description,
-      options: data.options,
-      is_required: data.is_required,
-      position: nextPosition,
-    })
+    // Insert using the same client to avoid permission issues
+    const { data: question, error: insertError } = await supabase
+      .from('onboarding_questions')
+      .insert({
+        project_id: projectId,
+        category_id: categoryId,
+        title: data.title,
+        question_type: data.question_type,
+        description: data.description || null,
+        options: data.options || null,
+        is_required: data.is_required ?? false,
+        position: nextPosition,
+      })
+      .select()
+      .single()
 
-    revalidatePath('/projects/' + projectId)
-    return { success: true }
+    if (insertError) {
+      console.error('[addQuestionAction] INSERT failed:', insertError)
+      return { success: false, error: `INSERT failed: ${insertError.message}` }
+    }
+
+    // Skip revalidatePath — caller handles optimistic update
+    return { success: true, question: question as OnboardingQuestion }
   } catch (error) {
     console.error('[addQuestionAction] FAILED:', error)
-    return { success: false, error: 'Failed to add question' }
+    const msg = error instanceof Error ? error.message : String(error)
+    return { success: false, error: `Failed to add question: ${msg}` }
   }
 }
 
