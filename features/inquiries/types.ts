@@ -1,3 +1,9 @@
+export interface SelectionItem {
+  type: 'blueprint' | 'case_study'
+  id: string
+  name: string
+}
+
 export interface CreateInquiryData {
   partner_name: string
   submission_type: 'closed' | 'proposal'
@@ -6,7 +12,8 @@ export interface CreateInquiryData {
   prospect_company_name?: string
   prospect_website?: string
   industry?: string
-  blueprint_id?: string
+  blueprint_id?: string        // KEEP — set from first blueprint in selections for backwards compat
+  selections?: SelectionItem[] // NEW — the full multi-select array
   form_data: Record<string, unknown>
   forward_emails?: string[]
 }
