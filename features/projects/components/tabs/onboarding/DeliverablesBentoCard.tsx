@@ -2,7 +2,9 @@
 
 import { CheckCircle2, Circle, FileCheck } from 'lucide-react'
 import { BentoCard } from './BentoCard'
+import { DeliverablesSheet } from './sheets/DeliverablesSheet'
 import type { ProjectWithRelations } from '@/lib/api/projects'
+import type { UserRole } from '@/lib/auth/types'
 
 // Local type for deliverable
 type ProjectDeliverable = NonNullable<ProjectWithRelations['deliverables']>[number]
@@ -34,6 +36,9 @@ export function buildDeliverableTree(deliverables: ProjectDeliverable[]): Delive
 interface DeliverablesBentoCardProps {
   project: ProjectWithRelations
   progress: { total: number; completed: number }
+  userRole: UserRole
+  isAdmin: boolean
+  isDfy: boolean
 }
 
 function getSignoffStatusLabel(project: ProjectWithRelations) {
@@ -43,7 +48,13 @@ function getSignoffStatusLabel(project: ProjectWithRelations) {
   return 'Pending'
 }
 
-export function DeliverablesBentoCard({ project, progress }: DeliverablesBentoCardProps) {
+export function DeliverablesBentoCard({
+  project,
+  progress,
+  userRole,
+  isAdmin,
+  isDfy,
+}: DeliverablesBentoCardProps) {
   const deliverables = project.deliverables || []
   const deliverableTree = buildDeliverableTree(deliverables)
   const isComplete = progress.total > 0 && progress.completed === progress.total
@@ -55,6 +66,14 @@ export function DeliverablesBentoCard({ project, progress }: DeliverablesBentoCa
       isComplete={isComplete}
       hasRequiredIncomplete={false}
       sheetTitle="Deliverables Sign-off"
+      sheetContent={
+        <DeliverablesSheet
+          project={project}
+          userRole={userRole}
+          isAdmin={isAdmin}
+          isDfy={isDfy}
+        />
+      }
     >
       <div className="space-y-3">
         {/* Header */}
