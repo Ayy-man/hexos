@@ -200,7 +200,7 @@ export async function extractMeetingData(
       'X-Title': 'hexOS Meeting Assistant',
     },
     body: JSON.stringify({
-      model: 'anthropic/claude-3.5-haiku-20241022',
+      model: 'anthropic/claude-haiku-4.5',
       messages: [
         { role: 'system', content: MEETING_ANALYSIS_SYSTEM_PROMPT },
         { role: 'user', content: userMessage },

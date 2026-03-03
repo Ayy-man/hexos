@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
         'X-Title': 'hexOS Form Copilot',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-haiku',
+        model: 'anthropic/claude-haiku-4.5',
         messages: [
           { role: 'system', content: contextualizedPrompt },
           ...messages,
@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
         user.email || 'unknown',
         userMessage,
         aiResponse,
-        'anthropic/claude-3.5-haiku',
+        'anthropic/claude-haiku-4.5',
         tokensUsed,
         latencyMs,
         inquiryId ? 'inquiry' : undefined,
