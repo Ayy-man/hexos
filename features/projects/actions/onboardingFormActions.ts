@@ -71,7 +71,7 @@ export async function addCategoryAction(
   projectId: string,
   title: string,
   description?: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; category?: { id: string; title: string; description: string | null; position: number; project_id: string; created_at: string; updated_at: string } }> {
   try {
     const supabase = await createClient()
     const {
@@ -86,15 +86,15 @@ export async function addCategoryAction(
         ? Math.max(...categories.map(c => c.position)) + 1
         : 0
 
-    await createOnboardingCategory({
+    const category = await createOnboardingCategory({
       project_id: projectId,
       title,
       description,
       position: nextPosition,
     })
 
-    revalidatePath('/projects/' + projectId)
-    return { success: true }
+    revalidatePath(`/projects/${projectId}`)
+    return { success: true, category }
   } catch (error) {
     console.error('[addCategoryAction] FAILED:', error)
     return { success: false, error: 'Failed to add category' }

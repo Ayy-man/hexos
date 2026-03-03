@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Circle, AlertTriangle, ClipboardList } from 'lucide-react'
+import { CheckCircle2, Minus, AlertTriangle, ClipboardList } from 'lucide-react'
 import { BentoCard } from './BentoCard'
 import { RequirementsSheet } from './sheets/RequirementsSheet'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
@@ -68,7 +68,7 @@ export function RequirementsBentoCard({ requirements, progress, projectId, isAdm
               ) : req.status === 'blocked' ? (
                 <AlertTriangle className="h-3.5 w-3.5 text-[--signal-bad] shrink-0" />
               ) : (
-                <Circle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <Minus className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               )}
               <span className={req.status === 'approved' ? 'text-muted-foreground line-through' : ''}>
                 {req.title}

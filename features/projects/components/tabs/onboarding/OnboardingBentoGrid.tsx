@@ -188,7 +188,8 @@ function OnboardingBentoGridInner({
     const result = await addCategoryAction(project.id, trimmed)
     if (!result.success) {
       toast.error(result.error || 'Failed to add category')
-    } else {
+    } else if (result.category) {
+      setSortedCategories((prev) => [...prev, result.category!])
       toast.success('Category added')
     }
     setShowAddCategory(false)
@@ -263,11 +264,13 @@ function OnboardingBentoGridInner({
 
       {/* Top row: progress + admin preview toggle */}
       <div className="flex items-center justify-between gap-4">
-        <OnboardingProgressSummary
-          total={progress.total}
-          completed={progress.completed}
-          percentage={progress.percentage}
-        />
+        <div className="flex-1">
+          <OnboardingProgressSummary
+            total={progress.total}
+            completed={progress.completed}
+            percentage={progress.percentage}
+          />
+        </div>
         {isAdmin && (
           <PreviewToggle isPreview={isPreviewMode} onToggle={setIsPreviewMode} />
         )}
@@ -419,20 +422,12 @@ function OnboardingBentoGridInner({
         </div>
       )}
 
-      {/* Empty state: no categories */}
-      {categories.length === 0 && !isAdmin && (
+      {/* Empty state: no categories — only show when no deliverables/requirements either */}
+      {sortedCategories.length === 0 && (project.deliverables || []).length === 0 && requirements.length === 0 && !isAdmin && (
         <div className="text-center py-8 text-muted-foreground">
           <p className="text-sm">
             Your team is setting up the onboarding form. You&apos;ll be notified when it&apos;s ready.
           </p>
-        </div>
-      )}
-
-      {/* Empty state for admin: no categories yet */}
-      {categories.length === 0 && isAdmin && (
-        <div className="text-center py-8 text-muted-foreground border rounded-lg border-dashed">
-          <p className="text-sm font-medium mb-1">No onboarding sections yet</p>
-          <p className="text-xs">Add categories and questions to build the onboarding form.</p>
         </div>
       )}
     </div>

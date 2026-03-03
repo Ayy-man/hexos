@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Circle, FileCheck } from 'lucide-react'
+import { CheckCircle2, Minus, FileCheck } from 'lucide-react'
 import { BentoCard } from './BentoCard'
 import { DeliverablesSheet } from './sheets/DeliverablesSheet'
 import type { ProjectWithRelations } from '@/lib/api/projects'
@@ -97,7 +97,7 @@ export function DeliverablesBentoCard({
               {d.status === 'done' ? (
                 <CheckCircle2 className="h-3.5 w-3.5 text-[--signal-good] shrink-0" />
               ) : (
-                <Circle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <Minus className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               )}
               <span className={d.status === 'done' ? 'text-muted-foreground line-through' : ''}>
                 {d.title}
