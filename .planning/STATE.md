@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T00:19:37.271Z"
+last_updated: "2026-03-03T00:22:25.437Z"
 progress:
   total_phases: 21
   completed_phases: 17
   total_plans: 60
-  completed_plans: 53
+  completed_plans: 54
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 20 Plan 04 complete — admin form builder UX fully built; onboarding phase complete
-Last activity: 2026-03-03 - Completed Phase 20-04: InlineQuestionRow, QuestionEditor, CategoryEditor, PreviewToggle, CategoryBentoCard kebab menu, CategorySheet three-mode, OnboardingBentoGrid admin controls
+Status: Phase 20 Plan 03 complete (retroactively executed); Phase 20 Plan 04 complete — full onboarding phase complete
+Last activity: 2026-03-03 - Completed Phase 20-03: useCategoryAutosave, AutoSaveStatus, QuestionField, CategoryForm, BentoCard.onBeforeClose, CategoryBentoCard unsaved-changes guard
 
 ## Project Reference
 
@@ -65,6 +65,8 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-04-SUMMARY.md
 - [Phase 20-04]: isSelectOpenRef with 150ms blur delay prevents race condition when user opens Select dropdown in InlineQuestionRow
 - [Phase 20-04]: Admin build mode bypasses unsaved-changes guard in CategoryBentoCard — CategoryEditor has no form dirty state
 - [Phase 20-04]: CategorySheet three-mode content: isAdmin+!isPreviewMode → CategoryEditor, isAdmin+isPreviewMode → CategoryForm+banner, isDfy → fill mode
+- [Phase 20-03]: useCategoryAutosave reads form values INSIDE performSave callback via getValues(questionId) — prevents stale value bug by reading at save time, not at handler creation time
+- [Phase 20-03]: BentoCard.onBeforeClose returns Promise<boolean> — parent stores resolve in state, AlertDialog action calls resolve() for async close interception without race conditions
 
 ## Accumulated Context
 
@@ -82,4 +84,4 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-04-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 20-04 complete: admin form builder (InlineQuestionRow, QuestionEditor, CategoryEditor, PreviewToggle, kebab menu category management, three-mode CategorySheet)*
+*Updated 2026-03-03 — Phase 20-03 complete: three-layer auto-save form system (useCategoryAutosave, CategoryForm, QuestionField, BentoCard close guard)*
