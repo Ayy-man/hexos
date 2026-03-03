@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T00:00:39.219Z"
+last_updated: "2026-03-03T00:19:37.271Z"
 progress:
   total_phases: 21
   completed_phases: 17
-  total_plans: 57
-  completed_plans: 51
+  total_plans: 60
+  completed_plans: 53
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 20 Plan 02 complete — onboarding bento grid UI built; Plan 03 next (category question sheets)
-Last activity: 2026-03-03 - Completed Phase 20-02: bento grid components, useOnboardingSheet/Progress hooks, data pipeline wired
+Status: Phase 20 Plan 04 complete — admin form builder UX fully built; onboarding phase complete
+Last activity: 2026-03-03 - Completed Phase 20-04: InlineQuestionRow, QuestionEditor, CategoryEditor, PreviewToggle, CategoryBentoCard kebab menu, CategorySheet three-mode, OnboardingBentoGrid admin controls
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 20-onboarding-stepper-form/20-02-PLAN.md
-Resume file: .planning/phases/20-onboarding-stepper-form/20-02-SUMMARY.md
+Stopped at: Completed 20-onboarding-stepper-form/20-04-PLAN.md
+Resume file: .planning/phases/20-onboarding-stepper-form/20-04-SUMMARY.md
 
 ## Decisions
 
@@ -62,6 +62,9 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-02-SUMMARY.md
 - [Phase 20-02]: showQuestionsTab uses same "onboarding" tab value with "Questions" label — avoids duplicate TabsContent
 - [Phase 20-02]: buildDeliverableTree placed in DeliverablesBentoCard module — only used there, can be lifted for Plans 03-04
 - [Phase quick-4]: Replicated exact case studies image pattern for blueprints — same storage bucket, same hook, same UI layout
+- [Phase 20-04]: isSelectOpenRef with 150ms blur delay prevents race condition when user opens Select dropdown in InlineQuestionRow
+- [Phase 20-04]: Admin build mode bypasses unsaved-changes guard in CategoryBentoCard — CategoryEditor has no form dirty state
+- [Phase 20-04]: CategorySheet three-mode content: isAdmin+!isPreviewMode → CategoryEditor, isAdmin+isPreviewMode → CategoryForm+banner, isDfy → fill mode
 
 ## Accumulated Context
 
@@ -79,4 +82,4 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-02-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 20-02 complete: onboarding bento grid UI (BentoCard, CategoryBentoCard, DeliverablesBentoCard, RequirementsBentoCard, hooks)*
+*Updated 2026-03-03 — Phase 20-04 complete: admin form builder (InlineQuestionRow, QuestionEditor, CategoryEditor, PreviewToggle, kebab menu category management, three-mode CategorySheet)*

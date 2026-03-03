@@ -18,6 +18,11 @@ interface BentoCardProps {
   className?: string
   sheetTitle?: string
   sheetContent?: React.ReactNode
+  /**
+   * Optional async guard called before closing the sheet.
+   * Return true to allow close, false to prevent it (e.g. show unsaved changes dialog).
+   */
+  onBeforeClose?: () => Promise<boolean> | boolean
 }
 
 export function BentoCard({
@@ -28,6 +33,7 @@ export function BentoCard({
   className,
   sheetTitle,
   sheetContent,
+  onBeforeClose,
 }: BentoCardProps) {
   const { activeSection, openSheet, closeSheet } = useOnboardingSheet()
 
@@ -35,6 +41,16 @@ export function BentoCard({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       openSheet(slug)
+    }
+  }
+
+  const handleOpenChange = async (open: boolean) => {
+    if (!open) {
+      if (onBeforeClose) {
+        const canClose = await onBeforeClose()
+        if (!canClose) return
+      }
+      closeSheet()
     }
   }
 
@@ -58,7 +74,7 @@ export function BentoCard({
 
       <ResponsiveDialog
         open={activeSection === slug}
-        onOpenChange={(open) => !open && closeSheet()}
+        onOpenChange={handleOpenChange}
       >
         <ResponsiveDialogContent className="max-w-3xl max-h-[90vh]">
           {sheetTitle && (

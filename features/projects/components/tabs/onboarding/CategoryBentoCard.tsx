@@ -43,6 +43,7 @@ interface CategoryBentoCardProps {
   isAdmin: boolean
   isDfy: boolean
   isPreviewMode?: boolean
+  className?: string
 }
 
 function getStatusInfo(progress: CategoryProgress) {
@@ -84,6 +85,7 @@ export function CategoryBentoCard({
   isAdmin,
   isDfy,
   isPreviewMode = false,
+  className,
 }: CategoryBentoCardProps) {
   const isComplete = progress.total > 0 && progress.completed === progress.total
   const hasRequiredIncomplete = progress.requiredRemaining > 0
@@ -200,6 +202,7 @@ export function CategoryBentoCard({
         isComplete={isComplete}
         hasRequiredIncomplete={hasRequiredIncomplete}
         onBeforeClose={handleBeforeClose}
+        className={className}
         sheetContent={
           <CategorySheet
             formRef={formRef}
