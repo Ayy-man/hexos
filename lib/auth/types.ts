@@ -12,6 +12,7 @@ export interface Profile {
   timezone?: string | null
   created_at: string
   last_seen_at?: string | null
+  has_completed_onboarding?: boolean  // NEW — wizard gate flag
 }
 
 export interface AuthUser {
