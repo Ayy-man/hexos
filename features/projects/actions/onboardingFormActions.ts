@@ -79,25 +79,45 @@ export async function addCategoryAction(
     } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Not authenticated' }
 
-    // Get max position
-    const categories = await getOnboardingCategories(projectId)
-    const nextPosition =
-      categories.length > 0
-        ? Math.max(...categories.map(c => c.position)) + 1
-        : 0
+    // Get max position using the same client (avoid creating a second client)
+    const { data: existingCategories, error: fetchError } = await supabase
+      .from('onboarding_categories')
+      .select('position')
+      .eq('project_id', projectId)
+      .order('position', { ascending: false })
+      .limit(1)
 
-    const category = await createOnboardingCategory({
-      project_id: projectId,
-      title,
-      description,
-      position: nextPosition,
-    })
+    if (fetchError) {
+      console.error('[addCategoryAction] SELECT failed:', fetchError)
+      return { success: false, error: `SELECT failed: ${fetchError.message}` }
+    }
+
+    const nextPosition = existingCategories && existingCategories.length > 0
+      ? existingCategories[0].position + 1
+      : 0
+
+    const { data: category, error: insertError } = await supabase
+      .from('onboarding_categories')
+      .insert({
+        project_id: projectId,
+        title,
+        description: description || null,
+        position: nextPosition,
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('[addCategoryAction] INSERT failed:', insertError)
+      return { success: false, error: `INSERT failed: ${insertError.message}` }
+    }
 
     revalidatePath(`/projects/${projectId}`)
     return { success: true, category }
   } catch (error) {
     console.error('[addCategoryAction] FAILED:', error)
-    return { success: false, error: 'Failed to add category' }
+    const msg = error instanceof Error ? error.message : String(error)
+    return { success: false, error: `Failed to add category: ${msg}` }
   }
 }
 
