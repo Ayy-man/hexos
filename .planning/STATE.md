@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: UX Enrichment
 status: in_progress
-last_updated: "2026-03-02"
+last_updated: "2026-03-03"
 progress:
   total_phases: 2
   completed_phases: 2
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 21-02 complete — both bug fixes applied and committed; ready for Phase 21-03
-Last activity: 2026-03-03 - Phase 21-02 complete — expires_at added to 4 create*Invitation insert payloads; broken signout <a onClick> replaced with <form action={signOutAndRedirect}>
+Status: Phase 21-03 complete — admin DFY invite toggle added; Phase 21 complete
+Last activity: 2026-03-03 - Phase 21-03 complete — inviteDfyToExistingOrgAction server action added; AdminPartnersList dialog updated with mode toggle (new agency vs existing agency)
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 21-02-PLAN.md — Phase 21 Plan 02 done; next is 21-03
-Resume file: .planning/phases/21-invite-pipeline-fix/21-02-SUMMARY.md
+Stopped at: Completed 21-03-PLAN.md — Phase 21 Plan 03 done; Phase 21 complete
+Resume file: .planning/phases/21-invite-pipeline-fix/21-03-SUMMARY.md
 
 ## Decisions
 
@@ -53,6 +53,8 @@ Resume file: .planning/phases/21-invite-pipeline-fix/21-02-SUMMARY.md
 - Phase 19-03: Critical blocker badge uses bg-red-500 class override for distinct red color
 - Phase 21-02: signOutAndRedirect defined as named server action inside page component — gives access to token from page params scope via closure
 - Phase 21-02: createDevApplication left without expires_at — it uses pending_approval (awaiting admin review); approveDevApplication already sets expires_at when converting to pending
+- Phase 21-03: inviteDfyToExistingOrgAction duplicate check scoped to org_id — allows same email to be in different orgs but prevents duplicate within same org
+- Phase 21-03: Seat check in inviteDfyToExistingOrgAction runs before invitation creation to give clear user-facing error when agency is full
 
 ## Accumulated Context
 
@@ -67,4 +69,4 @@ Resume file: .planning/phases/21-invite-pipeline-fix/21-02-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — v1.3 Auth & Invite System milestone added (Phases 21-23)*
+*Updated 2026-03-03 — Phase 21-03 complete; Phase 21 (Invite Pipeline Fix) fully complete*
