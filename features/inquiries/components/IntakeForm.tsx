@@ -26,8 +26,9 @@ import { FormStepIndicator } from './FormStepIndicator'
 
 import { getFormPath, type FormPath, type IntakeFormState } from '../schemas/intakeFormSchema'
 import { submitInquiry } from '../actions/submitInquiry'
-import type { CreateInquiryData } from '../types'
+import type { CreateInquiryData, SelectionItem } from '../types'
 import type { BlueprintSummary } from '@/lib/api/blueprints'
+import type { CaseStudy } from '@/lib/api/case-studies'
 
 // Base schema for all paths
 const baseSchema = z.object({
@@ -39,6 +40,7 @@ const baseSchema = z.object({
 
 interface IntakeFormProps {
   blueprints: BlueprintSummary[]
+  caseStudies: CaseStudy[]
   partnerName: string
 }
 
@@ -50,7 +52,7 @@ type Step =
   | 'forward'
   | 'confirmation'
 
-export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
+export function IntakeForm({ blueprints, caseStudies, partnerName }: IntakeFormProps) {
   const [step, setStep] = useState<Step>('initial')
   const [copilotEnabled, setCopilotEnabled] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -130,7 +132,8 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
         prospect_company_name: data.prospect_company_name,
         prospect_website: data.prospect_website,
         industry: data.industry,
-        blueprint_id: data.blueprint_id,
+        blueprint_id: undefined, // derived from data.selections inside createInquiry() for backwards compat
+        selections: (data.selections as SelectionItem[]) || [],
         form_data: data,
         forward_emails: [data.forward_email_1, data.forward_email_2].filter(Boolean) as string[],
       }
@@ -280,13 +283,13 @@ export function IntakeForm({ blueprints, partnerName }: IntakeFormProps) {
                   )
                 )}
                 {step === 'path_form' && currentPath === 'A1' && (
-                  <ClosedBlueprint blueprints={blueprints} />
+                  <ClosedBlueprint blueprints={blueprints} caseStudies={caseStudies} />
                 )}
                 {step === 'path_form' && (currentPath === 'A2' || currentPath === 'A3') && (
-                  <ClosedCustom isVariation={currentPath === 'A3'} />
+                  <ClosedCustom isVariation={currentPath === 'A3'} blueprints={blueprints} caseStudies={caseStudies} />
                 )}
                 {step === 'path_form' && currentPath === 'B2' && (
-                  <VariationProposal blueprints={blueprints} />
+                  <VariationProposal blueprints={blueprints} caseStudies={caseStudies} />
                 )}
                 {step === 'path_form' && currentPath === 'B3' && (
                   <CustomProposal />

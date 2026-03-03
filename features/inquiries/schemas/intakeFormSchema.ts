@@ -1,5 +1,12 @@
 import { z } from 'zod'
 
+// Shared selection item schema
+const selectionItemSchema = z.object({
+  type: z.enum(['blueprint', 'case_study']),
+  id: z.string().uuid(),
+  name: z.string(),
+})
+
 // Step 1: Initial Questions
 export const initialStepSchema = z.object({
   submission_type: z.enum(['closed', 'proposal']),
@@ -21,7 +28,12 @@ export const closedBlueprintSchema = z.object({
   prospect_company_name: z.string().min(1, 'Company name is required'),
   prospect_website: z.string().min(1, 'Website is required'),
   industry: z.string().min(1, 'Industry is required'),
-  blueprint_id: z.string().min(1, 'Blueprint selection is required'),
+  selections: z.array(selectionItemSchema).min(1, 'Select at least one blueprint or case study'),
+  selected_tier_blueprint_id: z.string().nullable().optional(),
+  selected_tier_name: z.string().optional(),
+  selected_tier_price: z.number().optional(),
+  selected_tier_monthly: z.number().optional(),
+  selected_tier_features: z.array(z.string()).optional(),
   monthly_volume: z.string().min(1, 'Monthly volume is required'),
   current_tools: z.string().min(1, 'Current tools is required'),
   existing_crm: z.string().min(1, 'CRM information is required'),
@@ -32,6 +44,7 @@ export const closedBlueprintSchema = z.object({
 // Path A2 & A3: Closed Custom/Variation (minimal fields)
 export const closedCustomSchema = z.object({
   prospect_company_name: z.string().min(1, 'Company name is required'),
+  selections: z.array(selectionItemSchema).optional(),
   additional_notes: z.string().min(1, 'Additional notes are required'),
 })
 
@@ -40,7 +53,12 @@ export const variationProposalSchema = z.object({
   prospect_company_name: z.string().min(1, 'Company name is required'),
   prospect_website: z.string().min(1, 'Website is required'),
   industry: z.string().min(1, 'Industry is required'),
-  blueprint_id: z.string().min(1, 'Blueprint selection is required'),
+  selections: z.array(selectionItemSchema).min(1, 'Select at least one blueprint or case study'),
+  selected_tier_blueprint_id: z.string().nullable().optional(),
+  selected_tier_name: z.string().optional(),
+  selected_tier_price: z.number().optional(),
+  selected_tier_monthly: z.number().optional(),
+  selected_tier_features: z.array(z.string()).optional(),
   variation_description: z.string().min(1, 'Variation description is required'),
   monthly_volume: z.string().min(1, 'Monthly volume is required'),
   current_tools: z.string().min(1, 'Current tools is required'),
@@ -115,7 +133,12 @@ export interface IntakeFormState {
   prospect_company_name?: string
   prospect_website?: string
   industry?: string
-  blueprint_id?: string
+  selections?: Array<{ type: 'blueprint' | 'case_study'; id: string; name: string }>
+  selected_tier_blueprint_id?: string | null
+  selected_tier_name?: string
+  selected_tier_price?: number
+  selected_tier_monthly?: number
+  selected_tier_features?: string[]
   additional_notes?: string
 
   // Path-specific fields stored in form_data
