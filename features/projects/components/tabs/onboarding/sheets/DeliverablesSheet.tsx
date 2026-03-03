@@ -14,7 +14,7 @@ import {
   confirmDeliverablesAction,
   sendForSignoffAction,
   signOffDeliverablesAction,
-} from '../../../actions/projectActions'
+} from '../../../../actions/projectActions'
 import { isDeliverablesLocked } from '@/lib/utils/projectPhases'
 
 // Local type for deliverable
