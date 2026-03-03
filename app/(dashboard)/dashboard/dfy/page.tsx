@@ -309,9 +309,10 @@ export default async function DfyDashboard() {
             ) : (
               <div className="space-y-2">
                 {escalatedBlockers.slice(0, 5).map((blocker) => (
-                  <div
+                  <Link
                     key={blocker.id}
-                    className="flex items-center gap-2 rounded-lg border p-2"
+                    href="/admin/blockers"
+                    className="flex items-center gap-2 rounded-lg border p-2 hover:bg-bg-hover transition-colors"
                   >
                     <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
                     <div className="min-w-0">
@@ -320,7 +321,7 @@ export default async function DfyDashboard() {
                         {blocker.project?.project_name || 'Unknown project'}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

@@ -173,9 +173,10 @@ export default async function DevDashboard() {
             ) : (
               <div className="space-y-2">
                 {activeBlockers.slice(0, 4).map((blocker) => (
-                  <div
+                  <Link
                     key={blocker.id}
-                    className="flex items-center justify-between rounded-lg border p-2 text-sm"
+                    href="/admin/blockers"
+                    className="flex items-center justify-between rounded-lg border p-2 text-sm hover:bg-bg-hover transition-colors"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <AlertCircle className={`h-4 w-4 flex-shrink-0 ${
@@ -188,7 +189,7 @@ export default async function DevDashboard() {
                     <Badge variant="outline" className="text-[10px] capitalize flex-shrink-0">
                       {blocker.status.replace(/_/g, ' ')}
                     </Badge>
-                  </div>
+                  </Link>
                 ))}
                 {activeBlockers.length > 4 && (
                   <p className="text-xs text-text-ghost text-center">
