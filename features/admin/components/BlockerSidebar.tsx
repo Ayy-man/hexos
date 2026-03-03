@@ -61,9 +61,10 @@ export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Reset state when blocker changes
+  const blockerId = blocker?.id ?? null
   const [prevBlockerId, setPrevBlockerId] = useState<string | null>(null)
-  if (blocker?.id !== prevBlockerId) {
-    setPrevBlockerId(blocker?.id ?? null)
+  if (blockerId !== prevBlockerId) {
+    setPrevBlockerId(blockerId)
     setShowResolveInput(false)
     setResolutionNotes('')
     setShowDeleteConfirm(false)
