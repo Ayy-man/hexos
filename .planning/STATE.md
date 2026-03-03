@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 22 complete — 22-01, 22-02, and 22-03 all complete
-Last activity: 2026-03-03 - Phase 22-03 executed — invite page updated with Google OAuth + magic link options in both signup and login modes
+Status: Phase 23 in progress — 23-01 complete
+Last activity: 2026-03-03 - Phase 23-01 executed — onboarding flag migration, dashboard redirect guard, and completeOnboarding server action
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 22-03-PLAN.md — invite page Google OAuth + magic link options (both signup and login modes)
-Resume file: .planning/phases/22-modern-auth-methods/22-03-SUMMARY.md
+Stopped at: Completed 23-01-PLAN.md — onboarding flag migration, dashboard redirect guard, completeOnboarding server action
+Resume file: .planning/phases/23-onboarding-wizard/23-01-SUMMARY.md
 
 ## Decisions
 
@@ -65,6 +65,10 @@ Resume file: .planning/phases/22-modern-auth-methods/22-03-SUMMARY.md
 - [Phase 22-modern-auth-methods]: Browser client calls supabase.auth.updateUser directly (not server action) — browser client has the recovery session from hash fragment
 - [Phase 22-modern-auth-methods]: Invite page magic link success uses ?success=magic-link (not ?error=) — success renders with cyan styling, not red error styling
 - [Phase 22-modern-auth-methods]: handleMagicLink on invite page uses invitation.email via closure (not user-editable field) — prevents email mismatch pitfall
+- [Phase 23-onboarding-wizard]: has_completed_onboarding is optional boolean on Profile interface — existing TypeScript consumers not expecting it; backfill sets runtime values at deployment
+- [Phase 23-onboarding-wizard]: Redirect guard placed BEFORE getNavigation() and Promise.all() — unonboarded users skip all 11+ DB queries
+- [Phase 23-onboarding-wizard]: completeOnboarding uses createClient() (not admin client) to respect RLS; session validated via supabase.auth.getUser() before DB write
+- [Phase 23-onboarding-wizard]: revalidatePath('/dashboard') in completeOnboarding invalidates Next.js route cache so dashboard re-fetches updated profile flag
 
 ## Accumulated Context
 
@@ -79,4 +83,4 @@ Resume file: .planning/phases/22-modern-auth-methods/22-03-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 22-03 complete — invite page Google OAuth + magic link in both signup and login modes*
+*Updated 2026-03-03 — Phase 23-01 complete — onboarding flag migration, dashboard redirect guard, completeOnboarding server action*
