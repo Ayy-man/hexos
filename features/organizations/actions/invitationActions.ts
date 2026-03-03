@@ -162,6 +162,88 @@ export async function inviteDfyAgencyAction(
 }
 
 // ============================================================================
+// DFY Team Invitation (Admin adds member to existing agency)
+// ============================================================================
+
+/**
+ * Invite a DFY team member to an existing agency (admin only)
+ */
+export async function inviteDfyToExistingOrgAction(
+  input: { email: string; organization_id: string }
+): Promise<{ success: boolean; invitationId?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Not authenticated' }
+
+    // Check user is admin
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return { success: false, error: 'Only admins can add members to existing agencies' }
+    }
+
+    // Check if invitation already exists for this org
+    const exists = await hasExistingInvitation(input.email, input.organization_id)
+    if (exists) {
+      return { success: false, error: 'An invitation already exists for this email in this agency' }
+    }
+
+    // Check organization has available seats
+    const hasSeats = await hasAvailableSeats(input.organization_id)
+    if (!hasSeats) {
+      return { success: false, error: 'This agency has no available seats' }
+    }
+
+    const invitation = await createTeamInvitation(
+      { email: input.email, organization_id: input.organization_id },
+      user.id,
+      'dfy_team'
+    )
+
+    if (!invitation) {
+      return { success: false, error: 'Failed to create invitation' }
+    }
+
+    // Get inviter name for email
+    const { data: inviterProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single()
+
+    // Get org name for email
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', input.organization_id)
+      .single()
+
+    await sendInvitationEmail(
+      input.email,
+      inviterProfile?.name || 'A hexOS admin',
+      'dfy_team',
+      org?.name || null,
+      invitation.token
+    )
+
+    revalidatePath('/dashboard/admin/partners')
+
+    return { success: true, invitationId: invitation.id }
+  } catch (error) {
+    console.error('[inviteDfyToExistingOrgAction] Error:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create invitation',
+    }
+  }
+}
+
+// ============================================================================
 // Dev Invitation (Hexona invites developer directly)
 // ============================================================================
 
