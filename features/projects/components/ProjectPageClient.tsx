@@ -15,6 +15,9 @@ import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 import type { UserRole } from '@/lib/auth/types'
 import type { DelaySummary } from '@/lib/api/project-delays'
 import type { TestingInfo } from '@/lib/api/testing'
+import type { OnboardingCategory } from '@/lib/api/onboarding-categories'
+import type { OnboardingQuestion } from '@/lib/api/onboarding-questions'
+import type { OnboardingAnswer } from '@/lib/api/onboarding-answers'
 
 interface ProjectPageClientProps {
   project: ProjectWithRelations & {
@@ -37,6 +40,9 @@ interface ProjectPageClientProps {
   testingInfo: Record<string, TestingInfo>
   isAdmin: boolean
   effectiveDeliveryDate: string | null
+  categories?: OnboardingCategory[]
+  questions?: OnboardingQuestion[]
+  answers?: OnboardingAnswer[]
 }
 
 export function ProjectPageClient({
@@ -49,6 +55,9 @@ export function ProjectPageClient({
   testingInfo,
   isAdmin,
   effectiveDeliveryDate,
+  categories,
+  questions,
+  answers,
 }: ProjectPageClientProps) {
   const [isFileMode, setIsFileMode] = useState(false)
   const [isChatMode, setIsChatMode] = useState(false)
@@ -190,6 +199,9 @@ export function ProjectPageClient({
         isChatMode={isChatMode}
         onChatModeChange={handleChatModeChange}
         preloadedData={preloadedData}
+        categories={categories}
+        questions={questions}
+        answers={answers}
       />
     </div>
   )

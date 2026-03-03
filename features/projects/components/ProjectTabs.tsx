@@ -32,6 +32,9 @@ import type { UserRole } from '@/lib/auth/types'
 import type { DelaySummary } from '@/lib/api/project-delays'
 import type { PreloadedProjectData } from '@/hooks/use-project-preload'
 import type { TestingInfo } from '@/lib/api/testing'
+import type { OnboardingCategory } from '@/lib/api/onboarding-categories'
+import type { OnboardingQuestion } from '@/lib/api/onboarding-questions'
+import type { OnboardingAnswer } from '@/lib/api/onboarding-answers'
 import { isOnboardingPhase, isRetainerPhase, isPostDeliveryPhase } from '@/lib/utils/projectPhases'
 import { cn } from '@/lib/utils'
 
@@ -59,6 +62,9 @@ interface ProjectTabsProps {
   isChatMode?: boolean
   onChatModeChange?: (isChatMode: boolean) => void
   preloadedData?: PreloadedProjectData | null
+  categories?: OnboardingCategory[]
+  questions?: OnboardingQuestion[]
+  answers?: OnboardingAnswer[]
 }
 
 export function ProjectTabs({
@@ -74,6 +80,9 @@ export function ProjectTabs({
   isChatMode = false,
   onChatModeChange,
   preloadedData,
+  categories,
+  questions,
+  answers,
 }: ProjectTabsProps) {
   const isAdmin = userRole === 'admin'
   const isDfy = userRole === 'dfy'

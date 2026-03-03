@@ -7,6 +7,9 @@ import { getPendingScopeChangesCount } from '@/lib/api/scope-monitoring'
 import { getDelaySummary } from '@/lib/api/project-delays'
 import { getProjectTestingInfo } from '@/lib/api/testing'
 import type { TestingInfo } from '@/lib/api/testing'
+import { getOnboardingCategories } from '@/lib/api/onboarding-categories'
+import { getOnboardingQuestions } from '@/lib/api/onboarding-questions'
+import { getOnboardingAnswers } from '@/lib/api/onboarding-answers'
 
 // Force dynamic rendering - never cache this page
 export const dynamic = 'force-dynamic'
@@ -39,12 +42,15 @@ export default async function ProjectDetailPage({
     throw error
   }
 
-  // Fetch available devs, pending scope changes, delay summary, and testing info
-  const [availableDevs, pendingScopeChanges, delaySummary, testingInfoMap] = await Promise.all([
+  // Fetch available devs, pending scope changes, delay summary, testing info, and onboarding data
+  const [availableDevs, pendingScopeChanges, delaySummary, testingInfoMap, categories, questions, answers] = await Promise.all([
     profile.role === 'admin' ? getAvailableDevs() : Promise.resolve([]),
     getPendingScopeChangesCount(id).catch(() => 0),
     getDelaySummary(id).catch(() => ({ client_delay_days: 0, dev_delay_days: 0, total_delay_days: 0 })),
     getProjectTestingInfo(id).catch(() => new Map()),
+    getOnboardingCategories(id).catch(() => []),
+    getOnboardingQuestions(id).catch(() => []),
+    getOnboardingAnswers(id).catch(() => []),
   ])
 
   // Convert Map to plain object for serialization across server/client boundary
@@ -66,6 +72,9 @@ export default async function ProjectDetailPage({
       testingInfo={testingInfo}
       isAdmin={isAdmin}
       effectiveDeliveryDate={effectiveDeliveryDate}
+      categories={categories}
+      questions={questions}
+      answers={answers}
     />
   )
 }
