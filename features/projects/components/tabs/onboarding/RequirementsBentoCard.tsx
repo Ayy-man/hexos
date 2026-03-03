@@ -2,14 +2,17 @@
 
 import { CheckCircle2, Circle, AlertTriangle, ClipboardList } from 'lucide-react'
 import { BentoCard } from './BentoCard'
+import { RequirementsSheet } from './sheets/RequirementsSheet'
 import type { OnboardingRequirement } from '@/lib/api/onboarding-requirements'
 
 interface RequirementsBentoCardProps {
   requirements: OnboardingRequirement[]
   progress: { total: number; completed: number; blockerCount: number }
+  projectId: string
+  isAdmin: boolean
 }
 
-export function RequirementsBentoCard({ requirements, progress }: RequirementsBentoCardProps) {
+export function RequirementsBentoCard({ requirements, progress, projectId, isAdmin }: RequirementsBentoCardProps) {
   const isComplete = progress.total > 0 && progress.completed === progress.total
   const hasBlockers = progress.blockerCount > 0
 
@@ -19,6 +22,13 @@ export function RequirementsBentoCard({ requirements, progress }: RequirementsBe
       isComplete={isComplete}
       hasRequiredIncomplete={false}
       sheetTitle="Onboarding Requirements"
+      sheetContent={
+        <RequirementsSheet
+          requirements={requirements}
+          projectId={projectId}
+          isAdmin={isAdmin}
+        />
+      }
     >
       <div className="space-y-3">
         {/* Header */}

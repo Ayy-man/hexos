@@ -62,6 +62,7 @@ function OnboardingBentoGridInner({
   questions,
   answers,
   requirements,
+  userRole,
   isAdmin,
   isDfy,
 }: OnboardingBentoGridProps) {
@@ -217,10 +218,15 @@ function OnboardingBentoGridInner({
           <DeliverablesBentoCard
             project={project}
             progress={progress.deliverablesProgress}
+            userRole={userRole}
+            isAdmin={isAdmin}
+            isDfy={isDfy}
           />
           <RequirementsBentoCard
             requirements={requirements}
             progress={progress.requirementsProgress}
+            projectId={project.id}
+            isAdmin={isAdmin}
           />
 
           {/* Remaining category cards */}
@@ -242,10 +248,15 @@ function OnboardingBentoGridInner({
           <DeliverablesBentoCard
             project={project}
             progress={progress.deliverablesProgress}
+            userRole={userRole}
+            isAdmin={isAdmin}
+            isDfy={isDfy}
           />
           <RequirementsBentoCard
             requirements={requirements}
             progress={progress.requirementsProgress}
+            projectId={project.id}
+            isAdmin={isAdmin}
           />
 
           {visibleCategories.slice(1).map((cat: OnboardingCategory) => renderCategoryCard(cat))}
