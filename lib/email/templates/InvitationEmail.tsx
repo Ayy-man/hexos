@@ -1,16 +1,5 @@
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Section,
-  Text,
-  Link,
-  Button,
-  Heading,
-  Hr,
-  Preview,
-} from '@react-email/components'
+import { Section, Text, Button, Link } from '@react-email/components'
+import { BaseLayout } from './BaseLayout'
 
 interface InvitationEmailProps {
   inviterName: string
@@ -19,62 +8,91 @@ interface InvitationEmailProps {
   inviteUrl: string
 }
 
+function getSubtitle(inviteType: string, organizationName: string | null): string {
+  if (inviteType === 'admin' || inviteType === 'internal') {
+    return 'Join the hexOS team'
+  }
+  if (inviteType === 'dfy_first') {
+    return 'Set up your agency'
+  }
+  if (inviteType === 'dfy_team') {
+    return `Join ${organizationName || 'your organization'}`
+  }
+  return 'Start building'
+}
+
 export function InvitationEmail({
   inviterName,
   inviteType,
   organizationName,
   inviteUrl,
 }: InvitationEmailProps) {
-  const previewText = organizationName
-    ? `${inviterName} invited you to join ${organizationName}`
-    : `${inviterName} invited you to join hexOS`
+  const previewText = `${inviterName} invited you to join ${organizationName || 'hexOS'}`
+  const subtitle = getSubtitle(inviteType, organizationName)
 
   return (
-    <Html>
-      <Head />
-      <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Heading style={h1}>You're invited!</Heading>
-          <Text style={text}>
-            {inviterName} has invited you to join {organizationName || 'hexOS'} as a {inviteType.replace('_', ' ')}.
-          </Text>
-          <Section style={buttonContainer}>
-            <Button style={button} href={inviteUrl}>
-              Accept Invitation
-            </Button>
-          </Section>
-          <Text style={text}>
-            Or copy and paste this URL into your browser:
-          </Text>
-          <Link href={inviteUrl} style={link}>
-            {inviteUrl}
-          </Link>
-          <Hr style={hr} />
-          <Text style={footer}>
-            This invitation expires in 7 days. If you didn't expect this invitation, you can ignore this email.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+    <BaseLayout preview={previewText}>
+      <Section style={cardStyle}>
+        <Text style={headingStyle}>You&apos;re invited</Text>
+        <Text style={bodyTextStyle}>{subtitle}</Text>
+        <Text style={bodyTextStyle}>
+          {inviterName} has invited you to join {organizationName || 'hexOS'}. Click the button
+          below to accept your invitation and get started.
+        </Text>
+        <Button style={buttonStyle} href={inviteUrl}>
+          Accept Invitation
+        </Button>
+        <Text style={bodyTextStyle}>Or copy and paste this URL into your browser:</Text>
+        <Link href={inviteUrl} style={linkStyle}>
+          {inviteUrl}
+        </Link>
+        <Text style={expiryStyle}>This invitation expires in 7 days.</Text>
+      </Section>
+    </BaseLayout>
   )
 }
 
-const main = { backgroundColor: '#f9fafb', fontFamily: 'system-ui, sans-serif' }
-const container = { margin: '0 auto', padding: '40px 20px', maxWidth: '560px' }
-const h1 = { color: '#1f2937', fontSize: '24px', fontWeight: '600', marginBottom: '24px' }
-const text = { color: '#1f2937', fontSize: '16px', lineHeight: '24px', marginBottom: '16px' }
-const buttonContainer = { marginBottom: '24px' }
-const button = {
-  backgroundColor: '#2563eb',
-  borderRadius: '6px',
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '8px',
+  border: '1px solid #e4e4e7',
+  padding: '32px 24px',
+  marginBottom: '24px',
+}
+
+const headingStyle = {
+  fontSize: '20px',
+  fontWeight: '600',
+  color: '#18181b',
+  margin: '0 0 8px',
+}
+
+const bodyTextStyle = {
+  color: '#3f3f46',
+  fontSize: '14px',
+  lineHeight: '22px',
+  margin: '0 0 16px',
+}
+
+const buttonStyle = {
+  backgroundColor: '#0891b2',
   color: '#ffffff',
-  fontSize: '16px',
+  borderRadius: '6px',
+  padding: '12px 24px',
+  fontSize: '14px',
   fontWeight: '600',
   textDecoration: 'none',
-  padding: '12px 24px',
   display: 'inline-block',
 }
-const link = { color: '#2563eb', fontSize: '14px', wordBreak: 'break-all' as const }
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' }
-const footer = { color: '#6b7280', fontSize: '14px' }
+
+const linkStyle = {
+  color: '#0891b2',
+  fontSize: '14px',
+  wordBreak: 'break-all' as const,
+}
+
+const expiryStyle = {
+  color: '#71717a',
+  fontSize: '12px',
+  margin: '16px 0 0',
+}

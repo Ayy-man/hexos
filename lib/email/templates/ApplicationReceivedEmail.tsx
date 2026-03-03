@@ -1,55 +1,49 @@
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Text,
-  Heading,
-  Hr,
-  Preview,
-} from '@react-email/components'
+import { Section, Text } from '@react-email/components'
+import { BaseLayout } from './BaseLayout'
 
 interface ApplicationReceivedEmailProps {
   name: string
 }
 
-export function ApplicationReceivedEmail({
-  name,
-}: ApplicationReceivedEmailProps) {
+export function ApplicationReceivedEmail({ name }: ApplicationReceivedEmailProps) {
   const previewText = 'We received your hexOS developer application'
 
   return (
-    <Html>
-      <Head />
-      <Preview>{previewText}</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          <Heading style={h1}>Application Received</Heading>
-          <Text style={text}>
-            Hi {name},
-          </Text>
-          <Text style={text}>
-            Thank you for applying to join hexOS as a developer. We've received your application and our team will review it shortly.
-          </Text>
-          <Text style={text}>
-            We typically review applications within a few business days. You'll receive an email from us either way, whether we're able to move forward or not.
-          </Text>
-          <Text style={text}>
-            In the meantime, feel free to reach out if you have any questions.
-          </Text>
-          <Hr style={hr} />
-          <Text style={footer}>
-            This is an automated confirmation. No action is required on your part.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+    <BaseLayout preview={previewText}>
+      <Section style={cardStyle}>
+        <Text style={headingStyle}>Application Received</Text>
+        <Text style={bodyTextStyle}>Hi {name},</Text>
+        <Text style={bodyTextStyle}>
+          Thank you for applying to join hexOS as a developer. We&apos;ve received your application
+          and our team will review it shortly.
+        </Text>
+        <Text style={bodyTextStyle}>
+          We typically review applications within a few business days. You&apos;ll receive an email
+          from us either way, whether we&apos;re able to move forward or not.
+        </Text>
+      </Section>
+    </BaseLayout>
   )
 }
 
-const main = { backgroundColor: '#f9fafb', fontFamily: 'system-ui, sans-serif' }
-const container = { margin: '0 auto', padding: '40px 20px', maxWidth: '560px' }
-const h1 = { color: '#1f2937', fontSize: '24px', fontWeight: '600', marginBottom: '24px' }
-const text = { color: '#1f2937', fontSize: '16px', lineHeight: '24px', marginBottom: '16px' }
-const hr = { borderColor: '#e5e7eb', margin: '24px 0' }
-const footer = { color: '#6b7280', fontSize: '14px' }
+const cardStyle = {
+  backgroundColor: '#ffffff',
+  borderRadius: '8px',
+  border: '1px solid #e4e4e7',
+  padding: '32px 24px',
+  marginBottom: '24px',
+}
+
+const headingStyle = {
+  fontSize: '20px',
+  fontWeight: '600',
+  color: '#18181b',
+  margin: '0 0 8px',
+}
+
+const bodyTextStyle = {
+  color: '#3f3f46',
+  fontSize: '14px',
+  lineHeight: '22px',
+  margin: '0 0 16px',
+}
