@@ -50,9 +50,10 @@ interface ConversationItemProps {
   conversation: Conversation
   isSelected: boolean
   onClick: () => void
+  currentUserId?: string
 }
 
-export const ConversationItem = memo(function ConversationItem({ conversation, isSelected, onClick }: ConversationItemProps) {
+export const ConversationItem = memo(function ConversationItem({ conversation, isSelected, onClick, currentUserId }: ConversationItemProps) {
   const lastMessageTime = conversation.last_message?.created_at
     ? formatDistanceToNow(new Date(conversation.last_message.created_at), { addSuffix: true })
     : null
@@ -63,16 +64,16 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
 
   const senderName = conversation.last_message?.sender?.name || null
 
+  // For direct messages, find the OTHER person
+  const otherParticipant = conversation.type === 'direct' && conversation.participants
+    ? conversation.participants.find(p => p.user_id !== currentUserId)?.user
+    : null
+
   // Get display name based on conversation type
   const getDisplayName = () => {
     if (conversation.type === 'direct') {
-      // For DMs, show participant names or title
+      if (otherParticipant?.name) return otherParticipant.name
       if (conversation.title) return conversation.title
-      if (conversation.participants && conversation.participants.length > 0) {
-        return conversation.participants
-          .map((p) => p.user?.name || 'Unknown')
-          .join(', ')
-      }
       return 'Direct Message'
     }
 
@@ -115,13 +116,23 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
       )}
     >
       <div className="flex items-start gap-3">
-        {/* Type icon badge */}
-        <div className={cn(
-          'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5',
-          typeConfig.bgColor
-        )}>
-          <TypeIcon className={cn('h-4 w-4', typeConfig.color)} />
-        </div>
+        {/* Avatar for DMs, type icon for others */}
+        {conversation.type === 'direct' && otherParticipant ? (
+          otherParticipant.avatar_url ? (
+            <img src={otherParticipant.avatar_url} alt="" className="shrink-0 w-8 h-8 rounded-full object-cover mt-0.5" />
+          ) : (
+            <div className="shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center mt-0.5 text-xs font-medium">
+              {otherParticipant.name?.charAt(0)?.toUpperCase() || '?'}
+            </div>
+          )
+        ) : (
+          <div className={cn(
+            'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5',
+            typeConfig.bgColor
+          )}>
+            <TypeIcon className={cn('h-4 w-4', typeConfig.color)} />
+          </div>
+        )}
 
         <div className="min-w-0 flex-1">
           {/* Display name */}

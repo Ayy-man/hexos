@@ -284,6 +284,7 @@ export function ConversationsView({
             conversations={getCurrentConversations()}
             selectedId={null}
             onSelect={handleSelectConversation}
+            currentUserId={currentUserId}
             className="flex-1"
           />
         </div>
@@ -304,6 +305,7 @@ export function ConversationsView({
               conversations={getCurrentConversations()}
               selectedId={selectedConversation?.id || null}
               onSelect={handleSelectConversation}
+              currentUserId={currentUserId}
               className="flex-1 border-r-0"
             />
           </div>

@@ -14,6 +14,7 @@ interface ConversationListProps {
   conversations: Conversation[]
   selectedId: string | null
   onSelect: (conversation: Conversation) => void
+  currentUserId?: string
   className?: string
 }
 
@@ -21,6 +22,7 @@ export function ConversationList({
   conversations,
   selectedId,
   onSelect,
+  currentUserId,
   className,
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -117,6 +119,7 @@ export function ConversationList({
               conversation={conversation}
               isSelected={selectedId === conversation.id}
               onClick={() => onSelect(conversation)}
+              currentUserId={currentUserId}
             />
           ))
         )}

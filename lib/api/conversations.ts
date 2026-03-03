@@ -130,7 +130,7 @@ export async function getDirectConversations(): Promise<Conversation[]> {
       *,
       participants:direct_conversation_participants(
         *,
-        user:profiles!user_id(id, name, email)
+        user:profiles!user_id(id, name, email, avatar_url)
       )
     `)
     .in('id', conversationIds)
