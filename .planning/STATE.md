@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 20 Plan 05 complete — deliverables sheet with sign-off flow and requirements sheet both wired into bento cards
-Last activity: 2026-03-03 - Completed Phase 20-05: DeliverablesSheet, RequirementsSheet, wired into DeliverablesBentoCard and RequirementsBentoCard via sheetContent prop
+Status: Phase 22 Plan 02 complete — multi-select UI layer with ItemMultiSelect combobox and CaseStudyPreviewSidebar wired into A1, B2, A3 form steps
+Last activity: 2026-03-03 - Completed Phase 22-02: ItemMultiSelect grouped combobox with bp:/cs: prefixing, CaseStudyPreviewSidebar, updated Zod schemas (selections replaces blueprint_id in A1/B2), IntakeForm passes caseStudies to all three step components
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 20-onboarding-stepper-form/20-05-PLAN.md
-Resume file: .planning/phases/20-onboarding-stepper-form/20-05-SUMMARY.md
+Stopped at: Completed 22-inquiry-multi-select-blueprints-case-studies/22-02-PLAN.md
+Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22-02-SUMMARY.md
 
 ## Decisions
 
@@ -69,6 +69,9 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-05-SUMMARY.md
 - [Phase 20-03]: BentoCard.onBeforeClose returns Promise<boolean> — parent stores resolve in state, AlertDialog action calls resolve() for async close interception without race conditions
 - [Phase 22-01]: blueprint_id kept on CreateInquiryData for backwards compat — set from first blueprint in selections by createInquiry()
 - [Phase 22-01]: Migration for inquiry_selections requires manual apply via Supabase dashboard (project not linked locally)
+- [Phase 22-02]: ComboboxChip from @base-ui/react has no value prop — chips are presentational, managed by Combobox root context
+- [Phase 22-02]: getCaseStudies() called with no options (published only) — DFY partners only see live case studies in multi-select
+- [Phase 22-02]: selected_tier_blueprint_id tracks which blueprint the current tier belongs to — cleared when that blueprint is deselected
 - [Phase 20-05]: DeliverablesSheet receives full project prop (not just deliverables) — needed for sign-off status derived from project.status and project.signed_off_at
 - [Phase 20-05]: sheetContent prop used on BentoCard — BentoCard already owns the dialog lifecycle via useOnboardingSheet
 
@@ -88,4 +91,4 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-05-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 20-05 complete: DeliverablesSheet with sign-off flow + RequirementsSheet with design tokens, both wired into bento cards via sheetContent prop*
+*Updated 2026-03-03 — Phase 22-02 complete: ItemMultiSelect grouped combobox + CaseStudyPreviewSidebar + updated Zod schemas (selections array) + updated A1/B2/A3 form steps with multi-select and dual sidebar*
