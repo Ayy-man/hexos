@@ -11,6 +11,7 @@ import { MessageSquare, FolderKanban, FileText, Inbox, Plus, ArrowLeft } from 'l
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { NewMessageDialog } from '@/features/conversations/components/NewMessageDialog'
 
 interface Participant {
   id: string
@@ -41,7 +42,30 @@ export function ConversationsView({
   const [messages, setMessages] = useState<Message[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+  const [newMessageOpen, setNewMessageOpen] = useState(false)
   const isMobile = useIsMobile()
+
+  // Handle new conversation started from dialog
+  const handleConversationStarted = async (conversationId: string) => {
+    // Switch to inbox tab and load the new conversation
+    setActiveTab('inbox')
+    const supabase = createClient()
+    const { data: conv } = await supabase
+      .from('conversations')
+      .select(`
+        *,
+        participants:conversation_participants(
+          user_id,
+          user:profiles!user_id(id, name, email)
+        )
+      `)
+      .eq('id', conversationId)
+      .single()
+
+    if (conv) {
+      setSelectedConversation(conv as Conversation)
+    }
+  }
 
   // Auto-collapse sidebar for conversations view (more space for chat)
   const { open, setOpen } = useSidebar()
@@ -252,7 +276,7 @@ export function ConversationsView({
         <div className="flex-1 flex flex-col min-h-0">
           {activeTab === 'inbox' && (
             <div className="p-3 border-b">
-              <Button variant="outline" size="sm" className="w-full gap-2">
+              <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => setNewMessageOpen(true)}>
                 <Plus className="h-4 w-4" />
                 New Message
               </Button>
@@ -272,7 +296,7 @@ export function ConversationsView({
           <div className="w-80 shrink-0 border-r flex flex-col">
             {activeTab === 'inbox' && (
               <div className="p-3 border-b">
-                <Button variant="outline" size="sm" className="w-full gap-2">
+                <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => setNewMessageOpen(true)}>
                   <Plus className="h-4 w-4" />
                   New Message
                 </Button>
@@ -322,6 +346,8 @@ export function ConversationsView({
           </div>
         </div>
       )}
+
+      <NewMessageDialog open={newMessageOpen} onOpenChange={setNewMessageOpen} onConversationStarted={handleConversationStarted} />
     </div>
   )
 }
