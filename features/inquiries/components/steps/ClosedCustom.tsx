@@ -5,13 +5,21 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Video } from 'lucide-react'
+import { ItemMultiSelect } from '../ItemMultiSelect'
+import type { BlueprintSummary } from '@/lib/api/blueprints'
+import type { CaseStudy } from '@/lib/api/case-studies'
+import type { SelectionItem } from '@/features/inquiries/types'
 
 interface ClosedCustomProps {
   isVariation?: boolean
+  blueprints?: BlueprintSummary[]
+  caseStudies?: CaseStudy[]
 }
 
-export function ClosedCustom({ isVariation = false }: ClosedCustomProps) {
-  const { register } = useFormContext()
+export function ClosedCustom({ isVariation = false, blueprints, caseStudies }: ClosedCustomProps) {
+  const { register, watch, setValue } = useFormContext()
+
+  const selections: SelectionItem[] = watch('selections') || []
 
   return (
     <div className="space-y-6">
@@ -46,6 +54,18 @@ export function ClosedCustom({ isVariation = false }: ClosedCustomProps) {
             Optional: Add your Fathom, Fireflies, or other meeting recording link
           </p>
         </div>
+
+        {isVariation && blueprints && caseStudies && (
+          <div className="space-y-2">
+            <Label>Which Blueprint(s) / Case Study(ies) is this regarding? *</Label>
+            <ItemMultiSelect
+              blueprints={blueprints}
+              caseStudies={caseStudies}
+              value={selections}
+              onChange={(items) => setValue('selections', items)}
+            />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="additional_notes">Additional Notes *</Label>

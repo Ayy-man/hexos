@@ -75,7 +75,7 @@ export function ItemMultiSelect({
     >
       <ComboboxChips>
         {value.map((item) => (
-          <ComboboxChip key={item.type + ':' + item.id} value={item.type === 'blueprint' ? 'bp:' + item.id : 'cs:' + item.id}>
+          <ComboboxChip key={item.type + ':' + item.id}>
             {item.type === 'blueprint' ? (
               <BookOpen className="h-3 w-3 mr-1" />
             ) : (
