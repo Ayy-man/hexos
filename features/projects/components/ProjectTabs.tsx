@@ -302,6 +302,7 @@ export function ProjectTabs({
             userRole={userRole}
             isAdmin={isAdmin}
             isDfy={isDfy}
+            isPostOnboarding={showQuestionsTab}
           />
         </TabsContent>
       )}

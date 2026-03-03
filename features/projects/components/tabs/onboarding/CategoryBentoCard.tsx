@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useCallback } from 'react'
-import { CheckCircle2, Clock, Minus, MoreVertical } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock, Minus, MoreVertical } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,8 @@ interface CategoryBentoCardProps {
   isAdmin: boolean
   isDfy: boolean
   isPreviewMode?: boolean
+  /** When true, this card was flagged by the server as having incomplete required fields. */
+  flagged?: boolean
   className?: string
 }
 
@@ -85,6 +87,7 @@ export function CategoryBentoCard({
   isAdmin,
   isDfy,
   isPreviewMode = false,
+  flagged = false,
   className,
 }: CategoryBentoCardProps) {
   const isComplete = progress.total > 0 && progress.completed === progress.total
@@ -200,7 +203,7 @@ export function CategoryBentoCard({
       <BentoCard
         slug={slug}
         isComplete={isComplete}
-        hasRequiredIncomplete={hasRequiredIncomplete}
+        hasRequiredIncomplete={hasRequiredIncomplete || flagged}
         onBeforeClose={handleBeforeClose}
         className={className}
         sheetContent={
@@ -214,10 +217,19 @@ export function CategoryBentoCard({
             isAdmin={isAdmin}
             isDfy={isDfy}
             isPreviewMode={isPreviewMode}
+            flagged={flagged}
           />
         }
       >
         <div className="space-y-3">
+          {/* Flagged warning: server validation found incomplete required items */}
+          {flagged && (
+            <div className="flex items-center gap-1.5 text-xs text-[--signal-warn]">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span>Incomplete required items</span>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-start justify-between gap-2">
             {isAdmin && isRenaming ? (

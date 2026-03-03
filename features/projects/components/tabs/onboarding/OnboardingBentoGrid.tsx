@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState, useTransition, useRef } from 'react'
+import { CheckCircle2, Info } from 'lucide-react'
 import { useOnboardingProgress } from './hooks/use-onboarding-progress'
 import { OnboardingProgressSummary } from './OnboardingProgressSummary'
 import { CategoryBentoCard } from './CategoryBentoCard'
@@ -11,7 +12,7 @@ import { Sortable, SortableItem } from '@/components/ui/sortable'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { addCategoryAction, reorderCategoriesAction } from '@/features/projects/actions/onboardingFormActions'
+import { addCategoryAction, reorderCategoriesAction, markOnboardingCompleteAction } from '@/features/projects/actions/onboardingFormActions'
 import type { ProjectWithRelations } from '@/lib/api/projects'
 import type { OnboardingCategory } from '@/lib/api/onboarding-categories'
 import type { OnboardingQuestion } from '@/lib/api/onboarding-questions'
@@ -30,6 +31,11 @@ interface OnboardingBentoGridProps {
   userRole: UserRole
   isAdmin: boolean
   isDfy: boolean
+  /**
+   * True when project has moved past onboarding phase.
+   * Hides deliverables/requirements cards and shows the Q&A transition banner.
+   */
+  isPostOnboarding?: boolean
 }
 
 function OnboardingGridSkeleton() {
@@ -65,6 +71,7 @@ function OnboardingBentoGridInner({
   userRole,
   isAdmin,
   isDfy,
+  isPostOnboarding = false,
 }: OnboardingBentoGridProps) {
   const [showOverflow, setShowOverflow] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false)
@@ -76,6 +83,19 @@ function OnboardingBentoGridInner({
   const [isPending, startTransition] = useTransition()
   const addInputRef = useRef<HTMLInputElement>(null)
 
+  // Completion flow state
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
+  const [flaggedCategories, setFlaggedCategories] = useState<string[]>([])
+  // Track whether mark-complete succeeded (shows success banner)
+  const [completionSuccess, setCompletionSuccess] = useState(false)
+
+  // Post-onboarding transition banner dismissal (localStorage)
+  const bannerKey = `onboarding-banner-dismissed-${project.id}`
+  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem(bannerKey) === 'true'
+  })
+
   const progress = useOnboardingProgress(
     sortedCategories,
     questions,
@@ -83,6 +103,40 @@ function OnboardingBentoGridInner({
     requirements,
     project.deliverables || []
   )
+
+  // All required categories answered = every category has requiredRemaining === 0
+  // AND no absolute-blocker requirements are unapproved
+  const allRequiredAnswered =
+    progress.byCategory.every((c) => c.requiredRemaining === 0) &&
+    requirements.filter((r) => r.blocker_type === 'absolute' && r.status !== 'approved').length === 0
+
+  const handleMarkComplete = async () => {
+    setIsMarkingComplete(true)
+    setFlaggedCategories([])
+    try {
+      const result = await markOnboardingCompleteAction(project.id)
+      if (result.success) {
+        setCompletionSuccess(true)
+        toast.success('Onboarding marked as complete!')
+      } else if (result.error === 'incomplete' && result.incompleteCategories) {
+        setFlaggedCategories(result.incompleteCategories)
+        toast.error('Some required items are incomplete. Please review the flagged sections.')
+      } else {
+        toast.error(result.error || 'Failed to complete onboarding')
+      }
+    } catch {
+      toast.error('Failed to complete onboarding')
+    } finally {
+      setIsMarkingComplete(false)
+    }
+  }
+
+  const handleDismissBanner = () => {
+    setIsBannerDismissed(true)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(bannerKey, 'true')
+    }
+  }
 
   // Sort for display: incomplete first, then by position (for non-admin)
   // For admin we use sortedCategories directly (maintains drag-reorder state)
@@ -176,12 +230,37 @@ function OnboardingBentoGridInner({
       isAdmin={isAdmin}
       isDfy={isDfy}
       isPreviewMode={isPreviewMode}
+      flagged={flaggedCategories.includes(cat.id)}
       className={className}
     />
   )
 
   return (
     <div className="space-y-6">
+      {/* Post-onboarding: phase transition banner (dismissible, shown once per project) */}
+      {isPostOnboarding && !isBannerDismissed && (
+        <div className="flex items-start gap-3 bg-muted/50 border rounded-lg px-4 py-3 text-sm">
+          <Info className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground" />
+          <div className="flex-1 text-muted-foreground">
+            Onboarding complete — this tab now serves as your ongoing Q&amp;A channel.
+          </div>
+          <button
+            onClick={handleDismissBanner}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Post-completion success banner (after DFY clicks Mark Complete) */}
+      {completionSuccess && (
+        <div className="flex items-center gap-2 bg-[--signal-good]/10 border border-[--signal-good]/30 rounded-lg px-4 py-3 text-sm text-[--signal-good]">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>Onboarding complete! You can still edit your responses below.</span>
+        </div>
+      )}
+
       {/* Top row: progress + admin preview toggle */}
       <div className="flex items-center justify-between gap-4">
         <OnboardingProgressSummary
@@ -214,20 +293,24 @@ function OnboardingBentoGridInner({
             </SortableItem>
           )}
 
-          {/* Fixed cards on the right, stacked (not sortable) */}
-          <DeliverablesBentoCard
-            project={project}
-            progress={progress.deliverablesProgress}
-            userRole={userRole}
-            isAdmin={isAdmin}
-            isDfy={isDfy}
-          />
-          <RequirementsBentoCard
-            requirements={requirements}
-            progress={progress.requirementsProgress}
-            projectId={project.id}
-            isAdmin={isAdmin}
-          />
+          {/* Fixed cards on the right — hidden post-onboarding */}
+          {!isPostOnboarding && (
+            <>
+              <DeliverablesBentoCard
+                project={project}
+                progress={progress.deliverablesProgress}
+                userRole={userRole}
+                isAdmin={isAdmin}
+                isDfy={isDfy}
+              />
+              <RequirementsBentoCard
+                requirements={requirements}
+                progress={progress.requirementsProgress}
+                projectId={project.id}
+                isAdmin={isAdmin}
+              />
+            </>
+          )}
 
           {/* Remaining category cards */}
           {visibleCategories.slice(1).map((cat: OnboardingCategory) => (
@@ -245,19 +328,24 @@ function OnboardingBentoGridInner({
             </div>
           )}
 
-          <DeliverablesBentoCard
-            project={project}
-            progress={progress.deliverablesProgress}
-            userRole={userRole}
-            isAdmin={isAdmin}
-            isDfy={isDfy}
-          />
-          <RequirementsBentoCard
-            requirements={requirements}
-            progress={progress.requirementsProgress}
-            projectId={project.id}
-            isAdmin={isAdmin}
-          />
+          {/* Fixed cards — hidden post-onboarding */}
+          {!isPostOnboarding && (
+            <>
+              <DeliverablesBentoCard
+                project={project}
+                progress={progress.deliverablesProgress}
+                userRole={userRole}
+                isAdmin={isAdmin}
+                isDfy={isDfy}
+              />
+              <RequirementsBentoCard
+                requirements={requirements}
+                progress={progress.requirementsProgress}
+                projectId={project.id}
+                isAdmin={isAdmin}
+              />
+            </>
+          )}
 
           {visibleCategories.slice(1).map((cat: OnboardingCategory) => renderCategoryCard(cat))}
         </div>
@@ -279,6 +367,25 @@ function OnboardingBentoGridInner({
               ? 'Show less'
               : `Show ${overflowCategories.length} more ${overflowCategories.length === 1 ? 'section' : 'sections'}`}
           </button>
+        </div>
+      )}
+
+      {/* Mark Onboarding Complete — DFY only, during onboarding phase, not yet completed */}
+      {isDfy && !isPostOnboarding && !completionSuccess && (
+        <div className="border-t pt-6">
+          {allRequiredAnswered ? (
+            <Button
+              onClick={handleMarkComplete}
+              disabled={isMarkingComplete}
+              className="w-full md:w-auto"
+            >
+              {isMarkingComplete ? 'Completing...' : 'Mark Onboarding Complete'}
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Complete all required items to finish onboarding
+            </p>
+          )}
         </div>
       )}
 

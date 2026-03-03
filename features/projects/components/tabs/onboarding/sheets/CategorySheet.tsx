@@ -1,6 +1,7 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
   ResponsiveDialogHeader,
@@ -25,6 +26,11 @@ interface CategorySheetProps {
   isDfy: boolean
   /** When true (admin only), renders read-only DFY preview with banner */
   isPreviewMode?: boolean
+  /**
+   * When true, this category was flagged by the server as having incomplete required fields.
+   * On mount, auto-scrolls to the first unanswered required question.
+   */
+  flagged?: boolean
   onSectionDeleted?: () => void
   formRef?: React.Ref<CategoryFormHandle>
 }
@@ -68,6 +74,7 @@ export function CategorySheet({
   isAdmin,
   isDfy,
   isPreviewMode = false,
+  flagged = false,
   onSectionDeleted,
   formRef,
 }: CategorySheetProps) {
@@ -94,6 +101,29 @@ export function CategorySheet({
   const isAdminBuildMode = isAdmin && !isPreviewMode
   const isReadOnly = isAdmin && !isPreviewMode ? false : !isDfy
 
+  // When flagged (server said this category has incomplete required fields),
+  // auto-scroll to the first unanswered required question on mount.
+  useEffect(() => {
+    if (!flagged) return
+    // Find the first required question in this category without an answer
+    const answerMap = new Map(answers.map((a) => [a.question_id, a]))
+    const firstIncomplete = categoryQuestions.find((q) => {
+      if (!q.is_required) return false
+      const answer = answerMap.get(q.id)
+      return !answer || answer.value === null || answer.value === undefined || answer.value === ''
+    })
+    if (firstIncomplete) {
+      // Small delay to allow sheet animation to settle before scrolling
+      const timer = setTimeout(() => {
+        document.getElementById(`question-${firstIncomplete.id}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        })
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [flagged, categoryQuestions, answers])
+
   return (
     <>
       <ResponsiveDialogHeader>
@@ -104,6 +134,14 @@ export function CategorySheet({
       </ResponsiveDialogHeader>
 
       <div className="space-y-8 py-4">
+        {/* Flagged: incomplete required items banner */}
+        {flagged && (
+          <div className="flex items-center gap-2 bg-[--signal-warn]/10 border border-[--signal-warn]/30 rounded-md px-3 py-2 text-sm text-[--signal-warn]">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <span>This section has incomplete required items. Please fill them in before marking onboarding complete.</span>
+          </div>
+        )}
+
         {/* Preview mode banner */}
         {isAdmin && isPreviewMode && (
           <div className="bg-muted/50 border border-dashed rounded-md px-3 py-2 text-sm text-muted-foreground">
