@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 20-onboarding-stepper-form/20-01-PLAN.md
-Resume file: .planning/phases/20-onboarding-stepper-form/20-01-SUMMARY.md
+Stopped at: Completed quick-4 (add image_url to blueprints)
+Resume file: .planning/quick/4-add-image-url-field-to-blueprints/4-SUMMARY.md
 
 ## Decisions
 
@@ -57,6 +57,7 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-01-SUMMARY.md
 - [Phase 20-01]: saveAnswerAction omits revalidatePath to prevent re-renders on auto-save
 - [Phase 20-01]: upsertOnboardingAnswer uses onConflict question_id,project_id for idempotent saves via UNIQUE constraint
 - [Phase 20-01]: markOnboardingCompleteAction queries server state directly — never trusts client completion status
+- [Phase quick-4]: Replicated exact case studies image pattern for blueprints — same storage bucket, same hook, same UI layout
 
 ## Accumulated Context
 
@@ -70,7 +71,8 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-01-SUMMARY.md
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 3 | Auto-sync inquiry data to project during conversion | 2026-03-02 | 5608315 | [3-auto-sync-inquiry-data-to-project-during](./quick/3-auto-sync-inquiry-data-to-project-during/) |
+| 4 | Add image_url field to blueprints (DB, API, form UI, card display) | 2026-03-03 | 66e69ae | [4-add-image-url-field-to-blueprints](./quick/4-add-image-url-field-to-blueprints/) |
 
 ---
 
-*Updated 2026-03-03 — Phase 20-01 complete: onboarding form data layer (tables, API, server actions)*
+*Updated 2026-03-03 — Quick task 4 complete: blueprints image_url (migration, upload, form UI, card display)*
