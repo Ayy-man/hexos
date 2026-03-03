@@ -87,7 +87,7 @@
     - [ ] 21-02-PLAN.md — Invitation expiry fix + signout fix on invite page
     - [ ] 21-03-PLAN.md — Admin DFY toggle (new action + dialog mode switch)
 
-- [ ] Phase 22: Modern Auth Methods
+- [x] Phase 22: Modern Auth Methods (completed 2026-03-03)
   - Google OAuth via Supabase provider (login page button + invite page support)
   - Magic links as optional login method (signInWithOtp + confirmation UI)
   - Password reset flow (forgot-password page + reset-password page + email template)

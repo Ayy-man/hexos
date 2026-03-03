@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T15:05:30.623Z"
+last_updated: "2026-03-03T15:17:56.064Z"
 progress:
   total_phases: 22
-  completed_phases: 18
+  completed_phases: 19
   total_plans: 55
   completed_plans: 55
 ---
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 22 complete — 22-01 and 22-02 both complete
-Last activity: 2026-03-03 - Phase 22-02 executed — login page Google OAuth + magic link + forgot password, forgot-password page, reset-password client component, PasswordResetEmail template
+Status: Phase 22 complete — 22-01, 22-02, and 22-03 all complete
+Last activity: 2026-03-03 - Phase 22-03 executed — invite page updated with Google OAuth + magic link options in both signup and login modes
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 22-02-PLAN.md — login page Google OAuth + magic link + forgot password, forgot-password page, reset-password client component, PasswordResetEmail template
-Resume file: .planning/phases/22-modern-auth-methods/22-02-SUMMARY.md
+Stopped at: Completed 22-03-PLAN.md — invite page Google OAuth + magic link options (both signup and login modes)
+Resume file: .planning/phases/22-modern-auth-methods/22-03-SUMMARY.md
 
 ## Decisions
 
@@ -63,6 +63,8 @@ Resume file: .planning/phases/22-modern-auth-methods/22-02-SUMMARY.md
 - [Phase 22-modern-auth-methods]: Profile role check in callback rejects new OAuth users without invitations — enforces invite-only access
 - [Phase 22-modern-auth-methods]: Reset-password is a client component — hash fragment for PASSWORD_RECOVERY event is inaccessible to SSR
 - [Phase 22-modern-auth-methods]: Browser client calls supabase.auth.updateUser directly (not server action) — browser client has the recovery session from hash fragment
+- [Phase 22-modern-auth-methods]: Invite page magic link success uses ?success=magic-link (not ?error=) — success renders with cyan styling, not red error styling
+- [Phase 22-modern-auth-methods]: handleMagicLink on invite page uses invitation.email via closure (not user-editable field) — prevents email mismatch pitfall
 
 ## Accumulated Context
 
@@ -77,4 +79,4 @@ Resume file: .planning/phases/22-modern-auth-methods/22-02-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 22-02 complete — login page Google OAuth + magic link + forgot password, forgot-password page, reset-password client component, PasswordResetEmail template*
+*Updated 2026-03-03 — Phase 22-03 complete — invite page Google OAuth + magic link in both signup and login modes*
