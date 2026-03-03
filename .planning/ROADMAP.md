@@ -60,7 +60,7 @@
     - [ ] 19-02-PLAN.md — PinnableHoverCard component + upgrade existing 4 tooltips
     - [ ] 19-03-PLAN.md — 4 new hover cards (Meetings, Blueprints, Case Studies, Blockers) + visual verification
 
-- [ ] Phase 20: Onboarding Bento Grid + Expandable Sheets
+- [x] Phase 20: Onboarding Bento Grid + Expandable Sheets (completed 2026-03-03)
   - Replace flat onboarding tab with a bento grid dashboard of minimal preview cards
   - Each card opens an expandable sheet (~90% viewport) via ResponsiveDialog with URL state (?section=)
   - Admin builds onboarding forms: categories with mixed question types (text, textarea, select, multi_select, boolean) and requirements

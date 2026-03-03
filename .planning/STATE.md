@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T00:40:20.860Z"
+last_updated: "2026-03-03T00:42:19.107Z"
 progress:
   total_phases: 21
-  completed_phases: 18
+  completed_phases: 19
   total_plans: 60
-  completed_plans: 58
+  completed_plans: 59
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 22 Plan 03 complete — data layer closed: createInquiry() writes junction rows to inquiry_selections, detail page shows all selections, fieldMappings updated. Awaiting human visual verification checkpoint.
-Last activity: 2026-03-03 - Completed Phase 22-03: createInquiry() junction insert + primaryBlueprintId derivation, fieldMappings A1/A3/B2 now use 'selections', inquiry detail page queries and renders inquiry_selections with blueprint/case-study joins
+Status: Phase 20 Plan 06 complete — onboarding stepper form feature fully shipped: completion flow, flagged card validation, post-onboarding state transitions, tab label change to "Questions". All 6 plans in Phase 20 complete. Phase 22-03 also complete (pending visual verification).
+Last activity: 2026-03-03 - Completed Phase 20-06: Mark Onboarding Complete button with server-side validation, flagged categories with auto-scroll, post-completion and post-onboarding banners, tab label transition to "Questions"
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 22-inquiry-multi-select-blueprints-case-studies/22-03-PLAN.md — checkpoint:human-verify pending
-Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22-03-SUMMARY.md
+Stopped at: Completed 20-onboarding-stepper-form/20-06-PLAN.md — all 6 plans in Phase 20 complete
+Resume file: .planning/phases/20-onboarding-stepper-form/20-06-SUMMARY.md
 
 ## Decisions
 
@@ -76,6 +76,9 @@ Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22
 - [Phase 20-05]: sheetContent prop used on BentoCard — BentoCard already owns the dialog lifecycle via useOnboardingSheet
 - [Phase 22]: unknown cast used for selectionsData to bypass Supabase join type discrepancy in inquiry detail page
 - [Phase 22]: createInquiry() junction insert is non-fatal — inquiry creation is never blocked by inquiry_selections errors
+- [Phase 20-06]: allRequiredAnswered checks both requiredRemaining===0 and no unapproved absolute blockers — ensures completeness on both axes
+- [Phase 20-06]: flagged prop threaded from OnboardingBentoGrid → CategoryBentoCard → CategorySheet to isolate scroll-to-first-incomplete logic
+- [Phase 20-06]: Transition banner uses localStorage key onboarding-banner-dismissed-{projectId} scoped per project
 
 ## Accumulated Context
 
@@ -93,4 +96,4 @@ Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22
 
 ---
 
-*Updated 2026-03-03 — Phase 22-03 complete (pending visual verification): createInquiry() junction insert + primaryBlueprintId derivation, fieldMappings updated for A1/A3/B2, inquiry detail page queries and renders inquiry_selections*
+*Updated 2026-03-03 — Phase 20-06 complete: onboarding completion flow, flagged card validation, post-onboarding state, tab label transition. All 6 plans in Phase 20 complete.*
