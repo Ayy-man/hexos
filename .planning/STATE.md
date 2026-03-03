@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T00:14:19Z"
+last_updated: "2026-03-03T00:00:39.219Z"
 progress:
-  total_phases: 20
+  total_phases: 21
   completed_phases: 17
   total_plans: 57
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 21 Plan 01 complete — data layer and leaf components built; Plan 02 next (BlockerSidebar + AdminBlockerQueue rebuild)
-Last activity: 2026-03-03 - Completed Phase 21-01: getAllBlockers API, getBlockerCommentsAction, BlockerCard, BlockerConversation
+Status: Phase 20 Plan 01 complete — onboarding form data layer built; Plan 02 next (stepper UI)
+Last activity: 2026-03-03 - Completed Phase 20-01: onboarding_categories/questions/answers tables, 13 API functions, 10 server actions
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 21-blocker-queue-redesign/21-01-PLAN.md
-Resume file: .planning/phases/21-blocker-queue-redesign/21-01-SUMMARY.md
+Stopped at: Completed 20-onboarding-stepper-form/20-01-PLAN.md
+Resume file: .planning/phases/20-onboarding-stepper-form/20-01-SUMMARY.md
 
 ## Decisions
 
@@ -54,6 +54,9 @@ Resume file: .planning/phases/21-blocker-queue-redesign/21-01-SUMMARY.md
 - [Phase quick-3]: Used || for date fields and ?? for price fields in inquiry-to-project sync to preserve explicit 0 values
 - [Phase 21-01]: getAllBlockers() returns all statuses including resolved/closed — placed after getAllActiveBlockers with full resolver/project joins
 - [Phase 21-01]: getBlockerCommentsAction() wraps getBlockerComments as thin server action — BlockerConversation uses it (not direct API) for client-side comment fetching
+- [Phase 20-01]: saveAnswerAction omits revalidatePath to prevent re-renders on auto-save
+- [Phase 20-01]: upsertOnboardingAnswer uses onConflict question_id,project_id for idempotent saves via UNIQUE constraint
+- [Phase 20-01]: markOnboardingCompleteAction queries server state directly — never trusts client completion status
 
 ## Accumulated Context
 
@@ -70,4 +73,4 @@ Resume file: .planning/phases/21-blocker-queue-redesign/21-01-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 21-01 complete: data layer and leaf components for blocker queue redesign*
+*Updated 2026-03-03 — Phase 20-01 complete: onboarding form data layer (tables, API, server actions)*
