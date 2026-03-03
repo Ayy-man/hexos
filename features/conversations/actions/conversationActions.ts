@@ -16,6 +16,44 @@ import type { Conversation, Message } from '@/lib/api/conversations.shared'
 import { uploadMessageAttachments, getAttachmentSignedUrl } from '@/lib/api/message-attachments'
 
 // ============================================
+// Start Direct Conversation
+// ============================================
+
+export async function startDirectConversationAction(
+  participantId: string
+): Promise<{ conversationId: string }> {
+  const { getOrCreateDirectConversation } = await import('@/lib/api/conversations')
+  const conversation = await getOrCreateDirectConversation([participantId])
+
+  revalidatePath('/conversations')
+
+  return { conversationId: conversation.id }
+}
+
+// ============================================
+// Get Users for New Message
+// ============================================
+
+export async function getMessageableUsersAction(): Promise<
+  { id: string; name: string; email: string; role: string }[]
+> {
+  const { createClient } = await import('@/lib/supabase/server')
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, email, role')
+    .neq('id', user.id)
+    .order('name', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+// ============================================
 // Send Message
 // ============================================
 
