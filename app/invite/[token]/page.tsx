@@ -160,6 +160,14 @@ export default async function InvitePage({
     redirect(acceptResult.redirect_to)
   }
 
+  // Server action to sign out and redirect to login mode for this invitation
+  async function signOutAndRedirect() {
+    'use server'
+    const supabase = await createClient()
+    await supabase.auth.signOut()
+    redirect(`/invite/${token}?mode=login`)
+  }
+
   // Server action for already logged-in user to accept
   async function handleAccept() {
     'use server'
@@ -233,17 +241,14 @@ export default async function InvitePage({
                   This invitation was sent to <strong>{invitation.email}</strong>, but you&apos;re signed in as <strong>{user.email}</strong>.
                 </p>
               </div>
-              <a
-                href={`/invite/${token}?mode=login`}
-                onClick={async () => {
-                  'use server'
-                  const supabase = await createClient()
-                  await supabase.auth.signOut()
-                }}
-                className="block w-full text-center rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
-              >
-                Sign in as {invitation.email}
-              </a>
+              <form action={signOutAndRedirect}>
+                <button
+                  type="submit"
+                  className="block w-full text-center rounded-md border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800"
+                >
+                  Sign in as {invitation.email}
+                </button>
+              </form>
             </div>
           )}
         </div>
