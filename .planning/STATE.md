@@ -83,6 +83,7 @@ Resume file: .planning/phases/23-onboarding-wizard/23-02-SUMMARY.md
   - Phase 21 added: Invite Pipeline Fix — email templates, expiry fix, signout fix, admin DFY toggle
   - Phase 22 added: Modern Auth Methods — Google OAuth, magic links, password reset
   - Phase 23 added: Onboarding Wizard — post-invite stepper, role-specific intro, dashboard redirect
+- Phase 24 added: Remove onboarding form, replace with doc and task
 
 ---
 

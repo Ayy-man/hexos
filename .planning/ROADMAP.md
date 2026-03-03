@@ -69,6 +69,23 @@
   - New tables: onboarding_categories, onboarding_questions, onboarding_answers
   - Uses Stepperize (headless stepper) + existing shadcn/react-hook-form/zod
 
+### Phase 24: Remove onboarding form, replace with doc and task
+
+**Goal:** Remove the entire onboarding form system (~20 files) and replace with a simple doc + task approach: auto-create an "Onboarding Questionnaire" document in project_documents on project initiation, add an onboarding_requirement linking to the doc, keep deliverable sign-off and requirements flows untouched.
+**Requirements**: TBD
+**Depends on:** None
+**Plans:** 0 plans
+
+- Delete ~20 onboarding form files (bento grid, category/question/answer components, hooks, actions, API)
+- Strip onboarding form data fetching from project page server component
+- Replace form tab content with deliverables + requirements cards only
+- Auto-create "Onboarding Questionnaire" doc in project_documents on project initiation
+- Add onboarding_requirement task linking to the doc
+- Keep existing deliverable sign-off and requirements flows untouched
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 24 to break down)
+
 ---
 
 ## v1.3 Auth & Invite System
