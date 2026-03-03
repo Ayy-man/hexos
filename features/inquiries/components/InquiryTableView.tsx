@@ -215,7 +215,10 @@ export function InquiryTableView({ inquiries, onStageChange }: InquiryTableViewP
                   {stageInquiries.map((inquiry) => (
                     <TableRow
                       key={inquiry.id}
-                      className="group cursor-grab active:cursor-grabbing"
+                      className={cn(
+                        'group cursor-grab active:cursor-grabbing',
+                        inquiry.submission_type === 'closed' && 'bg-amber-500/[0.03] border-l-2 border-l-amber-500/40'
+                      )}
                       draggable
                       onDragStart={(e) => handleDragStart(e, inquiry.id, stage)}
                       onDragEnd={handleDragEnd}

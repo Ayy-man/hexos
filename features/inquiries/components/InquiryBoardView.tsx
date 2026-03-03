@@ -216,7 +216,8 @@ function InquiryCard({
     <Card
       className={cn(
         'transition-all select-none group',
-        isDragging && 'shadow-lg ring-2 ring-primary'
+        isDragging && 'shadow-lg ring-2 ring-primary',
+        inquiry.submission_type === 'closed' && 'bg-amber-500/[0.03] border-l-2 border-l-amber-500/40'
       )}
     >
       <CardContent className="p-3 space-y-2">
