@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed quick-4 (add image_url to blueprints)
-Resume file: .planning/quick/4-add-image-url-field-to-blueprints/4-SUMMARY.md
+Stopped at: Completed 20-onboarding-stepper-form/20-02-PLAN.md
+Resume file: .planning/phases/20-onboarding-stepper-form/20-02-SUMMARY.md
 
 ## Decisions
 
@@ -79,4 +79,4 @@ Resume file: .planning/quick/4-add-image-url-field-to-blueprints/4-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Quick task 4 complete: blueprints image_url (migration, upload, form UI, card display)*
+*Updated 2026-03-03 — Phase 20-02 complete: onboarding bento grid UI (BentoCard, CategoryBentoCard, DeliverablesBentoCard, RequirementsBentoCard, hooks)*
