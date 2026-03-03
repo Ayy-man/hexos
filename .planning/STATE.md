@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 20 Plan 01 complete — onboarding form data layer built; Plan 02 next (stepper UI)
-Last activity: 2026-03-03 - Completed Phase 20-01: onboarding_categories/questions/answers tables, 13 API functions, 10 server actions
+Status: Phase 20 Plan 02 complete — onboarding bento grid UI built; Plan 03 next (category question sheets)
+Last activity: 2026-03-03 - Completed Phase 20-02: bento grid components, useOnboardingSheet/Progress hooks, data pipeline wired
 
 ## Project Reference
 
@@ -57,6 +57,10 @@ Resume file: .planning/quick/4-add-image-url-field-to-blueprints/4-SUMMARY.md
 - [Phase 20-01]: saveAnswerAction omits revalidatePath to prevent re-renders on auto-save
 - [Phase 20-01]: upsertOnboardingAnswer uses onConflict question_id,project_id for idempotent saves via UNIQUE constraint
 - [Phase 20-01]: markOnboardingCompleteAction queries server state directly — never trusts client completion status
+- [Phase 20-02]: BentoCard renders ResponsiveDialog inline — co-location keeps click handler and dialog state together
+- [Phase 20-02]: OnboardingBentoGrid wraps inner component in Suspense for useSearchParams (Next.js requirement)
+- [Phase 20-02]: showQuestionsTab uses same "onboarding" tab value with "Questions" label — avoids duplicate TabsContent
+- [Phase 20-02]: buildDeliverableTree placed in DeliverablesBentoCard module — only used there, can be lifted for Plans 03-04
 - [Phase quick-4]: Replicated exact case studies image pattern for blueprints — same storage bucket, same hook, same UI layout
 
 ## Accumulated Context
