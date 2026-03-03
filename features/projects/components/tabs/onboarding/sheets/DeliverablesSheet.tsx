@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle2, Circle, Lock } from 'lucide-react'
+import { CheckCircle2, Minus, Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { ProjectWithRelations } from '@/lib/api/projects'
@@ -62,9 +62,9 @@ function DeliverableTreeItem({
         {deliverable.status === 'done' ? (
           <CheckCircle2 className="h-5 w-5 text-[--signal-good] shrink-0 mt-0.5" />
         ) : deliverable.status === 'in_progress' ? (
-          <Circle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+          <Minus className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
         ) : (
-          <Circle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+          <Minus className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

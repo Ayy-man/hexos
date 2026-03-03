@@ -90,7 +90,7 @@ ALTER TABLE public.onboarding_answers ENABLE ROW LEVEL SECURITY;
 
 -- Admin/Internal have full access
 CREATE POLICY "onboarding_categories_admin_all" ON public.onboarding_categories
-  FOR ALL USING (auth.uid() IS NOT NULL AND get_user_role() IN ('admin', 'internal'));
+  FOR ALL USING (auth.uid() IS NOT NULL AND get_user_role() IN ('admin', 'internal', 'dev'));
 
 -- Project members can view categories
 CREATE POLICY "onboarding_categories_select_via_project" ON public.onboarding_categories
@@ -100,7 +100,7 @@ CREATE POLICY "onboarding_categories_select_via_project" ON public.onboarding_ca
 
 -- Admin/Internal have full access
 CREATE POLICY "onboarding_questions_admin_all" ON public.onboarding_questions
-  FOR ALL USING (auth.uid() IS NOT NULL AND get_user_role() IN ('admin', 'internal'));
+  FOR ALL USING (auth.uid() IS NOT NULL AND get_user_role() IN ('admin', 'internal', 'dev'));
 
 -- Project members can view questions
 CREATE POLICY "onboarding_questions_select_via_project" ON public.onboarding_questions
@@ -110,7 +110,7 @@ CREATE POLICY "onboarding_questions_select_via_project" ON public.onboarding_que
 
 -- Admin/Internal have full access
 CREATE POLICY "onboarding_answers_admin_all" ON public.onboarding_answers
-  FOR ALL USING (auth.uid() IS NOT NULL AND get_user_role() IN ('admin', 'internal'));
+  FOR ALL USING (auth.uid() IS NOT NULL AND get_user_role() IN ('admin', 'internal', 'dev'));
 
 -- Project members can view answers
 CREATE POLICY "onboarding_answers_select_via_project" ON public.onboarding_answers
