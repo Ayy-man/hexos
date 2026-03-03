@@ -74,9 +74,9 @@
 **Goal:** Remove the entire onboarding form system (~20 files) and replace with a simple doc + task approach: auto-create an "Onboarding Questionnaire" document in project_documents on project initiation, add an onboarding_requirement linking to the doc, keep deliverable sign-off and requirements flows untouched.
 **Requirements**: TBD
 **Depends on:** None
-**Plans:** 0 plans
+**Plans:** 2 plans
 
-- Delete ~20 onboarding form files (bento grid, category/question/answer components, hooks, actions, API)
+- Delete ~18 onboarding form files (bento grid, category/question/answer components, hooks, actions, API)
 - Strip onboarding form data fetching from project page server component
 - Replace form tab content with deliverables + requirements cards only
 - Auto-create "Onboarding Questionnaire" doc in project_documents on project initiation
@@ -84,7 +84,8 @@
 - Keep existing deliverable sign-off and requirements flows untouched
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 24 to break down)
+- [ ] 24-01-PLAN.md — Delete 18 onboarding form files + strip imports from 3 consumer files + simplify onboarding tab
+- [ ] 24-02-PLAN.md — Auto-create questionnaire document + linked requirement on project initiation
 
 ---
 
