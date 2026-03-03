@@ -39,11 +39,11 @@ export async function reportBlockerAction(params: {
     // Notify admins of new blocker (fire-and-forget)
     try {
       const [{ data: profile }, { data: project }] = await Promise.all([
-        user ? supabase.from('profiles').select('display_name').eq('id', user.id).single() : Promise.resolve({ data: null }),
-        supabase.from('projects').select('name').eq('id', params.projectId).single(),
+        user ? supabase.from('profiles').select('name').eq('id', user.id).single() : Promise.resolve({ data: null }),
+        supabase.from('projects').select('project_name').eq('id', params.projectId).single(),
       ])
-      const devName = profile?.display_name || 'A developer'
-      const projectName = project?.name || 'Unknown project'
+      const devName = profile?.name || 'A developer'
+      const projectName = project?.project_name || 'Unknown project'
       await notifyAdmins({
         type: 'blocker_raised',
         title: 'New Blocker Reported',

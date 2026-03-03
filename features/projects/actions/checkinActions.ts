@@ -45,11 +45,11 @@ export async function submitCheckinAction(
     // Notify admins of check-in submission (fire-and-forget)
     try {
       const [{ data: profile }, { data: project }] = await Promise.all([
-        supabase.from('profiles').select('display_name').eq('id', user.id).single(),
-        supabase.from('projects').select('name').eq('id', input.project_id).single(),
+        supabase.from('profiles').select('name').eq('id', user.id).single(),
+        supabase.from('projects').select('project_name').eq('id', input.project_id).single(),
       ])
-      const devName = profile?.display_name || 'A developer'
-      const projectName = project?.name || 'Unknown project'
+      const devName = profile?.name || 'A developer'
+      const projectName = project?.project_name || 'Unknown project'
       await notifyAdmins({
         type: 'check_in_submitted',
         title: 'Dev Check-in Submitted',
