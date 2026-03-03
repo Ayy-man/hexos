@@ -46,6 +46,11 @@ export default async function DashboardLayout({
     redirect('/login?error=' + encodeURIComponent('Profile not found'))
   }
 
+  // Redirect new users to onboarding wizard
+  if (!(profile as Profile).has_completed_onboarding) {
+    redirect('/onboarding')
+  }
+
   const navigation = getNavigation((profile as Profile).role)
 
   // Fetch notifications, active timer, and dev logging status for the header
