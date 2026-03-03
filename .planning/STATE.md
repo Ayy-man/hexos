@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T13:45:00.000Z"
+last_updated: "2026-03-03T14:51:40.913Z"
 progress:
   total_phases: 22
   completed_phases: 18
-  total_plans: 52
-  completed_plans: 52
+  total_plans: 55
+  completed_plans: 53
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 21 fully complete — all 3 plans done (email templates, expiry/signout fix, admin DFY toggle)
-Last activity: 2026-03-03 - Phase 21-01 retroactively executed — BaseLayout + 4 email templates rewritten with hexOS branding (cyan-600 buttons, zinc-100 body, card layout)
+Status: Phase 22 in progress — 22-01 complete (auth callback + server actions)
+Last activity: 2026-03-03 - Phase 22-01 executed — unified auth callback route + 4 server actions (Google OAuth, magic link, password reset, update password)
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 21-01-PLAN.md — all Phase 21 plans (01, 02, 03) now complete
-Resume file: .planning/phases/21-invite-pipeline-fix/21-01-SUMMARY.md
+Stopped at: Completed 22-01-PLAN.md — auth callback route + 4 server actions (Google OAuth, magic link, password reset, update password)
+Resume file: .planning/phases/22-modern-auth-methods/22-01-SUMMARY.md
 
 ## Decisions
 
@@ -57,6 +57,10 @@ Resume file: .planning/phases/21-invite-pipeline-fix/21-01-SUMMARY.md
 - Phase 21-03: Seat check in inviteDfyToExistingOrgAction runs before invitation creation to give clear user-facing error when agency is full
 - [Phase 21-invite-pipeline-fix]: BaseLayout is internal-only (not barrel-exported) — templates import directly from ./BaseLayout
 - [Phase 21-invite-pipeline-fix]: All email template buttons use #0891b2 (cyan-600), replacing old #2563eb blue
+- [Phase 22-modern-auth-methods]: Auth callback at app/auth/callback/route.ts (not in route group) — route groups include layout, callback needs redirect-only response
+- [Phase 22-modern-auth-methods]: Invite token passed as ?token= searchParam through OAuth callback — avoids Supabase PKCE state manipulation
+- [Phase 22-modern-auth-methods]: Failed invite acceptance still redirects to /dashboard — user is authenticated, graceful degradation preferred over error
+- [Phase 22-modern-auth-methods]: Profile role check in callback rejects new OAuth users without invitations — enforces invite-only access
 
 ## Accumulated Context
 
@@ -71,4 +75,4 @@ Resume file: .planning/phases/21-invite-pipeline-fix/21-01-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 21 (Invite Pipeline Fix) fully complete — all 3 plans executed*
+*Updated 2026-03-03 — Phase 22-01 complete — auth callback route + 4 server actions (signInWithGoogle, signInWithMagicLink, resetPassword, updatePassword)*
