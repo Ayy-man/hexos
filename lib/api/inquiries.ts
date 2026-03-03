@@ -23,6 +23,13 @@ export async function createInquiry(data: CreateInquiryData) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Derive primary blueprint_id from selections for backwards compat
+  // This ensures all existing downstream consumers of blueprint_id work unchanged
+  const primaryBlueprintId =
+    data.selections?.find(s => s.type === 'blueprint')?.id ||
+    data.blueprint_id ||
+    null
+
   const { data: inquiry, error } = await supabase
     .from('inquiries')
     .insert({
@@ -34,7 +41,7 @@ export async function createInquiry(data: CreateInquiryData) {
       prospect_company_name: data.prospect_company_name,
       prospect_website: data.prospect_website,
       industry: data.industry,
-      blueprint_id: data.blueprint_id || null,
+      blueprint_id: primaryBlueprintId,
       form_data: data.form_data,
       forward_emails: data.forward_emails || [],
     })
@@ -42,6 +49,24 @@ export async function createInquiry(data: CreateInquiryData) {
     .single()
 
   if (error) throw error
+
+  // Write junction table rows for multi-select selections (additive, non-breaking)
+  if (data.selections && data.selections.length > 0) {
+    const junctionRows = data.selections.map((sel, index) => ({
+      inquiry_id: inquiry.id,
+      item_type: sel.type,
+      blueprint_id: sel.type === 'blueprint' ? sel.id : null,
+      case_study_id: sel.type === 'case_study' ? sel.id : null,
+      sort_order: index,
+    }))
+    const { error: selError } = await supabase
+      .from('inquiry_selections')
+      .insert(junctionRows)
+    if (selError) {
+      // Non-fatal: inquiry is already created; log and continue
+      console.error('[createInquiry] Failed to write inquiry_selections:', selError)
+    }
+  }
 
   try {
     await notifyAdmins({
