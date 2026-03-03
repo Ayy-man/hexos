@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T00:24:48.238Z"
+last_updated: "2026-03-03T01:00:00.000Z"
 progress:
   total_phases: 21
   completed_phases: 17
   total_plans: 60
-  completed_plans: 55
+  completed_plans: 57
 ---
 
 # Project State
@@ -21,8 +21,8 @@ progress:
 
 ## Current Position
 
-Status: Phase 20 Plan 03 complete (retroactively executed); Phase 20 Plan 04 complete — full onboarding phase complete
-Last activity: 2026-03-03 - Completed Phase 20-03: useCategoryAutosave, AutoSaveStatus, QuestionField, CategoryForm, BentoCard.onBeforeClose, CategoryBentoCard unsaved-changes guard
+Status: Phase 20 Plan 05 complete — deliverables sheet with sign-off flow and requirements sheet both wired into bento cards
+Last activity: 2026-03-03 - Completed Phase 20-05: DeliverablesSheet, RequirementsSheet, wired into DeliverablesBentoCard and RequirementsBentoCard via sheetContent prop
 
 ## Project Reference
 
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 22-inquiry-multi-select-blueprints-case-studies/22-01-PLAN.md
-Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22-01-SUMMARY.md
+Stopped at: Completed 20-onboarding-stepper-form/20-05-PLAN.md
+Resume file: .planning/phases/20-onboarding-stepper-form/20-05-SUMMARY.md
 
 ## Decisions
 
@@ -69,6 +69,8 @@ Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22
 - [Phase 20-03]: BentoCard.onBeforeClose returns Promise<boolean> — parent stores resolve in state, AlertDialog action calls resolve() for async close interception without race conditions
 - [Phase 22-01]: blueprint_id kept on CreateInquiryData for backwards compat — set from first blueprint in selections by createInquiry()
 - [Phase 22-01]: Migration for inquiry_selections requires manual apply via Supabase dashboard (project not linked locally)
+- [Phase 20-05]: DeliverablesSheet receives full project prop (not just deliverables) — needed for sign-off status derived from project.status and project.signed_off_at
+- [Phase 20-05]: sheetContent prop used on BentoCard — BentoCard already owns the dialog lifecycle via useOnboardingSheet
 
 ## Accumulated Context
 
@@ -86,4 +88,4 @@ Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22
 
 ---
 
-*Updated 2026-03-03 — Phase 22-01 complete: inquiry_selections junction table migration + SelectionItem type + CreateInquiryData.selections field*
+*Updated 2026-03-03 — Phase 20-05 complete: DeliverablesSheet with sign-off flow + RequirementsSheet with design tokens, both wired into bento cards via sheetContent prop*
