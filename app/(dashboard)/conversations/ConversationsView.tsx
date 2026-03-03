@@ -54,7 +54,7 @@ export function ConversationsView({
       .from('conversations')
       .select(`
         *,
-        participants:conversation_participants(
+        participants:direct_conversation_participants(
           user_id,
           user:profiles!user_id(id, name, email)
         )
