@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Performance
 status: unknown
-last_updated: "2026-03-03T00:22:25.437Z"
+last_updated: "2026-03-03T00:24:48.238Z"
 progress:
   total_phases: 21
   completed_phases: 17
   total_plans: 60
-  completed_plans: 54
+  completed_plans: 55
 ---
 
 # Project State
@@ -34,8 +34,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 20-onboarding-stepper-form/20-04-PLAN.md
-Resume file: .planning/phases/20-onboarding-stepper-form/20-04-SUMMARY.md
+Stopped at: Completed 22-inquiry-multi-select-blueprints-case-studies/22-01-PLAN.md
+Resume file: .planning/phases/22-inquiry-multi-select-blueprints-case-studies/22-01-SUMMARY.md
 
 ## Decisions
 
@@ -67,6 +67,8 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-04-SUMMARY.md
 - [Phase 20-04]: CategorySheet three-mode content: isAdmin+!isPreviewMode → CategoryEditor, isAdmin+isPreviewMode → CategoryForm+banner, isDfy → fill mode
 - [Phase 20-03]: useCategoryAutosave reads form values INSIDE performSave callback via getValues(questionId) — prevents stale value bug by reading at save time, not at handler creation time
 - [Phase 20-03]: BentoCard.onBeforeClose returns Promise<boolean> — parent stores resolve in state, AlertDialog action calls resolve() for async close interception without race conditions
+- [Phase 22-01]: blueprint_id kept on CreateInquiryData for backwards compat — set from first blueprint in selections by createInquiry()
+- [Phase 22-01]: Migration for inquiry_selections requires manual apply via Supabase dashboard (project not linked locally)
 
 ## Accumulated Context
 
@@ -84,4 +86,4 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-04-SUMMARY.md
 
 ---
 
-*Updated 2026-03-03 — Phase 20-03 complete: three-layer auto-save form system (useCategoryAutosave, CategoryForm, QuestionField, BentoCard close guard)*
+*Updated 2026-03-03 — Phase 22-01 complete: inquiry_selections junction table migration + SelectionItem type + CreateInquiryData.selections field*
