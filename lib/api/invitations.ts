@@ -184,6 +184,7 @@ export async function createAdminInvitation(
       target_role: input.target_role,
       invited_by: invitedBy,
       status: 'pending',
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
     .select()
     .single()
@@ -214,6 +215,7 @@ export async function createDfyFirstInvitation(
       new_organization_name: input.organization_name,
       invited_by: invitedBy,
       status: 'pending',
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
     .select()
     .single()
@@ -247,6 +249,7 @@ export async function createTeamInvitation(
       target_role: targetRole,
       invited_by: invitedBy,
       status: 'pending',
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
     .select()
     .single()
@@ -310,6 +313,7 @@ export async function createDevInvitation(
       target_role: 'dev',
       status: 'pending', // Skip pending_approval since admin is inviting directly
       invited_by: invitedBy,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
     .select()
     .single()
