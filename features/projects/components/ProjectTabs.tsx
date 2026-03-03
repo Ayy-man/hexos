@@ -16,6 +16,7 @@ import { HillChartTab } from './hill-chart/HillChartTab'
 import { RequirementsTab } from './tabs/RequirementsTab'
 import { TestingTab } from './tabs/TestingTab'
 import { OnboardingTab } from './tabs/OnboardingTab'
+import { OnboardingBentoGrid } from './tabs/onboarding/OnboardingBentoGrid'
 import { FilesTabContainer } from './files-tab'
 import { ChatTabContainer } from './chat-tab'
 import { ActivityTab } from './tabs/ActivityTab'
@@ -93,6 +94,8 @@ export function ProjectTabs({
   const showCompletedView = project.status === 'completed'
   const showTasksTab = showRetainerTabs || showCompletedView
   const showDevelopmentTabs = !showOnboardingTab && !showRetainerTabs && !showCompletedView
+  // Post-onboarding questions tab: visible when not in onboarding phase but categories exist
+  const showQuestionsTab = !showOnboardingTab && (categories?.length ?? 0) > 0
 
   // Check if any deliverable is ready for testing (90%+)
   const showTestingTab = showDevelopmentTabs && (project.deliverables || []).some((d: any) => (d.hill_position ?? 0) >= 90)
@@ -157,6 +160,13 @@ export function ProjectTabs({
           <TabsTrigger value="onboarding" className="gap-2">
             <ClipboardCheck className="h-4 w-4" />
             Onboarding
+          </TabsTrigger>
+        )}
+        {/* Questions tab - shown post-onboarding when categories exist */}
+        {showQuestionsTab && (
+          <TabsTrigger value="onboarding" className="gap-2">
+            <ClipboardCheck className="h-4 w-4" />
+            Questions
           </TabsTrigger>
         )}
         {/* Retainer tabs - shown for retainer projects */}
@@ -280,11 +290,14 @@ export function ProjectTabs({
         </DropdownMenu>
       </TabsList>
 
-      {/* Onboarding tab content - shown during onboarding phases */}
-      {showOnboardingTab && (
+      {/* Onboarding tab content - shown during onboarding phases (and post-onboarding if categories exist) */}
+      {(showOnboardingTab || showQuestionsTab) && (
         <TabsContent value="onboarding" className="mt-6" forceMount>
-          <OnboardingTab
+          <OnboardingBentoGrid
             project={project}
+            categories={categories || []}
+            questions={questions || []}
+            answers={answers || []}
             requirements={project.requirements || []}
             userRole={userRole}
             isAdmin={isAdmin}
