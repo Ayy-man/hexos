@@ -102,7 +102,7 @@ In `AdminPartnersList.tsx` invite dialog, add a radio/select:
 | `features/organizations/actions/invitationActions.ts` | New `inviteDfyToExistingOrgAction` | ✓ |
 | `features/admin/components/AdminPartnersList.tsx` | Added DFY invite mode toggle | ✓ |
 
-**Needs human testing:** Live email delivery, browser signout redirect, seat limit enforcement
+**Human testing deferred** — UAT for Phases 21-23 will be done together after all three phases ship. Testing live email delivery, browser signout, seat limits, OAuth flow, magic links, and onboarding wizard as one end-to-end pass.
 
 ---
 
