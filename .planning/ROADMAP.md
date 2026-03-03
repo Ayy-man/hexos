@@ -82,6 +82,10 @@
   - DFY orgs can self-invite up to 3 teammates
   - **Design doc:** docs/plans/2026-03-03-auth-invite-system-design.md
   - **Implementation plan:** docs/plans/2026-03-03-auth-invite-implementation-plan.md (Tasks 1-5)
+  - **Plans:** 3 plans
+    - [ ] 21-01-PLAN.md — BaseLayout + 4 email template rewrites with hexOS branding
+    - [ ] 21-02-PLAN.md — Invitation expiry fix + signout fix on invite page
+    - [ ] 21-03-PLAN.md — Admin DFY toggle (new action + dialog mode switch)
 
 - [ ] Phase 22: Modern Auth Methods
   - Google OAuth via Supabase provider (login page button + invite page support)
