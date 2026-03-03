@@ -73,7 +73,7 @@
 
 ## v1.3 Auth & Invite System
 
-- [ ] Phase 21: Invite Pipeline Fix
+- [x] Phase 21: Invite Pipeline Fix (completed 2026-03-03)
   - Create 4 React Email templates (invitation, app received, app approved, app rejected) with shared hexOS base layout
   - Fix invite creation to always set expires_at (+7 days) on all create*Invitation() functions
   - Add duplicate invite detection (hasExistingInvitation check) on all invite creation paths
