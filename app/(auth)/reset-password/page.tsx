@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(searchParams.get('error'))
@@ -105,5 +105,18 @@ export default function ResetPasswordPage() {
         </Button>
       </form>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-sm space-y-6 text-center">
+        <h1 className="text-2xl font-semibold text-text-primary">Set new password</h1>
+        <p className="text-sm text-text-tertiary">Loading...</p>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   )
 }
