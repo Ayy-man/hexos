@@ -60,44 +60,43 @@
     - [ ] 19-02-PLAN.md — PinnableHoverCard component + upgrade existing 4 tooltips
     - [ ] 19-03-PLAN.md — 4 new hover cards (Meetings, Blueprints, Case Studies, Blockers) + visual verification
 
-- [x] Phase 20: Onboarding Bento Grid + Expandable Sheets (completed 2026-03-03)
-  - Replace flat onboarding tab with a bento grid dashboard of minimal preview cards
-  - Each card opens an expandable sheet (~90% viewport) via ResponsiveDialog with URL state (?section=)
+- [ ] Phase 20: Onboarding Stepper Form
+  - Replace flat onboarding tab with a guided multi-step form experience
   - Admin builds onboarding forms: categories with mixed question types (text, textarea, select, multi_select, boolean) and requirements
-  - DFY partner fills out categories at their own pace with auto-save (blur + debounce + save-on-close)
+  - DFY partner fills out as a vertical stepper: deliverables sign-off → category sections → review & complete
   - Admin monitors answer progress with completion rings per category and inline answer previews
   - Role-aware UI: same page adapts for admin (build + monitor) and DFY (fill out)
   - New tables: onboarding_categories, onboarding_questions, onboarding_answers
-  - No Stepperize — bento grid + sheets replace stepper pattern
-  - **Plans:** 6 plans
-    - [ ] 20-01-PLAN.md — DB migration (3 tables + RLS) + API layer + server actions (Wave 1)
-    - [ ] 20-02-PLAN.md — Bento grid UI + data pipeline + URL state + progress hooks (Wave 2)
-    - [ ] 20-03-PLAN.md — Category question sheet with auto-save form + DFY flow (Wave 3)
-    - [ ] 20-04-PLAN.md — Admin form builder: inline add, reorder, preview toggle (Wave 3)
-    - [ ] 20-05-PLAN.md — Deliverables + Requirements expandable sheets (Wave 4)
-    - [ ] 20-06-PLAN.md — Completion flow + post-onboarding state + visual verification (Wave 5)
+  - Uses Stepperize (headless stepper) + existing shadcn/react-hook-form/zod
 
-- [ ] Phase 21: Blocker Queue Redesign
-  - Replace dense card-dump admin blocker queue with scannable minimal cards + slide-over sidebar
-  - Minimal blocker cards: priority color bar, title, description preview, status badge, project, time, comment count, reporter
-  - Click card opens Sheet (40vw right) with Overview + Conversation tabs
-  - Overview tab: full blocker detail, meta, description, inline resolve (no dialog), inline delete confirm, status transitions, escalate to DFY
-  - Conversation tab: chat-like threaded comments with avatars, timestamps, edit/delete, Enter-to-send composer
-  - Same experience for all roles (admin, dev, DFY) — trust-based, no role gating
-  - Remove resolve dialog and comment dialog — replaced by inline sidebar interactions
-  - Add getAllBlockers API + getBlockerCommentsAction server action for client-side comment fetching
-  - No database changes needed — uses existing blocker_comments table and APIs
-  - **Plans:** 2 plans
-    - [ ] 21-01-PLAN.md — API layer (getAllBlockers + getBlockerCommentsAction) + presentational components (BlockerCard + BlockerConversation)
-    - [ ] 21-02-PLAN.md — BlockerSidebar + AdminBlockerQueue rewrite + page wire-up + visual verification
+---
 
-- [x] Phase 22: Inquiry Multi-Select Blueprints + Case Studies (completed 2026-03-03)
-  - Add case studies as selectable items alongside blueprints in the "I've closed a deal" / proposal intake form
-  - Replace single-select blueprint dropdown with multi-select supporting both blueprints and case studies
-  - New junction table `inquiry_selections` (item_type, blueprint_id, case_study_id) for many-to-many
-  - Keep `inquiries.blueprint_id` as primary/first blueprint for backwards compatibility with 14+ downstream consumers
-  - Update form components: ClosedBlueprint (A1), VariationProposal (B2), ClosedCustom (A3) paths
-  - Update form schema, types, and submission logic to handle array of selections
-  - Update inquiry detail page to display multiple blueprints + case studies
-  - Update downstream consumers: project conversion, proposal deliverables, realtime hooks, list/table/board views
-  - Fetch case studies in intake form page alongside blueprints
+## v1.3 Auth & Invite System
+
+- [ ] Phase 21: Invite Pipeline Fix
+  - Create 4 React Email templates (invitation, app received, app approved, app rejected) with shared hexOS base layout
+  - Fix invite creation to always set expires_at (+7 days) on all create*Invitation() functions
+  - Add duplicate invite detection (hasExistingInvitation check) on all invite creation paths
+  - Fix broken signout on /invite/[token] page (replace client onClick with proper form action)
+  - Add admin DFY toggle: "Create new agency" vs "Add to existing agency" in partner invite dialog
+  - DFY orgs can self-invite up to 3 teammates
+  - **Design doc:** docs/plans/2026-03-03-auth-invite-system-design.md
+  - **Implementation plan:** docs/plans/2026-03-03-auth-invite-implementation-plan.md (Tasks 1-5)
+
+- [ ] Phase 22: Modern Auth Methods
+  - Google OAuth via Supabase provider (login page button + invite page support)
+  - Magic links as optional login method (signInWithOtp + confirmation UI)
+  - Password reset flow (forgot-password page + reset-password page + email template)
+  - Email verification on signup
+  - Unified /auth/callback route handling OAuth, magic links, and password reset
+  - Invite-aware auth callback: validates and accepts invitation after OAuth/magic link signup
+  - **Implementation plan:** docs/plans/2026-03-03-auth-invite-implementation-plan.md (Tasks 6-10)
+
+- [ ] Phase 23: Onboarding Wizard
+  - Add has_completed_onboarding boolean to profiles table (Supabase migration)
+  - 2-3 step post-invite wizard: profile completion → role-specific intro → dashboard
+  - Role-specific Step 2 content: DFY owner (org setup), DFY team (team intro), Dev (skills/availability), Admin (tools overview), Client (project dashboard)
+  - Dashboard layout redirects to /onboarding if flag is false
+  - Replaces existing onboarding flow entirely
+  - Supersedes Phase 20 onboarding scope for auth-related flows
+  - **Implementation plan:** docs/plans/2026-03-03-auth-invite-implementation-plan.md (Tasks 11-14)

@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Performance
-status: unknown
-last_updated: "2026-03-03T00:49:05.734Z"
+milestone: v1.2
+milestone_name: UX Enrichment
+status: in_progress
+last_updated: "2026-03-02"
 progress:
-  total_phases: 21
-  completed_phases: 19
-  total_plans: 60
-  completed_plans: 59
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 
 ## Current Position
 
-Status: Phase 20 Plan 06 complete — onboarding stepper form feature fully shipped: completion flow, flagged card validation, post-onboarding state transitions, tab label change to "Questions". All 6 plans in Phase 20 complete. Phase 22-03 also complete (pending visual verification).
-Last activity: 2026-03-03 - Completed Phase 20-06: Mark Onboarding Complete button with server-side validation, flagged categories with auto-scroll, post-completion and post-onboarding banners, tab label transition to "Questions"
+Status: Phase 19-03 at checkpoint — Tasks 1 & 2 complete, awaiting human visual verification (Task 3 checkpoint:human-verify)
+Last activity: 2026-03-02 - Phase 19-03 Tasks 1-2 executed — 4 new hover content components (Meetings, Blueprints, Case Studies, Blockers) added and wired in app-sidebar.tsx; layout.tsx expanded with 4 new server-side queries
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** DFY partners can submit inquiries, receive proposals, and track projects through a single portal
-**Current focus:** Blocker Queue Redesign (Phase 21)
+**Current focus:** UX Enrichment (Phase 19)
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed 20-onboarding-stepper-form/20-06-PLAN.md — all 6 plans in Phase 20 complete
-Resume file: .planning/phases/20-onboarding-stepper-form/20-06-SUMMARY.md
+Last session: 2026-03-02
+Stopped at: Checkpoint hit at 19-03 Task 3 — awaiting human visual verification of all 8 sidebar hover previews
+Resume file: .planning/phases/19-enhanced-sidebar-hover-previews/19-03-SUMMARY.md
 
 ## Decisions
 
@@ -51,34 +51,6 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-06-SUMMARY.md
 - Phase 19-03: Meetings hover card gates on meetingsSummary.length > 0 — no tooltip shown when zero upcoming meetings
 - Phase 19-03: BlockerHoverContent uses conditional rendering per severity row — only non-zero counts rendered to avoid noise
 - Phase 19-03: Critical blocker badge uses bg-red-500 class override for distinct red color
-- [Phase quick-3]: Used || for date fields and ?? for price fields in inquiry-to-project sync to preserve explicit 0 values
-- [Phase 21-01]: getAllBlockers() returns all statuses including resolved/closed — placed after getAllActiveBlockers with full resolver/project joins
-- [Phase 21-01]: getBlockerCommentsAction() wraps getBlockerComments as thin server action — BlockerConversation uses it (not direct API) for client-side comment fetching
-- [Phase 20-01]: saveAnswerAction omits revalidatePath to prevent re-renders on auto-save
-- [Phase 20-01]: upsertOnboardingAnswer uses onConflict question_id,project_id for idempotent saves via UNIQUE constraint
-- [Phase 20-01]: markOnboardingCompleteAction queries server state directly — never trusts client completion status
-- [Phase 20-02]: BentoCard renders ResponsiveDialog inline — co-location keeps click handler and dialog state together
-- [Phase 20-02]: OnboardingBentoGrid wraps inner component in Suspense for useSearchParams (Next.js requirement)
-- [Phase 20-02]: showQuestionsTab uses same "onboarding" tab value with "Questions" label — avoids duplicate TabsContent
-- [Phase 20-02]: buildDeliverableTree placed in DeliverablesBentoCard module — only used there, can be lifted for Plans 03-04
-- [Phase quick-4]: Replicated exact case studies image pattern for blueprints — same storage bucket, same hook, same UI layout
-- [Phase 20-04]: isSelectOpenRef with 150ms blur delay prevents race condition when user opens Select dropdown in InlineQuestionRow
-- [Phase 20-04]: Admin build mode bypasses unsaved-changes guard in CategoryBentoCard — CategoryEditor has no form dirty state
-- [Phase 20-04]: CategorySheet three-mode content: isAdmin+!isPreviewMode → CategoryEditor, isAdmin+isPreviewMode → CategoryForm+banner, isDfy → fill mode
-- [Phase 20-03]: useCategoryAutosave reads form values INSIDE performSave callback via getValues(questionId) — prevents stale value bug by reading at save time, not at handler creation time
-- [Phase 20-03]: BentoCard.onBeforeClose returns Promise<boolean> — parent stores resolve in state, AlertDialog action calls resolve() for async close interception without race conditions
-- [Phase 22-01]: blueprint_id kept on CreateInquiryData for backwards compat — set from first blueprint in selections by createInquiry()
-- [Phase 22-01]: Migration for inquiry_selections requires manual apply via Supabase dashboard (project not linked locally)
-- [Phase 22-02]: ComboboxChip from @base-ui/react has no value prop — chips are presentational, managed by Combobox root context
-- [Phase 22-02]: getCaseStudies() called with no options (published only) — DFY partners only see live case studies in multi-select
-- [Phase 22-02]: selected_tier_blueprint_id tracks which blueprint the current tier belongs to — cleared when that blueprint is deselected
-- [Phase 20-05]: DeliverablesSheet receives full project prop (not just deliverables) — needed for sign-off status derived from project.status and project.signed_off_at
-- [Phase 20-05]: sheetContent prop used on BentoCard — BentoCard already owns the dialog lifecycle via useOnboardingSheet
-- [Phase 22]: unknown cast used for selectionsData to bypass Supabase join type discrepancy in inquiry detail page
-- [Phase 22]: createInquiry() junction insert is non-fatal — inquiry creation is never blocked by inquiry_selections errors
-- [Phase 20-06]: allRequiredAnswered checks both requiredRemaining===0 and no unapproved absolute blockers — ensures completeness on both axes
-- [Phase 20-06]: flagged prop threaded from OnboardingBentoGrid → CategoryBentoCard → CategorySheet to isolate scroll-to-first-incomplete logic
-- [Phase 20-06]: Transition banner uses localStorage key onboarding-banner-dismissed-{projectId} scoped per project
 
 ## Accumulated Context
 
@@ -86,14 +58,11 @@ Resume file: .planning/phases/20-onboarding-stepper-form/20-06-SUMMARY.md
 
 - Phase 19 added: Enhanced Sidebar Hover Previews with Drill-Down Navigation (v1.2 UX Enrichment)
 - Phase 19 in progress: API layer (19-01), UI layer (19-02), and new cards (19-03 Tasks 1-2) executed — awaiting visual verification
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 3 | Auto-sync inquiry data to project during conversion | 2026-03-02 | 5608315 | [3-auto-sync-inquiry-data-to-project-during](./quick/3-auto-sync-inquiry-data-to-project-during/) |
-| 4 | Add image_url field to blueprints (DB, API, form UI, card display) | 2026-03-03 | 66e69ae | [4-add-image-url-field-to-blueprints](./quick/4-add-image-url-field-to-blueprints/) |
+- v1.3 Auth & Invite System milestone added with 3 phases:
+  - Phase 21 added: Invite Pipeline Fix — email templates, expiry fix, signout fix, admin DFY toggle
+  - Phase 22 added: Modern Auth Methods — Google OAuth, magic links, password reset
+  - Phase 23 added: Onboarding Wizard — post-invite stepper, role-specific intro, dashboard redirect
 
 ---
 
-*Updated 2026-03-03 — Phase 20-06 complete: onboarding completion flow, flagged card validation, post-onboarding state, tab label transition. All 6 plans in Phase 20 complete.*
+*Updated 2026-03-03 — v1.3 Auth & Invite System milestone added (Phases 21-23)*
