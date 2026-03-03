@@ -104,3 +104,6 @@
   - Replaces existing onboarding flow entirely
   - Supersedes Phase 20 onboarding scope for auth-related flows
   - **Implementation plan:** docs/plans/2026-03-03-auth-invite-implementation-plan.md (Tasks 11-14)
+  - **Plans:** 2 plans
+    - [ ] 23-01-PLAN.md — Migration + Profile type + dashboard redirect guard + completeOnboarding action
+    - [ ] 23-02-PLAN.md — Onboarding route group layout + server page + OnboardingWizard component
