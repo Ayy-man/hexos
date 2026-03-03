@@ -21,13 +21,18 @@ import { uploadMessageAttachments, getAttachmentSignedUrl } from '@/lib/api/mess
 
 export async function startDirectConversationAction(
   participantId: string
-): Promise<{ conversationId: string }> {
-  const { getOrCreateDirectConversation } = await import('@/lib/api/conversations')
-  const conversation = await getOrCreateDirectConversation([participantId])
+): Promise<{ success: boolean; conversationId?: string; error?: string }> {
+  try {
+    const { getOrCreateDirectConversation } = await import('@/lib/api/conversations')
+    const conversation = await getOrCreateDirectConversation([participantId])
 
-  revalidatePath('/conversations')
+    revalidatePath('/conversations')
 
-  return { conversationId: conversation.id }
+    return { success: true, conversationId: conversation.id }
+  } catch (error) {
+    console.error('Failed to start direct conversation:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to start conversation' }
+  }
 }
 
 // ============================================
@@ -35,7 +40,7 @@ export async function startDirectConversationAction(
 // ============================================
 
 export async function getMessageableUsersAction(): Promise<
-  { id: string; name: string; email: string; role: string }[]
+  { id: string; name: string; email: string; role: string; avatar_url: string | null }[]
 > {
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
@@ -45,7 +50,7 @@ export async function getMessageableUsersAction(): Promise<
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, email, role')
+    .select('id, name, email, role, avatar_url')
     .neq('id', user.id)
     .order('name', { ascending: true })
 

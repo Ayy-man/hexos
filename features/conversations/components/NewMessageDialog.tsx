@@ -12,6 +12,7 @@ interface User {
   name: string
   email: string
   role: string
+  avatar_url: string | null
 }
 
 interface NewMessageDialogProps {
@@ -49,9 +50,13 @@ export function NewMessageDialog({ open, onOpenChange, onConversationStarted }: 
   const handleSelectUser = async (userId: string) => {
     setIsStarting(userId)
     try {
-      const { conversationId } = await startDirectConversationAction(userId)
-      onOpenChange(false)
-      onConversationStarted(conversationId)
+      const result = await startDirectConversationAction(userId)
+      if (result.success && result.conversationId) {
+        onOpenChange(false)
+        onConversationStarted(result.conversationId)
+      } else {
+        console.error('Failed to start conversation:', result.error)
+      }
     } catch (err) {
       console.error('Failed to start conversation:', err)
     } finally {
@@ -99,16 +104,17 @@ export function NewMessageDialog({ open, onOpenChange, onConversationStarted }: 
                   'disabled:opacity-50'
                 )}
               >
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium shrink-0">
-                  {user.name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium shrink-0">
+                    {user.name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{user.name}</p>
                   <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
-                <span className="text-[10px] text-muted-foreground capitalize shrink-0">
-                  {user.role}
-                </span>
                 {isStarting === user.id && (
                   <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                 )}
