@@ -13,6 +13,7 @@ interface BlueprintDetailsSidebarProps {
   selectedTier: string | null
   onSelectTier: (tierName: string, tier: PricingTier) => void
   className?: string
+  idPrefix?: string
 }
 
 export function BlueprintDetailsSidebar({
@@ -20,6 +21,7 @@ export function BlueprintDetailsSidebar({
   selectedTier,
   onSelectTier,
   className,
+  idPrefix = '',
 }: BlueprintDetailsSidebarProps) {
   if (!blueprint) {
     return (
@@ -93,13 +95,13 @@ export function BlueprintDetailsSidebar({
                     <div className="flex items-start gap-3">
                       <RadioGroupItem
                         value={tier.name}
-                        id={`tier-${tier.name}`}
+                        id={`${idPrefix}tier-${tier.name}`}
                         className="mt-0.5"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <Label
-                            htmlFor={`tier-${tier.name}`}
+                            htmlFor={`${idPrefix}tier-${tier.name}`}
                             className="font-medium cursor-pointer"
                           >
                             {tier.name}

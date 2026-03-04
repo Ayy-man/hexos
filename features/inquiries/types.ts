@@ -4,6 +4,15 @@ export interface SelectionItem {
   name: string
 }
 
+export interface TierSelection {
+  blueprint_id: string
+  blueprint_name: string
+  tier_name: string
+  setup_price: number
+  monthly_price: number
+  features: string[]
+}
+
 export interface CreateInquiryData {
   partner_name: string
   submission_type: 'closed' | 'proposal'

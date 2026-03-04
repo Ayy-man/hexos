@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -13,7 +12,7 @@ import { ItemMultiSelect } from '../ItemMultiSelect'
 import { CaseStudyPreviewSidebar } from '../CaseStudyPreviewSidebar'
 import type { BlueprintSummary, PricingTier } from '@/lib/api/blueprints'
 import type { CaseStudy } from '@/lib/api/case-studies'
-import type { SelectionItem } from '@/features/inquiries/types'
+import type { SelectionItem, TierSelection } from '@/features/inquiries/types'
 
 interface ClosedBlueprintProps {
   blueprints: BlueprintSummary[]
@@ -24,34 +23,33 @@ export function ClosedBlueprint({ blueprints, caseStudies }: ClosedBlueprintProp
   const { register, watch, setValue } = useFormContext()
 
   const selections: SelectionItem[] = watch('selections') || []
-  const [focusedItem, setFocusedItem] = useState<SelectionItem | null>(selections[0] || null)
+  const tierSelections: TierSelection[] = watch('tier_selections') || []
 
-  // Focused blueprint for sidebar (focused item if blueprint, else first blueprint in selections)
-  const focusedBlueprint = (() => {
-    const focused = focusedItem?.type === 'blueprint' ? focusedItem : null
-    const firstBp = selections.find((s) => s.type === 'blueprint') || null
-    const targetId = focused?.id || firstBp?.id || null
-    return targetId ? blueprints.find((b) => b.id === targetId) || null : null
-  })()
+  // Get selected blueprints and case studies in selection order
+  const selectedBlueprints = selections
+    .filter((s) => s.type === 'blueprint')
+    .map((s) => blueprints.find((b) => b.id === s.id))
+    .filter(Boolean) as BlueprintSummary[]
 
-  // Focused case study for sidebar
-  const focusedCaseStudy = (() => {
-    const focused = focusedItem?.type === 'case_study' ? focusedItem : null
-    const firstCs = selections.find((s) => s.type === 'case_study') || null
-    const targetId = focused?.id || firstCs?.id || null
-    return targetId ? caseStudies.find((c) => c.id === targetId) || null : null
-  })()
+  const selectedCaseStudies = selections
+    .filter((s) => s.type === 'case_study')
+    .map((s) => caseStudies.find((c) => c.id === s.id))
+    .filter(Boolean) as CaseStudy[]
 
-  // Show blueprint sidebar when focused item is blueprint, or no case study is selected
-  const showBlueprintSidebar =
-    focusedBlueprint !== null || selections.every((s) => s.type !== 'case_study')
-
-  const handleTierSelect = (tierName: string, tier: PricingTier) => {
-    setValue('selected_tier_name', tierName)
-    setValue('selected_tier_price', tier.setup_price)
-    setValue('selected_tier_monthly', tier.monthly_price)
-    setValue('selected_tier_features', tier.features)
-    setValue('selected_tier_blueprint_id', focusedBlueprint?.id || null)
+  const handleTierSelect = (blueprint: BlueprintSummary, tierName: string, tier: PricingTier) => {
+    const existing = tierSelections.filter((t) => t.blueprint_id !== blueprint.id)
+    const updated: TierSelection[] = [
+      ...existing,
+      {
+        blueprint_id: blueprint.id,
+        blueprint_name: blueprint.name,
+        tier_name: tierName,
+        setup_price: tier.setup_price,
+        monthly_price: tier.monthly_price,
+        features: tier.features,
+      },
+    ]
+    setValue('tier_selections', updated)
   }
 
   return (
@@ -119,20 +117,17 @@ export function ClosedBlueprint({ blueprints, caseStudies }: ClosedBlueprintProp
               value={selections}
               onChange={(items) => {
                 setValue('selections', items)
-                // Clear tier if the blueprint it was selected for was removed
-                const tierBlueprintId = watch('selected_tier_blueprint_id')
-                if (
-                  tierBlueprintId &&
-                  !items.some((s) => s.type === 'blueprint' && s.id === tierBlueprintId)
-                ) {
-                  setValue('selected_tier_name', undefined)
-                  setValue('selected_tier_price', undefined)
-                  setValue('selected_tier_monthly', undefined)
-                  setValue('selected_tier_features', undefined)
-                  setValue('selected_tier_blueprint_id', undefined)
+                // Remove tier selections for blueprints that were deselected
+                const selectedBpIds = new Set(
+                  items.filter((s) => s.type === 'blueprint').map((s) => s.id)
+                )
+                const filteredTiers = tierSelections.filter((t) =>
+                  selectedBpIds.has(t.blueprint_id)
+                )
+                if (filteredTiers.length !== tierSelections.length) {
+                  setValue('tier_selections', filteredTiers)
                 }
               }}
-              onFocusedItemChange={setFocusedItem}
             />
           </div>
         </div>
@@ -210,16 +205,28 @@ export function ClosedBlueprint({ blueprints, caseStudies }: ClosedBlueprintProp
 
       {/* Preview Sidebar */}
       <div className="w-[320px] flex-shrink-0 hidden lg:block">
-        <div className="sticky top-4">
-          {showBlueprintSidebar ? (
+        <div className="sticky top-4 space-y-4">
+          {selections.length === 0 && (
             <BlueprintDetailsSidebar
-              blueprint={focusedBlueprint}
-              selectedTier={watch('selected_tier_name')}
-              onSelectTier={handleTierSelect}
+              blueprint={null}
+              selectedTier={null}
+              onSelectTier={() => {}}
             />
-          ) : (
-            <CaseStudyPreviewSidebar caseStudy={focusedCaseStudy} />
           )}
+          {selectedBlueprints.map((bp) => (
+            <BlueprintDetailsSidebar
+              key={bp.id}
+              blueprint={bp}
+              idPrefix={`bp-${bp.id}-`}
+              selectedTier={
+                tierSelections.find((t) => t.blueprint_id === bp.id)?.tier_name || null
+              }
+              onSelectTier={(tierName, tier) => handleTierSelect(bp, tierName, tier)}
+            />
+          ))}
+          {selectedCaseStudies.map((cs) => (
+            <CaseStudyPreviewSidebar key={cs.id} caseStudy={cs} />
+          ))}
         </div>
       </div>
     </div>
