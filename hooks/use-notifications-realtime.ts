@@ -201,7 +201,13 @@ export function useNotificationsRealtime({
           })
         }
       )
-      .subscribe()
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('[Realtime] Notifications subscription active')
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('[Realtime] Notifications subscription failed:', status, err)
+        }
+      })
 
     return () => {
       supabase.removeChannel(channel)
