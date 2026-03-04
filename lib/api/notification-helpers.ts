@@ -73,6 +73,8 @@ export async function notifyAdmins(params: BaseNotificationParams): Promise<void
       return
     }
 
+    console.log(`[notifyAdmins] Sending type="${params.type}" to ${recipients.length} recipient(s)`)
+
     const results = await Promise.allSettled(
       recipients.map((admin) =>
         createNotification({
@@ -87,6 +89,8 @@ export async function notifyAdmins(params: BaseNotificationParams): Promise<void
     )
 
     logSettledFailures('notifyAdmins', results)
+    const succeeded = results.filter((r) => r.status === 'fulfilled').length
+    console.log(`[notifyAdmins] Done — ${succeeded}/${results.length} succeeded`)
   } catch (err) {
     console.error('[notifyAdmins] Unexpected error:', err)
   }

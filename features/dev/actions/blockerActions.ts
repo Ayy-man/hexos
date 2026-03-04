@@ -202,9 +202,9 @@ export async function escalateBlockerAction(blockerId: string) {
       try {
         await createNotification({
           userId: project.dfy_partner_id,
-          type: 'blocker_comment',
-          title: 'Blocker escalated to you',
-          message: `A blocker "${blocker.title}" on project ${blocker.project?.project_name || ''} needs your attention.`,
+          type: 'escalation_admin',
+          title: 'Blocker Escalated to You',
+          message: `"${blocker.title}" on ${blocker.project?.project_name || 'a project'} needs your attention.`,
           projectId: blocker.project_id,
           blockerId: blocker.id,
         })

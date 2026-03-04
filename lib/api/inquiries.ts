@@ -68,12 +68,16 @@ export async function createInquiry(data: CreateInquiryData) {
     }
   }
 
+  // Notify admins of new inquiry
+  console.log('[createInquiry] Inquiry created successfully, notifying admins...')
   try {
     await notifyAdmins({
       type: 'inquiry_created',
       title: 'New Inquiry Submitted',
       message: `New inquiry from ${inquiry.prospect_company_name || 'Unknown'}: ${inquiry.form_data?.project_type || 'General'}`,
+      actorId: user?.id,
     })
+    console.log('[createInquiry] notifyAdmins completed')
   } catch (notifyErr) {
     console.error('[createInquiry] Notification failed:', notifyErr)
   }

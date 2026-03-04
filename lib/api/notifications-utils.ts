@@ -308,6 +308,8 @@ export function getNotificationColor(type: NotificationType): string {
  */
 export function getNotificationUrl(notification: Notification): string {
   const projectId = notification.project_id
+  const blockerId = notification.blocker_id
+  const deliverableId = notification.deliverable_id
 
   if (!projectId) {
     // Some notification types don't have a project
@@ -336,14 +338,19 @@ export function getNotificationUrl(notification: Notification): string {
       case 'proposal_sent':
       case 'inquiry_won':
       case 'inquiry_lost':
-      case 'escalation_admin':
         return '/inquiries'
+      case 'escalation_admin':
+        return blockerId ? `/admin/blockers?blocker=${blockerId}` : '/admin/blockers'
       case 'project_created':
         return '/projects'
       default:
         return '/dashboard'
     }
   }
+
+  // Helper to append blocker deep-link param
+  const blockerParam = blockerId ? `&blocker=${blockerId}` : ''
+  const deliverableParam = deliverableId ? `&deliverable=${deliverableId}` : ''
 
   switch (notification.type) {
     case 'project_assigned':
@@ -352,14 +359,15 @@ export function getNotificationUrl(notification: Notification): string {
     case 'blocker_acknowledged':
     case 'blocker_resolved':
     case 'blocker_comment':
+    case 'blocker_raised':
     case 'requirement_unblocked':
-      return `/projects/${projectId}?tab=requirements`
+      return `/projects/${projectId}?tab=requirements${blockerParam}`
     case 'admin_comment':
       return `/projects/${projectId}?tab=activity`
     case 'mention':
       return `/projects/${projectId}?tab=gameplan`
     case 'deadline_reminder':
-      return `/projects/${projectId}?tab=deliverables`
+      return `/projects/${projectId}?tab=deliverables${deliverableParam}`
     case 'invoice_sent':
     case 'invoice_paid':
     case 'invoice_payment_failed':
@@ -373,14 +381,14 @@ export function getNotificationUrl(notification: Notification): string {
     case 'scope_change_approved':
     case 'scope_change_rejected':
       return `/projects/${projectId}?tab=scope`
-    // Testing notifications
+    // Testing notifications — deep-link to specific deliverable
     case 'testing_ready_dev':
     case 'testing_ready_admin_int':
     case 'testing_ready_client':
     case 'testing_passed':
     case 'testing_failed':
     case 'testing_escalated':
-      return `/projects/${projectId}?tab=testing`
+      return `/projects/${projectId}?tab=testing${deliverableParam}`
     // Retainer notifications with project context
     case 'retainer_check_in_due':
     case 'retainer_check_in_overdue':
@@ -397,17 +405,16 @@ export function getNotificationUrl(notification: Notification): string {
     case 'proposal_sent':
     case 'inquiry_won':
     case 'inquiry_lost':
-    case 'escalation_admin':
       return `/projects/${projectId}`
+    case 'escalation_admin':
+      return blockerId ? `/admin/blockers?blocker=${blockerId}` : `/projects/${projectId}`
     case 'deliverable_status_change':
     case 'deliverables_confirmed':
     case 'send_for_signoff':
     case 'signed_off':
-      return `/projects/${projectId}?tab=deliverables`
+      return `/projects/${projectId}?tab=deliverables${deliverableParam}`
     case 'check_in_submitted':
       return `/projects/${projectId}?tab=check-ins`
-    case 'blocker_raised':
-      return `/projects/${projectId}?tab=requirements`
     case 'meeting_scheduled':
       return `/meetings`
     default:
