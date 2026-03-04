@@ -1115,7 +1115,7 @@ export async function getPendingInquiries() {
       created_at,
       submitter:profiles!submitted_by(name, email)
     `)
-    .not('proposal_stage', 'in', '("closed","lost")')
+    .not('proposal_stage', 'in', '("closed","lost","sent")')
     .is('deleted_at', null)
     .is('archived_at', null)
     .order('created_at', { ascending: false })
