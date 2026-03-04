@@ -23,6 +23,7 @@ interface Project {
 interface AdminBlockerQueueProps {
   blockers: Blocker[]
   projects: Project[]
+  userRole?: string
 }
 
 const priorityOrder: Record<BlockerPriority, number> = {
@@ -32,7 +33,15 @@ const priorityOrder: Record<BlockerPriority, number> = {
   low: 3,
 }
 
-type StatusFilter = 'active' | 'all' | BlockerStatus
+const ARCHIVE_HOURS = 72
+
+function isArchived(b: Blocker): boolean {
+  if (!['resolved', 'closed'].includes(b.status)) return false
+  const resolvedTime = b.resolved_at ? new Date(b.resolved_at).getTime() : new Date(b.updated_at).getTime()
+  return Date.now() - resolvedTime > ARCHIVE_HOURS * 60 * 60 * 1000
+}
+
+type StatusFilter = 'active' | 'archived' | 'all' | BlockerStatus
 
 interface StatusChip {
   key: StatusFilter
@@ -45,11 +54,12 @@ const statusChips: StatusChip[] = [
   { key: 'reported', label: 'New', count: (b) => b.filter(x => x.status === 'reported').length },
   { key: 'acknowledged', label: 'Acknowledged', count: (b) => b.filter(x => x.status === 'acknowledged').length },
   { key: 'in_progress', label: 'In Progress', count: (b) => b.filter(x => x.status === 'in_progress').length },
-  { key: 'resolved', label: 'Resolved', count: (b) => b.filter(x => x.status === 'resolved').length },
+  { key: 'resolved', label: 'Resolved', count: (b) => b.filter(x => ['resolved', 'closed'].includes(x.status) && !isArchived(x)).length },
+  { key: 'archived', label: 'Archived', count: (b) => b.filter(x => isArchived(x)).length },
   { key: 'all', label: 'All', count: (b) => b.length },
 ]
 
-export function AdminBlockerQueue({ blockers, projects }: AdminBlockerQueueProps) {
+export function AdminBlockerQueue({ blockers, projects, userRole }: AdminBlockerQueueProps) {
   const [filterProject, setFilterProject] = useState<string>('all')
   const [filterPriority, setFilterPriority] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<StatusFilter>('active')
@@ -72,6 +82,10 @@ export function AdminBlockerQueue({ blockers, projects }: AdminBlockerQueueProps
     let result = projectPriorityFiltered
     if (filterStatus === 'active') {
       result = result.filter(b => !['resolved', 'closed'].includes(b.status))
+    } else if (filterStatus === 'resolved') {
+      result = result.filter(b => ['resolved', 'closed'].includes(b.status) && !isArchived(b))
+    } else if (filterStatus === 'archived') {
+      result = result.filter(b => isArchived(b))
     } else if (filterStatus !== 'all') {
       result = result.filter(b => b.status === filterStatus)
     }
@@ -174,6 +188,7 @@ export function AdminBlockerQueue({ blockers, projects }: AdminBlockerQueueProps
       <BlockerSidebar
         blocker={selectedBlockerData}
         onClose={() => setSelectedBlocker(null)}
+        userRole={userRole}
       />
     </div>
   )

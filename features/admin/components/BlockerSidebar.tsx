@@ -51,9 +51,11 @@ const statusConfig: Record<BlockerStatus, { label: string; icon: React.ElementTy
 interface BlockerSidebarProps {
   blocker: Blocker | null
   onClose: () => void
+  userRole?: string
 }
 
-export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
+export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSidebarProps) {
+  const isAdmin = userRole === 'admin' || userRole === 'internal'
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showResolveInput, setShowResolveInput] = useState(false)
@@ -128,7 +130,7 @@ export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
     <Sheet open={!!blocker} onOpenChange={(open) => { if (!open) onClose() }}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-[40vw] sm:min-w-[400px] p-0 flex flex-col"
+        className="w-full sm:max-w-[50vw] sm:min-w-[520px] p-0 flex flex-col"
         showCloseButton
       >
         {blocker && (
@@ -283,7 +285,7 @@ export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
                 {/* Action buttons */}
                 {!['resolved', 'closed'].includes(blocker.status) && !showResolveInput && (
                   <div className="flex flex-wrap gap-2">
-                    {blocker.status === 'reported' && (
+                    {isAdmin && blocker.status === 'reported' && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -294,7 +296,7 @@ export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
                         Acknowledge
                       </Button>
                     )}
-                    {blocker.status === 'acknowledged' && (
+                    {isAdmin && blocker.status === 'acknowledged' && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -314,7 +316,7 @@ export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
                         Resolve
                       </Button>
                     )}
-                    {!blocker.escalated_to_dfy && (
+                    {isAdmin && !blocker.escalated_to_dfy && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -325,15 +327,17 @@ export function BlockerSidebar({ blocker, onClose }: BlockerSidebarProps) {
                         Escalate to DFY
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-text-ghost hover:text-signal-bad"
-                      onClick={() => setShowDeleteConfirm(true)}
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete
-                    </Button>
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-text-ghost hover:text-signal-bad"
+                        onClick={() => setShowDeleteConfirm(true)}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 )}
               </TabsContent>
