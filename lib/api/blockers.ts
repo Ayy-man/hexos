@@ -53,6 +53,8 @@ export interface BlockerComment {
   user?: {
     id: string
     name: string
+    role: string
+    avatar_url: string | null
   }
 }
 
@@ -366,7 +368,7 @@ export async function addBlockerComment(blockerId: string, content: string): Pro
     })
     .select(`
       *,
-      user:profiles(id, name)
+      user:profiles(id, name, role, avatar_url)
     `)
     .single()
 
@@ -384,7 +386,7 @@ export async function getBlockerComments(blockerId: string): Promise<BlockerComm
     .from('blocker_comments')
     .select(`
       *,
-      user:profiles(id, name)
+      user:profiles(id, name, role, avatar_url)
     `)
     .eq('blocker_id', blockerId)
     .order('created_at', { ascending: true })
@@ -405,7 +407,7 @@ export async function updateBlockerComment(commentId: string, content: string): 
     .eq('id', commentId)
     .select(`
       *,
-      user:profiles(id, name)
+      user:profiles(id, name, role, avatar_url)
     `)
     .single()
 

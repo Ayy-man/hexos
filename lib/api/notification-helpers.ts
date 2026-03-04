@@ -15,6 +15,26 @@ interface BaseNotificationParams {
 }
 
 // ============================================================================
+// Shared helpers
+// ============================================================================
+
+/** Log all rejected promises from a Promise.allSettled batch */
+function logSettledFailures(
+  tag: string,
+  results: PromiseSettledResult<unknown>[]
+) {
+  const failures = results.filter(
+    (r): r is PromiseRejectedResult => r.status === 'rejected'
+  )
+  if (failures.length > 0) {
+    console.error(
+      `[${tag}] ${failures.length}/${results.length} notification(s) failed:`,
+      failures.map((f) => f.reason)
+    )
+  }
+}
+
+// ============================================================================
 // notifyAdmins
 // ============================================================================
 
@@ -38,14 +58,22 @@ export async function notifyAdmins(params: BaseNotificationParams): Promise<void
       return
     }
 
-    if (!admins || admins.length === 0) return
+    if (!admins || admins.length === 0) {
+      console.warn('[notifyAdmins] No admin/internal users found in profiles table — nobody to notify')
+      return
+    }
 
     // Exclude the actor from receiving their own notification
     const recipients = params.actorId
       ? admins.filter((a) => a.id !== params.actorId)
       : admins
 
-    await Promise.allSettled(
+    if (recipients.length === 0) {
+      console.warn('[notifyAdmins] All admins excluded (actor is only admin) — nobody to notify')
+      return
+    }
+
+    const results = await Promise.allSettled(
       recipients.map((admin) =>
         createNotification({
           userId: admin.id,
@@ -57,6 +85,8 @@ export async function notifyAdmins(params: BaseNotificationParams): Promise<void
         })
       )
     )
+
+    logSettledFailures('notifyAdmins', results)
   } catch (err) {
     console.error('[notifyAdmins] Unexpected error:', err)
   }
@@ -141,7 +171,12 @@ export async function notifyProjectStakeholders(
       recipientSet.delete(params.excludeUserId)
     }
 
-    await Promise.allSettled(
+    if (recipientSet.size === 0) {
+      console.warn('[notifyProjectStakeholders] No recipients found for project:', params.projectId)
+      return
+    }
+
+    const results = await Promise.allSettled(
       Array.from(recipientSet).map((userId) =>
         createNotification({
           userId,
@@ -153,6 +188,8 @@ export async function notifyProjectStakeholders(
         })
       )
     )
+
+    logSettledFailures('notifyProjectStakeholders', results)
   } catch (err) {
     console.error('[notifyProjectStakeholders] Unexpected error:', err)
   }
@@ -176,7 +213,7 @@ export async function notifyUsers(params: NotifyUsersParams): Promise<void> {
   if (params.userIds.length === 0) return
 
   try {
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       params.userIds.map((userId) =>
         createNotification({
           userId,
@@ -188,6 +225,8 @@ export async function notifyUsers(params: NotifyUsersParams): Promise<void> {
         })
       )
     )
+
+    logSettledFailures('notifyUsers', results)
   } catch (err) {
     console.error('[notifyUsers] Unexpected error:', err)
   }

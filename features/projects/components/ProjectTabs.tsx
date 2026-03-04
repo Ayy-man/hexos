@@ -1,15 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LayoutDashboard, CheckSquare, TrendingUp, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign, Flag, ClipboardCheck, MoreHorizontal, TestTube, Video, Clock, Lightbulb } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, TrendingUp, FileText, FolderOpen, Activity, Info, MessageSquare, DollarSign, Flag, ClipboardCheck, MoreHorizontal, TestTube, Video, Clock, Lightbulb, AlertTriangle } from 'lucide-react'
 import { OverviewTab } from './tabs/OverviewTab'
 import { DeliverablesTab } from './tabs/DeliverablesTab'
 import { HillChartTab } from './hill-chart/HillChartTab'
@@ -37,6 +38,7 @@ import type { OnboardingCategory } from '@/lib/api/onboarding-categories'
 import type { OnboardingQuestion } from '@/lib/api/onboarding-questions'
 import type { OnboardingAnswer } from '@/lib/api/onboarding-answers'
 import { isOnboardingPhase, isRetainerPhase, isPostDeliveryPhase } from '@/lib/utils/projectPhases'
+import { BlockerReportDialog } from '@/features/dev/components/BlockerReportDialog'
 import { cn } from '@/lib/utils'
 
 interface ProjectTabsProps {
@@ -87,6 +89,7 @@ export function ProjectTabs({
 }: ProjectTabsProps) {
   const isAdmin = userRole === 'admin'
   const isDfy = userRole === 'dfy'
+  const blockerTriggerRef = useRef<HTMLButtonElement>(null)
 
   // Phase-based tab visibility
   const showOnboardingTab = isOnboardingPhase(project.status)
@@ -153,6 +156,7 @@ export function ProjectTabs({
   }
 
   return (
+    <>
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList variant="line" className="w-full justify-start border-b">
         {/* Onboarding tab - shown during onboarding phases */}
@@ -270,6 +274,18 @@ export function ProjectTabs({
               <Lightbulb className="h-4 w-4" />
               Improvements
             </DropdownMenuItem>
+            {showDevelopmentTabs && (userRole === 'dev' || userRole === 'admin' || userRole === 'dfy') && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setTimeout(() => blockerTriggerRef.current?.click(), 0)}
+                  className="gap-2 text-signal-warn"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  Report Blocker
+                </DropdownMenuItem>
+              </>
+            )}
             {isAdmin && (
               <>
                 <DropdownMenuItem onClick={() => setActiveTab('financials')} className="gap-2">
@@ -438,5 +454,11 @@ export function ProjectTabs({
         </>
       )}
     </Tabs>
+    <BlockerReportDialog
+      projectId={project.id}
+      deliverables={project.deliverables?.map((d: any) => ({ id: d.id, title: d.title, project_id: project.id })) || []}
+      trigger={<button ref={blockerTriggerRef} className="hidden" />}
+    />
+    </>
   )
 }

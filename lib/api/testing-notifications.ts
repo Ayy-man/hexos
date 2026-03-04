@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@/lib/supabase/admin'
 import type { NotificationType } from './notifications-utils'
 
 async function sendTestingNotification(params: {
@@ -8,7 +8,7 @@ async function sendTestingNotification(params: {
   title: string
   message: string
 }): Promise<void> {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   let roles: string[] = []
 
@@ -21,7 +21,7 @@ async function sendTestingNotification(params: {
         .single()
 
       if (devAssignment?.assigned_to) {
-        await supabase
+        const { error } = await supabase
           .from('notifications')
           .insert({
             user_id: devAssignment.assigned_to,
@@ -31,6 +31,7 @@ async function sendTestingNotification(params: {
             project_id: params.projectId,
             deliverable_id: params.deliverableId,
           })
+        if (error) console.error('[sendTestingNotification] Failed to notify dev:', error)
       }
       return
     }
@@ -56,26 +57,33 @@ async function sendTestingNotification(params: {
       return
   }
 
-  const { data: users } = await supabase
+  const { data: users, error: fetchError } = await supabase
     .from('profiles')
     .select('id')
     .in('role', roles)
 
-  if (!users) return
+  if (fetchError) {
+    console.error('[sendTestingNotification] Failed to fetch users:', fetchError)
+    return
+  }
 
-  if (users.length > 0) {
-    await supabase
-      .from('notifications')
-      .insert(
-        users.map(user => ({
-          user_id: user.id,
-          type: params.type,
-          title: params.title,
-          message: params.message,
-          project_id: params.projectId,
-          deliverable_id: params.deliverableId,
-        }))
-      )
+  if (!users || users.length === 0) return
+
+  const { error: insertError } = await supabase
+    .from('notifications')
+    .insert(
+      users.map(user => ({
+        user_id: user.id,
+        type: params.type,
+        title: params.title,
+        message: params.message,
+        project_id: params.projectId,
+        deliverable_id: params.deliverableId,
+      }))
+    )
+
+  if (insertError) {
+    console.error('[sendTestingNotification] Failed to insert notifications:', insertError)
   }
 }
 

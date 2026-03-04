@@ -7,7 +7,8 @@ import { Send, Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { RoleAvatar } from '@/components/ui/role-avatar'
+import type { UserRole } from '@/lib/auth/types'
 import {
   getBlockerCommentsAction,
   addBlockerCommentAction,
@@ -103,11 +104,6 @@ export function BlockerConversation({ blockerId }: BlockerConversationProps) {
     }
   }
 
-  const getInitials = (name?: string) => {
-    if (!name) return '?'
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
-  }
-
   return (
     <div className="flex flex-col h-full">
       {/* Messages area */}
@@ -123,11 +119,13 @@ export function BlockerConversation({ blockerId }: BlockerConversationProps) {
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="group flex gap-2">
-              <Avatar size="sm" className="mt-0.5 flex-shrink-0">
-                <AvatarFallback className="text-[10px]">
-                  {getInitials(comment.user?.name)}
-                </AvatarFallback>
-              </Avatar>
+              <RoleAvatar
+                role={(comment.user?.role as UserRole) || 'dev'}
+                name={comment.user?.name || 'Unknown'}
+                avatarUrl={comment.user?.avatar_url}
+                size="sm"
+                className="mt-0.5 flex-shrink-0"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs font-medium text-text-primary">

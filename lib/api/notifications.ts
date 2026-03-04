@@ -158,22 +158,30 @@ export async function createNotification(params: {
   // Use admin client to bypass RLS — system notifications must insert for any user
   const supabase = createAdminClient()
 
+  const row = {
+    user_id: params.userId,
+    type: params.type,
+    title: params.title,
+    message: params.message || null,
+    project_id: params.projectId || null,
+    deliverable_id: params.deliverableId || null,
+    blocker_id: params.blockerId || null,
+    actor_id: params.actorId || null,
+  }
+
   const { data, error } = await supabase
     .from('notifications')
-    .insert({
-      user_id: params.userId,
-      type: params.type,
-      title: params.title,
-      message: params.message || null,
-      project_id: params.projectId || null,
-      deliverable_id: params.deliverableId || null,
-      blocker_id: params.blockerId || null,
-      actor_id: params.actorId || null,
-    })
+    .insert(row)
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    // Log full context so Vercel logs capture the exact failure reason
+    console.error(
+      `[createNotification] INSERT FAILED — type=${params.type}, userId=${params.userId}, code=${error.code}, message=${error.message}, details=${error.details}, hint=${error.hint}`
+    )
+    throw error
+  }
 
   // Also send push notification (fire and forget, don't block)
   sendPushNotification(params.userId, {
