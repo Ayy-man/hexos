@@ -76,7 +76,7 @@ export function BentoCard({
         open={activeSection === slug}
         onOpenChange={handleOpenChange}
       >
-        <ResponsiveDialogContent className="max-w-5xl w-[90vw] max-h-[90vh] overflow-y-auto">
+        <ResponsiveDialogContent className="max-w-[calc(100%-2rem)] sm:max-w-5xl w-[90vw] max-h-[90vh] overflow-y-auto">
           {sheetTitle && (
             <ResponsiveDialogHeader>
               <ResponsiveDialogTitle>{sheetTitle}</ResponsiveDialogTitle>

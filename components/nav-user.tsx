@@ -3,7 +3,6 @@
 import { ChevronsUpDown, LogOut, User } from 'lucide-react'
 
 import { RoleAvatar } from '@/components/ui/role-avatar'
-import { getRoleColor } from '@/lib/constants/role-colors'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,9 +25,8 @@ interface NavUserProps {
 }
 
 export function NavUser({ profile }: NavUserProps) {
-  const { isMobile } = useSidebar()
-  const colors = getRoleColor(profile.role)
-
+  const { isMobile, state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -42,7 +40,8 @@ export function NavUser({ profile }: NavUserProps) {
                 role={profile.role}
                 name={profile.name}
                 avatarUrl={profile.avatar_url}
-                className="rounded-lg"
+                size={isCollapsed ? 'sm' : 'default'}
+                className={isCollapsed ? 'rounded-md ring-1' : 'rounded-lg'}
               />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{profile.name}</span>
@@ -69,8 +68,8 @@ export function NavUser({ profile }: NavUserProps) {
                 />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{profile.name}</span>
-                  <span className={`truncate text-xs ${colors.text}`}>
-                    {colors.label}
+                  <span className="truncate text-xs text-muted-foreground">
+                    {profile.email}
                   </span>
                 </div>
               </div>

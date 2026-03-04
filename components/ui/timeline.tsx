@@ -159,6 +159,8 @@ export function Timeline({
 
           {/* Icon */}
           <div className="relative z-10 flex shrink-0">
+            {/* Solid background to prevent connector line from showing through animated icons */}
+            <div className="absolute inset-0 m-auto h-6 w-6 rounded-full bg-background" />
             <div className={cn(timelineIconVariants({ status: item.status }))}>
               {item.icon || getStatusIcon(item.status)}
             </div>

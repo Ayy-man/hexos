@@ -4,14 +4,16 @@ import * as React from "react"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, useAnimation } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Loader2 } from "lucide-react";
 
 interface ButtonHoldAndReleaseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     holdDuration?: number;
-    onHoldComplete?: () => void;
+    onHoldComplete?: () => void | Promise<void>;
     icon?: React.ReactNode;
     holdingText?: string;
     defaultText?: string;
+    completedText?: string;
     variant?: "destructive" | "warning" | "default";
 }
 
@@ -22,11 +24,15 @@ function ButtonHoldAndRelease({
     icon,
     holdingText = "Release",
     defaultText = "Hold",
+    completedText,
     variant = "destructive",
+    disabled,
     ...props
 }: ButtonHoldAndReleaseProps) {
     const [isHolding, setIsHolding] = useState(false);
+    const [isCompleted, setIsCompleted] = useState(false);
     const controls = useAnimation();
+    const holdingRef = useRef(false);
 
     const variantStyles = {
         destructive: {
@@ -46,7 +52,9 @@ function ButtonHoldAndRelease({
     const styles = variantStyles[variant];
 
     async function handleHoldStart() {
+        if (isCompleted) return;
         setIsHolding(true);
+        holdingRef.current = true;
         controls.set({ width: "0%" });
         await controls.start({
             width: "100%",
@@ -55,18 +63,21 @@ function ButtonHoldAndRelease({
                 ease: "linear",
             },
         });
-        // Hold completed
-        onHoldComplete?.();
+        // Hold completed — immediately show completed state
+        if (!holdingRef.current) return;
         setIsHolding(false);
+        setIsCompleted(true);
         controls.start({
             width: "0%",
             transition: { duration: 0.1 },
         });
+        onHoldComplete?.();
     }
 
     function handleHoldEnd() {
-        if (isHolding) {
+        if (holdingRef.current && !isCompleted) {
             setIsHolding(false);
+            holdingRef.current = false;
             controls.stop();
             controls.start({
                 width: "0%",
@@ -74,6 +85,16 @@ function ButtonHoldAndRelease({
             });
         }
     }
+
+    const displayText = isCompleted
+        ? (completedText || holdingText)
+        : isHolding
+            ? holdingText
+            : defaultText;
+
+    const displayIcon = isCompleted
+        ? <Loader2 className="h-4 w-4 animate-spin" />
+        : icon;
 
     return (
         <Button
@@ -89,6 +110,7 @@ function ButtonHoldAndRelease({
             onTouchStart={handleHoldStart}
             onTouchEnd={handleHoldEnd}
             onTouchCancel={handleHoldEnd}
+            disabled={disabled || isCompleted}
             {...props}
         >
             <motion.div
@@ -97,8 +119,8 @@ function ButtonHoldAndRelease({
                 className={cn("absolute left-0 top-0 h-full", styles.progress)}
             />
             <span className="relative z-10 w-full flex items-center justify-center gap-2">
-                {icon}
-                {!isHolding ? defaultText : holdingText}
+                {displayIcon}
+                {displayText}
             </span>
         </Button>
     );

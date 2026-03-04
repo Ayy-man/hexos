@@ -280,10 +280,9 @@ export function BlockerCountBadge({ count, critical = 0 }: { count: number; crit
   if (count === 0) return null
 
   return (
-    <Badge variant={critical > 0 ? 'destructive' : 'secondary'} className="gap-1">
-      <AlertTriangle className="h-3 w-3" />
+    <span className="text-sm font-medium text-red-500">
       {count}
-      {critical > 0 && <span className="text-xs">({critical} critical)</span>}
-    </Badge>
+      {critical > 0 && <span className="text-xs"> ({critical} critical)</span>}
+    </span>
   )
 }

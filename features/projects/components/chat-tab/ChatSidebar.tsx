@@ -23,42 +23,56 @@ const CONVERSATION_TYPE_CONFIG: Record<ConversationType, {
   label: string
   description: string
   color: string
+  selectedColor: string
+  selectedBg: string
 }> = {
   project: {
     icon: MessageSquare,
     label: 'Project Chat',
     description: 'Internal team + DFY',
     color: 'text-cyan-500',
+    selectedColor: 'text-cyan-400',
+    selectedBg: 'bg-cyan-500/10',
   },
   workspace: {
     icon: Briefcase,
     label: 'Workspace',
     description: 'Internal only',
     color: 'text-purple-500',
+    selectedColor: 'text-purple-400',
+    selectedBg: 'bg-purple-500/10',
   },
   partner: {
     icon: Handshake,
     label: 'Partner Chat',
     description: 'DFY partner direct',
     color: 'text-orange-500',
+    selectedColor: 'text-orange-400',
+    selectedBg: 'bg-orange-500/10',
   },
   direct: {
     icon: MessageSquare,
     label: 'Direct',
     description: 'Private',
     color: 'text-blue-500',
+    selectedColor: 'text-blue-400',
+    selectedBg: 'bg-blue-500/10',
   },
   inquiry: {
     icon: MessageSquare,
     label: 'Inquiry',
     description: 'Inquiry chat',
     color: 'text-green-500',
+    selectedColor: 'text-green-400',
+    selectedBg: 'bg-green-500/10',
   },
   suggestion: {
     icon: Lightbulb,
     label: 'Suggestion',
     description: 'Suggestion thread',
     color: 'text-yellow-500',
+    selectedColor: 'text-yellow-400',
+    selectedBg: 'bg-yellow-500/10',
   },
 }
 
@@ -148,7 +162,7 @@ export function ChatSidebar({
                   className={cn(
                     'w-full text-left px-3 py-2.5 rounded-md transition-colors',
                     isSelected
-                      ? 'bg-primary/10'
+                      ? config.selectedBg
                       : 'hover:bg-muted/50'
                   )}
                 >
@@ -156,7 +170,7 @@ export function ChatSidebar({
                     {/* Icon */}
                     <div className={cn(
                       'shrink-0 mt-0.5',
-                      isSelected ? 'text-primary' : config.color
+                      isSelected ? config.selectedColor : config.color
                     )}>
                       <Icon className="h-4 w-4" />
                     </div>
@@ -166,12 +180,12 @@ export function ChatSidebar({
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           'text-sm font-medium truncate',
-                          isSelected ? 'text-primary' : 'text-foreground'
+                          isSelected ? config.selectedColor : 'text-foreground'
                         )}>
                           {config.label}
                         </span>
                         {unreadCount > 0 && (
-                          <span className="shrink-0 h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center">
+                          <span className="shrink-0 h-5 min-w-[20px] px-1.5 rounded-full bg-muted text-foreground text-xs font-medium flex items-center justify-center">
                             {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
                         )}

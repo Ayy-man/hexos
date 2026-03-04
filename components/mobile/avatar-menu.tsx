@@ -2,7 +2,6 @@
 
 import { LogOut, User } from 'lucide-react'
 import { RoleAvatar } from '@/components/ui/role-avatar'
-import { getRoleColor } from '@/lib/constants/role-colors'
 import type { UserRole } from '@/lib/auth/types'
 import {
   DropdownMenu,
@@ -22,8 +21,6 @@ interface MobileAvatarMenuProps {
 }
 
 export function MobileAvatarMenu({ name, email, role, avatarUrl }: MobileAvatarMenuProps) {
-  const colors = getRoleColor(role as UserRole)
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -52,7 +49,7 @@ export function MobileAvatarMenu({ name, email, role, avatarUrl }: MobileAvatarM
             />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{name}</span>
-              <span className={`truncate text-xs ${colors.text}`}>{colors.label}</span>
+              <span className="truncate text-xs text-muted-foreground">{email}</span>
             </div>
           </div>
         </DropdownMenuLabel>

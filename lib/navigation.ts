@@ -148,11 +148,17 @@ const dfyNav: NavGroup[] = [
   {
     label: 'Business',
     items: [
-      { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
-      { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
+      { title: 'My Inquiries', url: '/inquiries', icon: 'FileText' },
       { title: 'My Deals', url: '/projects', icon: 'Briefcase' },
+      { title: 'New Inquiry', url: '/inquiries/new', icon: 'Send' },
       { title: 'Conversations', url: '/conversations', icon: 'MessageSquare' },
-      { title: 'Submit Inquiry', url: '/inquiries/new', icon: 'Send' },
+    ],
+  },
+  {
+    label: 'Resources',
+    items: [
+      { title: 'Case Studies', url: '/case-studies', icon: 'BookOpen' },
+      { title: 'Blueprints', url: '/blueprints', icon: 'Layers' },
       { title: 'My Suggestions', url: '/my-suggestions', icon: 'Lightbulb' },
     ],
   },

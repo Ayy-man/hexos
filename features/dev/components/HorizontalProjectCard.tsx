@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { DollarSign, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { InlineSparkline, type ActivityDataPoint } from '@/components/shared/ActivitySparkline'
@@ -21,20 +21,9 @@ interface HorizontalProjectCardProps {
   clientName: string
   status: string
   deliverables: Deliverable[]
-  expectedPayout: number | null
   targetDeliveryDate: string | null
   activityTrend: ActivityDataPoint[]
   className?: string
-}
-
-function formatCurrency(amount: number | null) {
-  if (!amount) return null
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
 }
 
 export function HorizontalProjectCard({
@@ -43,7 +32,6 @@ export function HorizontalProjectCard({
   clientName,
   status,
   deliverables,
-  expectedPayout,
   targetDeliveryDate,
   activityTrend,
   className,
@@ -62,13 +50,13 @@ export function HorizontalProjectCard({
   const remainingCount = deliverables.length - 4
 
   const statusConfig = getStatusConfig(status)
-  const hasFooterContent = expectedPayout || activityTrend.length > 0
+  const hasFooterContent = activityTrend.length > 0
 
   return (
     <Link href={`/projects/${id}`}>
       <Card
         className={cn(
-          'w-[340px] flex-shrink-0 transition-colors cursor-pointer group hover:bg-bg-hover',
+          'w-[340px] flex-shrink-0 transition-colors cursor-pointer group hover:bg-bg-hover py-0 gap-0',
           className
         )}
       >
@@ -127,22 +115,10 @@ export function HorizontalProjectCard({
             </div>
           )}
 
-          {/* Footer: Payout + Activity sparkline */}
+          {/* Footer: Activity sparkline */}
           {hasFooterContent && (
-            <div className="flex items-center justify-between pt-2 border-t border-border-hairline">
-              {expectedPayout ? (
-                <div className="flex items-center gap-1 text-signal-good">
-                  <DollarSign className="h-3 w-3" />
-                  <span className="text-xs font-semibold tabular-nums">
-                    {formatCurrency(expectedPayout)}
-                  </span>
-                </div>
-              ) : (
-                <div />
-              )}
-              {activityTrend.length > 0 && (
-                <InlineSparkline data={activityTrend} color="primary" />
-              )}
+            <div className="flex items-center justify-end pt-2 border-t border-border-hairline">
+              <InlineSparkline data={activityTrend} color="primary" />
             </div>
           )}
 

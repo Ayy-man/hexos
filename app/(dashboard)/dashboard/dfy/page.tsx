@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import {
   Briefcase,
-  DollarSign,
   Send,
   FileText,
   ChevronRight,
@@ -16,7 +15,7 @@ import { getInquiries, type ProposalStage } from '@/lib/api/inquiries'
 import { getStaleProposalsForDfy } from '@/lib/api/proposal-reminders'
 import { getPendingExtensions } from '@/lib/api/project-extensions'
 import { getEscalatedBlockersForDfy } from '@/lib/api/blockers'
-import { getActivityTrendsBatch, type ActivityTrendPoint } from '@/lib/api/activity-logs'
+import { getActivityTrendsBatch } from '@/lib/api/activity-logs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -90,14 +89,6 @@ export default async function DfyDashboard() {
   )
   const completedDeals = projects.filter((p) => p.status === 'completed')
 
-  // Calculate total earned (commission from completed deals)
-  const totalEarned = completedDeals.reduce((acc, p) => {
-    if (p.price_dfy && p.dfy_commission_pct) {
-      return acc + (p.price_dfy * p.dfy_commission_pct / 100)
-    }
-    return acc
-  }, 0)
-
   // Health stats for projects
   const projectsWithHealth = projects.map(p => ({
     ...p,
@@ -151,7 +142,7 @@ export default async function DfyDashboard() {
       )}
 
       {/* Stats Row */}
-      <div className="grid gap-3 grid-cols-3">
+      <div className="grid gap-3 grid-cols-2">
         <Card className="py-3">
           <CardContent className="p-0 px-4 flex items-center justify-between">
             <div>
@@ -168,17 +159,6 @@ export default async function DfyDashboard() {
               <p className="text-xl font-bold tabular-nums">{completedDeals.length}</p>
             </div>
             <CheckCircle2 className="h-5 w-5 text-green-500" />
-          </CardContent>
-        </Card>
-        <Card className="py-3">
-          <CardContent className="p-0 px-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground">Earned</p>
-              <p className="text-xl font-bold text-green-600 tabular-nums">
-                ${totalEarned.toLocaleString()}
-              </p>
-            </div>
-            <DollarSign className="h-5 w-5 text-green-500" />
           </CardContent>
         </Card>
       </div>
@@ -203,7 +183,7 @@ export default async function DfyDashboard() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[320px] overflow-y-auto">
                 {inquiries.slice(0, 5).map((inquiry) => (
                   <Link
                     key={inquiry.id}
@@ -214,9 +194,6 @@ export default async function DfyDashboard() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">
                           {inquiry.prospect_company_name || 'Unnamed'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {inquiry.price_dfy ? `$${inquiry.price_dfy.toLocaleString()}` : 'No value set'}
                         </p>
                       </div>
                     </div>
@@ -273,12 +250,6 @@ export default async function DfyDashboard() {
                         <Progress value={progress} className="h-1 mt-1" />
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        {project.price_dfy && (
-                          <span className="text-xs text-green-600 tabular-nums" title="Deal Value">
-                            <span className="text-muted-foreground font-normal">Deal </span>
-                            <span className="font-medium">${project.price_dfy.toLocaleString()}</span>
-                          </span>
-                        )}
                         <InlineSparkline data={trend} color="primary" />
                       </div>
                     </Link>

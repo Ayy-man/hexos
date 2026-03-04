@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Check, Lock } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { ExpandedSparkline } from './ExpandedSparkline'
 import { getZone, getDeadlineInfo, wasLoggedToday } from './utils'
 import type { SubDeliverableCardProps } from './types'
@@ -24,10 +24,17 @@ export function SubDeliverableCard({
   // If locked, use unlockPosition (default 90), otherwise allow up to 100
   const maxPosition = testing?.isLocked ? (testing.unlockPosition ?? 90) : 100
 
+  // Dynamic dot color: red if overdue, green if done, amber if in-progress
+  const dotColor = deadline.isOverdue
+    ? 'bg-red-500'
+    : item.x >= 90
+      ? 'bg-green-500'
+      : 'bg-amber-500'
+
   return (
     <Card
       className={cn(
-        'overflow-hidden border-border bg-card dark:border-border dark:bg-card',
+        'overflow-hidden border-border bg-card dark:border-border dark:bg-card py-0 gap-0',
         deadline.isOverdue && 'border-red-500/40'
       )}
     >
@@ -35,8 +42,7 @@ export function SubDeliverableCard({
         {/* Header */}
         <div className="flex items-center gap-3 px-5 pt-5 pb-3">
           <div
-            className="h-3 w-3 shrink-0 rounded-full"
-            style={{ background: item.color }}
+            className={cn('h-3 w-3 shrink-0 rounded-full', dotColor)}
           />
           <span className="flex-1 truncate font-medium text-zinc-900 dark:text-zinc-100">
             {item.name}
@@ -135,10 +141,6 @@ export function SubDeliverableCard({
           </Button>
         </div>
 
-        {/* History count */}
-        <div className="border-t border-border bg-muted/50 dark:border-border dark:bg-background/30 py-2 text-center text-xs text-muted-foreground dark:text-muted-foreground">
-          {item.history?.length || 0} updates logged
-        </div>
       </CardContent>
     </Card>
   )

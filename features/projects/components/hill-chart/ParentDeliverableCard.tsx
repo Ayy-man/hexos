@@ -11,6 +11,13 @@ export function ParentDeliverableCard({ item, onClick }: ParentCardProps) {
   const zone = getZone(item.x)
   const deadline = getDeadlineInfo(item.deadline, item.x)
 
+  // Dynamic dot color: red if overdue, green if done, amber if in-progress
+  const dotColor = deadline.isOverdue
+    ? 'bg-red-500'
+    : item.x >= 90
+      ? 'bg-green-500'
+      : 'bg-amber-500'
+
   // Get first and last values for labels
   const historyCount = item.history?.length || 0
   const firstValue = item.history?.[0]?.x ?? item.x
@@ -19,27 +26,16 @@ export function ParentDeliverableCard({ item, onClick }: ParentCardProps) {
   return (
     <Card
       className={cn(
-        'cursor-pointer overflow-hidden border-border bg-card dark:border-border dark:bg-card transition-all hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-muted/50 dark:hover:bg-muted/50',
+        'cursor-pointer overflow-hidden border-border bg-card dark:border-border dark:bg-card py-0 gap-0 transition-all hover:border-zinc-300 dark:hover:border-zinc-600 hover:bg-muted/50 dark:hover:bg-muted/50',
         deadline.isOverdue && 'border-red-500/40'
       )}
       onClick={onClick}
-      onMouseEnter={(e) => {
-        if (!deadline.isOverdue) {
-          e.currentTarget.style.borderColor = item.color
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = deadline.isOverdue
-          ? 'rgba(239, 68, 68, 0.4)'
-          : ''
-      }}
     >
       <CardContent className="p-0">
         {/* Header */}
         <div className="flex items-center gap-2.5 px-4 pt-4 pb-2">
           <div
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ background: item.color }}
+            className={cn('h-2.5 w-2.5 shrink-0 rounded-full', dotColor)}
           />
           <span className="flex-1 truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
             {item.name}
@@ -82,7 +78,7 @@ export function ParentDeliverableCard({ item, onClick }: ParentCardProps) {
             <span className="text-xs text-zinc-500 dark:text-zinc-400">
               {Math.round(firstValue)}%
             </span>
-            <span className="text-xs font-medium" style={{ color: item.color }}>
+            <span className={cn('text-xs font-medium', zone.colorClass)}>
               {Math.round(currentValue)}%
             </span>
           </div>
