@@ -240,8 +240,12 @@ export async function triggerParseDeliverablesAction(
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     })
-    // Reset status on error
-    await updateDeliverablesStatus(inquiryId, 'none')
+    // Reset status on error (don't let this throw and mask the original error)
+    try {
+      await updateDeliverablesStatus(inquiryId, 'none')
+    } catch (resetErr) {
+      console.error('[triggerParse] Failed to reset status:', resetErr)
+    }
     // Return user-friendly message (preserves specific error messages from parseDeliverablesWithAI)
     return { error: error instanceof Error ? error.message : 'Failed to extract deliverables' }
   }
