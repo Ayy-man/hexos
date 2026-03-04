@@ -67,7 +67,7 @@ const timelineIconVariants = cva(
       status: {
         default: "border-border text-muted-foreground",
         completed: "border-primary bg-primary text-primary-foreground",
-        active: "border-primary bg-background text-primary animate-pulse",
+        active: "border-primary bg-background text-primary ring-2 ring-primary/40 ring-offset-1 ring-offset-background",
         pending: "border-muted-foreground/30 text-muted-foreground",
         error: "border-destructive bg-destructive text-destructive-foreground",
       },
@@ -159,8 +159,6 @@ export function Timeline({
 
           {/* Icon */}
           <div className="relative z-10 flex shrink-0">
-            {/* Solid background to prevent connector line from showing through animated icons */}
-            <div className="absolute inset-0 m-auto h-6 w-6 rounded-full bg-background" />
             <div className={cn(timelineIconVariants({ status: item.status }))}>
               {item.icon || getStatusIcon(item.status)}
             </div>
