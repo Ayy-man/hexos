@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { InlineSparkline, type ActivityDataPoint } from '@/components/shared/ActivitySparkline'
@@ -117,17 +116,10 @@ export function HorizontalProjectCard({
 
           {/* Footer: Activity sparkline */}
           {hasFooterContent && (
-            <div className="flex items-center justify-end pt-2 border-t border-border-hairline">
+            <div className="flex items-center justify-end pt-2">
               <InlineSparkline data={activityTrend} color="primary" />
             </div>
           )}
-
-          {/* Hover indicator */}
-          <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity -mt-1">
-            <span className="text-[10px] text-text-ghost flex items-center gap-0.5">
-              View project <ChevronRight className="h-3 w-3" />
-            </span>
-          </div>
         </CardContent>
       </Card>
     </Link>
