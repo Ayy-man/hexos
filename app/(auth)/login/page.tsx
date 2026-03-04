@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { PasskeyLoginButton } from '@/features/auth/components/PasskeyLoginButton'
 
 const TEST_USERS = [
   { email: 'admin@test.hexos', password: 'test1234', role: 'Admin', color: 'bg-red-500' },
@@ -108,6 +109,9 @@ export default async function LoginPage({
           Continue with Google
         </button>
       </form>
+
+      {/* Passkey */}
+      <PasskeyLoginButton />
 
       {/* Divider */}
       <div className="relative">

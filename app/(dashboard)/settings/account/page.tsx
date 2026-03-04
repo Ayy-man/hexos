@@ -1,12 +1,17 @@
 import { requireAuth } from '@/lib/auth/guards'
 import { getCurrentProfile } from '@/lib/api/profiles'
+import { getUserPasskeys } from '@/lib/api/passkeys'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Lock, Shield, Key, History } from 'lucide-react'
+import { PasskeySettings } from '@/features/settings/components/PasskeySettings'
 
 export default async function AccountSettingsPage() {
   await requireAuth()
-  const profile = await getCurrentProfile()
+  const [profile, passkeys] = await Promise.all([
+    getCurrentProfile(),
+    getUserPasskeys().catch(() => []),
+  ])
 
   if (!profile) {
     return null
@@ -51,6 +56,9 @@ export default async function AccountSettingsPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Passkeys */}
+      <PasskeySettings passkeys={passkeys} />
 
       {/* Two-Factor Authentication */}
       <Card>
