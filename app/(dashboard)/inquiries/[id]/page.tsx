@@ -623,7 +623,8 @@ export default async function InquiryDetailPage({
                         <p className="font-medium">{inquiry.industry}</p>
                       </div>
                     )}
-                    {inquiry.blueprint && (
+                    {/* Fallback: show legacy single blueprint only if no multi-select data */}
+                    {inquiry.blueprint && inquirySelections.length === 0 && (
                       <div>
                         <p className="text-sm text-muted-foreground">Blueprint</p>
                         <p className="font-medium">{inquiry.blueprint.name}</p>
@@ -631,29 +632,54 @@ export default async function InquiryDetailPage({
                     )}
                   </div>
 
-                  {/* Multi-select selections (Phase 22) — only show if junction data available */}
+                  {/* Blueprints & Case Studies with tier selections */}
                   {inquirySelections.length > 0 && (
-                    <div>
+                    <div className="space-y-3">
                       <p className="text-sm text-muted-foreground">
-                        Selected Blueprints &amp; Case Studies ({inquirySelections.length})
+                        Blueprints &amp; Case Studies ({inquirySelections.length})
                       </p>
-                      <ul className="space-y-1 mt-1">
-                        {inquirySelections.map(sel => (
-                          <li key={sel.id} className="flex items-center gap-2 text-sm">
-                            <span className="text-muted-foreground capitalize text-xs bg-muted px-1.5 py-0.5 rounded">
-                              {sel.item_type === 'blueprint' ? 'Blueprint' : 'Case Study'}
-                            </span>
-                            <span className="font-medium">
-                              {sel.item_type === 'blueprint'
-                                ? (sel.blueprint?.icon ? sel.blueprint.icon + ' ' : '') + (sel.blueprint?.name || '—')
-                                : (sel.case_study?.icon ? sel.case_study.icon + ' ' : '') + (sel.case_study?.name || '—')}
-                            </span>
-                            {sel.item_type === 'case_study' && sel.case_study?.client_name && (
-                              <span className="text-muted-foreground text-xs">({sel.case_study.client_name})</span>
+                      {inquirySelections.map(sel => {
+                        const tierSelection = sel.item_type === 'blueprint'
+                          ? (formData.tier_selections as Array<{ blueprint_id: string; tier_name: string; setup_price: number; monthly_price: number; features: string[] }> || [])
+                              .find(t => t.blueprint_id === sel.blueprint?.id)
+                          : null
+
+                        return (
+                          <div key={sel.id} className="rounded-lg border p-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground capitalize text-xs bg-muted px-1.5 py-0.5 rounded">
+                                {sel.item_type === 'blueprint' ? 'Blueprint' : 'Case Study'}
+                              </span>
+                              <span className="font-medium text-sm">
+                                {sel.item_type === 'blueprint'
+                                  ? (sel.blueprint?.icon ? sel.blueprint.icon + ' ' : '') + (sel.blueprint?.name || '—')
+                                  : (sel.case_study?.icon ? sel.case_study.icon + ' ' : '') + (sel.case_study?.name || '—')}
+                              </span>
+                              {sel.item_type === 'case_study' && sel.case_study?.client_name && (
+                                <span className="text-muted-foreground text-xs">({sel.case_study.client_name})</span>
+                              )}
+                            </div>
+                            {tierSelection && (
+                              <div className="ml-1 pl-3 border-l-2 border-primary/30 space-y-1">
+                                <p className="text-xs text-muted-foreground">Selected Tier</p>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">{tierSelection.tier_name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ${tierSelection.setup_price.toLocaleString()}
+                                    {tierSelection.monthly_price > 0 && ` + $${tierSelection.monthly_price}/mo`}
+                                  </span>
+                                </div>
+                                {tierSelection.features.length > 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {tierSelection.features.slice(0, 3).join(' · ')}
+                                    {tierSelection.features.length > 3 && ` +${tierSelection.features.length - 3} more`}
+                                  </p>
+                                )}
+                              </div>
                             )}
-                          </li>
-                        ))}
-                      </ul>
+                          </div>
+                        )
+                      })}
                     </div>
                   )}
                 </CardContent>
@@ -671,7 +697,7 @@ export default async function InquiryDetailPage({
                 <CardContent>
                   <div className="space-y-4">
                     {Object.entries(formData)
-                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type', 'blueprint_id', 'selections'].includes(key))
+                      .filter(([key]) => !['submission_type', 'partner_name', 'closed_deal_type', 'proposal_type', 'blueprint_id', 'selections', 'tier_selections'].includes(key))
                       .map(([key, value]) => {
                         if (value === null || value === undefined) return null
                         if (Array.isArray(value) && value.length === 0) return null
