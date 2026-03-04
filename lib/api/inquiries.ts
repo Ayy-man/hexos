@@ -1100,3 +1100,27 @@ export async function getInquiryStatusCounts(): Promise<Record<ProposalStage, nu
 
   return counts
 }
+
+/**
+ * Get all pending inquiries (not closed/lost) for admin dashboard
+ */
+export async function getPendingInquiries() {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('inquiries')
+    .select(`
+      id,
+      prospect_company_name,
+      proposal_stage,
+      created_at,
+      submitter:profiles!submitted_by(name, email)
+    `)
+    .not('proposal_stage', 'in', '("closed","lost")')
+    .is('deleted_at', null)
+    .is('archived_at', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}

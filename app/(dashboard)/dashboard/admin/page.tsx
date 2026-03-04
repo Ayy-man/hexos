@@ -12,7 +12,7 @@ import {
 import { requireRole } from '@/lib/auth/guards'
 import { getProjectStats, getProjects } from '@/lib/api/projects'
 import { getAllActiveBlockers } from '@/lib/api/blockers'
-import { getAllSentProposals, bundleProposalsByDfy } from '@/lib/api/proposal-reminders'
+import { getPendingInquiries } from '@/lib/api/inquiries'
 import { getActivityTrendsBatch } from '@/lib/api/activity-logs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -61,10 +61,10 @@ function formatStatus(status: string) {
 export default async function AdminDashboard() {
   await requireRole(['admin'])
 
-  const [stats, allProjects, sentProposals, activeBlockers] = await Promise.all([
+  const [stats, allProjects, pendingInquiries, activeBlockers] = await Promise.all([
     getProjectStats().catch(() => ({ total: 0, inquiry: 0, active: 0, completed: 0 })),
     getProjects().catch(() => []),
-    getAllSentProposals().catch(() => []),
+    getPendingInquiries().catch(() => []),
     getAllActiveBlockers().catch(() => []),
   ])
 
@@ -81,9 +81,7 @@ export default async function AdminDashboard() {
   const atRiskCount = projectsWithHealth.filter(p => p.health === 'at_risk').length
   const behindCount = projectsWithHealth.filter(p => p.health === 'behind').length
 
-  // Group by DFY
-  const proposalBundles = bundleProposalsByDfy(sentProposals)
-  const pendingProposalsCount = sentProposals.length
+  const pendingProposalsCount = pendingInquiries.length
 
   return (
     <div className="space-y-6">
@@ -237,31 +235,27 @@ export default async function AdminDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              {sentProposals.length === 0 ? (
+              {pendingInquiries.length === 0 ? (
                 <p className="text-sm text-text-tertiary text-center py-4">
                   No pending proposals
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {sentProposals.slice(0, 4).map((proposal) => (
-                    <div
-                      key={proposal.id}
-                      className="flex items-center justify-between rounded-lg border p-2 text-sm"
+                <div className="max-h-[220px] overflow-y-auto space-y-2">
+                  {pendingInquiries.map((inquiry) => (
+                    <Link
+                      key={inquiry.id}
+                      href={`/inquiries/${inquiry.id}`}
+                      className="flex items-center justify-between rounded-lg border p-2 text-sm hover:bg-bg-hover transition-colors"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <Users className="h-4 w-4 text-text-ghost flex-shrink-0" />
-                        <span className="truncate text-xs text-text-secondary">{proposal.prospect_company_name || 'Unnamed Inquiry'}</span>
+                        <span className="truncate text-xs text-text-secondary">{inquiry.prospect_company_name || 'Unnamed Inquiry'}</span>
                       </div>
-                      <span className="text-[10px] text-text-ghost flex-shrink-0">
-                        {proposal.dfy_partner?.name || proposal.dfy_partner?.email}
-                      </span>
-                    </div>
+                      <Badge variant="secondary" className="text-[10px] flex-shrink-0 capitalize">
+                        {formatStatus(inquiry.proposal_stage || 'unopened')}
+                      </Badge>
+                    </Link>
                   ))}
-                  {sentProposals.length > 4 && (
-                    <p className="text-xs text-text-ghost text-center">
-                      +{sentProposals.length - 4} more
-                    </p>
-                  )}
                 </div>
               )}
             </CardContent>
