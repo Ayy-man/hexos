@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/client'
-import { ConversationList, ChatPanel } from '@/features/conversations/components'
+import { ConversationList, ChatPanel, NewMessageDialog } from '@/features/conversations/components'
 import { UnreadBadge } from '@/features/conversations/components/UnreadBadge'
 import type { Conversation, Message } from '@/lib/api/conversations.shared'
 import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations.shared'
@@ -42,6 +42,7 @@ export function ConversationsView({
   const [messages, setMessages] = useState<Message[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
+  const [showNewMessage, setShowNewMessage] = useState(false)
   const isMobile = useIsMobile()
 
   // Role-based tab visibility
@@ -280,7 +281,7 @@ export function ConversationsView({
         <div className="flex-1 flex flex-col min-h-0">
           {activeTab === 'inbox' && (
             <div className="p-3 border-b">
-              <Button variant="outline" size="sm" className="w-full gap-2">
+              <Button variant="outline" size="sm" className="w-full gap-2" onClick={() => setShowNewMessage(true)}>
                 <Plus className="h-4 w-4" />
                 New Message
               </Button>
@@ -354,6 +355,12 @@ export function ConversationsView({
           </div>
         </div>
       )}
+
+      <NewMessageDialog
+        open={showNewMessage}
+        onOpenChange={setShowNewMessage}
+        onConversationStarted={handleConversationStarted}
+      />
     </div>
   )
 }
