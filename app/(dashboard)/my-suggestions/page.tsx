@@ -1,6 +1,7 @@
 import { requireRole } from '@/lib/auth/guards'
 import { getMySuggestions } from '@/lib/api/suggestions'
 import { MySuggestionsList } from '@/features/suggestions/components/MySuggestionsList'
+import { NewSuggestionDialog } from '@/features/suggestions/components/NewSuggestionDialog'
 
 export const metadata = {
   title: 'My Suggestions | hexOS',
@@ -15,11 +16,14 @@ export default async function MySuggestionsPage() {
   return (
     <div className="container max-w-4xl py-8">
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Suggestions</h1>
-          <p className="text-muted-foreground">
-            Track your submitted suggestions and communicate with the team
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">My Suggestions</h1>
+            <p className="text-muted-foreground">
+              Track your submitted suggestions and communicate with the team
+            </p>
+          </div>
+          <NewSuggestionDialog />
         </div>
 
         {suggestions.length === 0 ? (
