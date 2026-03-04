@@ -151,7 +151,7 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
                   </Badge>
                 )}
               </div>
-              <SheetTitle className="text-base mt-2">{blocker.title}</SheetTitle>
+              <SheetTitle className="text-lg mt-2">{blocker.title}</SheetTitle>
               <SheetDescription className="sr-only">
                 Blocker details and conversation
               </SheetDescription>
@@ -164,7 +164,7 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
                 <TabsTrigger value="conversation">
                   Conversation
                   {(blocker.comments_count ?? 0) > 0 && (
-                    <span className="ml-1.5 text-[10px] bg-bg-hover rounded-full px-1.5 py-0.5">
+                    <span className="ml-1.5 text-xs bg-bg-hover rounded-full px-1.5 py-0.5">
                       {blocker.comments_count}
                     </span>
                   )}
@@ -174,10 +174,10 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
               {/* Overview Tab */}
               <TabsContent value="overview" className="flex-1 overflow-y-auto mt-3 space-y-4 pb-4">
                 {/* Meta */}
-                <div className="space-y-2 text-xs">
+                <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-2">
                     <Avatar size="sm">
-                      <AvatarFallback className="text-[10px]">
+                      <AvatarFallback className="text-xs">
                         {getInitials(blocker.reporter?.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -192,21 +192,21 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
 
                   {blocker.project?.project_name && (
                     <div className="flex items-center gap-2 text-text-secondary">
-                      <span className="text-text-ghost w-16">Project</span>
+                      <span className="text-text-ghost w-20">Project</span>
                       <span>{blocker.project.project_name}</span>
                     </div>
                   )}
 
                   {blocker.deliverable?.title && (
                     <div className="flex items-center gap-2 text-text-secondary">
-                      <span className="text-text-ghost w-16">Blocks</span>
+                      <span className="text-text-ghost w-20">Blocks</span>
                       <span>{blocker.deliverable.title}</span>
                     </div>
                   )}
 
                   {blocker.acknowledged_at && (
                     <div className="flex items-center gap-2 text-text-secondary">
-                      <span className="text-text-ghost w-16">Ack&apos;d</span>
+                      <span className="text-text-ghost w-20">Ack&apos;d</span>
                       <span>{formatDistanceToNow(new Date(blocker.acknowledged_at), { addSuffix: true })}</span>
                     </div>
                   )}
@@ -217,11 +217,11 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
                 {/* Description */}
                 {blocker.description ? (
                   <div>
-                    <h4 className="text-xs font-medium text-text-tertiary mb-1.5">Description</h4>
-                    <p className="text-sm text-text-secondary whitespace-pre-wrap">{blocker.description}</p>
+                    <h4 className="text-sm font-medium text-text-tertiary mb-1.5">Description</h4>
+                    <p className="text-base text-text-secondary whitespace-pre-wrap leading-relaxed">{blocker.description}</p>
                   </div>
                 ) : (
-                  <p className="text-xs text-text-ghost italic">No description provided.</p>
+                  <p className="text-sm text-text-ghost italic">No description provided.</p>
                 )}
 
                 {/* Resolution notes (if resolved/closed) */}
@@ -229,10 +229,10 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
                   <>
                     <Separator />
                     <div>
-                      <h4 className="text-xs font-medium text-signal-good mb-1.5">Resolution</h4>
-                      <p className="text-sm text-text-secondary whitespace-pre-wrap">{blocker.resolution_notes}</p>
+                      <h4 className="text-sm font-medium text-signal-good mb-1.5">Resolution</h4>
+                      <p className="text-base text-text-secondary whitespace-pre-wrap leading-relaxed">{blocker.resolution_notes}</p>
                       {blocker.resolver?.name && (
-                        <p className="text-xs text-text-ghost mt-1">
+                        <p className="text-sm text-text-ghost mt-1">
                           Resolved by {blocker.resolver.name}
                           {blocker.resolved_at && (
                             <> {formatDistanceToNow(new Date(blocker.resolved_at), { addSuffix: true })}</>
@@ -248,7 +248,7 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
                 {/* Inline resolve input */}
                 {showResolveInput && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-medium text-text-tertiary">Resolution notes</h4>
+                    <h4 className="text-sm font-medium text-text-tertiary">Resolution notes</h4>
                     <Textarea
                       placeholder="How was this resolved? (optional)"
                       value={resolutionNotes}
@@ -270,7 +270,7 @@ export function BlockerSidebar({ blocker, onClose, userRole = 'dev' }: BlockerSi
                 {/* Delete confirmation */}
                 {showDeleteConfirm && (
                   <div className="rounded-lg border border-signal-bad/20 bg-signal-bad-dim p-3 space-y-2">
-                    <p className="text-xs text-signal-bad font-medium">Delete this blocker permanently?</p>
+                    <p className="text-sm text-signal-bad font-medium">Delete this blocker permanently?</p>
                     <div className="flex gap-2">
                       <Button size="sm" variant="destructive" onClick={handleDelete} disabled={isPending}>
                         {isPending ? 'Deleting...' : 'Delete'}
