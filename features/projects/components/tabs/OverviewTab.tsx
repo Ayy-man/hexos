@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -64,6 +65,7 @@ function formatCurrency(value: number | null) {
 }
 
 export function OverviewTab({ project, userRole, isAdmin, availableDevs, initialDelaySummary, onNavigateToActivity }: OverviewTabProps) {
+  const router = useRouter()
   const [isAssigning, setIsAssigning] = useState(false)
   const [showDevSelect, setShowDevSelect] = useState(false)
   const [scopeMetrics, setScopeMetrics] = useState<ScopeMetrics | null>(null)
@@ -94,6 +96,7 @@ export function OverviewTab({ project, userRole, isAdmin, availableDevs, initial
     try {
       await assignDevAction(project.id, devId)
       setShowDevSelect(false)
+      router.refresh()
     } catch (error) {
       console.error('Failed to assign dev:', error)
     } finally {

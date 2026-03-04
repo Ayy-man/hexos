@@ -326,10 +326,12 @@ export async function assignDevAction(projectId: string, devId: string): Promise
       .single(),
   ])
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('projects')
     .update({ assigned_dev_id: devId })
     .eq('id', projectId)
+
+  if (updateError) throw new Error(`Failed to assign dev: ${updateError.message}`)
 
   // Log activity
   await supabase.from('activity_log').insert({
