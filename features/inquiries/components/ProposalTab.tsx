@@ -1,13 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { useCallback, useState, useTransition, useMemo, useRef, useEffect } from 'react'
+import { useCallback, useState, useMemo, useRef, useEffect } from 'react'
 import { Plate, usePlateEditor } from 'platejs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Avatar } from '@/components/ui/avatar'
 import { Editor, EditorContainer } from '@/components/ui/editor'
 import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
@@ -17,29 +15,16 @@ import {
   Save,
   CheckCircle,
   CheckCircle2,
-  Circle,
-  Send,
-  MessageSquare,
   Clock,
-  MoreHorizontal,
-  Reply,
-  Trash2,
   SendHorizontal,
   Undo2,
   Eye,
   Copy,
   Check,
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } from './editor/plugins'
 import { BlueprintEditorPlugins } from '@/components/editor/plugins/blueprint-editor-kit'
 import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
-import type { InquiryComment } from '@/lib/api/inquiry-comments'
 import type { DeliverablesNegotiationStatus, ProposalStage } from '@/lib/api/inquiries'
 import { SuggestChangesButton } from './SuggestChangesButton'
 import { editorToMarkdown } from '../utils/editorToMarkdown'
@@ -53,7 +38,6 @@ interface ProposalTabProps {
   proposalStage: ProposalStage
   isAdmin: boolean // admin/internal
   isDfyOwner: boolean // DFY who submitted the inquiry
-  proposalComments: InquiryComment[]
   currentUser?: DiscussionUser
   deliverablesStatus?: DeliverablesNegotiationStatus
   saveProposal: (content: unknown, discussions: TDiscussion[]) => Promise<void>
@@ -61,9 +45,6 @@ interface ProposalTabProps {
   unsubmitProposal?: () => Promise<void> // Undo send - admin only
   submitForReview?: () => Promise<void> // Submit for internal review
   approveProposal?: () => Promise<void> // Approve proposal (final_review -> ready)
-  addComment: (content: string, parentId?: string) => Promise<InquiryComment>
-  resolveComment: (commentId: string, resolved: boolean) => Promise<void>
-  deleteComment: (commentId: string) => Promise<void>
   onStartNegotiation?: () => Promise<{ deliverables?: unknown[]; error?: string }>
 }
 
@@ -75,7 +56,6 @@ export function ProposalTab({
   proposalStage,
   isAdmin,
   isDfyOwner,
-  proposalComments: initialComments = [],
   currentUser,
   deliverablesStatus = 'none',
   saveProposal,
@@ -83,13 +63,8 @@ export function ProposalTab({
   unsubmitProposal,
   submitForReview,
   approveProposal,
-  addComment,
-  resolveComment,
-  deleteComment,
   onStartNegotiation,
 }: ProposalTabProps) {
-  const [comments, setComments] = useState<InquiryComment[]>(initialComments || [])
-  const [isPending, startTransition] = useTransition()
   const isSubmitted = !!proposalSubmittedAt
 
   // Show suggest changes button for DFY when proposal is submitted and no negotiation started
@@ -116,51 +91,6 @@ export function ProposalTab({
       </Card>
     )
   }
-
-  // Handlers for comments
-  const handleAddComment = useCallback(
-    async (content: string, parentId?: string) => {
-      startTransition(async () => {
-        try {
-          const newComment = await addComment(content, parentId)
-          setComments((prev) => [...prev, newComment])
-        } catch (error) {
-          console.error('Failed to add comment:', error)
-        }
-      })
-    },
-    [addComment]
-  )
-
-  const handleResolveComment = useCallback(
-    async (commentId: string, resolved: boolean) => {
-      startTransition(async () => {
-        try {
-          await resolveComment(commentId, resolved)
-          setComments((prev) =>
-            prev.map((c) => (c.id === commentId ? { ...c, resolved } : c))
-          )
-        } catch (error) {
-          console.error('Failed to resolve comment:', error)
-        }
-      })
-    },
-    [resolveComment]
-  )
-
-  const handleDeleteComment = useCallback(
-    async (commentId: string) => {
-      startTransition(async () => {
-        try {
-          await deleteComment(commentId)
-          setComments((prev) => prev.filter((c) => c.id !== commentId))
-        } catch (error) {
-          console.error('Failed to delete comment:', error)
-        }
-      })
-    },
-    [deleteComment]
-  )
 
   const handleSubmitProposal = useCallback(async () => {
     try {
@@ -240,17 +170,6 @@ export function ProposalTab({
             </CardContent>
           </Card>
         )}
-
-        {/* Comments Sidebar */}
-        <ProposalCommentsSidebar
-          comments={comments}
-          canComment={isAdmin || (isDfyOwner && isSubmitted)}
-          canManage={isAdmin}
-          onAddComment={handleAddComment}
-          onResolve={handleResolveComment}
-          onDelete={handleDeleteComment}
-          isPending={isPending}
-        />
       </div>
     </div>
   )
@@ -558,285 +477,6 @@ function ProposalEditor({
             </FloatingToolbar>
           )}
         </Plate>
-      </CardContent>
-    </Card>
-  )
-}
-
-// ============================================
-// Proposal Comments Sidebar
-// ============================================
-
-interface ProposalCommentsSidebarProps {
-  comments: InquiryComment[]
-  canComment: boolean
-  canManage: boolean
-  onAddComment: (content: string, parentId?: string) => Promise<void>
-  onResolve: (commentId: string, resolved: boolean) => Promise<void>
-  onDelete: (commentId: string) => Promise<void>
-  isPending: boolean
-}
-
-function ProposalCommentsSidebar({
-  comments,
-  canComment,
-  canManage,
-  onAddComment,
-  onResolve,
-  onDelete,
-  isPending,
-}: ProposalCommentsSidebarProps) {
-  const [newComment, setNewComment] = useState('')
-  const [replyingTo, setReplyingTo] = useState<string | null>(null)
-  const [replyContent, setReplyContent] = useState('')
-  const [showResolved, setShowResolved] = useState(false)
-
-  // Group comments
-  const topLevelComments = comments.filter((c) => !c.parent_id)
-  const repliesMap = new Map<string, InquiryComment[]>()
-  comments
-    .filter((c) => c.parent_id)
-    .forEach((comment) => {
-      const existing = repliesMap.get(comment.parent_id!) || []
-      repliesMap.set(comment.parent_id!, [...existing, comment])
-    })
-
-  const filteredComments = topLevelComments.filter(
-    (c) => showResolved || !c.resolved
-  )
-  const unresolvedCount = topLevelComments.filter((c) => !c.resolved).length
-
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return
-    await onAddComment(newComment.trim())
-    setNewComment('')
-  }
-
-  const handleAddReply = async (parentId: string) => {
-    if (!replyContent.trim()) return
-    await onAddComment(replyContent.trim(), parentId)
-    setReplyContent('')
-    setReplyingTo(null)
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins}m`
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h`
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <MessageSquare className="h-4 w-4" />
-          Discussion
-          {unresolvedCount > 0 && (
-            <Badge variant="secondary" className="ml-1">
-              {unresolvedCount}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Add new comment */}
-        {canComment && (
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Add a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="min-h-[80px] resize-none text-sm"
-              disabled={isPending}
-            />
-            <Button
-              size="sm"
-              onClick={handleAddComment}
-              disabled={!newComment.trim() || isPending}
-              className="w-full"
-            >
-              <Send className="mr-2 h-3 w-3" />
-              Add Comment
-            </Button>
-          </div>
-        )}
-
-        {/* Show All / Hide Resolved toggle */}
-        {topLevelComments.length > 0 && (
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowResolved(!showResolved)}
-              className="text-xs h-6"
-            >
-              {showResolved ? 'Hide Resolved' : 'Show All'}
-            </Button>
-          </div>
-        )}
-
-        {/* Comments list */}
-        <div className="space-y-3">
-          {filteredComments.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              {topLevelComments.length === 0
-                ? 'No comments yet'
-                : 'No unresolved comments'}
-            </p>
-          ) : (
-            filteredComments.map((comment) => (
-              <div
-                key={comment.id}
-                className={`rounded-lg border p-3 ${
-                  comment.resolved ? 'bg-muted/50 opacity-75' : ''
-                }`}
-              >
-                {/* Comment header */}
-                <div className="mb-2 flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <div className="flex h-full w-full items-center justify-center bg-primary text-xs text-primary-foreground">
-                        {comment.author?.name?.charAt(0) || '?'}
-                      </div>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {comment.author?.name || 'Unknown'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(comment.created_at)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {canManage && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                          <MoreHorizontal className="h-3 w-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => onResolve(comment.id, !comment.resolved)}
-                          disabled={isPending}
-                        >
-                          {comment.resolved ? (
-                            <>
-                              <Circle className="mr-2 h-3 w-3" />
-                              Unresolve
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="mr-2 h-3 w-3" />
-                              Resolve
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onDelete(comment.id)}
-                          disabled={isPending}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-3 w-3" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-
-                {/* Comment content */}
-                <p className="mb-2 whitespace-pre-wrap text-sm">{comment.content}</p>
-
-                {/* Status badge */}
-                {comment.resolved && (
-                  <Badge variant="outline" className="mb-2 text-xs">
-                    <CheckCircle className="mr-1 h-3 w-3 text-green-500" />
-                    Resolved
-                  </Badge>
-                )}
-
-                {/* Reply button */}
-                {canComment && !comment.resolved && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() =>
-                      setReplyingTo(replyingTo === comment.id ? null : comment.id)
-                    }
-                  >
-                    <Reply className="mr-1 h-3 w-3" />
-                    Reply
-                  </Button>
-                )}
-
-                {/* Reply input */}
-                {replyingTo === comment.id && (
-                  <div className="mt-2 space-y-2">
-                    <Textarea
-                      placeholder="Write a reply..."
-                      value={replyContent}
-                      onChange={(e) => setReplyContent(e.target.value)}
-                      className="min-h-[60px] resize-none text-sm"
-                      disabled={isPending}
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleAddReply(comment.id)}
-                        disabled={!replyContent.trim() || isPending}
-                      >
-                        Reply
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setReplyingTo(null)
-                          setReplyContent('')
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Replies */}
-                {(repliesMap.get(comment.id) || []).length > 0 && (
-                  <div className="mt-3 space-y-2 border-l-2 border-muted pl-3">
-                    {(repliesMap.get(comment.id) || []).map((reply) => (
-                      <div key={reply.id} className="text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {reply.author?.name || 'Unknown'}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(reply.created_at)}
-                          </span>
-                        </div>
-                        <p className="mt-1 whitespace-pre-wrap">{reply.content}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
       </CardContent>
     </Card>
   )

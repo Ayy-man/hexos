@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Inbox, FolderKanban, FileText } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ interface ConversationListProps {
   selectedId: string | null
   onSelect: (conversation: Conversation) => void
   currentUserId?: string
+  tabId?: string
   className?: string
 }
 
@@ -23,6 +24,7 @@ export function ConversationList({
   selectedId,
   onSelect,
   currentUserId,
+  tabId,
   className,
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -109,8 +111,37 @@ export function ConversationList({
       {/* Conversation list */}
       <ScrollArea className="flex-1">
         {sortedConversations.length === 0 ? (
-          <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
-            {searchQuery ? 'No conversations found' : 'No conversations yet'}
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-muted-foreground">
+            {searchQuery ? (
+              <>
+                <Search className="h-8 w-8 mb-3 opacity-40" />
+                <p className="text-sm font-medium">No results</p>
+                <p className="text-xs mt-1">Try a different search term</p>
+              </>
+            ) : tabId === 'inbox' ? (
+              <>
+                <Inbox className="h-8 w-8 mb-3 opacity-40" />
+                <p className="text-sm font-medium">No direct messages</p>
+                <p className="text-xs mt-1">Start a conversation with a teammate</p>
+              </>
+            ) : tabId === 'projects' ? (
+              <>
+                <FolderKanban className="h-8 w-8 mb-3 opacity-40" />
+                <p className="text-sm font-medium">No project conversations</p>
+                <p className="text-xs mt-1">Conversations are created when projects start</p>
+              </>
+            ) : tabId === 'inquiries' ? (
+              <>
+                <FileText className="h-8 w-8 mb-3 opacity-40" />
+                <p className="text-sm font-medium">No inquiry discussions</p>
+                <p className="text-xs mt-1">Discussions appear when inquiries are submitted</p>
+              </>
+            ) : (
+              <>
+                <Search className="h-8 w-8 mb-3 opacity-40" />
+                <p className="text-sm font-medium">No conversations yet</p>
+              </>
+            )}
           </div>
         ) : (
           sortedConversations.map((conversation) => (

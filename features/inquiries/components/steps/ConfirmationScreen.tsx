@@ -8,9 +8,10 @@ import { Card, CardContent } from '@/components/ui/card'
 interface ConfirmationScreenProps {
   isClosedDeal: boolean
   inquiryId: string | null
+  onReset: () => void
 }
 
-export function ConfirmationScreen({ isClosedDeal, inquiryId }: ConfirmationScreenProps) {
+export function ConfirmationScreen({ isClosedDeal, inquiryId, onReset }: ConfirmationScreenProps) {
   return (
     <Card className="max-w-lg mx-auto">
       <CardContent className="pt-8 pb-8 text-center">
@@ -36,9 +37,7 @@ export function ConfirmationScreen({ isClosedDeal, inquiryId }: ConfirmationScre
               View Submission
             </Link>
           </Button>
-          <Button asChild>
-            <Link href="/inquiries/new">Submit Another</Link>
-          </Button>
+          <Button onClick={onReset}>Submit Another</Button>
         </div>
       </CardContent>
     </Card>

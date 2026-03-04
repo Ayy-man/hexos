@@ -141,10 +141,8 @@ export interface ActivityOverview {
 }
 
 export interface CommentStatistics {
-  total_inquiry_comments: number;
   total_blocker_comments: number;
   total_deliverable_comments: number;
-  unresolved_inquiry_comments: number;
   avg_response_time_hours: number;
 }
 

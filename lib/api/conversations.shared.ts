@@ -31,6 +31,7 @@ export interface Conversation {
   } | null
   participants?: DirectConversationParticipant[]
   unread_count?: number
+  mention_count?: number
   last_message?: Message | null
 }
 
@@ -55,8 +56,6 @@ export interface Message {
   edited_at: string | null
   deleted_at: string | null
   created_at: string
-  // Sync fields for bidirectional sync with inquiry_comments
-  synced_inquiry_comment_id?: string | null
   // Joined fields
   sender?: {
     id: string

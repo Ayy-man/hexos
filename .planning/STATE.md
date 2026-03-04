@@ -84,6 +84,7 @@ Resume file: .planning/phases/23-onboarding-wizard/23-02-SUMMARY.md
   - Phase 22 added: Modern Auth Methods — Google OAuth, magic links, password reset
   - Phase 23 added: Onboarding Wizard — post-invite stepper, role-specific intro, dashboard redirect
 - Phase 24 added: Remove onboarding form, replace with doc and task
+- Phase 26 added: Conversations System Overhaul — nuke inquiry comments, fix DFY 500 errors, role-based tab filtering, conversation list UX improvements
 
 ---
 

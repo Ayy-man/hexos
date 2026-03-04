@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { cn } from '@/lib/utils'
-import type { Conversation, Message } from '@/lib/api/conversations.shared'
+import type { Conversation, Message, ConversationType } from '@/lib/api/conversations.shared'
+import { CONVERSATION_TYPE_LABELS, CONVERSATION_TYPE_DESCRIPTIONS } from '@/lib/api/conversations.shared'
 import { useMessagesRealtime } from '@/hooks/use-messages-realtime'
 import { MessageList } from './MessageList'
 import { MessageInput } from './MessageInput'
@@ -106,17 +107,45 @@ export function ChatPanel({
     }
   }
 
+  const getWelcomeMessage = (type: ConversationType) => {
+    switch (type) {
+      case 'project':
+        return 'Messages here are visible to everyone on this project.'
+      case 'workspace':
+        return 'Only the internal team and assigned developer can see messages here.'
+      case 'partner':
+        return 'Only the internal team and DFY partner can see messages here.'
+      case 'direct':
+        return 'This is a private conversation.'
+      case 'inquiry':
+        return 'Discuss this inquiry with relevant team members.'
+      default:
+        return 'Start the conversation.'
+    }
+  }
+
   return (
     <div className={cn('flex flex-col h-full', className)}>
-      <MessageList
-        messages={messages}
-        currentUserId={currentUserId}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onToggleReaction={handleToggleReaction}
-        onDownloadAttachment={handleDownloadAttachment}
-        className="flex-1 min-h-0"
-      />
+      {/* Visibility indicator */}
+      <div className="px-4 py-2 text-xs text-muted-foreground border-b bg-muted/30">
+        {CONVERSATION_TYPE_LABELS[conversation.type] || conversation.type} &middot; {CONVERSATION_TYPE_DESCRIPTIONS[conversation.type]}
+      </div>
+
+      {messages.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          <p className="text-sm">{getWelcomeMessage(conversation.type)}</p>
+        </div>
+      ) : (
+        <MessageList
+          messages={messages}
+          currentUserId={currentUserId}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onToggleReaction={handleToggleReaction}
+          onDownloadAttachment={handleDownloadAttachment}
+          className="flex-1 min-h-0"
+        />
+      )}
 
       <MessageInput
         onSend={handleSend}

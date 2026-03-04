@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { requireAuth, getProfile } from '@/lib/auth/guards'
 import { createClient } from '@/lib/supabase/server'
 import { getInquiry, type DeliverablesNegotiationStatus } from '@/lib/api/inquiries'
-import { getInquiryComments, type InquiryComment, type CommentType } from '@/lib/api/inquiry-comments'
 import { getProposalDeliverables, type ProposalDeliverable } from '@/lib/api/proposal-deliverables'
 import { getBlueprints } from '@/lib/api/blueprints'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -31,9 +30,6 @@ import { isNotFoundError } from '@/lib/errors'
 import { generateDocumentFromInquiry } from '@/features/inquiries/utils/generateDocumentFromInquiry'
 import {
   saveInquiryDocumentWithDiscussions,
-  addInquiryComment,
-  resolveInquiryCommentAction,
-  deleteInquiryCommentAction,
 } from '@/features/inquiries/actions/documentActions'
 import {
   saveProposalContentAction,
@@ -43,9 +39,6 @@ import {
   approveProposalAction,
   saveDfyVersionAction,
   copyProposalToDfyVersionAction,
-  addProposalComment,
-  resolveProposalCommentAction,
-  deleteProposalCommentAction,
 } from '@/features/inquiries/actions/proposalActions'
 import {
   triggerParseDeliverablesAction,
@@ -195,8 +188,6 @@ export default async function InquiryDetailPage({
   }
 
   let inquiry
-  let internalComments: InquiryComment[] = []
-  let dfyComments: InquiryComment[] = []
   try {
     inquiry = await getInquiry(id)
   } catch (error) {
@@ -253,47 +244,10 @@ export default async function InquiryDetailPage({
   const showProposalTab = isAdmin || isDfyOwner
   const showMyVersionTab = isDfyOwner
 
-  // Fetch comments by type - admin/internal see both, DFY only sees DFY
-  const isInternal = isAdmin
-  let proposalComments: InquiryComment[] = []
-  try {
-    if (isInternal) {
-      // Fetch all comment types for internal users
-      const [internal, dfy] = await Promise.all([
-        getInquiryComments(id, 'internal'),
-        getInquiryComments(id, 'dfy'),
-      ])
-      internalComments = internal
-      dfyComments = dfy
-      // Proposal comments might fail if enum doesn't exist yet
-      try {
-        proposalComments = await getInquiryComments(id, 'proposal')
-      } catch {
-        proposalComments = []
-      }
-    } else if (isDfyOwner && proposalSubmitted) {
-      // DFY sees DFY comments and proposal comments (after submission)
-      dfyComments = await getInquiryComments(id, 'dfy')
-      try {
-        proposalComments = await getInquiryComments(id, 'proposal')
-      } catch {
-        proposalComments = []
-      }
-    } else {
-      // DFY only sees DFY comments
-      dfyComments = await getInquiryComments(id, 'dfy')
-    }
-  } catch (error) {
-    // inquiry_comments table may not exist yet - silently fail
-    console.warn('Failed to fetch comments:', error)
-  }
-
   const formData = (inquiry.form_data || {}) as Record<string, unknown>
   const canEdit = isAdmin
   const canEditAsOwner = isDfyOwner
-  // Document tab: admin-only edit, others can comment (#29)
   const canEditDocument = canEdit
-  const canComment = ['admin', 'internal', 'dfy'].includes(profile.role)
 
   // Fetch deliverables and blueprints for negotiation
   let deliverables: ProposalDeliverable[] = []
@@ -363,21 +317,6 @@ export default async function InquiryDetailPage({
     await saveInquiryDocumentWithDiscussions(id, content, discussions)
   }
 
-  const boundAddComment = async (content: string, commentType: CommentType, parentId?: string) => {
-    'use server'
-    return addInquiryComment(id, content, commentType, parentId)
-  }
-
-  const boundResolveComment = async (commentId: string, resolved: boolean) => {
-    'use server'
-    await resolveInquiryCommentAction(id, commentId, resolved)
-  }
-
-  const boundDeleteComment = async (commentId: string) => {
-    'use server'
-    await deleteInquiryCommentAction(id, commentId)
-  }
-
   // Bound server actions for Proposal tab
   const boundSaveProposal = async (content: unknown, discussions: TDiscussion[]) => {
     'use server'
@@ -402,21 +341,6 @@ export default async function InquiryDetailPage({
   const boundApproveProposal = async () => {
     'use server'
     await approveProposalAction(id)
-  }
-
-  const boundAddProposalComment = async (content: string, parentId?: string) => {
-    'use server'
-    return addProposalComment(id, content, parentId)
-  }
-
-  const boundResolveProposalComment = async (commentId: string, resolved: boolean) => {
-    'use server'
-    await resolveProposalCommentAction(id, commentId, resolved)
-  }
-
-  const boundDeleteProposalComment = async (commentId: string) => {
-    'use server'
-    await deleteProposalCommentAction(id, commentId)
   }
 
   // Bound server actions for My Version tab
@@ -619,14 +543,6 @@ export default async function InquiryDetailPage({
               <MessageSquare className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Document</span>
               <span className="sm:hidden">Doc</span>
-              {(() => {
-                const unresolvedCount = [...internalComments, ...dfyComments].filter(c => !c.resolved && !c.parent_id).length
-                return unresolvedCount > 0 ? (
-                  <Badge variant="secondary" className="ml-1 text-xs">
-                    {unresolvedCount}
-                  </Badge>
-                ) : null
-              })()}
             </TabsTrigger>
             {showProposalTab && (
               <TabsTrigger value="proposal" className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 md:min-w-[100px]">
@@ -637,14 +553,6 @@ export default async function InquiryDetailPage({
                     Sent
                   </Badge>
                 )}
-                {(() => {
-                  const unresolvedCount = proposalComments.filter(c => !c.resolved && !c.parent_id).length
-                  return unresolvedCount > 0 ? (
-                    <Badge variant="secondary" className="ml-1 text-xs">
-                      {unresolvedCount}
-                    </Badge>
-                  ) : null
-                })()}
               </TabsTrigger>
             )}
             {showMyVersionTab && (
@@ -952,20 +860,12 @@ export default async function InquiryDetailPage({
             initialDocumentContent={inquiry.document_content}
             generatedDocumentContent={generatedDocumentContent}
             initialInlineDiscussions={(inquiry.inline_discussions as TDiscussion[]) || []}
-            internalComments={internalComments}
-            dfyComments={dfyComments}
             canEdit={canEditDocument}
-            canComment={canComment}
-            showInternalTab={isInternal}
-            showDfyTab={true}
             currentUser={{
               id: profile.id,
               name: profile.name || profile.email || 'User',
             }}
             saveDocument={boundSaveDocument}
-            addComment={boundAddComment}
-            resolveComment={boundResolveComment}
-            deleteComment={boundDeleteComment}
           />
         </TabsContent>
 
@@ -980,7 +880,6 @@ export default async function InquiryDetailPage({
               proposalStage={inquiry.proposal_stage as ProposalStage}
               isAdmin={isAdmin}
               isDfyOwner={isDfyOwner}
-              proposalComments={proposalComments}
               currentUser={{
                 id: profile.id,
                 name: profile.name || profile.email || 'User',
@@ -991,9 +890,6 @@ export default async function InquiryDetailPage({
               unsubmitProposal={isAdmin ? boundUnsubmitProposal : undefined}
               submitForReview={isAdmin ? boundSubmitForReview : undefined}
               approveProposal={isAdmin ? boundApproveProposal : undefined}
-              addComment={boundAddProposalComment}
-              resolveComment={boundResolveProposalComment}
-              deleteComment={boundDeleteProposalComment}
               onStartNegotiation={isDfyOwner ? boundStartNegotiation : undefined}
             />
           </TabsContent>

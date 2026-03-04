@@ -219,8 +219,16 @@ export function IntakeForm({ blueprints, caseStudies, partnerName }: IntakeFormP
     }
   }
 
+  const handleReset = () => {
+    methods.reset({ partner_name: partnerName })
+    setStep('initial')
+    setSubmittedPath(null)
+    setSubmittedInquiryId(null)
+    setCopilotEnabled(false)
+  }
+
   if (step === 'confirmation') {
-    return <ConfirmationScreen isClosedDeal={submittedPath?.startsWith('A') || false} inquiryId={submittedInquiryId} />
+    return <ConfirmationScreen isClosedDeal={submittedPath?.startsWith('A') || false} inquiryId={submittedInquiryId} onReset={handleReset} />
   }
 
   // Only show copilot sidebar on the main detail page

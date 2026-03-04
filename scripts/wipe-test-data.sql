@@ -66,9 +66,6 @@ TRUNCATE TABLE proposal_deliverable_comments CASCADE;
 TRUNCATE TABLE proposal_deliverable_history CASCADE;
 TRUNCATE TABLE proposal_deliverables CASCADE;
 
--- Inquiry comments
-TRUNCATE TABLE inquiry_comments CASCADE;
-
 -- ============================================
 -- 3. Delete project related
 -- ============================================

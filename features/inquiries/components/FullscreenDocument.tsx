@@ -8,47 +8,29 @@ import { Plate, usePlateEditor } from 'platejs/react'
 import { Editor, EditorContainer } from '@/components/ui/editor'
 import { FloatingToolbar } from '@/components/ui/floating-toolbar'
 import { FloatingToolbarButtons } from '@/components/ui/floating-toolbar-buttons'
-import { CommentsSidebar } from './CommentsSidebar'
 import { createInquiryDocumentPlugins, type DiscussionUser, type TDiscussion } from './editor/plugins'
 import { discussionPlugin } from '@/components/editor/plugins/discussion-kit'
-import type { InquiryComment, CommentType } from '@/lib/api/inquiry-comments'
 
 interface FullscreenDocumentProps {
   inquiryId: string
   documentContent: unknown
   initialDiscussions?: TDiscussion[]
-  internalComments: InquiryComment[]
-  dfyComments: InquiryComment[]
   readOnly: boolean
-  canComment: boolean
   canEdit: boolean
-  showInternalTab: boolean
-  showDfyTab: boolean
   currentUser?: DiscussionUser
   onClose: () => void
   onSave?: (content: unknown, discussions: TDiscussion[]) => Promise<void>
-  onAddComment?: (content: string, commentType: CommentType, parentId?: string) => Promise<void>
-  onResolve?: (commentId: string, resolved: boolean) => Promise<void>
-  onDelete?: (commentId: string) => Promise<void>
 }
 
 export function FullscreenDocument({
   inquiryId,
   documentContent,
   initialDiscussions,
-  internalComments,
-  dfyComments,
   readOnly,
-  canComment,
   canEdit,
-  showInternalTab,
-  showDfyTab,
   currentUser,
   onClose,
   onSave,
-  onAddComment,
-  onResolve,
-  onDelete,
 }: FullscreenDocumentProps) {
   // Handle escape key to close
   useEffect(() => {
@@ -113,10 +95,10 @@ export function FullscreenDocument({
         </Button>
       </div>
 
-      {/* Content - Side by side */}
+      {/* Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Document Editor - 70% */}
-        <div className="flex-[7] overflow-auto border-r">
+        {/* Document Editor - Full Width */}
+        <div className="flex-1 overflow-auto">
           <Plate
             editor={editor}
             onChange={handleChange}
@@ -134,21 +116,6 @@ export function FullscreenDocument({
               <FloatingToolbarButtons />
             </FloatingToolbar>
           </Plate>
-        </div>
-
-        {/* Comments Sidebar - 30% */}
-        <div className="flex-[3] overflow-auto bg-muted/30 p-4">
-          <CommentsSidebar
-            inquiryId={inquiryId}
-            internalComments={internalComments}
-            dfyComments={dfyComments}
-            canEdit={canComment}
-            showInternalTab={showInternalTab}
-            showDfyTab={showDfyTab}
-            onAddComment={onAddComment}
-            onResolve={canEdit ? onResolve : undefined}
-            onDelete={canEdit ? onDelete : undefined}
-          />
         </div>
       </div>
 

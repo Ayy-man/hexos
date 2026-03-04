@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { ConversationList, ChatPanel } from '@/features/conversations/components'
 import { UnreadBadge } from '@/features/conversations/components/UnreadBadge'
 import type { Conversation, Message } from '@/lib/api/conversations.shared'
+import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations.shared'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MessageSquare, FolderKanban, FileText, Inbox, Plus, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -42,6 +43,9 @@ export function ConversationsView({
   const [participants, setParticipants] = useState<Participant[]>([])
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const isMobile = useIsMobile()
+
+  // Role-based tab visibility
+  const showInquiriesTab = ['admin', 'internal', 'dfy'].includes(userRole)
 
   // Handle new conversation started from dialog
   const handleConversationStarted = async (conversationId: string) => {
@@ -201,8 +205,8 @@ export function ConversationsView({
               {getConversationTitle(selectedConversation)}
             </h2>
             {selectedConversation.type !== 'direct' && (
-              <p className="text-xs text-muted-foreground capitalize">
-                {selectedConversation.type}
+              <p className="text-xs text-muted-foreground">
+                {CONVERSATION_TYPE_LABELS[selectedConversation.type]}
               </p>
             )}
           </div>
@@ -256,14 +260,16 @@ export function ConversationsView({
                 <span className="hidden md:inline">Projects</span>
                 {projectUnread > 0 && <UnreadBadge count={projectUnread} />}
               </TabsTrigger>
-              <TabsTrigger
-                value="inquiries"
-                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 md:px-4"
-              >
-                <FileText className="h-4 w-4" />
-                <span className="hidden md:inline">Inquiries</span>
-                {inquiryUnread > 0 && <UnreadBadge count={inquiryUnread} />}
-              </TabsTrigger>
+              {showInquiriesTab && (
+                <TabsTrigger
+                  value="inquiries"
+                  className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 md:px-4"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden md:inline">Inquiries</span>
+                  {inquiryUnread > 0 && <UnreadBadge count={inquiryUnread} />}
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
         </Tabs>
@@ -285,6 +291,7 @@ export function ConversationsView({
             selectedId={null}
             onSelect={handleSelectConversation}
             currentUserId={currentUserId}
+            tabId={activeTab}
             className="flex-1"
           />
         </div>
@@ -306,6 +313,7 @@ export function ConversationsView({
               selectedId={selectedConversation?.id || null}
               onSelect={handleSelectConversation}
               currentUserId={currentUserId}
+              tabId={activeTab}
               className="flex-1 border-r-0"
             />
           </div>

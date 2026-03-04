@@ -507,6 +507,47 @@ async function batchGetUnreadCounts(
 }
 
 /**
+ * Batch-fetch unread mention counts for multiple conversations.
+ * Counts @mentions of the current user in unread messages.
+ */
+async function batchGetMentionCounts(
+  conversationIds: string[],
+  userId: string
+): Promise<Map<string, number>> {
+  if (conversationIds.length === 0) return new Map()
+
+  const supabase = await createClient()
+
+  // Get read statuses
+  const { data: readStatuses } = await supabase
+    .from('conversation_read_status')
+    .select('conversation_id, last_read_at')
+    .eq('user_id', userId)
+    .in('conversation_id', conversationIds)
+
+  const readMap = new Map(
+    (readStatuses || []).map(rs => [rs.conversation_id, rs.last_read_at])
+  )
+
+  // Count mentions per conversation in parallel
+  const counts = await Promise.all(
+    conversationIds.map(async (convId) => {
+      const lastReadAt = readMap.get(convId) || '1970-01-01T00:00:00Z'
+      const { count } = await supabase
+        .from('message_mentions')
+        .select('*, messages!inner(conversation_id, created_at, sender_id)', { count: 'exact', head: true })
+        .eq('mentioned_user_id', userId)
+        .eq('messages.conversation_id', convId)
+        .gt('messages.created_at', lastReadAt)
+        .neq('messages.sender_id', userId)
+      return [convId, count || 0] as const
+    })
+  )
+
+  return new Map(counts)
+}
+
+/**
  * Batch-fetch last message for multiple conversations in a single query.
  * Uses Supabase ordering + JS grouping to get the most recent message per conversation.
  */
@@ -551,14 +592,16 @@ async function enrichConversations(
   if (conversations.length === 0) return []
 
   const ids = conversations.map(c => c.id as string)
-  const [unreadCounts, lastMessages] = await Promise.all([
+  const [unreadCounts, mentionCounts, lastMessages] = await Promise.all([
     batchGetUnreadCounts(ids, userId),
+    batchGetMentionCounts(ids, userId),
     batchGetLastMessages(ids),
   ])
 
   return conversations.map(conv => ({
     ...conv,
     unread_count: unreadCounts.get(conv.id as string) || 0,
+    mention_count: mentionCounts.get(conv.id as string) || 0,
     last_message: lastMessages.get(conv.id as string) || null,
   })) as Conversation[]
 }
@@ -568,7 +611,7 @@ async function enrichConversations(
 // ============================================
 
 /**
- * Send a new message (and sync to inquiry_comments for inquiry conversations)
+ * Send a new message in a conversation
  */
 export async function sendMessage(
   conversationId: string,
@@ -609,75 +652,7 @@ export async function sendMessage(
   // Update sender's read status to now
   await markConversationRead(conversationId, message.id)
 
-  // Sync to inquiry_comments for inquiry conversations
-  await syncMessageToInquiryComment(supabase, conversationId, message, user.id)
-
   return message
-}
-
-/**
- * Sync a message to inquiry_comments table (for inquiry conversations)
- */
-async function syncMessageToInquiryComment(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  conversationId: string,
-  message: Message,
-  userId: string
-): Promise<void> {
-  try {
-    // Check if this is an inquiry conversation
-    const { data: conversation, error: convError } = await supabase
-      .from('conversations')
-      .select('type, inquiry_id')
-      .eq('id', conversationId)
-      .single()
-
-    if (convError || !conversation || conversation.type !== 'inquiry' || !conversation.inquiry_id) {
-      return // Not an inquiry conversation, skip sync
-    }
-
-    // Get the user's role to determine comment_type
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single()
-
-    if (profileError || !profile) {
-      console.warn('[Sync] Could not get user profile for comment_type')
-      return
-    }
-
-    // Map role to comment_type: admin/internal -> 'internal', dfy -> 'dfy'
-    const commentType = ['admin', 'internal'].includes(profile.role) ? 'internal' : 'dfy'
-
-    // Create the synced inquiry_comment
-    const { data: comment, error: commentError } = await supabase
-      .from('inquiry_comments')
-      .insert({
-        inquiry_id: conversation.inquiry_id,
-        content: message.content,
-        comment_type: commentType,
-        author_id: userId,
-        created_at: message.created_at,
-        synced_message_id: message.id,
-      })
-      .select('id')
-      .single()
-
-    if (commentError) {
-      console.error('[Sync] Failed to create inquiry_comment:', commentError)
-      return
-    }
-
-    // Update the message with the synced comment ID
-    await supabase
-      .from('messages')
-      .update({ synced_inquiry_comment_id: comment.id })
-      .eq('id', message.id)
-  } catch (err) {
-    console.error('[Sync] Error syncing message to inquiry_comment:', err)
-  }
 }
 
 /**

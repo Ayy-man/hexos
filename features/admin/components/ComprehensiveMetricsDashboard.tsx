@@ -756,10 +756,6 @@ export async function ComprehensiveMetricsDashboard() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center justify-between">
-                <span>Inquiry Comments</span>
-                <Badge variant="secondary">{formatNumber(comments.total_inquiry_comments)}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
                 <span>Blocker Comments</span>
                 <Badge variant="secondary">{formatNumber(comments.total_blocker_comments)}</Badge>
               </div>
@@ -767,12 +763,6 @@ export async function ComprehensiveMetricsDashboard() {
                 <span>Deliverable Comments</span>
                 <Badge variant="secondary">
                   {formatNumber(comments.total_deliverable_comments)}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Unresolved</span>
-                <Badge variant="destructive">
-                  {formatNumber(comments.unresolved_inquiry_comments)}
                 </Badge>
               </div>
             </CardContent>

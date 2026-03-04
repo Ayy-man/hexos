@@ -1,11 +1,19 @@
 'use client'
 
 import { memo } from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import { format, isToday, isYesterday, isThisWeek, isThisYear } from 'date-fns'
 import { cn } from '@/lib/utils'
 import type { Conversation, ConversationType } from '@/lib/api/conversations.shared'
 import { CONVERSATION_TYPE_LABELS } from '@/lib/api/conversations.shared'
-import { UnreadBadge } from './UnreadBadge'
+import { UnreadBadge, UnreadDot } from './UnreadBadge'
+
+function formatConversationTime(date: Date): string {
+  if (isToday(date)) return format(date, 'h:mm a')
+  if (isYesterday(date)) return 'Yesterday'
+  if (isThisWeek(date)) return format(date, 'EEEE')
+  if (isThisYear(date)) return format(date, 'MMM d')
+  return format(date, 'M/d/yy')
+}
 import { Users, Briefcase, Handshake, MessageCircle, FileQuestion, Lightbulb } from 'lucide-react'
 
 // Type badge configuration with colors and icons
@@ -54,15 +62,25 @@ interface ConversationItemProps {
 }
 
 export const ConversationItem = memo(function ConversationItem({ conversation, isSelected, onClick, currentUserId }: ConversationItemProps) {
+  const hasUnread = (conversation.unread_count || 0) > 0
+  const hasMentions = (conversation.mention_count || 0) > 0
+
   const lastMessageTime = conversation.last_message?.created_at
-    ? formatDistanceToNow(new Date(conversation.last_message.created_at), { addSuffix: true })
+    ? formatConversationTime(new Date(conversation.last_message.created_at))
     : null
 
   const lastMessagePreview = conversation.last_message?.content
     ? truncate(conversation.last_message.content, 50)
-    : 'No messages yet'
+    : conversation.last_message?.attachments?.length
+      ? 'Sent an attachment'
+      : 'No messages yet'
 
-  const senderName = conversation.last_message?.sender?.name || null
+  const isOwnMessage = conversation.last_message?.sender_id === currentUserId
+  const senderDisplay = conversation.last_message
+    ? isOwnMessage
+      ? 'You'
+      : (conversation.last_message.sender?.name || null)
+    : null
 
   // For direct messages, find the OTHER person
   const otherParticipant = conversation.type === 'direct' && conversation.participants
@@ -136,7 +154,10 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
 
         <div className="min-w-0 flex-1">
           {/* Display name */}
-          <div className="font-medium text-sm truncate">{getDisplayName()}</div>
+          <div className={cn(
+            "text-sm truncate",
+            hasUnread ? "font-semibold text-foreground" : "font-medium text-foreground"
+          )}>{getDisplayName()}</div>
 
           {/* Type label and subtitle */}
           <div className="flex items-center gap-1.5 mt-0.5">
@@ -152,8 +173,11 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
           </div>
 
           {/* Last message preview */}
-          <p className="text-sm text-muted-foreground mt-1 truncate">
-            {senderName && <span className="font-medium">{senderName}: </span>}
+          <p className={cn(
+            "text-sm mt-1 truncate",
+            hasUnread ? "text-muted-foreground font-medium" : "text-muted-foreground"
+          )}>
+            {senderDisplay && <span className="font-medium">{senderDisplay}: </span>}
             {lastMessagePreview}
           </p>
         </div>
@@ -164,10 +188,12 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
             <span className="text-xs text-muted-foreground">{lastMessageTime}</span>
           )}
 
-          {/* Unread badge */}
-          {(conversation.unread_count || 0) > 0 && (
-            <UnreadBadge count={conversation.unread_count || 0} />
-          )}
+          {/* Tiered unread indicators */}
+          {hasMentions ? (
+            <UnreadBadge count={conversation.mention_count!} />
+          ) : hasUnread ? (
+            <UnreadDot />
+          ) : null}
         </div>
       </div>
     </button>
