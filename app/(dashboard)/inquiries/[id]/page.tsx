@@ -301,7 +301,7 @@ export default async function InquiryDetailPage({
   const deliverablesStatus = (inquiry.deliverables_status || 'none') as DeliverablesNegotiationStatus
   const isClosed = !!inquiry.closed_at
   const isClosedOrLostStage = inquiry.proposal_stage === 'closed' || inquiry.proposal_stage === 'lost'
-  const showDeliverablesTab = proposalSubmitted && (deliverablesStatus !== 'none' || isClosed)
+  const showDeliverablesTab = proposalSubmitted
 
   try {
     const [d, b] = await Promise.all([

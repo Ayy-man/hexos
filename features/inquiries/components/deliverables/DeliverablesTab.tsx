@@ -252,37 +252,46 @@ export function DeliverablesTab({
 
   if (deliverablesStatus === 'none') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5" />
-            Extract Deliverables
-          </CardTitle>
-          <CardDescription>
-            Use AI to extract deliverables from your proposal, or add them manually.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-3">
-            <Button onClick={handleParse} disabled={isParsing || !proposalContent}>
-              {isParsing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Extracting...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Extract from Proposal
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={() => setShowAddModal(true)}>
-              Add Manually
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Extract Deliverables
+            </CardTitle>
+            <CardDescription>
+              Use AI to extract deliverables from your proposal, or add them manually.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button onClick={handleParse} disabled={isParsing || !proposalContent}>
+                {isParsing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Extracting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Extract from Proposal
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" onClick={() => setShowAddModal(true)}>
+                Add Manually
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <AddDeliverableModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+          blueprints={blueprints}
+          onAddFromBlueprint={handleAddFromBlueprint}
+          onAddCustom={handleAddCustom}
+        />
+      </>
     )
   }
 

@@ -203,10 +203,9 @@ export async function triggerParseDeliverablesAction(
 ): Promise<{ deliverables?: ProposalDeliverable[]; error?: string }> {
   console.log('[triggerParse] Starting for inquiry:', inquiryId)
 
-  // Update status to parsing
-  await updateDeliverablesStatus(inquiryId, 'parsing')
-
   try {
+    // Update status to parsing
+    await updateDeliverablesStatus(inquiryId, 'parsing')
     // Call OpenRouter directly (no internal API route needed)
     const parsedDeliverables = await parseDeliverablesWithAI(proposalContent)
 
