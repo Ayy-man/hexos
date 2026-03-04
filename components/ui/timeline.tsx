@@ -67,7 +67,7 @@ const timelineIconVariants = cva(
       status: {
         default: "border-border text-muted-foreground",
         completed: "border-primary bg-primary text-primary-foreground",
-        active: "border-primary bg-background text-primary ring-2 ring-primary/40 ring-offset-1 ring-offset-background",
+        active: "border-primary bg-background text-primary shadow-[0_0_0_3px] shadow-primary/20",
         pending: "border-muted-foreground/30 text-muted-foreground",
         error: "border-destructive bg-destructive text-destructive-foreground",
       },
