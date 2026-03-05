@@ -253,8 +253,13 @@ export async function uploadAvatar(file: File): Promise<string> {
     .from('general-purpose')
     .getPublicUrl(data.path)
 
-  // Update profile with new avatar URL
-  await updateCurrentUserProfile({ avatar_url: urlData.publicUrl })
+  // Update profile with new avatar URL using the same client
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({ avatar_url: urlData.publicUrl })
+    .eq('id', user.id)
+
+  if (updateError) throw updateError
 
   return urlData.publicUrl
 }
@@ -274,16 +279,25 @@ export async function removeAvatar(): Promise<void> {
     .single()
 
   if (profile?.avatar_url) {
-    // Extract path from URL and delete
-    const url = new URL(profile.avatar_url)
-    const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/general-purpose\/(.+)/)
-    if (pathMatch) {
-      await supabase.storage.from('general-purpose').remove([pathMatch[1]])
+    // Try to delete from storage (may fail for non-admin users due to RLS)
+    try {
+      const url = new URL(profile.avatar_url)
+      const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/general-purpose\/(.+)/)
+      if (pathMatch) {
+        await supabase.storage.from('general-purpose').remove([pathMatch[1]])
+      }
+    } catch {
+      // Storage deletion may fail due to RLS policies - continue to clear profile URL
     }
   }
 
-  // Clear avatar_url in profile
-  await updateCurrentUserProfile({ avatar_url: null })
+  // Clear avatar_url in profile using the same client
+  const { error } = await supabase
+    .from('profiles')
+    .update({ avatar_url: null })
+    .eq('id', user.id)
+
+  if (error) throw error
 }
 
 // Update notification preferences

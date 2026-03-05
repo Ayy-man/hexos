@@ -54,12 +54,12 @@ export function AvatarUpload({ currentAvatarUrl, userName }: AvatarUploadProps) 
       } else {
         toast.error(result.error || 'Failed to upload avatar')
       }
-    })
 
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
+      // Reset input after upload completes
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    })
   }
 
   const handleRemove = () => {
