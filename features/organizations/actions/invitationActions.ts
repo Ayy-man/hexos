@@ -76,7 +76,7 @@ export async function inviteAdminUserAction(
       .eq('id', user.id)
       .single()
 
-    await sendInvitationEmail(
+    const emailSent = await sendInvitationEmail(
       input.email,
       inviterProfile?.name || 'A hexOS admin',
       input.target_role,
@@ -85,6 +85,10 @@ export async function inviteAdminUserAction(
     )
 
     revalidatePath('/dashboard/admin/team')
+
+    if (!emailSent) {
+      return { success: true, invitationId: invitation.id, error: 'Invitation created but email failed to send. Check Resend API key.' }
+    }
 
     return { success: true, invitationId: invitation.id }
   } catch (error) {
@@ -141,7 +145,7 @@ export async function inviteDfyAgencyAction(
       .eq('id', user.id)
       .single()
 
-    await sendInvitationEmail(
+    const emailSent = await sendInvitationEmail(
       input.email,
       inviterProfile?.name || 'A hexOS admin',
       'dfy_first',
@@ -150,6 +154,10 @@ export async function inviteDfyAgencyAction(
     )
 
     revalidatePath('/dashboard/admin/partners')
+
+    if (!emailSent) {
+      return { success: true, invitationId: invitation.id, error: 'Invitation created but email failed to send. Check Resend API key.' }
+    }
 
     return { success: true, invitationId: invitation.id }
   } catch (error) {
@@ -223,7 +231,7 @@ export async function inviteDfyToExistingOrgAction(
       .eq('id', input.organization_id)
       .single()
 
-    await sendInvitationEmail(
+    const emailSent = await sendInvitationEmail(
       input.email,
       inviterProfile?.name || 'A hexOS admin',
       'dfy_team',
@@ -232,6 +240,10 @@ export async function inviteDfyToExistingOrgAction(
     )
 
     revalidatePath('/dashboard/admin/partners')
+
+    if (!emailSent) {
+      return { success: true, invitationId: invitation.id, error: 'Invitation created but email failed to send. Check Resend API key.' }
+    }
 
     return { success: true, invitationId: invitation.id }
   } catch (error) {
@@ -288,7 +300,7 @@ export async function inviteDevAction(
       .eq('id', user.id)
       .single()
 
-    await sendInvitationEmail(
+    const emailSent = await sendInvitationEmail(
       email,
       inviterProfile?.name || 'A hexOS admin',
       'dev',
@@ -297,6 +309,10 @@ export async function inviteDevAction(
     )
 
     revalidatePath('/dashboard/admin/devs')
+
+    if (!emailSent) {
+      return { success: true, invitationId: invitation.id, error: 'Invitation created but email failed to send. Check Resend API key.' }
+    }
 
     return { success: true, invitationId: invitation.id }
   } catch (error) {
@@ -355,13 +371,17 @@ export async function inviteTeamMemberAction(
       .eq('id', input.organization_id)
       .single()
 
-    await sendInvitationEmail(
+    const emailSent = await sendInvitationEmail(
       input.email,
       inviterProfile?.name || 'Your team',
       type,
       org?.name || null,
       invitation.token
     )
+
+    if (!emailSent) {
+      return { success: true, invitationId: invitation.id, error: 'Invitation created but email failed to send. Check Resend API key.' }
+    }
 
     return { success: true, invitationId: invitation.id }
   } catch (error) {
@@ -647,19 +667,28 @@ export async function resendInvitationAction(
       const inviterName = Array.isArray(inviterData) ? inviterData[0]?.name : inviterData?.name
       const orgName = Array.isArray(orgData) ? orgData[0]?.name : orgData?.name
 
-      await sendInvitationEmail(
+      const emailSent = await sendInvitationEmail(
         fullInvitation.email,
         inviterName || 'hexOS',
         fullInvitation.type,
         orgName || null,
         fullInvitation.token
       )
+
+      revalidatePath('/dashboard/admin/team')
+      revalidatePath('/dashboard/admin/partners')
+
+      if (!emailSent) {
+        return { success: false, error: 'Failed to send invitation email. Check Resend API key.' }
+      }
+
+      return { success: true }
     }
 
     revalidatePath('/dashboard/admin/team')
     revalidatePath('/dashboard/admin/partners')
 
-    return { success: true }
+    return { success: false, error: 'Could not find invitation details to send email' }
   } catch (error) {
     console.error('[resendInvitationAction] Error:', error)
     return {

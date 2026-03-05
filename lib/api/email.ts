@@ -71,6 +71,11 @@ async function renderEmailTemplate(
 export async function sendEmail(params: SendEmailParams): Promise<boolean> {
   const { to, subject, template, data } = params
 
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[EMAIL] RESEND_API_KEY is not set. Cannot send emails.')
+    return false
+  }
+
   try {
     await resend.emails.send({
       from: EMAIL_FROM,
